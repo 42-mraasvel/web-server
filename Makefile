@@ -11,14 +11,14 @@ $(OBJ): $(ODIR)/%.o: $(SDIR)/%.cpp
 	$(CXX) -c -o $@ $< $(CXXFLAGS) $(IFLAGS)
 $(DDIR)/%.d: $(SDIR)/%.cpp
 	@mkdir -p $(@D)
-	$(CXX) $< -MM -MF $@ -MT $(ODIR)/$*.o $(IFLAGS)
+	$(CXX) $< -MM -MF $@ -MT $(ODIR)/$*.o $(IFLAGS) $(CXXFLAGS)
 
 # Clean up
 .PHONY: clean fclean re
 clean:
 	$(RM) -r $(DDIR)
 	$(RM) -r $(ODIR)
-fclean:
+fclean: clean
 	$(RM) $(EXECS)
 re: fclean
 	$(MAKE) all
