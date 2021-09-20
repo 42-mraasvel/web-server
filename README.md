@@ -1,2 +1,6 @@
 # webserv-pyxis
-webserv pyxis power team
+*run.sh*
+Running the program normally:
+  ./run.sh
+Running the catch tests:
+  ./run.sh catch
