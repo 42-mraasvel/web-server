@@ -1,11 +1,12 @@
-name: C/C++ CI
+name: Catch CI tests
 
 on:
   push:
     branches: [ main ]
-    # branches: [ main, '*' ]
   pull_request:
     branches: [ main ]
+
+  workflow_dispatch:
 
 jobs:
   build:
