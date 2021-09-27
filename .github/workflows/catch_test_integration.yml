@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: Catch CI tests
 
 on:
   push:
@@ -6,10 +6,16 @@ on:
   pull_request:
     branches: [ main ]
 
+  workflow_dispatch:
+
 jobs:
   build:
 
-    runs-on: macos-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v2
