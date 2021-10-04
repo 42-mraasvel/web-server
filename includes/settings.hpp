@@ -4,3 +4,5 @@
 #define BACKLOG 10 //TODO: check later
 
 #include <cstdio> // RM
+#include <iostream> // RM
+#include "color.hpp"

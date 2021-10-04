@@ -10,7 +10,10 @@
 int main()
 {
 	Config config_file("file");
+	config_file.print();
 	Webserver webserver;
-	webserver.initWebserver(config_file);
+	webserver.init(config_file);
+	webserver.print();
+	webserver.run();
 	return 0;
 }

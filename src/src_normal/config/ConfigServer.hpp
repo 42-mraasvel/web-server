@@ -11,8 +11,12 @@ class ConfigServer
 		const_iterator end() const;
 		// getter
 
+
 	private:
 		std::vector<int> _ports;
 		// more information added later
 
+	/* Debugging */
+	public:
+		void print() const;
 };

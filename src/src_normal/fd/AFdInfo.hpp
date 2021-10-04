@@ -16,5 +16,4 @@ class AFdInfo
 
 	protected:
 		int		_fd;
-
 };

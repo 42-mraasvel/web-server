@@ -5,7 +5,7 @@
 class Server : public AFdInfo
 {
 	public:
-		int	initServer(int port);
+		int	setupServer(int port);
 		int	readEvent();
 		int	writeEvent();
 		int closeEvent();

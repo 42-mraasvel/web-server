@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
-int		Server::initServer(int port)
+int		Server::setupServer(int port)
 {
 	this->_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->_fd == ERR)

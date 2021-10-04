@@ -16,6 +16,9 @@ class Config
 		const std::string&			_file_name;
 		std::vector<ConfigServer>	_servers;
 		
+	/* Debugging */
+	public:
+		void print() const;
 };
 
 
