@@ -1,9 +1,9 @@
 #include "Server.hpp"
-#include <iostream>
 #include "settings.hpp"
 #include <poll.h>
+#include <iostream>
 #include <netinet/in.h>
-#include <cstdio>
+#include <unistd.h>
 #include <sys/socket.h>
 
 int		Server::initServer(int port)
@@ -38,7 +38,13 @@ int Server::readEvent()
 
 int Server::writeEvent()
 {
-	return OK;
+	std::cerr << "Server write event????" << std::endl;
+	return ERR;
+}
+
+int Server::closeEvent()
+{
+	return close(this->_fd);
 }
 
 struct pollfd Server::getPollFd() const
@@ -49,10 +55,3 @@ struct pollfd Server::getPollFd() const
 	temp.revents = 0;
 	return (temp);
 }
-
-
-
-
-
-
-

@@ -11,20 +11,3 @@ class Webserver
 	private:
 		FdTable _fd_table;
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

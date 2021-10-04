@@ -8,8 +8,6 @@ class Server : public AFdInfo
 		int	initServer(int port);
 		int	readEvent();
 		int	writeEvent();
+		int closeEvent();
 		struct pollfd getPollFd() const;
-
-	private:
-		
 };

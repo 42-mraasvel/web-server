@@ -1,9 +1,6 @@
 #include "ConfigServer.hpp"
 
-ConfigServer::ConfigServer()
-{
-
-}
+ConfigServer::ConfigServer() {}
 
 void	ConfigServer::addPort(int port)
 {

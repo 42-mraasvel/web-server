@@ -10,8 +10,11 @@ Poll loop
 		- connection
 		- file
 		- TBD
-	- read event
+	- read event(table& fds)
+		- Adds FD to table
 		- server
 		- connection 
 		- file
 		- TBD
+	- close event(table& fds)
+		- Erases FD from table
