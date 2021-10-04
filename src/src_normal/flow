@@ -1,0 +1,17 @@
+Config
+	- read config file, generate one class_Config (class_ ConfigServer for each server)
+
+Setup Server
+	- for server
+		- each port: socket -> bind -> listen (error checking)
+
+Poll loop
+	- write event 
+		- connection
+		- file
+		- TBD
+	- read event
+		- server
+		- connection 
+		- file
+		- TBD
