@@ -1,10 +1,12 @@
 #include "Server.hpp"
 #include "settings.hpp"
+#include "Client.hpp"
 #include <poll.h>
 #include <iostream>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <fcntl.h>
 
 int		Server::setupServer(int port)
 {
@@ -28,17 +30,34 @@ int		Server::setupServer(int port)
 		perror("Listen Error");
 		return ERR;
 	}
+	if (fcntl(_fd, F_SETFL, O_NONBLOCK) == ERR)
+	{
+		perror("fcntl");
+	}
 	return OK;
 }
 
-int Server::readEvent()
+int Server::readEvent(FdTable & fd_table)
 {
+	//TODO: in accept() store client info and map the connection
+	int connection_fd = accept(_fd, NULL, NULL);
+	if (connection_fd == ERR)
+	{
+		perror("Accept");
+		return ERR;
+	}
+	if (fcntl(connection_fd, F_SETFL, O_NONBLOCK) == ERR)
+	{
+		perror("fcntl");
+	}
+	Client*	client = new Client(connection_fd);
+	fd_table.insertFd(client);
 	return OK;
 }
 
-int Server::writeEvent()
+int Server::writeEvent(FdTable & fd_table)
 {
-	std::cerr << "Server write event????" << std::endl;
+	std::cerr << RED_BOLD "Server write event detected!!" RESET_COLOR << std::endl;
 	return ERR;
 }
 

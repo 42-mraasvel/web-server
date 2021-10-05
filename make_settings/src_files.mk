@@ -10,14 +10,18 @@ ODIR = obj
 DDIR = dep
 IDIR = includes
 
+SRC_SUBDIR = src_normal
+
 ifdef USING_CATCH
-	SRC_SUBDIR = src_catch
 	NAME = $(CATCH_NAME)
-else
-	SRC_SUBDIR = src_normal
+	CATCH_SUBDIR = src_catch
+	ODIR = obj/obj_catch
 endif # USING_CATCH
 
 SRC := $(shell find $(SDIR)/$(SRC_SUBDIR) -type f -name "*.cpp")
+ifdef USING_CATCH
+	SRC += $(shell find $(SDIR)/$(CATCH_SUBDIR) -type f -name "*.cpp")
+endif # USING_CATCH
 OBJ := $(patsubst $(SDIR)/%.cpp,$(ODIR)/%.o,$(SRC))
 DEP := $(patsubst $(SDIR)/%.cpp,$(DDIR)/%.d,$(SRC))
 

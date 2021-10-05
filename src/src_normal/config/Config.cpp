@@ -12,8 +12,8 @@ Config::Config(std::string const & config_file): _file_name(config_file)
 	dummy2.addPort(18000);
 	dummy2.addPort(18001);
 	dummy2.addPort(18002);
-	this->_servers.push_back(dummy);
-	this->_servers.push_back(dummy2);
+	_servers.push_back(dummy);
+	_servers.push_back(dummy2);
 }
 
 Config::const_iterator Config::begin() const

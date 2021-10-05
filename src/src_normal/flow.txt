@@ -13,8 +13,41 @@ Poll loop
 	- read event(table& fds)
 		- Adds FD to table
 		- server
-		- connection 
+		- connection
 		- file
 		- TBD
 	- close event(table& fds)
 		- Erases FD from table
+
+ServerFd:
+	POLLIN: wait for incoming connection requests
+
+ClientFd:
+	START:
+		POLLIN: wait for incoming request
+		NOTHING: wait for response to become ready
+		POLLOUT: send response
+		CLOSING: Next iteration, we should close this FD
+		Check if connection has to be closed
+	goto START;
+
+ClientSide:
+	START:
+		POLLOUT: send request
+		POLLIN: read response
+	goto START;
+
+
+Opening a file:
+	Client:
+		Initialize the file(client_index) (target resource), add it to the table
+
+	File:
+		read/write from file until finished
+		Update itself to WAITING
+		Update client to WRITING
+	
+	Client:
+		WritingEvent:
+			Extract content from file, create response
+			Set File STATUS to TO_ERASE

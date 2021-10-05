@@ -1,21 +1,26 @@
 #pragma once
-#include "AFdInfo.hpp"
 #include <vector>
+#include <utility>
+
+class AFdInfo;
 
 class FdTable
 {
 	public:
-		typedef std::vector<struct pollfd> PollFdTable;
-		typedef std::vector<AFdInfo *> FdVector_t;
-
+		typedef std::vector<struct pollfd>				PollFdTable;
+		typedef std::vector<AFdInfo *>					FdVector_t;
+		typedef std::pair<struct pollfd&, AFdInfo *>	pair_t;
+		typedef std::size_t								size_type;
+	
 	public:
 		~FdTable();
 		int insertFd(AFdInfo * info);
-		int eraseFd(int fd);
-		int eraseFd(PollFdTable::iterator it);
+		int eraseFd(size_type index);
+		size_type	size();
+		struct pollfd* getPointer();
+		pair_t operator[](size_type index);
 
 	private:
-		FdTable::PollFdTable::iterator findFd(int fd);
 
 	private:
 		std::vector<struct pollfd>	_pollfd_table;

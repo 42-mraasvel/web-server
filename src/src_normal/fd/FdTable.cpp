@@ -1,5 +1,6 @@
 #include "FdTable.hpp"
 #include "settings.hpp"
+#include "AFdInfo.hpp"
 #include <poll.h>
 
 FdTable::~FdTable()
@@ -14,10 +15,11 @@ int	FdTable::insertFd(AFdInfo *info)
 {
 	_pollfd_table.push_back(info->getPollFd());
 	_fd_info_table.push_back(info);
+	info->setIndex(_pollfd_table.size() - 1);
 	return OK;
 }
 
-int FdTable::eraseFd(PollFdTable::iterator it)
+int FdTable::eraseFd(std::size_t index)
 {
 /*
 TODO: call from webserver, which will also close the fd
@@ -25,36 +27,29 @@ TODO: call from webserver, which will also close the fd
 2. Delete the last element
 Complexity: O(1)
 */
-	std::size_t index = it - _pollfd_table.begin();
 	_pollfd_table[index] = _pollfd_table.back();
 	_pollfd_table.pop_back();
+	// TODO: close event monitoring
 	delete _fd_info_table[index];
 	_fd_info_table[index] = _fd_info_table.back();
 	_fd_info_table.pop_back();
+	_fd_info_table[index]->setIndex(index);
 	return OK;
 }
 
-int	FdTable::eraseFd(int fd)
+FdTable::size_type	FdTable::size()
 {
-	PollFdTable::iterator it = findFd(fd);
-	if (it == _pollfd_table.end())
-	{
-		return ERR;
-	}
-	eraseFd(it);
-	return OK;
+	return _pollfd_table.size();
 }
 
-FdTable::PollFdTable::iterator FdTable::findFd(int fd)
+struct pollfd* FdTable::getPointer()
 {
-	for (PollFdTable::iterator it = _pollfd_table.begin(); it != _pollfd_table.end(); ++it)
-	{
-		if (it->fd == fd)
-		{
-			return it;
-		}
-	}
-	return this->_pollfd_table.end();
+	return &_pollfd_table[0];
+}
+
+FdTable::pair_t	FdTable::operator[](size_type index)
+{
+	return pair_t(_pollfd_table[index], _fd_info_table[index]);
 }
 
 /* Debugging */
@@ -77,6 +72,14 @@ void FdTable::print() const
 	std::cout << MAGENTA_BOLD "Fd-Table" RESET_COLOR << std::endl;
 	for (PollFdTable::const_iterator it = _pollfd_table.begin(); it != _pollfd_table.end(); ++it)
 	{
-		std::cout << "  fd: " << it->fd << " | events: " << get_event(it->events) << "| revents: " << get_event(it->revents) << std::endl;
+		std::cout
+		<< "  index: "
+		<< (it - _pollfd_table.begin())
+		<< " | fd: " << it->fd
+		<< " | events: "
+		<< get_event(it->events)
+		<< "| revents: "
+		<< get_event(it->revents)
+		<< std::endl;
 	}
 }

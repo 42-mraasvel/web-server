@@ -8,6 +8,5 @@ int File::readEvent()
 
 int File::writeEvent()
 {
-	return OK;	
+	return OK;
 }
-

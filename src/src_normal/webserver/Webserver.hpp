@@ -10,6 +10,8 @@ class Webserver
 
 	private:
 		int initServer(ConfigServer const & conf);
+		int	dispatchFd(int ready);
+		int checkDisconnectedSockets();
 
 	private:
 		FdTable _fd_table;

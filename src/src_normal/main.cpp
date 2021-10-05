@@ -7,6 +7,7 @@
 #include "color.hpp"
 #include "config/Config.hpp"
 
+#ifndef USING_CATCH
 int main()
 {
 	Config config_file("file");
@@ -17,3 +18,4 @@ int main()
 	webserver.run();
 	return 0;
 }
+#endif /* USING_CATCH */

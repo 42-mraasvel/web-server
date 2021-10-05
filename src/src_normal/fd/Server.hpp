@@ -6,8 +6,8 @@ class Server : public AFdInfo
 {
 	public:
 		int	setupServer(int port);
-		int	readEvent();
-		int	writeEvent();
+		int	readEvent(FdTable & fd_table);
+		int	writeEvent(FdTable & fd_table);
 		int closeEvent();
 		struct pollfd getPollFd() const;
 };
