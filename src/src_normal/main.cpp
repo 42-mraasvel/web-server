@@ -13,7 +13,8 @@ int main()
 	Config config_file("file");
 	config_file.print();
 	Webserver webserver;
-	webserver.init(config_file);
+	if (webserver.init(config_file))
+		return (1);
 	webserver.print();
 	webserver.run();
 	return 0;

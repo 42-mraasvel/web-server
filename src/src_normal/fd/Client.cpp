@@ -9,21 +9,38 @@ struct pollfd	Client::getPollFd() const
 {
 	struct pollfd temp;
 	temp.fd = _fd;
-	temp.events = POLLOUT | POLLHUP;
+	temp.events = POLLIN | POLLHUP;
 	temp.revents = 0;
 	return temp;
 }
 
 int	Client::readEvent(FdTable & fd_table)
 {
+	//TODO: CHECK MAXLEN
+	if (_request.size() + BUFFER_SIZE >= _request.capacity())
+	{
+		_request.reserve(std::max((size_t)BUFFER_SIZE, _request.capacity() * 2));
+	}
+	int ret = recv(_fd, &_request[_request.size()], BUFFER_SIZE, 0);
+	if (ret == ERR)
+	{
+		perror("Recv");
+		return (ERR);
+	}
+	printf("len read: %d\n",printf("%s\n", _request.c_str()));
+
+
 	//TODO:
 /*
 1. Read request
 2. Parser(request)
+
 3. Executor(parser, *this):
 	- GET file (open(READING))
 	- POST file (open(WRITING))
 	- DELETE file
+
+
 4. Receive signal from executor that resonse is ready
 	File:
 		if (writtenPost) {
@@ -33,7 +50,7 @@ int	Client::readEvent(FdTable & fd_table)
 			client->status = POLLOUT;
 		}
 */
-	updateEvents(WRITING, fd_table);
+	// updateEvents(WRITING, fd_table);
 	return OK;
 }
 

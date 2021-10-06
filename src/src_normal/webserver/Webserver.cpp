@@ -38,6 +38,7 @@ int	Webserver::init(Config const & config)
 }
 
 //TODO: evaluate 'ready'
+//TODO: add Multithreading
 int	Webserver::dispatchFd(int ready)
 {
 	std::size_t i = 0;
@@ -76,11 +77,12 @@ int	Webserver::run()
 		//TODO: scan table for FDs that should be removed: TIMEOUT or FILES
 		ready = poll(_fd_table.getPointer(), _fd_table.size(), TIMEOUT);
 		printf("Number of connections: %lu\n", _fd_table.size());
+		print();
 		if (ready < 0)
 		{
 			perror("Poll");
 			// TODO possible exit
-		}	
+		}
 		else if (ready > 0)
 		{
 			printf(YELLOW_BOLD "Poll returns: " RESET_COLOR "%d\n", ready);
