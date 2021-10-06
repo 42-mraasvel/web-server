@@ -77,7 +77,7 @@ int	Webserver::run()
 		//TODO: scan table for FDs that should be removed: TIMEOUT or FILES
 		ready = poll(_fd_table.getPointer(), _fd_table.size(), TIMEOUT);
 		printf("Number of connections: %lu\n", _fd_table.size());
-		print();
+		// print();
 		if (ready < 0)
 		{
 			perror("Poll");

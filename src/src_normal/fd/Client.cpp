@@ -14,6 +14,8 @@ struct pollfd	Client::getPollFd() const
 	return temp;
 }
 
+
+//TODO: Make recv work with multiple iterations, so each iter can loop over request
 int	Client::readEvent(FdTable & fd_table)
 {
 	//TODO: CHECK MAXLEN
@@ -29,6 +31,16 @@ int	Client::readEvent(FdTable & fd_table)
 	}
 	printf("len read: %d\n",printf("%s\n", _request.c_str()));
 
+	//TODO: Parse Header
+	if(_request_parser.parseHeader(_request) == ERR)
+	{
+		return (ERR);
+	}
+
+	if (_executor.execute(_request_parser) == ERR)
+	{
+		return ERR;
+	}
 
 	//TODO:
 /*
@@ -50,20 +62,19 @@ int	Client::readEvent(FdTable & fd_table)
 			client->status = POLLOUT;
 		}
 */
-	// updateEvents(WRITING, fd_table);
+	resetBuffer();
+	updateEvents(WRITING, fd_table);
 	return OK;
 }
 
 int	Client::writeEvent(FdTable & fd_table)
 {
-	//TODO:
-	std::string str(BUFFER_SIZE, 'a');
-	ssize_t n = send(_fd, str.c_str(), str.size(), 0);
-	if (n == ERR)
+	std::string const & response = _executor.getResponse();
+	if (send(_fd, response.c_str(), response.size(), 0) == ERR)
 	{
 		perror("send");
+		return ERR;
 	}
-	printf("Send: %ld of %d bytes\n", n, BUFFER_SIZE);
 	updateEvents(READING, fd_table);
 	return OK;
 }
@@ -91,4 +102,10 @@ void	Client::updateEvents(Client::EventTypes type, FdTable & fd_table)
 			break;
 	}
 	fd_table[_index].first.events = updated_events | POLLHUP;
+}
+
+//TODO: retain information about the next request if present
+void	Client::resetBuffer()
+{
+	_request.clear();
 }

@@ -2,6 +2,8 @@
 #include <sys/socket.h>
 #include "AFdInfo.hpp"
 #include <string>
+#include "parser/RequestParser.hpp"
+#include "executor/Executor.hpp"
 
 class Client : public AFdInfo
 {
@@ -22,12 +24,14 @@ class Client : public AFdInfo
 
 	private:
 		void	updateEvents(Client::EventTypes type, FdTable & fd_table);
+		void	resetBuffer();
 
 	private:
+		//TODO: what TODO with client information??
 		struct sockaddr *	_address;
 		socklen_t			_address_len;
+		//TODO: add time last active for TIMEOUT
 		std::string			_request;
-		// Parser				parser;
-		// Executor			executor;
-		// File*				file;
+		RequestParser		_request_parser;
+		Executor			_executor;
 };
