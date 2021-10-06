@@ -1,6 +1,10 @@
 #pragma once
-#include <vector>
 #include "ConfigServer.hpp"
+#include <vector>
+
+#ifdef __linux__
+#include <string>
+#endif /* __linux__ */
 
 class Config
 {
