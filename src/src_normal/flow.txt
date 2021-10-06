@@ -51,3 +51,35 @@ Opening a file:
 		WritingEvent:
 			Extract content from file, create response
 			Set File STATUS to TO_ERASE
+
+
+TODO:
+	Configuration File:
+		Syntax (language form: copy nginx) (ABNF?)
+		List everything that needs to be present
+		Parse it to the config class instance
+
+	RequestParser(FULL_REQUEST)
+		RequestLine (Method, Target-resoruce, Version)
+		Headerfields (hash table, map)
+		Message-body
+
+	Executor:
+		Implement each method
+		(GET, POST, DELETE)
+		Error responses
+		GET:
+			1. Open file, add to POLLFDS
+			2. Read in file content completely
+			3. Generate respones, signal client to start writing response
+
+		Optimization: Concurrently sending response while reading in message-body using Chunked response
+
+	Client:
+		Check if request has been fully read, whether or not we need to do more
+		Update readEvent to be dynamic
+
+	CGI:
+		Configuration file input
+		Execution
+		Output redirection (piping)
