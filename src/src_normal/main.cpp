@@ -1,5 +1,22 @@
-#include "webserv.hpp"
+#include "settings.hpp"
+#include <cstdlib> // For exit() and EXIT_FAILURE
+#include <iostream> // For cout
+#include <poll.h>
+#include <unistd.h>
+#include "webserver/Webserver.hpp"
+#include "color.hpp"
+#include "config/Config.hpp"
 
-int main() {
+#ifndef USING_CATCH
+int main()
+{
+	Config config_file("file");
+	config_file.print();
+	Webserver webserver;
+	if (webserver.init(config_file))
+		return (1);
+	webserver.print();
+	webserver.run();
 	return 0;
 }
+#endif /* USING_CATCH */
