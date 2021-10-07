@@ -4,10 +4,10 @@
 class File : public AFdInfo
 {
 	public:
-		int	setClientIndex(std::size_t  client_index);
+		File(int client_index, int fd);
 
-		int	readEvent();
-		int	writeEvent();
+		int	readEvent(FdTable & fd_table);
+		int	writeEvent(FdTable & fd_table);
 
 
 	private:

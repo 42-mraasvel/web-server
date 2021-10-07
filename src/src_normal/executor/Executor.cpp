@@ -1,6 +1,11 @@
 #include "Executor.hpp"
 #include "settings.hpp"
 #include "fd/File.hpp"
+#include <fcntl.h>
+#include <cstdlib>
+
+//TODO:: error checking for each function
+
 
 //TODO: ERROR
 //TODO: create response with error status
@@ -11,45 +16,75 @@ int Executor::execute(RequestParser const &parser)
 	switch (parser.getMethod())
 	{
 		case RequestParser::GET:
-			methodGet();
+			methodGet(parser);
 			break;
 		case RequestParser::POST:
-			methodPost();
+			methodPost(parser);
 			break;
 		case RequestParser::DELETE:
-			methodDelete();
+			methodDelete(parser);
 			break; 
 		default:
 			break;
 	}
-	return genericResponse(); 
+	return generateResponse(); 
 	return (OK);
 }
 
 
-int	Executor::methodGet()
+int	Executor::methodGet(RequestParser const & parser)
 {
-	File	new_file;
+	_http_version = "HTTP/1.1";
+	_status_code = "200";
+	_status_phrase = "OK";
 	
-	return printf("Get method called\n");
+	_header_fields.insert(std::pair<std::string, std::string>("Host", "localhost"));
+	_header_fields.insert(std::pair<std::string, std::string>("Content-Length", "12"));
+
+	_message_body = "Hello, Lemon!";
+
+//	int	file_fd = open(parser.getTargetResource().c_str(), O_RDONLY);
+	// TODO: check open error.
+//	File	file(????,file_fd);
+	
+	return OK;
 }
 
-int	Executor::methodPost()
+int	Executor::methodPost(RequestParser const & parser)
 {
-	return printf("Post method called\n");
+	return OK;
 }
-int	Executor::methodDelete()
+int	Executor::methodDelete(RequestParser const & parser)
 {
-	return printf("Delete method called\n");
+	return OK;
 }
 
-int	Executor::genericResponse()
+int	Executor::generateHeaderString()
 {
+	for (header_iterator i = _header_fields.begin(); i != _header_fields.end(); ++i)
+	{
+		_header_string += (i->first + ": " + i->second + NEWLINE);
+	}
+	return OK;
+}
+
+int	Executor::generateResponse()
+{
+/*
 	_response =
-	"HTTP/1.1 200 OK\r\n"
-	"Host: localhost\r\n"
-	"Content-Length: 12\r\n\r\n"
-	"Hello, World!";
+		"HTTP/1.1 200 OK\r\n"
+		"Host: localhost\r\n"
+		"Content-Length: 12\r\n\r\n"
+		"Hello, World!";
+*/
+	
+	if (generateHeaderString() == ERR)
+		return ERR;
+	_response = _http_version + ' '
+				+ _status_code + ' '
+				+ _status_phrase + NEWLINE
+				+ _header_string + NEWLINE
+				+ _message_body;
 	return OK;
 }
 

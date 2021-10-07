@@ -1,18 +1,14 @@
 #include "File.hpp"
 #include "settings.hpp"
 
-int	File::setClientIndex(std::size_t  client_index)
-{
-	_client_index = client_index;
-}
+File::File(int client_index, int fd): AFdInfo(fd), _client_index(client_index) {}
 
-
-int File::readEvent()
+int File::readEvent(FdTable & fd_table)
 {
 	return OK;
 }
 
-int File::writeEvent()
+int File::writeEvent(FdTable & fd_table)
 {
 	return OK;
 }
