@@ -1,5 +1,6 @@
 #include "Executor.hpp"
 #include "settings.hpp"
+#include "fd/File.hpp"
 
 //TODO: ERROR
 //TODO: create response with error status
@@ -28,6 +29,8 @@ int Executor::execute(RequestParser const &parser)
 
 int	Executor::methodGet()
 {
+	File	new_file;
+	
 	return printf("Get method called\n");
 }
 
