@@ -30,7 +30,7 @@ const std::string& RequestParser::getHttpVersion() const
 	return _http_version;
 }
 
-header_field_t& RequestParser::getHeaderFields()
+RequestParser::header_field_t& RequestParser::getHeaderFields()
 {
 	return _header_fields;
 }
