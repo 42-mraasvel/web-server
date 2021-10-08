@@ -2,10 +2,19 @@
 #include "RequestParser.hpp"
 #include "settings.hpp"
 
-//TODO Build parser that really works
 //TODO handle errors
+/*
+Return:
+	- HEADER_INCOMPLETE if more data has to be read
+	- HEADER_COMPLETE if the message-body is not complete
+	- MESSAGE_COMPLETE if header_fields and message-body are both present
+*/
 int RequestParser::parseHeader(std::string const & request)
 {
+	if (request.find(EOHEADER) == std::string::npos)
+	{
+		return INCOMPLETE;
+	}
 	_method = GET;
 	_target_resource = "/";
 	_http_version = "HTTP/1.1";

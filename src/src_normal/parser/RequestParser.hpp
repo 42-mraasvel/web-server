@@ -13,6 +13,13 @@ class RequestParser
 			OTHER
 		};
 
+		enum CompletionStatus
+		{
+			HEADER_INCOMPLETE,
+			HEADER_COMPLETE,
+			REQUEST_COMPLETE
+		};
+
 		typedef std::map<std::string, std::string> header_field_t;
 
 	public:
