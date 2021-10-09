@@ -6,8 +6,18 @@
 #define BACKLOG 10 //TODO: check later
 #define TIMEOUT 10000
 #define BUFFER_SIZE 4096 // TODO: evaluate later
-#define NEWLINE "\r\n"
-#define EOHEADER NEWLINE NEWLINE
+#define CRLF "\r\n"
+#define EOHEADER CRLF CRLF
+
+/*
+Parsing Specific Defines
+*/
+
+#define REQUEST_LINE_MAX_SIZE 8000 // TODO: evaluate [RFC7230] : Section 3.1.1. (page 22)
+
+/*
+Very unnecessary header includes
+*/
 
 #include <cstdio> // RM
 #include <iostream> // RM

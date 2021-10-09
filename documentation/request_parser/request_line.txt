@@ -1,0 +1,22 @@
+------------------
+-- Request Line --
+------------------
+
+-- ABNF --
+
+	Request-Line	=	method 1*SP request-target 1*SP HTTP-version CRLF
+		; Note: [RFC7230]:3.1.1. Mentions it should be a single space, but NginX trims any spaces
+
+	method = token ; ([RFC7231]: Section 4)
+
+	Request-Target	=	origin-form / absolute-form / authority-form / asterisk-form
+		; [RFC7230]: Section 5.3
+
+	HTTP-version	=	HTTP "/" NONZERO_DIGIT *[DIGIT] "." 1*3DIGIT
+
+		[RFC7230]: Section 2.6
+		Major version: NginX accepts ANY digits, cannot start with 0
+			0: bad request
+			>1: version not supported (505)
+		Minor Version: NginX does MAX 3 digits
+			>=1000: Bad Request
