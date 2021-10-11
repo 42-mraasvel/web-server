@@ -20,3 +20,25 @@
 			>1: version not supported (505)
 		Minor Version: NginX does MAX 3 digits
 			>=1000: Bad Request
+
+------------
+-- Method --
+------------
+
+	method = token
+	token = 
+
+-----------------
+-- Origin-Form --
+-----------------
+
+	origin-form = absolute-path [ "?" query ]
+	absolute-path = 1*( "/" segment )
+
+	segment = *pchar
+	query = *(pchar / "/" / "?")
+
+	pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
+	unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+	pct-encoded = "%" HEXDIG HEXDIG
+	sub-delims = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="

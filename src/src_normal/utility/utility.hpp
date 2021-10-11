@@ -11,4 +11,18 @@ std::vector<std::string> splitString(	const std::string& input,
 std::vector<std::string> splitString(	const std::string& input,
 										const std::string& delim_set);
 
+std::size_t findLimit(std::string const & s,
+					std::string const & to_find,
+					std::size_t limit);
+
+long strtol(const char* s);
+long strtol(std::string const & s);
+
 }
+
+bool isSeperator(char x);
+bool isControl(char x);
+bool isTokenChar(char x);
+bool isPchar(char x);
+bool isQueryChar(char x);
+bool isDigit(char x);

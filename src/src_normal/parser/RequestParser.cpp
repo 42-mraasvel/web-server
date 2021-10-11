@@ -8,24 +8,29 @@ RequestParser::HttpVersion::HttpVersion() {}
 RequestParser::HttpVersion::HttpVersion(int maj, int min)
 : major(maj), minor(min) {}
 
-//TODO handle errors
+RequestParser::RequestParser()
+: _status_code(200) {}
+
 /*
 Return:
 	- HEADER_INCOMPLETE if more data has to be read
 	- HEADER_COMPLETE if the message-body is not complete
 	- MESSAGE_COMPLETE if header_fields and message-body are both present
 	- BAD_REQUEST: Syntax error encountered
+		- Method Not Implemented
+		- Version not supported
+		- ...
 */
 int RequestParser::parseHeader(std::string const & request)
 {
-	if (request.find(EOHEADER) == std::string::npos)
+	if (request.find(EOHEADER) > MAX_HEADER_SIZE)
 	{
-		return INCOMPLETE;
+		return ERR;
 	}
 
-	if (parseRequestLine(request, REQUEST_LINE_MAX_SIZE) == ERR)
+	if (parseRequestLine(request) == ERR)
 	{
-		return BAD_REQUEST;
+		return ERR;
 	}
 
 /*
@@ -43,95 +48,178 @@ Hardcoded example
 Request Line Parsing
 See documentation for ABNF and details
 */
-int RequestParser::parseRequestLine(std::string const & request, std::size_t max_size)
+int RequestParser::parseRequestLine(std::string const & request)
 {
-	if (request[0] == ' ')
-	{
-		return ERR;
-	}
-	_index = request.find(CRLF);
-	if (_index > max_size)
+	if (parseMethod(request) != OK)
 	{
 		return ERR;
 	}
 
-	std::vector<std::string> result = WebservUtility::splitString(request.substr(0, _index), ' ');
-	if (result.size() != 3)
+	if (parseSpace(request) != OK)
 	{
 		return ERR;
 	}
-	std::cout << "Requestline:" << std::endl;
-	for (std::size_t i = 0; i < result.size(); ++i) {
-		std::cout << result[i] << std::endl;
-	}
-	if (parseMethod(result[0]) == ERR
-	|| parseTargetResource(result[1]) == ERR
-	|| parseVersion(result[2]) == ERR)
+
+	if (parseTargetResource(request) != OK)
 	{
 		return ERR;
 	}
+
+	if (parseSpace(request) != OK)
+	{
+		return ERR;
+	}
+
+	if (parseVersion(request) != OK)
+	{
+		return ERR;
+	}
+
+	if (request.compare(_index, 2, CRLF) != 0)
+	{
+		return ERR;
+	}
+
+	return OK;
+}
+
+int RequestParser::parseSpace(std::string const & s)
+{
+	if (s[_index] != ' ')
+	{
+		return ERR;
+	}
+	++_index;
 	return OK;
 }
 
 int RequestParser::parseMethod(std::string const & s)
 {
-	static const std::string methods[] = {
-		"GET",
-		"POST",
-		"DELETE"
-	};
-
-	for (int i = GET; i != OTHER; ++i)
+	std::size_t start = _index;
+	if (!isTokenChar(s[_index]))
 	{
-		if (s == methods[i])
-		{
-			_method = static_cast<MethodType> (i);
-			return OK;
-		}
+		return ERR;
 	}
-	_method = OTHER;
+
+	skip(s, isTokenChar);
+	_method = getMethodType(s.substr(start, _index - start));
 	return OK;
 }
 
 int RequestParser::parseTargetResource(std::string const & s)
 {
-	_target_resource = s;
+	std::size_t start = _index;
+	if (skipAbsolutePath(s) == false) {
+		return ERR;
+	}
+	skipQuery(s);
+	_target_resource = s.substr(start, _index - start);
 	return OK;
+}
+
+bool RequestParser::skipAbsolutePath(std::string const & s)
+{
+	if (s[_index] != '/')
+	{
+		return false;
+	}
+
+	while (s[_index] == '/')
+	{
+		++_index;
+		skip(s, isPchar);
+	}
+	return true;
+}
+
+bool RequestParser::skipQuery(std::string const & s)
+{
+	if (s[_index] != '?') {
+		return true;
+	}
+
+	skip(s, isQueryChar);
+	if (s[_index] == '#') {
+		++_index;
+	}
+	return true;
 }
 
 int RequestParser::parseVersion(std::string const & s)
 {
-	// Min: HTTP/[DIGIT].[DIGIT] = 8 characters
-	if (s.find("HTTP/") != 0 || s.size() < 8)
+	// parse prefix
+	if (s.compare(_index, 5, "HTTP/") != 0)
 	{
 		return ERR;
 	}
+	_index += 5;
+	if (!parseMajorVersion(s))
+	{
+		return ERR;
+	}
+	// parse dot
+	if (s[_index] != '.')
+	{
+		return ERR;
+	}
+	++_index;
 
-	std::size_t index = 5;
-	std::size_t end = index;
-	while (end < s.size() && isdigit(s[end]))
-	{
-		++end;
-	}
-	if (s[index] == '0' || end == s.size() || end - index > 3 || s[end] != '.')
+	if (!parseMinorVersion(s))
 	{
 		return ERR;
 	}
-	//TODO: overflow check for version
-	end += 1;
-	index = end;
-	while (end < s.size() && isdigit(s[end]))
-	{
-		++end;
-	}
-	if (end != s.size() || end - index > 3)
-	{
-		return ERR;
-	}
-	std::stringstream ss(s.substr(5));
-	char dot;
-	ss >> _version.major >> dot >> _version.minor;
 	return OK;
+}
+
+bool RequestParser::parseMajorVersion(std::string const & s)
+{
+	if (s[_index] == '0')
+	{
+		return false;
+	}
+	std::size_t start = _index;
+	skip(s, isDigit);
+	_version.major = WebservUtility::strtol(s.data() + start);
+	return true;
+}
+
+bool RequestParser::parseMinorVersion(std::string const & s)
+{
+	std::size_t start = _index;
+	skip(s, isDigit);
+	if (_index - start > 3)
+	{
+		return false;
+	}
+	_version.minor = WebservUtility::strtol(s.data() + start);
+	return true;
+}
+
+
+void RequestParser::skip(std::string const & s, IsFunctionT condition)
+{
+	while (condition(s[_index]) && _index < s.size())
+	{
+		++_index;
+	}
+}
+
+enum RequestParser::MethodType RequestParser::getMethodType(std::string const & s)
+{
+	static const std::string types[] = {
+		"GET",
+		"POST",
+		"DELETE"
+	};
+
+	for (int i = GET; i < OTHER; ++i)
+	{
+		if (types[i] == s)
+		{
+			return static_cast<MethodType>(i);
+		}
+	}
+	return OTHER;
 }
 
 /*

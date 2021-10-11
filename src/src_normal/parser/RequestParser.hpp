@@ -34,6 +34,8 @@ class RequestParser
 
 	public:
 
+		RequestParser();
+
 		int					parseHeader(std::string const &request);
 		enum MethodType		getMethod() const;
 		const std::string&	getTargetResource() const;
@@ -42,10 +44,22 @@ class RequestParser
 		const std::string&	getMessageBody() const;
 	
 	private:
-		int parseRequestLine(std::string const & request, std::size_t max_size);
+		int parseRequestLine(std::string const & request);
+		int parseSpace(std::string const & s);
+	
 		int parseMethod(std::string const & s);
+		enum MethodType getMethodType(std::string const & s);
+	
 		int parseTargetResource(std::string const & s);
+		bool skipAbsolutePath(std::string const & s);
+		bool skipQuery(std::string const & s);
 		int parseVersion(std::string const & s);
+		bool parseMajorVersion(std::string const & s);
+		bool parseMinorVersion(std::string const & s);
+
+
+		typedef bool (*IsFunctionT)(char);
+		void skip(std::string const & s, IsFunctionT condition);
 
 	private:
 		enum MethodType	_method;
@@ -55,4 +69,5 @@ class RequestParser
 		std::string		_message_body;
 
 		std::size_t		_index;
+		int				_status_code;
 };

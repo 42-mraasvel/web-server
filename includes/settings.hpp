@@ -13,7 +13,7 @@
 Parsing Specific Defines
 */
 
-#define REQUEST_LINE_MAX_SIZE 8000 // TODO: evaluate [RFC7230] : Section 3.1.1. (page 22)
+#define MAX_HEADER_SIZE 8192 // TODO: evaluate [RFC7230] : Section 3.1.1. (page 22)
 
 /*
 Very unnecessary header includes
