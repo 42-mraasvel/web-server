@@ -1,5 +1,10 @@
 #pragma once
 #include "parser/RequestParser.hpp"
+#include "fd/FdTable.hpp"
+
+class Client;
+
+class File;
 
 //TODO: create response parser
 class Executor
@@ -7,16 +12,18 @@ class Executor
     public:
 		typedef RequestParser::header_field_t::iterator header_iterator;
 
-        int execute(RequestParser const & parser);
+        int execute(Client* client, FdTable & fd_table, RequestParser const &parser);
         std::string const & getResponse() const;
+		int generateResponse(File* file);
 
     private:
-        int methodGet(RequestParser const & parser);
+        int methodGet(Client* client, FdTable & fd_table, RequestParser const &parser);
         int methodPost(RequestParser const & parser);
         int methodDelete(RequestParser const & parser);
         
-		int generateHeaderString();
-		int generateResponse();
+		void	generateHeaderString();
+
+		std::string	ft_itoa(int	i) const;
 
     private:
 

@@ -11,6 +11,7 @@ class Webserver
 	private:
 		int initServer(ConfigServer const & conf);
 		int	dispatchFd(int ready);
+		void	scanFdTable();
 		int checkDisconnectedSockets();
 
 	private:
