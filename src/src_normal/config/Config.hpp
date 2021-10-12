@@ -2,9 +2,6 @@
 #include "ConfigServer.hpp"
 #include <vector>
 #include <string>
-#ifdef __linux__
-#include <string>
-#endif /* __linux__ */
 
 class Config
 {
@@ -24,5 +21,3 @@ class Config
 	public:
 		void print() const;
 };
-
-

@@ -16,7 +16,13 @@ ifdef USING_CATCH
 	NAME = $(CATCH_NAME)
 	CATCH_SUBDIR = src_catch
 	ODIR = obj/obj_catch
+	DDIR = dep/dep_catch
 endif # USING_CATCH
+
+ifdef DEBUG
+	ODIR = obj/obj_debug
+	DDIR = dep/dep_debug
+endif # DEBUG
 
 SRC := $(shell find $(SDIR)/$(SRC_SUBDIR) -type f -name "*.cpp")
 ifdef USING_CATCH

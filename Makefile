@@ -2,6 +2,7 @@ include make_settings/src_files.mk
 include make_settings/settings.mk
 
 all: $(NAME)
+	@echo $(DEP)
 
 # Compilation
 $(NAME): $(OBJ)
@@ -24,8 +25,10 @@ re: fclean
 	$(MAKE) all
 
 # Catch
-.PHONY: catch
+.PHONY: catch debug
 catch:
 	$(MAKE) all USING_CATCH=1
+debug:
+	$(MAKE) all DEBUG=1
 
 -include $(DEP)
