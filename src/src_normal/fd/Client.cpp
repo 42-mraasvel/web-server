@@ -1,5 +1,6 @@
 #include "Client.hpp"
 #include "settings.hpp"
+#include "fd/File.hpp"
 #include <poll.h>
 #include <sys/socket.h>
 
@@ -37,10 +38,12 @@ int	Client::readEvent(FdTable & fd_table)
 		return (ERR);
 	}
 
-	if (_executor.execute(_request_parser) == ERR)
+	if (_executor.execute(this, fd_table, _request_parser) == ERR)
 	{
 		return ERR;
 	}
+	resetBuffer();
+	updateEvents(WAITING, fd_table); // wait for file to be read
 
 	//TODO:
 /*
@@ -62,14 +65,18 @@ int	Client::readEvent(FdTable & fd_table)
 			client->status = POLLOUT;
 		}
 */
-	resetBuffer();
-	updateEvents(WRITING, fd_table);
 	return OK;
 }
 
 int	Client::writeEvent(FdTable & fd_table)
 {
+	//TODO: clean up generateResponse() + getResponse()
+	if (_executor.generateResponse(_file) == ERR)
+	{
+		return ERR;
+	}
 	std::string const & response = _executor.getResponse();
+
 	if (send(_fd, response.c_str(), response.size(), 0) == ERR)
 	{
 		perror("send");
@@ -85,27 +92,21 @@ int	Client::closeEvent()
 	return OK;
 }
 
-void	Client::updateEvents(Client::EventTypes type, FdTable & fd_table)
-{
-	short int updated_events;
-
-	switch (type)
-	{
-		case Client::READING:
-			updated_events = POLLIN;
-			break;
-		case Client::WRITING:
-			updated_events = POLLOUT;
-			break;
-		case Client::WAITING:
-			updated_events = 0;
-			break;
-	}
-	fd_table[_index].first.events = updated_events | POLLHUP;
-}
-
 //TODO: retain information about the next request if present
 void	Client::resetBuffer()
 {
 	_request.clear();
+}
+
+int	Client::setFile(int file_fd, FdTable & fd_table)
+{
+	_file = new File(this, file_fd);
+	int	file_index = fd_table.size();
+	if (fd_table.insertFd(_file) == ERR)
+	{
+		return ERR;
+	}
+	_file->updateEvents(AFdInfo::READING, fd_table);
+
+	return OK;
 }
