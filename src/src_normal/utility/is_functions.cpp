@@ -2,9 +2,6 @@
 #include "utility/utility.hpp"
 #include <string>
 
-// namespace WebservUtility
-// {
-
 bool isSeperator(char x)
 {
 	static const std::string seperators(SEPERATORS);
@@ -23,7 +20,7 @@ bool isTokenChar(char x)
 
 bool isVchar(char x)
 {
-	return !isSeperator(x);
+	return !isControl(x);
 }
 
 
@@ -48,5 +45,3 @@ bool isDigit(char x)
 {
 	return x >= '0' && x <= '9';
 }
-
-// }

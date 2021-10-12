@@ -5,7 +5,7 @@ Config::Config(std::string const & config_file): _file_name(config_file)
 {
 	ConfigServer dummy;
 	dummy.addPort(8080);
-	dummy.addPort(8081);
+	// dummy.addPort(8081);
 	// dummy.addPort(8082);
 	// dummy.addPort(8083);
 	// ConfigServer dummy2;

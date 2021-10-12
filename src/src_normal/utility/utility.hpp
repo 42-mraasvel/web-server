@@ -31,3 +31,4 @@ bool isPchar(char x);
 bool isQueryChar(char x);
 bool isDigit(char x);
 bool isWhiteSpace(char x);
+bool isVchar(char x);

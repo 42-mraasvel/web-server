@@ -33,11 +33,11 @@ int	Client::readEvent(FdTable & fd_table)
 
 	buffer[ret] = '\0';
 	_request.append(buffer);
-	printf("REQUEST:\n[%s]\n", _request.c_str());
+	printf("REQUEST:\n%s\n", _request.c_str());
 	printf("len read: %ld, request size: %lu\n", ret, _request.size());
 
 	//TODO: Parse Header
-	if(_request_parser.parseHeader(_request) != RequestParser::REQUEST_COMPLETE)
+	if(_request_parser.parseHeader(_request) != OK)
 	{
 		std::cout << "INCOMPLETE REQUEST" << std::endl;
 		// return (ERR);

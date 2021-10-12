@@ -19,12 +19,14 @@ CXXFLAGS += $(ANNOYING_FLAGS)
 ifeq ($(shell uname),Darwin)
 	DFLAGS = -g3 -fsanitize=address
 else
-	DFLAGS = -g3 -fsanitize=address -fanitisze=leaks
+	DFLAGS = -g3 -fsanitize=address -fsanitize=leak
 endif # Darwin
 
 ifdef DEBUG
 	CXXFLAGS += $(DFLAGS)
 	LFLAGS += $(DFLAGS)
+else
+	CXXFLAGS += -g3 -O0
 endif # DEBUG
 
 endif # SETTINGS_MK

@@ -6,7 +6,7 @@ all: $(NAME)
 # Compilation
 $(NAME): $(OBJ)
 	$(CXX) -o $@ $(OBJ) $(LFLAGS)
-$(OBJ): $(ODIR)/%.o: $(SDIR)/%.cpp
+$(OBJ): $(ODIR)/%.o: $(SDIR)/%.cpp Makefile
 	@mkdir -p $(@D)
 	$(CXX) -c -o $@ $< $(CXXFLAGS) $(IFLAGS)
 $(DDIR)/%.d: $(SDIR)/%.cpp

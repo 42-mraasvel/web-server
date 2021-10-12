@@ -276,7 +276,10 @@ int RequestParser::parseFieldValue(std::string const & request, std::string & va
 	std::size_t end = _index;
 	while (request.compare(_index, 2, CRLF) != 0)
 	{
-		skip(request, isTokenChar);
+		skip(request, isVchar);
+		if (end == _index && !isWhiteSpace(request[_index])) {
+			return ERR;
+		}
 		end = _index;
 		skip(request, isWhiteSpace);
 	}
