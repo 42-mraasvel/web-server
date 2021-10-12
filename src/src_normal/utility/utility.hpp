@@ -17,6 +17,8 @@ std::size_t findLimit(std::string const & s,
 
 long strtol(const char* s);
 long strtol(std::string const & s);
+unsigned long strtoul(std::string const & s);
+unsigned long strtoul(const char* s);
 
 void convertToLowercase(std::string & s);
 

@@ -40,6 +40,8 @@ int RequestParser::parseHeader(std::string const & request)
 		return ERR;
 	}
 
+	parseMessageBody(request);
+
 	return OK;
 }
 
@@ -289,6 +291,24 @@ int RequestParser::parseEndLine(std::string const & request)
 		return ERR;
 	}
 	_index += 2;
+	return OK;
+}
+
+/*
+Message Body parsing
+*/
+
+int RequestParser::parseMessageBody(std::string const & request)
+{
+	header_field_t::iterator it = _header_fields.find("content-length");
+	if (it == _header_fields.end())
+	{
+		return OK;
+	}
+
+	_message_body.clear();
+	std::size_t content_length = WebservUtility::strtoul(it->second);
+	_message_body = request.substr(_index, content_length);
 	return OK;
 }
 

@@ -64,6 +64,10 @@ class RequestParser
 		int parseFieldValue(std::string const & request, std::string & value);
 		int parseEndLine(std::string const & request);
 
+	/* Message Body Parsing */
+
+		int parseMessageBody(std::string const & request);
+
 	/* Helpers */
 		typedef bool (*IsFunctionT)(char);
 		int parseWhiteSpace(std::string const & request);
