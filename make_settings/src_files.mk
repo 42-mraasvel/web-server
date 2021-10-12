@@ -3,7 +3,8 @@ SRC_FILES_MK = 1
 
 NAME = a.out
 CATCH_NAME = catch.exe
-EXECS = $(NAME) $(CATCH_NAME)
+DEBUG_NAME = debug_build.exe
+EXECS = $(NAME) $(CATCH_NAME) $(DEBUG_NAME)
 
 SDIR = src
 ODIR = obj
@@ -20,6 +21,7 @@ ifdef USING_CATCH
 endif # USING_CATCH
 
 ifdef DEBUG
+	NAME = $(DEBUG_NAME)
 	ODIR = obj/obj_debug
 	DDIR = dep/dep_debug
 endif # DEBUG

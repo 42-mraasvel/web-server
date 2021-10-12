@@ -2,7 +2,6 @@ include make_settings/src_files.mk
 include make_settings/settings.mk
 
 all: $(NAME)
-	@echo $(DEP)
 
 # Compilation
 $(NAME): $(OBJ)
