@@ -25,9 +25,17 @@
 -- Method --
 ------------
 
-	method = token
-	token = 
+	method			=	token
 
+	token			=	1*<any CHAR except CTLs or separators>
+	separators		=	"(" | ")" | "<" | ">" | "@"
+						| "," | ";" | ":" | "\" | <">
+						| "/" | "[" | "]" | "?" | "="
+						| "{" | "}" | SP | HT
+	CTL				=	<any US-ASCII control character
+						(octets 0 - 31) and DEL (127)>
+
+	CRLF			=	Carriage-return Linefeed ["\r\n"]
 -----------------
 -- Origin-Form --
 -----------------
