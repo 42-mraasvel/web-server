@@ -5,15 +5,10 @@
 #include "parser/RequestParser.hpp"
 #include "executor/Executor.hpp"
 
+class File;
+
 class Client : public AFdInfo
 {
-	public:
-		enum EventTypes
-		{
-			WRITING,
-			WAITING,
-			READING
-		};
 	public:
 		Client(int fd);
 		struct pollfd getPollFd() const;
@@ -21,9 +16,10 @@ class Client : public AFdInfo
 		int		readEvent(FdTable & fd_table);
 		int		closeEvent();
 
+	public:
+		int	setFile(int file_fd, FdTable & fd_table);
 
 	private:
-		void	updateEvents(Client::EventTypes type, FdTable & fd_table);
 		void	resetBuffer();
 
 	private:
@@ -34,4 +30,5 @@ class Client : public AFdInfo
 		std::string			_request;
 		RequestParser		_request_parser;
 		Executor			_executor;
+		File*				_file;
 };

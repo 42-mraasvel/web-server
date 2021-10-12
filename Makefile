@@ -24,8 +24,10 @@ re: fclean
 	$(MAKE) all
 
 # Catch
-.PHONY: catch
+.PHONY: catch debug
 catch:
 	$(MAKE) all USING_CATCH=1
+debug:
+	$(MAKE) all DEBUG=1
 
 -include $(DEP)

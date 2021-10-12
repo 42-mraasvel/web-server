@@ -4,6 +4,7 @@
 #include "color.hpp"
 #include <sys/socket.h>
 #include <poll.h>
+#include <unistd.h>
 
 int Webserver::initServer(ConfigServer const & conf)
 {
@@ -47,7 +48,7 @@ int	Webserver::dispatchFd(int ready)
 		if (_fd_table[i].first.revents & POLLHUP)
 		{
 			printf(BLUE_BOLD "Close Event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
-			_fd_table.eraseFd(_fd_table[i].second->getIndex());
+			_fd_table.eraseFd(_fd_table[i].second->getIndex()); //TODO: should this be just i??
 			continue;
 		}
 		if (_fd_table[i].first.revents & POLLIN)
@@ -65,6 +66,20 @@ int	Webserver::dispatchFd(int ready)
 	return OK;
 }
 
+//TODO: scan for Timeout
+void	Webserver::scanFdTable()
+{
+	for (std::size_t i = 0; i < _fd_table.size(); ++i)
+	{
+		if (_fd_table[i].second->flag == AFdInfo::TO_ERASE)
+		{
+			printf(BLUE_BOLD "Close File:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
+			// TODO: remove File* _file from Client class??
+			_fd_table.eraseFd(i);
+		}
+	}
+}
+
 /*
 Poll loop!
 */
@@ -74,7 +89,7 @@ int	Webserver::run()
 
 	while(true)
 	{
-		//TODO: scan table for FDs that should be removed: TIMEOUT or FILES
+		scanFdTable();
 		ready = poll(_fd_table.getPointer(), _fd_table.size(), TIMEOUT);
 		printf("Number of connections: %lu\n", _fd_table.size());
 		// print();

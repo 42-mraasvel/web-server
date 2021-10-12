@@ -5,11 +5,18 @@
 class AFdInfo
 {
 	public:
+		enum EventTypes
+		{
+			WRITING,
+			WAITING,
+			READING
+		};
 		enum Flags
 		{
 			ACTIVE,
 			TO_ERASE
 		};
+		Flags		flag;
 
 	public:
 		virtual	~AFdInfo();
@@ -23,6 +30,8 @@ class AFdInfo
 		int	getFd() const;
 		std::size_t getIndex() const;
 		void setIndex(std::size_t index);
+
+		void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 
 	protected:
 		std::size_t	_index;
