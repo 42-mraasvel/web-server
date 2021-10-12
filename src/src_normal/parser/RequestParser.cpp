@@ -6,9 +6,30 @@
 //TODO handle errors
 int RequestParser::parseHeader(std::string const & request)
 {
-	_method = GET;
-	_target_resource = "/";
 	_http_version = "HTTP/1.1";
+
+	int	lemon = 3;
+
+	switch (lemon)
+	{
+		case 1:
+			_method = GET;
+			_target_resource = "./page_sample/Anneaa";
+			break;
+		case 2:
+			_method = GET;
+			_target_resource = "./page_sample/funny";
+			break;
+		case 3:
+			_method = POST;
+			_target_resource = "./page_sample/moonlight";
+			_message_body = "Pyxis is awsome!\n";
+			break;
+		case 4:
+			_method = DELETE;
+			_target_resource = "./page_sample/moonlight";
+			break;
+	}	
 
 	// _header_fields["content-length"] = "12";
 	// _message_body = "Hello, World!";

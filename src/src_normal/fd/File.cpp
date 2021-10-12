@@ -20,11 +20,6 @@ int File::readEvent(FdTable & fd_table)
 	//TODO: to discuss with team how to read directly into _content;
 	//TODO: to combine with Client::readEvent().
 
-//	if (_content.size() + BUFFER_SIZE >= _content.capacity())
-//	{
-//		_content.reserve(std::max((size_t)BUFFER_SIZE, _content.capacity() * 2));
-//	}
-//	int	ret = read(_fd, &_content[_content.size()], BUFFER_SIZE);
 	char	buf[BUFFER_SIZE];
 	int	ret = read(_fd, buf, BUFFER_SIZE);
 	if (ret == ERR)
@@ -54,4 +49,9 @@ int	File::closeEvent()
 std::string const &	File::getContent() const
 {
 	return _content;
+}
+
+void	File::setContent(std::string const & content)
+{
+	_content = content;
 }
