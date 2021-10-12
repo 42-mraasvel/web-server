@@ -20,6 +20,7 @@ struct pollfd	Client::getPollFd() const
 int	Client::readEvent(FdTable & fd_table)
 {
 	//TODO: CHECK MAXLEN
+	//TODO: implement buffer class wrapper
 	char buffer[BUFFER_SIZE + 1];
 	ssize_t ret = recv(_fd, buffer, BUFFER_SIZE, 0);
 	if (ret == ERR)
@@ -37,7 +38,7 @@ int	Client::readEvent(FdTable & fd_table)
 	printf("len read: %ld, request size: %lu\n", ret, _request.size());
 
 	//TODO: Parse Header
-	if(_request_parser.parseHeader(_request) != OK)
+	if(_request_parser.parseHeader(_request) != RequestParser::REQUEST_COMPLETE)
 	{
 		std::cout << "INCOMPLETE REQUEST" << std::endl;
 		// return (ERR);

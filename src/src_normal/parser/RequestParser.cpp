@@ -13,13 +13,9 @@ RequestParser::RequestParser()
 
 /*
 Return:
-	- HEADER_INCOMPLETE if more data has to be read
-	- HEADER_COMPLETE if the message-body is not complete
-	- MESSAGE_COMPLETE if header_fields and message-body are both present
-	- BAD_REQUEST: Syntax error encountered
-		- Method Not Implemented
-		- Version not supported
-		- ...
+	- REQUEST_COMPLETE
+	- CONT_READING
+	- BAD_REQUEST // Check status_code for specific error value
 */
 int RequestParser::parseHeader(std::string const & request)
 {
@@ -27,22 +23,23 @@ int RequestParser::parseHeader(std::string const & request)
 
 	if (WebservUtility::findLimit(request, EOHEADER, MAX_HEADER_SIZE) == std::string::npos)
 	{
-		return ERR;
+		return BAD_REQUEST;
 	}
+
+	resetParser();
 
 	if (parseRequestLine(request) == ERR)
 	{
-		return ERR;
+		return BAD_REQUEST;
 	}
 
 	if (parseHeaderFields(request) == ERR)
 	{
-		return ERR;
+		return BAD_REQUEST;
 	}
 
 	parseMessageBody(request);
-
-	return OK;
+	return REQUEST_COMPLETE;
 }
 
 /*
@@ -276,10 +273,11 @@ int RequestParser::parseFieldValue(std::string const & request, std::string & va
 	std::size_t end = _index;
 	while (request.compare(_index, 2, CRLF) != 0)
 	{
-		skip(request, isVchar);
-		if (end == _index && !isWhiteSpace(request[_index])) {
+		if (!isVchar(request[_index]))
+		{
 			return ERR;
 		}
+		skip(request, isVchar);
 		end = _index;
 		skip(request, isWhiteSpace);
 	}
@@ -309,9 +307,15 @@ int RequestParser::parseMessageBody(std::string const & request)
 		return OK;
 	}
 
-	_message_body.clear();
 	std::size_t content_length = WebservUtility::strtoul(it->second);
-	_message_body = request.substr(_index, content_length);
+	if (content_length == 0)
+	{
+		_message_body = request.substr(_index);
+	}
+	else
+	{
+		_message_body = request.substr(_index, content_length);
+	}
 	return OK;
 }
 
@@ -325,7 +329,7 @@ void RequestParser::skip(std::string const & s, IsFunctionT condition)
 	}
 }
 
-enum RequestParser::MethodType RequestParser::getMethodType(std::string const & s)
+enum RequestParser::MethodType RequestParser::getMethodType(std::string const & s) const
 {
 	static const std::string types[] = {
 		"GET",
@@ -341,6 +345,11 @@ enum RequestParser::MethodType RequestParser::getMethodType(std::string const & 
 		}
 	}
 	return OTHER;
+}
+
+void RequestParser::resetParser()
+{
+	_header_fields.clear();
 }
 
 /*

@@ -20,7 +20,7 @@ bool isTokenChar(char x)
 
 bool isVchar(char x)
 {
-	return !isControl(x);
+	return !isControl(x) && !isWhiteSpace(x);
 }
 
 

@@ -15,9 +15,8 @@ class RequestParser
 
 		enum ParseResult
 		{
-			HEADER_INCOMPLETE,
-			HEADER_COMPLETE,
 			REQUEST_COMPLETE,
+			CONT_READING,
 			BAD_REQUEST
 		};
 
@@ -71,8 +70,10 @@ class RequestParser
 	/* Helpers */
 		typedef bool (*IsFunctionT)(char);
 		int parseWhiteSpace(std::string const & request);
-		enum MethodType getMethodType(std::string const & s);
+		enum MethodType getMethodType(std::string const & s) const;
 		void skip(std::string const & s, IsFunctionT condition);
+
+		void resetParser();
 
 	private:
 		enum MethodType	_method;

@@ -38,12 +38,12 @@ TEST_CASE("Parser: Invalid Request-Lines", "[request_parser]")
 
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i)
 	{
-		REQUIRE(parser.parseHeader(inputs[i] + EOHEADER) == ERR);
+		REQUIRE(parser.parseHeader(inputs[i] + EOHEADER) != RequestParser::REQUEST_COMPLETE);
 	}
 
 	// Tests without EOHEADER
-	REQUIRE(parser.parseHeader("GET / HTTP/1.1" CRLF) == ERR);
-	REQUIRE(parser.parseHeader("GET / HTTP/1.1") == ERR);
+	REQUIRE(parser.parseHeader("GET / HTTP/1.1" CRLF) != RequestParser::REQUEST_COMPLETE);
+	REQUIRE(parser.parseHeader("GET / HTTP/1.1") != RequestParser::REQUEST_COMPLETE);
 }
 
 TEST_CASE("Parser: valid request-lines", "[request-parser]")
@@ -63,10 +63,10 @@ TEST_CASE("Parser: valid request-lines", "[request-parser]")
 
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i)
 	{
-		REQUIRE(parser.parseHeader(inputs[i] + EOHEADER) != ERR);
+		REQUIRE(parser.parseHeader(inputs[i] + EOHEADER) == RequestParser::REQUEST_COMPLETE);
 	}
 
-	REQUIRE(parser.parseHeader("GET /abc/def HTTP/1.1\r\n\r\n") != ERR);
+	REQUIRE(parser.parseHeader("GET /abc/def HTTP/1.1\r\n\r\n") == RequestParser::REQUEST_COMPLETE);
 	REQUIRE(parser.getMethod() == RequestParser::GET);
 	REQUIRE(parser.getHttpVersion().major == 1);
 	REQUIRE(parser.getHttpVersion().minor == 1);
@@ -80,6 +80,10 @@ TEST_CASE("Parser: invalid header-fields", "[request-parser]")
 		"header-field : header-value",
 		" hea der-field: header-value",
 		"header-field: \r\nheader-value",
+		"header-field: head\ver-value",
+		"header-\nfield: header-value",
+		"he\rader-field: header-value",
+		"he\tader-field: header-value",
 	};
 
 	const std::string prefix = "GET / HTTP/1.1" CRLF;
@@ -89,7 +93,7 @@ TEST_CASE("Parser: invalid header-fields", "[request-parser]")
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i)
 	{
 		const std::string header = prefix + inputs[i] + EOHEADER;
-		REQUIRE(parser.parseHeader(header) == ERR);
+		REQUIRE(parser.parseHeader(header) != RequestParser::REQUEST_COMPLETE);
 	}
 
 }
@@ -126,7 +130,7 @@ TEST_CASE("Parser: basic valid header-fields", "[request-parser]")
 		std::string key = std::get<1>(inputs[i]);
 		std::string value = std::get<2>(inputs[i]);
 		const std::string header = prefix + field + EOHEADER;
-		REQUIRE(parser.parseHeader(header) != ERR);
+		REQUIRE(parser.parseHeader(header) == RequestParser::REQUEST_COMPLETE);
 		auto fields = parser.getHeaderFields();
 		REQUIRE(fields[key] == value);
 	}
@@ -153,7 +157,7 @@ TEST_CASE("Parser: multiple header-fields", "[request-parser]")
 	}
 	request += CRLF;
 	RequestParser parser;
-	REQUIRE(parser.parseHeader(request) != ERR);
+	REQUIRE(parser.parseHeader(request) == RequestParser::REQUEST_COMPLETE);
 	for (std::size_t i = 0; i < ARRAY_SIZE(input_fields); ++i)
 	{
 		std::stringstream ss;
