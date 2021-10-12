@@ -19,7 +19,7 @@ std::size_t findLimit(std::string const & s, std::string const & to_find, std::s
 	}
 
 	std::size_t i = 0;
-	while (i < s.size() - to_find.size() && i <= limit - to_find.size())
+	while (i <= s.size() - to_find.size() && i <= limit - to_find.size())
 	{
 		if (s.compare(i, to_find.size(), to_find) == 0)
 		{

@@ -60,7 +60,9 @@ TEST_CASE("findLimit basic tests", "[utility]")
 		{"12345", "2", 2, 1},
 		{"12345", "234", 2, std::string::npos},
 		{"12345", "234", 3, std::string::npos},
-		{"12345", "234", 4, 1}
+		{"12345", "234", 4, 1},
+		{"GET / HTTP/1.1\r\n", "\r\n", 8000, 14},
+		{"GET / HTTP/1.1\r\n\r\n", "\r\n\r\n", 8000, 14}
 	};
 
 	for(std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i)

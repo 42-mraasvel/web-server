@@ -23,25 +23,18 @@ Return:
 */
 int RequestParser::parseHeader(std::string const & request)
 {
-	if (request.find(EOHEADER) > MAX_HEADER_SIZE)
+	_index = 0;
+
+	if (WebservUtility::findLimit(request, EOHEADER, MAX_HEADER_SIZE) == std::string::npos)
 	{
 		return ERR;
 	}
-
 	if (parseRequestLine(request) == ERR)
 	{
 		return ERR;
 	}
 
-/*
-Hardcoded example
-*/
-	_method = GET;
-	_target_resource = "/";
-	_version = HttpVersion(1, 1);
-	// _header_fields["content-length"] = "12";
-	// _message_body = "Hello, World!";
-	return REQUEST_COMPLETE;
+	return OK;
 }
 
 /*
@@ -173,7 +166,7 @@ int RequestParser::parseVersion(std::string const & s)
 
 bool RequestParser::parseMajorVersion(std::string const & s)
 {
-	if (s[_index] == '0')
+	if (s[_index] == '0' || !isDigit(s[_index]))
 	{
 		return false;
 	}
@@ -187,7 +180,7 @@ bool RequestParser::parseMinorVersion(std::string const & s)
 {
 	std::size_t start = _index;
 	skip(s, isDigit);
-	if (_index - start > 3)
+	if (_index - start > 3 || _index - start == 0)
 	{
 		return false;
 	}
