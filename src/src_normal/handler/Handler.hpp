@@ -18,6 +18,8 @@ class Handler
 
 		int	sendResponse(int fd);
 
+		enum RequestParser::MethodType	getMethod() const;
+
     private:
         int methodGet(Client* client, FdTable & fd_table);
         int methodPost(Client* client, FdTable & fd_table);

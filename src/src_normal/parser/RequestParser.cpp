@@ -8,7 +8,7 @@ int RequestParser::parseHeader(std::string const & request)
 {
 	_http_version = "HTTP/1.1";
 
-	int	lemon = 3;
+	int	lemon = 4;
 
 	switch (lemon)
 	{
@@ -23,7 +23,7 @@ int RequestParser::parseHeader(std::string const & request)
 		case 3:
 			_method = POST;
 			_target_resource = "./page_sample/moonlight";
-			_message_body = "Pyxis is awsome!\n";
+			_message_body = "Pyxis is awesome!\n";
 			break;
 		case 4:
 			_method = DELETE;

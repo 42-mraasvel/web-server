@@ -13,7 +13,6 @@ struct pollfd	Client::getPollFd() const
 	return temp;
 }
 
-//TODO: Make recv work with multiple iterations, so each iter can loop over request
 int	Client::readEvent(FdTable & fd_table)
 {
 	if (_handler.parseRequest(_fd) == ERR)
@@ -26,7 +25,10 @@ int	Client::readEvent(FdTable & fd_table)
 		return ERR;
 	}
 
-	updateEvents(WAITING, fd_table);
+	if (_handler.getMethod() == RequestParser::DELETE)
+		updateEvents(WRITING, fd_table);
+	else
+		updateEvents(WAITING, fd_table);
 	return OK;
 }
 

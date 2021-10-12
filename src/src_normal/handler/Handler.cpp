@@ -8,6 +8,12 @@
 #include <poll.h>
 #include <sys/socket.h>
 
+enum RequestParser::MethodType	Handler::getMethod() const
+{
+	return _request_parser.getMethod();
+}
+
+//TODO: Make recv work with multiple iterations, so each iter can loop over request
 int	Handler::parseRequest(int fd)
 {
 	//TODO: CHECK MAXLEN
@@ -78,9 +84,10 @@ int	Handler::methodGet(Client* client, FdTable & fd_table)
 	return OK;
 }
 
+//TODO: check if O_TRUNC is correct
 int	Handler::methodPost(Client* client, FdTable & fd_table)
 {
-	int	file_fd = open(_request_parser.getTargetResource().c_str(), O_CREAT | O_WRONLY);
+	int	file_fd = open(_request_parser.getTargetResource().c_str(), O_CREAT | O_RDWR | O_TRUNC, 0644);
 	if (file_fd == ERR)
 	{
 		perror("open in methodPost");
@@ -93,11 +100,20 @@ int	Handler::methodPost(Client* client, FdTable & fd_table)
 		return ERR;
 	}
 
+	_file->setContent(_request_parser.getMessageBody());
+
 	return OK;
 }
 
 int	Handler::methodDelete(Client* client, FdTable & fd_table)
 {
+	if (remove(_request_parser.getTargetResource().c_str()) == ERR)
+	{
+		perror("remove in methodDelete");
+		return ERR;
+	}
+	printf(BLUE_BOLD "Delete File:" RESET_COLOR " [%s]\n", _request_parser.getTargetResource().c_str());
+
 	return OK;
 }
 
@@ -114,6 +130,21 @@ int	Handler::setFile(Client* client, int file_fd, FdTable & fd_table, AFdInfo::E
 	return OK;
 }
 
+int	Handler::sendResponse(int fd)
+{
+	generateResponse();
+
+	_file->flag = AFdInfo::TO_ERASE;
+
+
+	if (send(fd, _response.c_str(), _response.size(), 0) == ERR)
+	{
+		perror("send");
+		return ERR;
+	}
+
+	return OK;
+}
 
 void	Handler::generateHeaderString()
 {
@@ -125,14 +156,17 @@ void	Handler::generateHeaderString()
 
 void	Handler::generateResponse()
 {
-
-	_message_body = _file->getContent();
+	if (_file)
+	{
+		_message_body = _file->getContent();
+	}
 	_http_version = "HTTP/1.1";
 	_status_code = "200";
 	_status_phrase = "OK";
-//	_message_body = "Hello, Lemon! lalala";
-	_header_fields.insert(std::pair<std::string, std::string>("Host", "localhost"));
-	_header_fields.insert(std::pair<std::string, std::string>("Content-Length", ft_itoa(_message_body.size())));
+	_header_fields["Host"] = "localhost";
+	_header_fields["Content-Length"] = ft_itoa(_message_body.size());
+//	_header_fields.insert(std::pair<std::string, std::string>("Host", "localhost"));
+//	_header_fields.insert(std::pair<std::string, std::string>("Content-Length", )));
 
 	generateHeaderString();
 	
@@ -141,9 +175,6 @@ void	Handler::generateResponse()
 				+ _status_phrase + NEWLINE
 				+ _header_string + NEWLINE
 				+ _message_body;
-
-	_file->flag = AFdInfo::TO_ERASE;
-
 }
 
 std::string	Handler::ft_itoa(int i) const
@@ -157,17 +188,4 @@ std::string	Handler::ft_itoa(int i) const
 void	Handler::resetBuffer()
 {
 	_request.clear();
-}
-
-int	Handler::sendResponse(int fd)
-{
-	generateResponse();
-
-	if (send(fd, _response.c_str(), _response.size(), 0) == ERR)
-	{
-		perror("send");
-		return ERR;
-	}
-
-	return OK;
 }

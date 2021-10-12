@@ -3,6 +3,7 @@
 #include "Client.hpp"
 #include <unistd.h>
 #include <poll.h>
+#include <string>
 
 File::File(Client* client, int fd): AFdInfo(fd), _client(client) {}
 
@@ -37,7 +38,16 @@ int File::readEvent(FdTable & fd_table)
 
 int File::writeEvent(FdTable & fd_table)
 {
-	std::cout << RED_BOLD << "File::writeEvent() called (ERROR!)" << RESET_COLOR << std::endl;
+	int	ret = write(_fd, _content.c_str(), _content.size());
+	if (ret == ERR)
+	{
+		perror("write");
+		return ERR;
+	}
+
+	_client->updateEvents(AFdInfo::WRITING, fd_table);
+	this->updateEvents(AFdInfo::WAITING, fd_table);
+
 	return OK;
 }
 
