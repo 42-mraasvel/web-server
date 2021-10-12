@@ -2,9 +2,7 @@
 #include "ConfigServer.hpp"
 #include <vector>
 
-#ifdef __linux__
 #include <string>
-#endif /* __linux__ */
 
 class Config
 {
@@ -17,12 +15,10 @@ class Config
 		const_iterator end() const;
 
 	private:
-		const std::string&			_file_name;
+		const std::string			_file_name;
 		std::vector<ConfigServer>	_servers;
 		
 	/* Debugging */
 	public:
 		void print() const;
 };
-
-
