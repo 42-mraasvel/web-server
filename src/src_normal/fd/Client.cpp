@@ -70,11 +70,8 @@ int	Client::readEvent(FdTable & fd_table)
 
 int	Client::writeEvent(FdTable & fd_table)
 {
-	//TODO: clean up generateResponse() + getResponse()
-	if (_executor.generateResponse(_file) == ERR)
-	{
-		return ERR;
-	}
+	_executor.generateResponse(_file);
+
 	std::string const & response = _executor.getResponse();
 
 	if (send(_fd, response.c_str(), response.size(), 0) == ERR)
@@ -83,6 +80,7 @@ int	Client::writeEvent(FdTable & fd_table)
 		return ERR;
 	}
 	updateEvents(READING, fd_table);
+	_file->flag = AFdInfo::TO_ERASE;
 	return OK;
 }
 

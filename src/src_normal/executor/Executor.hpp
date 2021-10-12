@@ -14,7 +14,7 @@ class Executor
 
         int execute(Client* client, FdTable & fd_table, RequestParser const &parser);
         std::string const & getResponse() const;
-		int generateResponse(File* file);
+		void	generateResponse(File* file);
 
     private:
         int methodGet(Client* client, FdTable & fd_table, RequestParser const &parser);
@@ -27,7 +27,7 @@ class Executor
 
     private:
 
-        std::string _response;
+		std::string	_response;
 
 		std::string _http_version;
 		std::string	_status_code;

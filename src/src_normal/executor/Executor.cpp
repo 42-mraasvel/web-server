@@ -72,12 +72,10 @@ void	Executor::generateHeaderString()
 	}
 }
 
-int	Executor::generateResponse(File* file)
+void	Executor::generateResponse(File* file)
 {
 
 	_message_body = file->getContent();
-	file->flag = AFdInfo::TO_ERASE;
-
 	_http_version = "HTTP/1.1";
 	_status_code = "200";
 	_status_phrase = "OK";
@@ -92,7 +90,6 @@ int	Executor::generateResponse(File* file)
 				+ _status_phrase + NEWLINE
 				+ _header_string + NEWLINE
 				+ _message_body;
-	return OK;
 }
 
 std::string const & Executor::getResponse() const
