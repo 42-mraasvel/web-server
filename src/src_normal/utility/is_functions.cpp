@@ -21,6 +21,12 @@ bool isTokenChar(char x)
 	return !isControl(x) && !isSeperator(x);
 }
 
+bool isVchar(char x)
+{
+	return !isSeperator(x);
+}
+
+
 bool isPchar(char x)
 {
 	static const std::string pchars(PCHAR);
@@ -30,6 +36,12 @@ bool isPchar(char x)
 bool isQueryChar(char x)
 {
 	return x == '/' || x == '?' || isPchar(x);
+}
+
+bool isWhiteSpace(char x)
+{
+	static const std::string whitespace(WHITESPACE);
+	return whitespace.find(x) != std::string::npos;
 }
 
 bool isDigit(char x)

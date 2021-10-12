@@ -7,6 +7,7 @@
 #define TIMEOUT 10000
 #define BUFFER_SIZE 4096 // TODO: evaluate later
 #define CRLF "\r\n"
+#define NEWLINE CRLF
 #define EOHEADER CRLF CRLF
 
 /*

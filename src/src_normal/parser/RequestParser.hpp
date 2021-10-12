@@ -44,12 +44,10 @@ class RequestParser
 		const std::string&	getMessageBody() const;
 	
 	private:
+	/* Request Line Parsing */
 		int parseRequestLine(std::string const & request);
 		int parseSpace(std::string const & s);
-	
 		int parseMethod(std::string const & s);
-		enum MethodType getMethodType(std::string const & s);
-	
 		int parseTargetResource(std::string const & s);
 		bool skipAbsolutePath(std::string const & s);
 		bool skipQuery(std::string const & s);
@@ -57,8 +55,19 @@ class RequestParser
 		bool parseMajorVersion(std::string const & s);
 		bool parseMinorVersion(std::string const & s);
 
+	/* Header Field Parsing */
 
+		int parseHeaderFields(std::string const & request);
+
+		int parseFieldName(std::string const & request, std::string & key);
+		int parseColon(std::string const & request);
+		int parseFieldValue(std::string const & request, std::string & value);
+		int parseEndLine(std::string const & request);
+
+	/* Helpers */
 		typedef bool (*IsFunctionT)(char);
+		int parseWhiteSpace(std::string const & request);
+		enum MethodType getMethodType(std::string const & s);
 		void skip(std::string const & s, IsFunctionT condition);
 
 	private:

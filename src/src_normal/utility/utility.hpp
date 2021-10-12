@@ -18,6 +18,8 @@ std::size_t findLimit(std::string const & s,
 long strtol(const char* s);
 long strtol(std::string const & s);
 
+void convertToLowercase(std::string & s);
+
 }
 
 bool isSeperator(char x);
@@ -26,3 +28,4 @@ bool isTokenChar(char x);
 bool isPchar(char x);
 bool isQueryChar(char x);
 bool isDigit(char x);
+bool isWhiteSpace(char x);

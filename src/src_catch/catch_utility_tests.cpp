@@ -98,3 +98,19 @@ TEST_CASE("strtol basic", "[utility]")
 		REQUIRE(WebservUtility::strtol(inputs[i].first) == inputs[i].second);
 	}
 }
+
+TEST_CASE("convertToLowercase utility", "[utility]")
+{
+	std::pair<std::string, std::string> inputs[] = {
+		{"1234", "1234"},
+		{"abcde", "abcde"},
+		{"aBcDe", "abcde"},
+		{"a1A2", "a1a2"}
+	};
+
+	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i)
+	{
+		WebservUtility::convertToLowercase(inputs[i].first);
+		REQUIRE(inputs[i].first == inputs[i].second);
+	}
+}
