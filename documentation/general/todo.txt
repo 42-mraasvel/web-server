@@ -1,0 +1,26 @@
+TODO:
+	Configuration File:
+		Syntax (language form: copy nginx) (ABNF?)
+		List everything that needs to be present
+		Parse it to the config class instance
+
+	Handler:
+		- Response:
+			- Generic error response generation based on 4xx status code
+			- Resonse generation based on method/request if successful
+		- Optimization: Concurrently sending response while reading in message-body using Chunked response (Possible?)
+
+	Parser:
+		- Chunked message
+		- Iterations
+
+
+
+	Client:
+		Check if request has been fully read, whether or not we need to do more
+		Update readEvent to be dynamic
+
+	CGI:
+		Configuration file input
+		Execution
+		Output redirection (piping)

@@ -97,7 +97,6 @@ int	Handler::buildFile(Client* client, FdTable & fd_table)
 	return OK;
 }
 
-//TODO: check if O_TRUNC is correct
 void Handler::previewMethod()
 {
 	switch (_request_parser.getMethod())
@@ -107,7 +106,7 @@ void Handler::previewMethod()
 			_file_event = AFdInfo::READING;
 			break;
 		case RequestParser::POST:
-			_oflag = O_CREAT | O_RDWR | O_TRUNC;
+			_oflag = O_CREAT | O_WRONLY | O_APPEND;
 			_file_event = AFdInfo::WRITING;
 			break;
 		case RequestParser::DELETE:
