@@ -15,7 +15,7 @@ struct pollfd	Client::getPollFd() const
 
 int	Client::readEvent(FdTable & fd_table)
 {
-	if (_handler.parseRequest(_fd) == ERR
+	if (_handler.parseRequest(this, _fd) == ERR
 	 || _handler.executeMethod(this, fd_table) == ERR)
 	{
 		return ERR;

@@ -14,11 +14,14 @@ class Handler
 
 		typedef RequestParser::header_field_t::iterator header_iterator;
 
-		int	parseRequest(int fd);
+		int	parseRequest(Client* client, int fd);
         int executeMethod(Client* client, FdTable & fd_table);
 		int	sendResponse(int fd);
 
     private:
+
+		void	generateAbsoluteTarget();
+
         int methodGet(Client* client, FdTable & fd_table);
         int methodPost(Client* client, FdTable & fd_table);
         int methodDelete(Client* client, FdTable & fd_table);
@@ -42,6 +45,8 @@ class Handler
 		AFdInfo::EventTypes	_file_event;
 		File*				_file;
 		RequestParser		_request_parser;
+
+		std::string	_absolute_target;
 
 		std::string	_request;
 

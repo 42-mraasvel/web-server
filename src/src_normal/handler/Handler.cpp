@@ -12,29 +12,49 @@
 Handler::Handler(): _file(NULL) {}
 
 //TODO: Make recv work with multiple iterations, so each iter can loop over request
-int	Handler::parseRequest(int fd)
+int	Handler::parseRequest(Client* client, int fd)
 {
 	//TODO: CHECK MAXLEN
-	if (_request.size() + BUFFER_SIZE >= _request.capacity())
-	{
-		_request.reserve(std::max((size_t)BUFFER_SIZE, _request.capacity() * 2));
-	}
-	int ret = recv(fd, &_request[_request.size()], BUFFER_SIZE, 0);
+	_request.resize(BUFFER_SIZE, '\0');
+	ssize_t ret = recv(fd, &_request[0], BUFFER_SIZE, 0);
 	if (ret == ERR)
 	{
 		perror("Recv");
 		return (ERR);
 	}
-	printf("len read: %d\n",printf("%s\n", _request.c_str()));
-
-	//TODO: Parse Header
-	if(_request_parser.parseHeader(_request) == ERR)
+	else if (ret == 0)
 	{
+		client->flag = AFdInfo::TO_ERASE;
+		return ERR;
+	}
+	_request.resize(ret);
+	printf("Request size: %lu, Bytes read: %ld\n", _request.size(), ret);
+
+	//TODO: check for continue reading and change the return value
+	if(_request_parser.parseHeader(_request) == RequestParser::BAD_REQUEST)
+	{
+		printf("OMG!!!!\n");		
 		return (ERR);
 	}
 
+	_request_parser.print();
+	generateAbsoluteTarget();
+	printf("Absolute target: %s\n", _absolute_target.c_str());
 	return OK;
 
+}
+
+void	Handler::generateAbsoluteTarget()
+{
+	//TODO: resort to the correct Pathname based on default path from config (add Client* client)
+	if (_request_parser.getTargetResource() == "/")
+	{
+		_absolute_target =  "./page_sample/index.html";
+	}
+	else
+	{
+		_absolute_target =  "./page_sample" + _request_parser.getTargetResource();
+	}
 }
 
 //TODO: create response with error status
@@ -101,7 +121,8 @@ void Handler::previewMethod()
 
 int	Handler::createFile(Client *client)
 {
-	int	file_fd = open(_request_parser.getTargetResource().c_str(), _oflag, 0644);
+
+	int	file_fd = open(_absolute_target.c_str(), _oflag, 0644);
 	if (file_fd == ERR)
 	{
 		// TODO: add error handling (i.e. no file find)
