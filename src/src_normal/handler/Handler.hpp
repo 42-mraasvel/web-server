@@ -10,6 +10,8 @@ class File;
 class Handler
 {
     public:
+		Handler();
+
 		typedef RequestParser::header_field_t::iterator header_iterator;
 
 		int	parseRequest(int fd);

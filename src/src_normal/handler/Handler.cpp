@@ -8,6 +8,9 @@
 #include <poll.h>
 #include <sys/socket.h>
 
+
+Handler::Handler(): _file(NULL) {}
+
 enum RequestParser::MethodType	Handler::getMethod() const
 {
 	return _request_parser.getMethod();
@@ -134,8 +137,11 @@ int	Handler::sendResponse(int fd)
 {
 	generateResponse();
 
-	_file->flag = AFdInfo::TO_ERASE;
-
+	if (_file)
+	{
+		_file->flag = AFdInfo::TO_ERASE;
+		_file = NULL;
+	}
 
 	if (send(fd, _response.c_str(), _response.size(), 0) == ERR)
 	{
