@@ -10,7 +10,7 @@ struct pollfd	Client::getPollFd() const
 {
 	struct pollfd temp;
 	temp.fd = _fd;
-	temp.events = POLLIN | POLLHUP;
+	temp.events = POLLIN;
 	temp.revents = 0;
 	return temp;
 }
@@ -20,23 +20,33 @@ struct pollfd	Client::getPollFd() const
 int	Client::readEvent(FdTable & fd_table)
 {
 	//TODO: CHECK MAXLEN
-	if (_request.size() + BUFFER_SIZE >= _request.capacity())
-	{
-		_request.reserve(std::max((size_t)BUFFER_SIZE, _request.capacity() * 2));
-	}
-	int ret = recv(_fd, &_request[_request.size()], BUFFER_SIZE, 0);
+	//TODO: implement buffer class wrapper
+	char buffer[BUFFER_SIZE + 1];
+	ssize_t ret = recv(_fd, buffer, BUFFER_SIZE, 0);
 	if (ret == ERR)
 	{
 		perror("Recv");
 		return (ERR);
+	} else if (ret == 0)
+	{
+		// TODO: Connection has closed, so we want to delete this FD from the table
+		printf("READ: %ld bytes: CLOSING CONNECTION\r\n", ret);
+		flag = AFdInfo::TO_ERASE;
+		return ERR;
 	}
-	printf("len read: %d\n",printf("%s\n", _request.c_str()));
+
+	buffer[ret] = '\0';
+	_request.append(buffer);
+	// printf("REQUEST:\n%s\n", _request.c_str());
+	// printf("len read: %ld, request size: %lu\n", ret, _request.size());
 
 	//TODO: Parse Header
-	if(_request_parser.parseHeader(_request) == ERR)
+	if(_request_parser.parseHeader(_request) != RequestParser::REQUEST_COMPLETE)
 	{
-		return (ERR);
+		std::cout << "BAD OR INCOMPLETE REQUEST" << std::endl;
+		// return (ERR);
 	}
+	_request_parser.print();
 
 	if (_executor.execute(this, fd_table, _request_parser) == ERR)
 	{
