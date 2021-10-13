@@ -30,19 +30,23 @@ int	Client::readEvent(FdTable & fd_table)
 	} else if (ret == 0)
 	{
 		// TODO: Connection has closed, so we want to delete this FD from the table
+		printf("READ: %ld bytes: CLOSING CONNECTION\r\n", ret);
+		flag = AFdInfo::TO_ERASE;
+		return ERR;
 	}
 
 	buffer[ret] = '\0';
 	_request.append(buffer);
-	printf("REQUEST:\n%s\n", _request.c_str());
-	printf("len read: %ld, request size: %lu\n", ret, _request.size());
+	// printf("REQUEST:\n%s\n", _request.c_str());
+	// printf("len read: %ld, request size: %lu\n", ret, _request.size());
 
 	//TODO: Parse Header
 	if(_request_parser.parseHeader(_request) != RequestParser::REQUEST_COMPLETE)
 	{
-		std::cout << "INCOMPLETE REQUEST" << std::endl;
+		std::cout << "BAD OR INCOMPLETE REQUEST" << std::endl;
 		// return (ERR);
 	}
+	_request_parser.print();
 
 	if (_executor.execute(this, fd_table, _request_parser) == ERR)
 	{

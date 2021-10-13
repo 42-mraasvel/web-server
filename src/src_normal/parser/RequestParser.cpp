@@ -123,7 +123,15 @@ bool RequestParser::skipAbsolutePath(std::string const & s)
 
 	while (s[_index] == '/')
 	{
-		++_index;
+		// NginX skips all slashes
+		while (s[_index] == '/')
+		{
+			++_index;
+		}
+		if (!isPchar(s[_index]))
+		{
+			break;
+		}
 		skip(s, isPchar);
 	}
 	return true;
@@ -379,4 +387,39 @@ RequestParser::header_field_t& RequestParser::getHeaderFields()
 const std::string& RequestParser::getMessageBody() const
 {
 	return _message_body;
+}
+
+/*
+Debugging
+*/
+
+std::string RequestParser::getMethodString() const
+{
+	switch (_method)
+	{
+		case GET:
+			return "GET";
+		case POST:
+			return "POST";
+		case DELETE:
+			return "DELETE";
+		case OTHER:
+			break;
+	}
+	return "OTHER";
+}
+
+void RequestParser::print() const
+{
+	printf(GREEN_BOLD "-- PARSED REQUEST --" RESET_COLOR "\r\n");
+	printf("%s %s HTTP/%d.%d\r\n",
+		getMethodString().c_str(), getTargetResource().c_str(),
+		getHttpVersion().major, getHttpVersion().minor);
+	
+	for (header_field_t::const_iterator it = _header_fields.begin(); it != _header_fields.end(); ++it)
+	{
+		printf("  %s: %s\r\n", it->first.c_str(), it->second.c_str());
+	}
+	printf(GREEN_BOLD "-- MESSAGE BODY --" RESET_COLOR "\r\n");
+	printf("%s\r\n", _message_body.c_str());
 }

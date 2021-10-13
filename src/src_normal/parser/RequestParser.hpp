@@ -74,6 +74,11 @@ class RequestParser
 		void skip(std::string const & s, IsFunctionT condition);
 
 		void resetParser();
+	
+	public:
+	/* Debugging */
+		std::string getMethodString() const;
+		void print() const;
 
 	private:
 		enum MethodType	_method;
