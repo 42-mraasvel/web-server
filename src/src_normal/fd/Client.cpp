@@ -1,8 +1,6 @@
 #include "Client.hpp"
 #include "settings.hpp"
-#include "fd/File.hpp"
 #include <poll.h>
-#include <sys/socket.h>
 
 Client::Client(int fd): AFdInfo(fd) {}
 
@@ -15,47 +13,36 @@ struct pollfd	Client::getPollFd() const
 	return temp;
 }
 
-
-//TODO: Make recv work with multiple iterations, so each iter can loop over request
 int	Client::readEvent(FdTable & fd_table)
 {
-	//TODO: CHECK MAXLEN
-	//TODO: implement buffer class wrapper
-	char buffer[BUFFER_SIZE + 1];
-	ssize_t ret = recv(_fd, buffer, BUFFER_SIZE, 0);
-	if (ret == ERR)
-	{
-		perror("Recv");
-		return (ERR);
-	} else if (ret == 0)
-	{
-		// TODO: Connection has closed, so we want to delete this FD from the table
-		printf("READ: %ld bytes: CLOSING CONNECTION\r\n", ret);
-		flag = AFdInfo::TO_ERASE;
-		return ERR;
-	}
-
-	buffer[ret] = '\0';
-	_request.append(buffer);
-	// printf("REQUEST:\n%s\n", _request.c_str());
-	// printf("len read: %ld, request size: %lu\n", ret, _request.size());
-
-	//TODO: Parse Header
-	if(_request_parser.parseHeader(_request) != RequestParser::REQUEST_COMPLETE)
-	{
-		std::cout << "BAD OR INCOMPLETE REQUEST" << std::endl;
-		// return (ERR);
-	}
-	_request_parser.print();
-
-	if (_executor.execute(this, fd_table, _request_parser) == ERR)
+	if (_handler.parseRequest(this, _fd) == ERR
+	 || _handler.executeMethod(this, fd_table) == ERR)
 	{
 		return ERR;
 	}
-	resetBuffer();
-	updateEvents(WAITING, fd_table); // wait for file to be read
 
+	updateEvents(WAITING, fd_table);
+	return OK;
+}
+
+int	Client::writeEvent(FdTable & fd_table)
+{
+	if (_handler.sendResponse(_fd) == ERR)
+	{
+		return ERR;
+	}
+
+	updateEvents(READING, fd_table);
+	return OK;
+}
+
+int	Client::closeEvent()
+{
 	//TODO:
+	return OK;
+}
+
+
 /*
 1. Read request
 2. Parser(request)
@@ -75,48 +62,3 @@ int	Client::readEvent(FdTable & fd_table)
 			client->status = POLLOUT;
 		}
 */
-	return OK;
-}
-
-int	Client::writeEvent(FdTable & fd_table)
-{
-	//TODO: clean up generateResponse() + getResponse()
-	if (_executor.generateResponse(_file) == ERR)
-	{
-		return ERR;
-	}
-	std::string const & response = _executor.getResponse();
-
-	if (send(_fd, response.c_str(), response.size(), 0) == ERR)
-	{
-		perror("send");
-		return ERR;
-	}
-	updateEvents(READING, fd_table);
-	return OK;
-}
-
-int	Client::closeEvent()
-{
-	//TODO:
-	return OK;
-}
-
-//TODO: retain information about the next request if present
-void	Client::resetBuffer()
-{
-	_request.clear();
-}
-
-int	Client::setFile(int file_fd, FdTable & fd_table)
-{
-	_file = new File(this, file_fd);
-	int	file_index = fd_table.size();
-	if (fd_table.insertFd(_file) == ERR)
-	{
-		return ERR;
-	}
-	_file->updateEvents(AFdInfo::READING, fd_table);
-
-	return OK;
-}

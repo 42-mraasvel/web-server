@@ -309,6 +309,7 @@ Message Body parsing
 
 int RequestParser::parseMessageBody(std::string const & request)
 {
+	_index += 2;
 	header_field_t::iterator it = _header_fields.find("content-length");
 	if (it == _header_fields.end())
 	{

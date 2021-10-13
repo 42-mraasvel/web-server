@@ -48,7 +48,7 @@ int	Webserver::dispatchFd(int ready)
 		if (_fd_table[i].first.revents & POLLHUP)
 		{
 			printf(BLUE_BOLD "Close Event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
-			_fd_table.eraseFd(_fd_table[i].second->getIndex()); //TODO: should this be just i??
+			_fd_table.eraseFd(i);
 			continue;
 		}
 		if (_fd_table[i].first.revents & POLLIN)

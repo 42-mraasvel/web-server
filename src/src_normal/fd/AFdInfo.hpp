@@ -27,9 +27,9 @@ class AFdInfo
 
 		AFdInfo();
 		AFdInfo(int fd);
-		int	getFd() const;
+		int			getFd() const;
 		std::size_t getIndex() const;
-		void setIndex(std::size_t index);
+		void 		setIndex(std::size_t index);
 
 		void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 

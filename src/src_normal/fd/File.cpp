@@ -3,6 +3,7 @@
 #include "Client.hpp"
 #include <unistd.h>
 #include <poll.h>
+#include <string>
 
 File::File(Client* client, int fd): AFdInfo(fd), _client(client) {}
 
@@ -20,11 +21,6 @@ int File::readEvent(FdTable & fd_table)
 	//TODO: to discuss with team how to read directly into _content;
 	//TODO: to combine with Client::readEvent().
 
-//	if (_content.size() + BUFFER_SIZE >= _content.capacity())
-//	{
-//		_content.reserve(std::max((size_t)BUFFER_SIZE, _content.capacity() * 2));
-//	}
-//	int	ret = read(_fd, &_content[_content.size()], BUFFER_SIZE);
 	char	buf[BUFFER_SIZE];
 	int	ret = read(_fd, buf, BUFFER_SIZE);
 	if (ret == ERR)
@@ -42,7 +38,16 @@ int File::readEvent(FdTable & fd_table)
 
 int File::writeEvent(FdTable & fd_table)
 {
-	std::cout << RED_BOLD << "File::writeEvent() called (ERROR!)" << RESET_COLOR << std::endl;
+	int	ret = write(_fd, _content.c_str(), _content.size());
+	if (ret == ERR)
+	{
+		perror("write");
+		return ERR;
+	}
+
+	_client->updateEvents(AFdInfo::WRITING, fd_table);
+	this->updateEvents(AFdInfo::WAITING, fd_table);
+
 	return OK;
 }
 
@@ -54,4 +59,9 @@ int	File::closeEvent()
 std::string const &	File::getContent() const
 {
 	return _content;
+}
+
+void	File::setContent(std::string const & content)
+{
+	_content = content;
 }
