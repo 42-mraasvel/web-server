@@ -8,7 +8,7 @@ struct pollfd	Client::getPollFd() const
 {
 	struct pollfd temp;
 	temp.fd = _fd;
-	temp.events = POLLIN | POLLHUP;
+	temp.events = POLLIN;
 	temp.revents = 0;
 	return temp;
 }
