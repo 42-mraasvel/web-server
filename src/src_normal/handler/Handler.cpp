@@ -33,15 +33,12 @@ int	Handler::parseRequest(Client* client, int fd)
 	//TODO: check for continue reading and change the return value
 	if(_request_parser.parseHeader(_request) == RequestParser::BAD_REQUEST)
 	{
-		printf("OMG!!!!\n");		
 		return (ERR);
 	}
 
-	_request_parser.print();
 	generateAbsoluteTarget();
-	printf("Absolute target: %s\n", _absolute_target.c_str());
-	return OK;
 
+	return OK;
 }
 
 void	Handler::generateAbsoluteTarget()
