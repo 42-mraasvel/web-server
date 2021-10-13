@@ -8,13 +8,13 @@ int RequestParser::parseHeader(std::string const & request)
 {
 	_http_version = "HTTP/1.1";
 
-	int	lemon = 4;
+	int	lemon = 1;
 
 	switch (lemon)
 	{
 		case 1:
 			_method = GET;
-			_target_resource = "./page_sample/Anneaa";
+			_target_resource = "./page_sample/Anne";
 			break;
 		case 2:
 			_method = GET;

@@ -15,7 +15,7 @@ class File : public AFdInfo
 		int	closeEvent();
 
 		std::string	const &	getContent() const;
-		void	setContent(std::string const & content);
+		void				setContent(std::string const & content);
 
 	private:
 		Client*		_client;

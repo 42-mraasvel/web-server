@@ -11,11 +11,6 @@
 
 Handler::Handler(): _file(NULL) {}
 
-enum RequestParser::MethodType	Handler::getMethod() const
-{
-	return _request_parser.getMethod();
-}
-
 //TODO: Make recv work with multiple iterations, so each iter can loop over request
 int	Handler::parseRequest(int fd)
 {
@@ -42,12 +37,15 @@ int	Handler::parseRequest(int fd)
 
 }
 
-//TODO: ERROR
 //TODO: create response with error status
-//TODO: implement actual responses
 int Handler::executeMethod(Client* client, FdTable & fd_table)
 {
 	// TODO: add error handling from Parser (Status != 200)
+
+	if (buildFile(client, fd_table) == ERR)
+	{
+		return ERR;
+	}
 
 	switch (_request_parser.getMethod())
 	{
@@ -63,46 +61,87 @@ int Handler::executeMethod(Client* client, FdTable & fd_table)
 		default:
 			break;
 	}
+
 	resetBuffer(); //for _request
 	return OK;
 }
 
-
-int	Handler::methodGet(Client* client, FdTable & fd_table)
+int	Handler::buildFile(Client* client, FdTable & fd_table)
 {
-	int	file_fd = open(_request_parser.getTargetResource().c_str(), O_RDONLY);
-	if (file_fd == ERR)
-	{
-		// TODO: add error handling (i.e. no file find)
-		perror("open in methodGet");
-		return ERR;
-	}
-	printf(BLUE_BOLD "Open File:" RESET_COLOR " [%d]\n", file_fd);
-
-	if (setFile(client, file_fd, fd_table, AFdInfo::READING) == ERR)
+	previewMethod();
+	if (createFile(client) == ERR
+		|| insertFile(fd_table) == ERR)
 	{
 		return ERR;
 	}
-
 	return OK;
 }
 
 //TODO: check if O_TRUNC is correct
-int	Handler::methodPost(Client* client, FdTable & fd_table)
+void Handler::previewMethod()
 {
-	int	file_fd = open(_request_parser.getTargetResource().c_str(), O_CREAT | O_RDWR | O_TRUNC, 0644);
+	switch (_request_parser.getMethod())
+	{
+		case RequestParser::GET:
+			_oflag = O_RDONLY;
+			_file_event = AFdInfo::READING;
+			break;
+		case RequestParser::POST:
+			_oflag = O_CREAT | O_RDWR | O_TRUNC;
+			_file_event = AFdInfo::WRITING;
+			break;
+		case RequestParser::DELETE:
+			_oflag = O_RDONLY;
+			_file_event = AFdInfo::READING;
+			break; 
+		default:
+			break;
+	}
+}
+
+int	Handler::createFile(Client *client)
+{
+	int	file_fd = open(_request_parser.getTargetResource().c_str(), _oflag, 0644);
 	if (file_fd == ERR)
 	{
-		perror("open in methodPost");
+		// TODO: add error handling (i.e. no file find)
+		perror("open in method");
 		return ERR;
 	}
+
 	printf(BLUE_BOLD "Open File:" RESET_COLOR " [%d]\n", file_fd);
 
-	if (setFile(client, file_fd, fd_table, AFdInfo::WRITING) == ERR)
+	_file = new File(client, file_fd);
+
+	return OK;
+
+}
+
+int	Handler::insertFile(FdTable & fd_table)
+{
+	int	file_index = fd_table.size();
+	if (fd_table.insertFd(_file) == ERR)
 	{
 		return ERR;
 	}
+	_file->updateEvents(_file_event, fd_table);
 
+	return OK;
+}
+
+//TODO: retain information about the next request if present
+void	Handler::resetBuffer()
+{
+	_request.clear();
+}
+
+int	Handler::methodGet(Client* client, FdTable & fd_table)
+{
+	return OK;
+}
+
+int	Handler::methodPost(Client* client, FdTable & fd_table)
+{
 	_file->setContent(_request_parser.getMessageBody());
 
 	return OK;
@@ -110,6 +149,7 @@ int	Handler::methodPost(Client* client, FdTable & fd_table)
 
 int	Handler::methodDelete(Client* client, FdTable & fd_table)
 {
+
 	if (remove(_request_parser.getTargetResource().c_str()) == ERR)
 	{
 		perror("remove in methodDelete");
@@ -120,28 +160,12 @@ int	Handler::methodDelete(Client* client, FdTable & fd_table)
 	return OK;
 }
 
-int	Handler::setFile(Client* client, int file_fd, FdTable & fd_table, AFdInfo::EventTypes events)
-{
-	_file = new File(client, file_fd);
-	int	file_index = fd_table.size();
-	if (fd_table.insertFd(_file) == ERR)
-	{
-		return ERR;
-	}
-	_file->updateEvents(events, fd_table);
-
-	return OK;
-}
-
 int	Handler::sendResponse(int fd)
 {
 	generateResponse();
 
-	if (_file)
-	{
-		_file->flag = AFdInfo::TO_ERASE;
-		_file = NULL;
-	}
+	_file->flag = AFdInfo::TO_ERASE;
+	_file = NULL;
 
 	if (send(fd, _response.c_str(), _response.size(), 0) == ERR)
 	{
@@ -171,8 +195,6 @@ void	Handler::generateResponse()
 	_status_phrase = "OK";
 	_header_fields["Host"] = "localhost";
 	_header_fields["Content-Length"] = ft_itoa(_message_body.size());
-//	_header_fields.insert(std::pair<std::string, std::string>("Host", "localhost"));
-//	_header_fields.insert(std::pair<std::string, std::string>("Content-Length", )));
 
 	generateHeaderString();
 	
@@ -188,10 +210,4 @@ std::string	Handler::ft_itoa(int i) const
 	std::stringstream	ss;
 	ss << i;
 	return ss.str();
-}
-
-//TODO: retain information about the next request if present
-void	Handler::resetBuffer()
-{
-	_request.clear();
 }

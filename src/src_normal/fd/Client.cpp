@@ -15,20 +15,13 @@ struct pollfd	Client::getPollFd() const
 
 int	Client::readEvent(FdTable & fd_table)
 {
-	if (_handler.parseRequest(_fd) == ERR)
+	if (_handler.parseRequest(_fd) == ERR
+	 || _handler.executeMethod(this, fd_table) == ERR)
 	{
 		return ERR;
 	}
 
-	if (_handler.executeMethod(this, fd_table) == ERR)
-	{
-		return ERR;
-	}
-
-	if (_handler.getMethod() == RequestParser::DELETE)
-		updateEvents(WRITING, fd_table);
-	else
-		updateEvents(WAITING, fd_table);
+	updateEvents(WAITING, fd_table);
 	return OK;
 }
 
