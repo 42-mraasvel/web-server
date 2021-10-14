@@ -2,7 +2,10 @@
 #include "settings.hpp"
 #include <poll.h>
 
-Client::Client(int fd): AFdInfo(fd) {}
+Client::Client(int fd): AFdInfo(fd)
+{
+	_handler.setClient(this);
+}
 
 struct pollfd	Client::getPollFd() const
 {
@@ -15,24 +18,19 @@ struct pollfd	Client::getPollFd() const
 
 int	Client::readEvent(FdTable & fd_table)
 {
-	if (_handler.parseRequest(this, _fd) == ERR
-	 || _handler.executeMethod(this, fd_table) == ERR)
+	if (_handler.processRequest(fd_table) == ERR)
 	{
 		return ERR;
 	}
-
-	updateEvents(WAITING, fd_table);
 	return OK;
 }
 
 int	Client::writeEvent(FdTable & fd_table)
 {
-	if (_handler.sendResponse(_fd) == ERR)
+	if (_handler.sendResponse(fd_table) == ERR)
 	{
 		return ERR;
 	}
-
-	updateEvents(READING, fd_table);
 	return OK;
 }
 

@@ -9,14 +9,62 @@
 #include <sys/socket.h>
 
 
-Handler::Handler(): _file(NULL) {}
+Handler::Handler(): _file(NULL), _client(NULL) {}
+
+void	Handler::setClient(Client* client)
+{
+	_client = client;
+}
+
+/****************************/
+/****** processRequest ******/
+/****************************/
+
+int	Handler::processRequest(FdTable & fd_table)
+{
+	previewMethod();
+
+	// TODO: (from Maarten) check for CONT_READING or NOT
+	if (parseRequest() == ERR)
+	{
+		return ERR;
+	}
+	if (executeMethod(fd_table) == ERR)
+	{
+		return ERR;
+	}
+	_client->updateEvents(AFdInfo::WAITING, fd_table);
+
+	return OK;
+}
+
+void Handler::previewMethod()
+{
+	switch (_request_parser.getMethod())
+	{
+		case RequestParser::GET:
+			_oflag = O_RDONLY;
+			_file_event = AFdInfo::READING;
+			break;
+		case RequestParser::POST:
+			_oflag = O_CREAT | O_WRONLY | O_APPEND;
+			_file_event = AFdInfo::WRITING;
+			break;
+		case RequestParser::DELETE:
+			_oflag = O_RDONLY;
+			_file_event = AFdInfo::READING;
+			break; 
+		default:
+			break;
+	}
+}
 
 //TODO: Make recv work with multiple iterations, so each iter can loop over request
-int	Handler::parseRequest(Client* client, int fd)
+int	Handler::parseRequest()
 {
 	//TODO: CHECK MAXLEN
 	_request.resize(BUFFER_SIZE, '\0');
-	ssize_t ret = recv(fd, &_request[0], BUFFER_SIZE, 0);
+	ssize_t ret = recv(_client->getFd(), &_request[0], BUFFER_SIZE, 0);
 	if (ret == ERR)
 	{
 		perror("Recv");
@@ -24,7 +72,7 @@ int	Handler::parseRequest(Client* client, int fd)
 	}
 	else if (ret == 0)
 	{
-		client->flag = AFdInfo::TO_ERASE;
+		_client->flag = AFdInfo::TO_ERASE;
 		return ERR;
 	}
 	_request.resize(ret);
@@ -55,11 +103,10 @@ void	Handler::generateAbsoluteTarget()
 }
 
 //TODO: create response with error status
-int Handler::executeMethod(Client* client, FdTable & fd_table)
+int Handler::executeMethod(FdTable & fd_table)
 {
-	// TODO: add error handling from Parser (Status != 200)
-
-	if (buildFile(client, fd_table) == ERR)
+	if (createFile() == ERR
+		|| insertFile(fd_table) == ERR)
 	{
 		return ERR;
 	}
@@ -67,13 +114,13 @@ int Handler::executeMethod(Client* client, FdTable & fd_table)
 	switch (_request_parser.getMethod())
 	{
 		case RequestParser::GET:
-			methodGet(client, fd_table);
+			methodGet();
 			break;
 		case RequestParser::POST:
-			methodPost(client, fd_table);
+			methodPost();
 			break;
 		case RequestParser::DELETE:
-			methodDelete(client, fd_table);
+			methodDelete();
 			break; 
 		default:
 			break;
@@ -83,39 +130,7 @@ int Handler::executeMethod(Client* client, FdTable & fd_table)
 	return OK;
 }
 
-int	Handler::buildFile(Client* client, FdTable & fd_table)
-{
-	previewMethod();
-	if (createFile(client) == ERR
-		|| insertFile(fd_table) == ERR)
-	{
-		return ERR;
-	}
-	return OK;
-}
-
-void Handler::previewMethod()
-{
-	switch (_request_parser.getMethod())
-	{
-		case RequestParser::GET:
-			_oflag = O_RDONLY;
-			_file_event = AFdInfo::READING;
-			break;
-		case RequestParser::POST:
-			_oflag = O_CREAT | O_WRONLY | O_APPEND;
-			_file_event = AFdInfo::WRITING;
-			break;
-		case RequestParser::DELETE:
-			_oflag = O_RDONLY;
-			_file_event = AFdInfo::READING;
-			break; 
-		default:
-			break;
-	}
-}
-
-int	Handler::createFile(Client *client)
+int	Handler::createFile()
 {
 
 	int	file_fd = open(_absolute_target.c_str(), _oflag, 0644);
@@ -128,7 +143,7 @@ int	Handler::createFile(Client *client)
 
 	printf(BLUE_BOLD "Open File:" RESET_COLOR " [%d]\n", file_fd);
 
-	_file = new File(client, file_fd);
+	_file = new File(_client, file_fd);
 
 	return OK;
 
@@ -146,25 +161,19 @@ int	Handler::insertFile(FdTable & fd_table)
 	return OK;
 }
 
-//TODO: retain information about the next request if present
-void	Handler::resetBuffer()
-{
-	_request.clear();
-}
-
-int	Handler::methodGet(Client* client, FdTable & fd_table)
+int	Handler::methodGet()
 {
 	return OK;
 }
 
-int	Handler::methodPost(Client* client, FdTable & fd_table)
+int	Handler::methodPost()
 {
 	_file->setContent(_request_parser.getMessageBody());
 
 	return OK;
 }
 
-int	Handler::methodDelete(Client* client, FdTable & fd_table)
+int	Handler::methodDelete()
 {
 
 	if (remove(_request_parser.getTargetResource().c_str()) == ERR)
@@ -177,18 +186,30 @@ int	Handler::methodDelete(Client* client, FdTable & fd_table)
 	return OK;
 }
 
-int	Handler::sendResponse(int fd)
+//TODO: retain information about the next request if present
+void	Handler::resetBuffer()
+{
+	_request.clear();
+}
+
+/***************************/
+/****** sendResponse ******/
+/**************************/
+
+int	Handler::sendResponse(FdTable & fd_table)
 {
 	generateResponse();
 
 	_file->flag = AFdInfo::TO_ERASE;
 	_file = NULL;
 
-	if (send(fd, _response.c_str(), _response.size(), 0) == ERR)
+	if (send(_client->getFd(), _response.c_str(), _response.size(), 0) == ERR)
 	{
 		perror("send");
 		return ERR;
 	}
+
+	_client->updateEvents(AFdInfo::READING, fd_table);
 
 	return OK;
 }

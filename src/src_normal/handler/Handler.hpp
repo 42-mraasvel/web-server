@@ -9,47 +9,53 @@ class File;
 
 class Handler
 {
+	/* processRequest */
     public:
-		Handler();
+		int	processRequest(FdTable & fd_table);
 
-		typedef RequestParser::header_field_t::iterator header_iterator;
+	private:
+		void	previewMethod();
 
-		int	parseRequest(Client* client, int fd);
-        int executeMethod(Client* client, FdTable & fd_table);
-		int	sendResponse(int fd);
-
-    private:
-
+		int		parseRequest();
 		void	generateAbsoluteTarget();
 
-        int methodGet(Client* client, FdTable & fd_table);
-        int methodPost(Client* client, FdTable & fd_table);
-        int methodDelete(Client* client, FdTable & fd_table);
-
-		int		buildFile(Client* client, FdTable & fd_table);
-		void	previewMethod();
-		int		createFile(Client *client);
+        int 	executeMethod(FdTable & fd_table);
+		int		createFile();
 		int		insertFile(FdTable & fd_table);
-
+        int 	methodGet();
+        int 	methodPost();
+        int 	methodDelete();
 		void	resetBuffer();
 
+	/* sendResponse */
+	public:
+		int	sendResponse(FdTable & fd_table);
+
+	private:
 		void	generateHeaderString();
 		void	generateResponse();
 
+	/* utility */
+	public:
+		Handler();
+		typedef RequestParser::header_field_t::iterator header_iterator;
+		void	setClient(Client* client);
+
+	private:
 		std::string	ft_itoa(int	i) const;
 
+	/* attribute */
     private:
-		RequestParser::header_field_t  _header_fields;
-
 		int					_oflag;
 		AFdInfo::EventTypes	_file_event;
-		File*				_file;
 		RequestParser		_request_parser;
+		File*				_file;
+		Client*				_client;
+
+		RequestParser::header_field_t  _header_fields;
 
 		std::string	_absolute_target;
-
 		std::string	_request;
-
 		std::string	_response;
 		std::string _http_version;
 		std::string	_status_code;
