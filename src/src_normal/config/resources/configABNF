@@ -1,0 +1,32 @@
+<server> 
+<whitespaces newlines>
+<{>
+<whitespaces newlines>
+<listen><whitespaces><portnumber><;>
+<server_name><whitespaces><name1><whitespaces><namex><;>
+<autoindex><whitespaces><on/off><;>
+
+<location><whitespaces><{><whitespaces newlines>
+<whitespaces><number><whitespaces><whitespaces><path><;>
+
+
+<}>
+
+<allowed_methods><whitespaces><method_name1><whitespaces><method_namex><;>
+
+<}>
+<whitespaces newlines>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -10,7 +10,7 @@
 #ifndef USING_CATCH
 int main()
 {
-	Config config_file("file");
+	Config config_file("src/src_normal/config/resources/default.conf");
 	config_file.print();
 	Webserver webserver;
 	if (webserver.init(config_file))

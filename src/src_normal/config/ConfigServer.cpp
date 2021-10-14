@@ -1,7 +1,13 @@
 #include "ConfigServer.hpp"
 #include "settings.hpp"
-
-ConfigServer::ConfigServer() {}
+// TODO: Remove port 80 somewhere when process is done
+ConfigServer::ConfigServer()
+{
+	_ports.push_back(80);
+	_client_body_size= 1000000000;
+	_server_name = "";
+	_autoindex_status = 1;
+}
 
 void	ConfigServer::addPort(int port)
 {
