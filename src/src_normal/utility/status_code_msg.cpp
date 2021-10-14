@@ -3,6 +3,8 @@
 /*
 https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 */
+namespace WebservUtility
+{
 
 std::string getStatusMessage(int status_code)
 {
@@ -137,4 +139,6 @@ std::string getStatusMessage(int status_code)
 	}
 
 	return "Unknown Status Code";
+}
+
 }

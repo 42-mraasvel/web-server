@@ -4,17 +4,11 @@
 #include "fd/File.hpp"
 #include <fcntl.h>
 #include <cstdlib>
-#include <sstream>
 #include <poll.h>
 #include <sys/socket.h>
+#include "utility/utility.hpp"
 
-
-Handler::Handler(): _file(NULL), _client(NULL) {}
-
-void	Handler::setClient(Client* client)
-{
-	_client = client;
-}
+Handler::Handler(): _file(NULL), _client(NULL), _status_code(0) {}
 
 /****************************/
 /****** processRequest ******/
@@ -22,19 +16,146 @@ void	Handler::setClient(Client* client)
 
 int	Handler::processRequest(FdTable & fd_table)
 {
-	previewMethod();
-
-	// TODO: (from Maarten) check for CONT_READING or NOT
 	if (parseRequest() == ERR)
 	{
 		return ERR;
 	}
-	if (executeMethod(fd_table) == ERR)
+	if (checkError() == ERR)
 	{
 		return ERR;
 	}
+	if (_status_code)
+	{
+		_client->updateEvents(AFdInfo::WRITING, fd_table);
+		return OK;
+	}
+	if (!_status_code && executeMethod(fd_table) == ERR)
+	{
+		return ERR;
+	}
+	// TODO: figure out the correct location for this function.
 	_client->updateEvents(AFdInfo::WAITING, fd_table);
+	
+	return OK;
+}
 
+/*******************************************/
+/****** processRequest - step 1 parse ******/
+/*******************************************/
+//TODO: Make recv work with multiple iterations, so each iter can loop over request
+int	Handler::parseRequest()
+{
+	//TODO: CHECK MAXLEN
+	_request.resize(BUFFER_SIZE, '\0');
+	ssize_t ret = recv(_client->getFd(), &_request[0], BUFFER_SIZE, 0);
+	if (ret == ERR)
+	{
+		perror("Recv");
+		return (ERR);
+	}
+	else if (ret == 0)
+	{
+		_client->flag = AFdInfo::TO_ERASE;
+		return ERR;
+	}
+	_request.resize(ret);
+	printf("Request size: %lu, Bytes read: %ld\n", _request.size(), ret);
+
+	//TODO: change it to 1) continue reading 2) BAD_REQUEST 3) TO_EXECUTE (incoprotate _client->updatedEvent())
+	if(_request_parser.parseHeader(_request) == RequestParser::BAD_REQUEST)
+	{
+		return (ERR);
+	}
+
+	generateAbsoluteTarget();
+
+	return OK;
+}
+
+void	Handler::generateAbsoluteTarget()
+{
+	//TODO: resort to the correct Pathname based on default path from config (add Client* client)
+	if (_request_parser.getTargetResource() == "/")
+	{
+		_absolute_target =  "./page_sample/index.html";
+	}
+	else
+	{
+		_absolute_target =  "./page_sample" + _request_parser.getTargetResource();
+	}
+}
+/*************************************************/
+/****** processRequest - step 2 check error ******/
+/*************************************************/
+
+int	Handler::checkError()
+{
+	checkHttpVersion();
+	checkMethod();
+	checkContentLength();
+	return OK;
+}
+
+void	Handler::checkHttpVersion()
+{
+	if (_request_parser.getHttpVersion().major != 1)
+	{
+		//TODO: check if anything should be added on the header field or message body?
+		_status_code = 505; /* HTTP VERSION NOT SUPPORTED */
+	}
+}
+
+void	Handler::checkMethod()
+{
+	if (!_status_code && _request_parser.getMethod() == RequestParser::OTHER)
+	{
+		//TODO: check if anything should be added on the header field or message body?
+		_status_code = 501; /* NOT IMPLEMENTED */ 
+	}
+}
+
+void	Handler::checkContentLength()
+{
+	if (!_status_code &&_request_parser.getHttpVersion().minor == 0)
+	{
+		header_iterator i = _header_fields.find("content-length");
+		if (i == _header_fields.end())
+		{
+			//TODO: check if anything should be added on the header field or message body?
+			_status_code = 411; /* LENGTH REQUIRED */ 
+		}
+	}
+}
+
+/*********************************************/
+/****** processRequest - step 3 execute ******/
+/*********************************************/
+
+//TODO: create response with error status
+int Handler::executeMethod(FdTable & fd_table)
+{
+	previewMethod();
+	if (createFile() == ERR
+		|| insertFile(fd_table) == ERR)
+	{
+		return ERR;
+	}
+	switch (_request_parser.getMethod())
+	{
+		case RequestParser::GET:
+			methodGet();
+			break;
+		case RequestParser::POST:
+			methodPost();
+			break;
+		case RequestParser::DELETE:
+			methodDelete();
+			break; 
+		default:
+			methodOther();
+			break;
+	}
+	resetBuffer(); //for _request
 	return OK;
 }
 
@@ -59,81 +180,8 @@ void Handler::previewMethod()
 	}
 }
 
-//TODO: Make recv work with multiple iterations, so each iter can loop over request
-int	Handler::parseRequest()
-{
-	//TODO: CHECK MAXLEN
-	_request.resize(BUFFER_SIZE, '\0');
-	ssize_t ret = recv(_client->getFd(), &_request[0], BUFFER_SIZE, 0);
-	if (ret == ERR)
-	{
-		perror("Recv");
-		return (ERR);
-	}
-	else if (ret == 0)
-	{
-		_client->flag = AFdInfo::TO_ERASE;
-		return ERR;
-	}
-	_request.resize(ret);
-	printf("Request size: %lu, Bytes read: %ld\n", _request.size(), ret);
-
-	//TODO: check for continue reading and change the return value
-	if(_request_parser.parseHeader(_request) == RequestParser::BAD_REQUEST)
-	{
-		return (ERR);
-	}
-
-	generateAbsoluteTarget();
-
-	return OK;
-}
-
-void	Handler::generateAbsoluteTarget()
-{
-	//TODO: resort to the correct Pathname based on default path from config (add Client* client)
-	if (_request_parser.getTargetResource() == "/")
-	{
-		_absolute_target =  "./page_sample/index.html";
-	}
-	else
-	{
-		_absolute_target =  "./page_sample" + _request_parser.getTargetResource();
-	}
-}
-
-//TODO: create response with error status
-int Handler::executeMethod(FdTable & fd_table)
-{
-	if (createFile() == ERR
-		|| insertFile(fd_table) == ERR)
-	{
-		return ERR;
-	}
-
-	switch (_request_parser.getMethod())
-	{
-		case RequestParser::GET:
-			methodGet();
-			break;
-		case RequestParser::POST:
-			methodPost();
-			break;
-		case RequestParser::DELETE:
-			methodDelete();
-			break; 
-		default:
-			methodOther();
-			break;
-	}
-
-	resetBuffer(); //for _request
-	return OK;
-}
-
 int	Handler::createFile()
 {
-
 	int	file_fd = open(_absolute_target.c_str(), _oflag, 0644);
 	if (file_fd == ERR)
 	{
@@ -207,9 +255,11 @@ int	Handler::sendResponse(FdTable & fd_table)
 {
 	generateResponse();
 
-	_file->flag = AFdInfo::TO_ERASE;
-	_file = NULL;
-
+	if (_file) //TODO: to clean out later
+	{
+		_file->flag = AFdInfo::TO_ERASE;
+		_file = NULL;
+	}
 	if (send(_client->getFd(), _response.c_str(), _response.size(), 0) == ERR)
 	{
 		perror("send");
@@ -223,54 +273,52 @@ int	Handler::sendResponse(FdTable & fd_table)
 
 void	Handler::generateResponse()
 {
-	switch (_request_parser.getMethod())
+	if (!_status_code) //TODO: to clean out later
 	{
-		case RequestParser::GET:
-			responseGet();
-			break;
-		case RequestParser::POST:
-			responsePost();
-			break;
-		case RequestParser::DELETE:
-			responseDelete();
-			break; 
-		default:
-			responseOther();
-			break;
+		switch (_request_parser.getMethod())
+		{
+			case RequestParser::GET:
+				responseGet();
+				break;
+			case RequestParser::POST:
+				responsePost();
+				break;
+			case RequestParser::DELETE:
+				responseDelete();
+				break; 
+			default:
+				responseOther();
+				break;
+		}
 	}
-	_http_version = "HTTP/1.1";
-	_header_fields["Host"] = "localhost";
-	_header_fields["Content-Length"] = ft_itoa(_message_body.size());
-
-	convertHeaderString();
 	
-	_response = _http_version + ' '
-				+ _status_code + ' '
-				+ _status_phrase + NEWLINE
-				+ _header_string + NEWLINE
-				+ _message_body;
+	
+	_header_fields["Host"] = "localhost";
+	_header_fields["Content-Length"] = WebservUtility::itoa(_message_body.size());
+
+	setHttpVersion();
+	setHeaderString();
+	setResponse();
+	
 }
 
 int	Handler::responseGet()
 {
-	_status_code = "200";
-	_status_phrase = "OK";
+	_status_code = 200;
 	_message_body = _file->getContent();
 	return OK;
 }
 
 int	Handler::responsePost()
 {
-	_status_code = "201";
-	_status_phrase = "Created";
+	_status_code = 201;
 	return OK;
 }
 
 int	Handler::responseDelete()
 {
 	//TODO: check if 204 no content
-	_status_code = "202";
-	_status_phrase = "Accepted";
+	_status_code = 202;
 	return OK;
 }
 
@@ -279,8 +327,19 @@ int	Handler::responseOther()
 	return OK;
 }
 
+void	Handler::setHttpVersion()
+{
+	if (_request_parser.getHttpVersion().minor == 0)
+	{
+		_http_version = "HTTP/1.0";
+	}
+	else
+	{
+		_http_version = "HTTP/1.1";
+	}
+}
 
-void	Handler::convertHeaderString()
+void	Handler::setHeaderString()
 {
 	for (header_iterator i = _header_fields.begin(); i != _header_fields.end(); ++i)
 	{
@@ -288,13 +347,22 @@ void	Handler::convertHeaderString()
 	}
 }
 
-/***************************/
-/********* Utility *********/
-/***************************/
-
-std::string	Handler::ft_itoa(int i) const
+void	Handler::setResponse()
 {
-	std::stringstream	ss;
-	ss << i;
-	return ss.str();
+	_response = _http_version + " "
+				+ WebservUtility::itoa(_status_code) + " "
+				+ WebservUtility::getStatusMessage(_status_code)
+				+ NEWLINE
+				+ _header_string
+				+ NEWLINE
+				+ _message_body;
+}
+
+/****************************/
+/****** processRequest ******/
+/****************************/
+
+void	Handler::setClient(Client* client)
+{
+	_client = client;
 }

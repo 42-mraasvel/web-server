@@ -20,7 +20,11 @@ long strtol(std::string const & s);
 unsigned long strtoul(std::string const & s);
 unsigned long strtoul(const char* s);
 
+std::string	itoa(int n);
+
 void convertToLowercase(std::string & s);
+
+std::string getStatusMessage(int status_code);
 
 }
 

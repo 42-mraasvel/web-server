@@ -5,6 +5,7 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 ------------------
 
 	- 200 OK: The resource has been fetched and transmitted in the [Message Body].
+		- Note: a 200 response always has a payload, though an origin server MAY generate a payload body of zero length. If no payload is desired, an origin server ought to send 204 (No Content) instead.
 
 
 ------------------
