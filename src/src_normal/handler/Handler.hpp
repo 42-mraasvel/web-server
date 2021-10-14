@@ -25,6 +25,7 @@ class Handler
         int 	methodGet();
         int 	methodPost();
         int 	methodDelete();
+        int 	methodOther();
 		void	resetBuffer();
 
 	/* sendResponse */
@@ -32,8 +33,12 @@ class Handler
 		int	sendResponse(FdTable & fd_table);
 
 	private:
-		void	generateHeaderString();
 		void	generateResponse();
+		int		responseGet();
+		int		responsePost();
+		int		responseDelete();
+		int		responseOther();
+		void	convertHeaderString();
 
 	/* utility */
 	public:

@@ -123,6 +123,7 @@ int Handler::executeMethod(FdTable & fd_table)
 			methodDelete();
 			break; 
 		default:
+			methodOther();
 			break;
 	}
 
@@ -186,6 +187,12 @@ int	Handler::methodDelete()
 	return OK;
 }
 
+int	Handler::methodOther()
+{
+	return OK;
+}
+
+
 //TODO: retain information about the next request if present
 void	Handler::resetBuffer()
 {
@@ -214,27 +221,28 @@ int	Handler::sendResponse(FdTable & fd_table)
 	return OK;
 }
 
-void	Handler::generateHeaderString()
-{
-	for (header_iterator i = _header_fields.begin(); i != _header_fields.end(); ++i)
-	{
-		_header_string += (i->first + ": " + i->second + NEWLINE);
-	}
-}
-
 void	Handler::generateResponse()
 {
-	if (_file)
+	switch (_request_parser.getMethod())
 	{
-		_message_body = _file->getContent();
+		case RequestParser::GET:
+			responseGet();
+			break;
+		case RequestParser::POST:
+			responsePost();
+			break;
+		case RequestParser::DELETE:
+			responseDelete();
+			break; 
+		default:
+			responseOther();
+			break;
 	}
 	_http_version = "HTTP/1.1";
-	_status_code = "200";
-	_status_phrase = "OK";
 	_header_fields["Host"] = "localhost";
 	_header_fields["Content-Length"] = ft_itoa(_message_body.size());
 
-	generateHeaderString();
+	convertHeaderString();
 	
 	_response = _http_version + ' '
 				+ _status_code + ' '
@@ -242,6 +250,47 @@ void	Handler::generateResponse()
 				+ _header_string + NEWLINE
 				+ _message_body;
 }
+
+int	Handler::responseGet()
+{
+	_status_code = "200";
+	_status_phrase = "OK";
+	_message_body = _file->getContent();
+	return OK;
+}
+
+int	Handler::responsePost()
+{
+	_status_code = "201";
+	_status_phrase = "Created";
+	return OK;
+}
+
+int	Handler::responseDelete()
+{
+	//TODO: check if 204 no content
+	_status_code = "202";
+	_status_phrase = "Accepted";
+	return OK;
+}
+
+int	Handler::responseOther()
+{
+	return OK;
+}
+
+
+void	Handler::convertHeaderString()
+{
+	for (header_iterator i = _header_fields.begin(); i != _header_fields.end(); ++i)
+	{
+		_header_string += (i->first + ": " + i->second + NEWLINE);
+	}
+}
+
+/***************************/
+/********* Utility *********/
+/***************************/
 
 std::string	Handler::ft_itoa(int i) const
 {

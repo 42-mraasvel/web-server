@@ -1,0 +1,90 @@
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+
+------------------
+--     GET      --
+------------------
+
+	- 200 OK: The resource has been fetched and transmitted in the [Message Body].
+
+
+------------------
+--     POST     --
+------------------
+
+	- 201 CREATED: The request succeeded, and a new resource created as a result.
+		- [Location] header field that provides an identifier for the primary resource created (Section 7.1.2)- ???representation that describes the status of the request while referring to the new resource(s).
+	- 200 OK: (cache related)
+
+
+------------------
+--    DELETE    --
+------------------
+
+	- 202 ACCEPTED: if the action will likely succeed but has not yet been enacted
+	- 204 NO CONTENT: if the action has been enacted and no further information is to be supplied,
+		- Terminated by the first empty line after the header fields because it cannot contain a message body.
+	- 200 OK: if the action has been enacted and the response message includes a representation describing the status.
+
+
+	- A payload within a DELETE request message has no defined semantics; sending a payload body on a DELETE request might cause some existing implementations to reject the request.
+
+------------------
+--    General   --
+------------------
+
+	>> 1xx (Informational)
+		- Indicates an interim response for communicating connection status or request progress prior to completing the requested action and sending a final response.
+		- Terminated by the first empty line after the status-line (the empty line signaling the end of the header section).
+		- MUST NOT send a 1xx response to an HTTP/1.0 client.
+	
+	>> 2xx (Successfull)
+		- Indicates that request was successfully received, understood, and accepted.
+	
+	>> 4xx (Client Error)
+		>> 400 BAD REQUEST
+			- Indicates that the server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing)
+		>> 403 FORBIDDEN (??? not needed)
+		>> 404 NOT FOUND (not sure if temporary or permanent)
+		>> 410 GONE (permanent)
+		>> 405 METHOD NOT ALLOWED
+			- MUST generate an [Allow] header field in a 405 response containing a list of the target resource’s currently supported methods.
+		>> 406 NOT ACCEPTABLE
+			- Indicates that the target resource does not have a current representation that would be acceptable to the user agent, according to the proactive negotiation header fields received in the request
+			- SHOULD generate a payload containing a list of available representation characteristics and corresponding resource identifiers from which the user or user agent can choose the one most appropriate.
+		>> 408 REQUEST TIMEOUT
+			- Indicates that the server did not receive a complete request message within the time that it was prepared to wait.
+			- A server SHOULD send the "close" connection option (Section 6.1 of [RFC7230]) in the response.  - If the client has an outstanding request in transit, the client MAY repeat that request on a new connection.
+		>> 411 LENGTH REQUIRED
+			- Indicates that the server refuses to accept the request without a defined [Content-Length].
+		>> 413 PAYLOAD TOO LARGE
+			- Indicates that the server is refusing to process a request because the request payload is larger than the server is willing or able to process.
+			- The server MAY close the connection to prevent the client from continuing the request.
+   			- If the condition is temporary, the server SHOULD generate a [Retry-After] header field to indicate that it is temporary and afterwhat time the client MAY try again.
+	???	>> 414 URI TOO LONG
+			- This rare condition is only likely to occur when a client has improperly converted a POST request to a GET request with long query information, when the client has descended into a "black hole" of redirection (e.g., a redirected URI prefix that points to a suffix of itself) or when the server is under attack by a client attempting to exploit potential security holes.
+		>> 415 UNSOPPORTED MEDIA TYPE
+			- The format problem might be due to the request’s indicated Content-Type or Content-Encoding, or as a result of inspecting the data directly.
+		>> 417 EXPECATION FAILED
+			- Indicates that the expectation given in the request’s [Expect] header field (Section 5.1.1) could not be met by at least one of the inbound servers.
+		>> 426 UPGRADE REQUIRED
+			- Indicates that the server refuses to perform the request using the current protocol but might be willing to do so after the client upgrades to a different protocol.
+			- MUST send an [Upgrade] header field to indicate the required protocol(s) (Section 6.7 of [RFC7230]).
+	
+	>> 5xx (Server Error)
+		- Indicates that the server is aware that it has erred or is incapable of performing the requested method. Except when responding to a HEAD request, the server SHOULD send a representation containing an explanation of the error situation, and whether it is a temporary or permanent condition.
+
+		>> 500 INTERNAL SERVER ERROR
+			- Indicates that the server encountered an unexpected condition that prevented it from fulfilling the request.		
+		>> 501 NOT IMPLEMENTED
+			- Indicates that the server does not support the functionality required to fulfill the request.  This is the appropriate response when the server does not recognize the request method and is not capable of supporting it for any resource.
+	???	>> 502 BAD GATEWAY
+		>> 503 SERVICE UNAVAILABLE
+			- Indicates that the server is currently unable to handle the request due to a temporary overload or scheduled maintenance, which will likely be alleviated after some delay.
+			- The server MAY send a [Retry-After] header field (Section 7.1.3) to suggest an appropriate amount of time for the client to wait before retrying the request. 
+			- Note: The existence of the 503 status code does not imply that a server has to use it when becoming overloaded.  Some servers might simply refuse the connection.
+	???	>> 504 GATEWAY TIMEOUT
+		>> 505 HTTP VERSION NOT SUPPORTED
+			- Indicates that the server does not support, or refuses to support, the major version of HTTP that was used in the request message.
+			- SHOULD generate a representation for the 505 response that describes why that version is not supported and what other protocols are supported by that server.
+
+
