@@ -217,7 +217,7 @@ int	Client::createFile()
 
 	printf(BLUE_BOLD "Open File:" RESET_COLOR " [%d]\n", file_fd);
 
-	_file = new File(this->_index, file_fd);
+	_file = new File(file_fd);
 
 	return OK;
 
@@ -286,6 +286,8 @@ int	Client::writeEvent(FdTable & fd_table)
 	}
 
 	updateEvents(AFdInfo::READING, fd_table);
+
+	// TODO: reset response
 
 	return OK;
 }
