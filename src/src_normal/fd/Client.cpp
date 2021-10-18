@@ -392,3 +392,11 @@ int	Client::closeEvent()
 	//TODO:
 	return OK;
 }
+
+/*********************/
+/****** utility ******/
+/*********************/
+bool	Client::updateEventsSpecial()
+{
+	return _file && _file->getEventComplete() == true;
+}

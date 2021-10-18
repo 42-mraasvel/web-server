@@ -72,6 +72,7 @@ class Client : public AFdInfo
 	/* utility */
 	public:
 		typedef RequestParser::header_field_t::iterator header_iterator;
+		bool	updateEventsSpecial();
 
 	private:
 		//TODO: add time last active for TIMEOUT
