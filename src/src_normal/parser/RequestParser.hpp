@@ -5,14 +5,6 @@
 class RequestParser
 {
 	public:
-		enum MethodType
-		{
-			GET,
-			POST,
-			DELETE,
-			OTHER
-		};
-
 		enum ParseResult
 		{
 			REQUEST_COMPLETE,
@@ -34,9 +26,14 @@ class RequestParser
 	public:
 
 		RequestParser();
+		~RequestParser();
 
-		int					parseHeader(std::string const &request);
-		enum MethodType		getMethod() const;
+		int					parse(std::string const & buffer);
+		int parseHeader(std::string const &request); // TODO: make private
+
+
+
+		MethodType			getMethod() const;
 		const std::string&	getTargetResource() const;
 		HttpVersion			getHttpVersion() const;
 		header_field_t&		getHeaderFields();
@@ -44,24 +41,24 @@ class RequestParser
 	
 	private:
 	/* Request Line Parsing */
-		int parseRequestLine(std::string const & request);
-		int parseSpace(std::string const & s);
-		int parseMethod(std::string const & s);
-		int parseTargetResource(std::string const & s);
-		bool skipAbsolutePath(std::string const & s);
-		bool skipQuery(std::string const & s);
-		int parseVersion(std::string const & s);
-		bool parseMajorVersion(std::string const & s);
-		bool parseMinorVersion(std::string const & s);
+		int parseRequestLine();
+		int parseSpace();
+		int parseMethod();
+		int parseTargetResource();
+		bool skipAbsolutePath();
+		bool skipQuery();
+		int parseVersion();
+		bool parseMajorVersion();
+		bool parseMinorVersion();
 
 	/* Header Field Parsing */
 
-		int parseHeaderFields(std::string const & request);
+		int parseHeaderFields();
 
-		int parseFieldName(std::string const & request, std::string & key);
-		int parseColon(std::string const & request);
-		int parseFieldValue(std::string const & request, std::string & value);
-		int parseEndLine(std::string const & request);
+		int parseFieldName(std::string & key);
+		int parseColon();
+		int parseFieldValue(std::string & value);
+		int parseEndLine();
 
 	/* Message Body Parsing */
 
@@ -69,11 +66,22 @@ class RequestParser
 
 	/* Helpers */
 		typedef bool (*IsFunctionT)(char);
-		int parseWhiteSpace(std::string const & request);
-		enum MethodType getMethodType(std::string const & s) const;
-		void skip(std::string const & s, IsFunctionT condition);
+		int parseWhiteSpace();
+		MethodType getMethodType(std::string const & s) const;
+		void skip(IsFunctionT condition);
 
 		void resetParser();
+
+	/* Request Related */
+
+		int parseHeader2();
+		int parseMessageBody2();
+
+		void clearToIndex();
+		void clearToEoHeader();
+		void newRequest();
+		bool leftOverRequest() const;
+		bool checkHeaderEnd();
 
 	public:
 	/* Debugging */
@@ -82,7 +90,11 @@ class RequestParser
 
 	private:
 		std::queue<Request*>	_requests;
+		int						_status_code;
 		Request*				_request;
+		std::size_t				_index;
+
+		std::string				_buffer;
 
 		enum MethodType	_method;
 		std::string		_target_resource;
@@ -90,6 +102,4 @@ class RequestParser
 		header_field_t	_header_fields;
 		std::string		_message_body;
 
-		std::size_t		_index;
-		int				_status_code;
 };

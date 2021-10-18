@@ -10,6 +10,13 @@ struct case_insensitive_less
 	bool operator() (const std::string& x, const std::string& y) const;
 };
 
+enum MethodType
+{
+	GET,
+	POST,
+	DELETE,
+	OTHER
+};
 
 struct Request 
 {
@@ -19,14 +26,6 @@ public:
 			case_insensitive_less> header_field_t;
 
 public:
-	enum MethodType
-	{
-		GET,
-		POST,
-		DELETE,
-		OTHER
-	};
-
 	enum RequestStatus
 	{
 		READING,
@@ -36,7 +35,6 @@ public:
 	};
 
 public:
-
 	Request();
 
 /*
@@ -46,7 +44,7 @@ TODO: No _prefix because public?
 public:
 	RequestStatus	status;
 
-	MethodType		type;
+	MethodType		method;
 	std::string		target_resource;
 	int				major_version;
 	int				minor_version;
