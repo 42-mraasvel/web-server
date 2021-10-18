@@ -28,26 +28,31 @@ struct pollfd	Client::getPollFd() const
 
 int	Client::readEvent(FdTable & fd_table)
 {
-	if (parseRequest() == ERR)
+	if (readRequest() == ERR)
 	{
 		return ERR;
 	}
-	if (checkError() == ERR)
+
+	// parser return:
+	//		1) CONT_READINg: event = READING, immediate return 
+	//		2) BAD_REQUEST: event = WRITING (in check ErrorStatus) , immediate return
+	//		3) REQUEST_COMPLETE: event = WAITING, proceed to execute.
+	if(_request_parser.parseHeader(_request) == RequestParser::CONT_READING)
 	{
-		return ERR;
+		return OK;
 	}
-	if (_response.status_code)
+	updateEvents(AFdInfo::WAITING, fd_table);
+
+	if (checkErrorStatus() == true)
 	{
 		updateEvents(AFdInfo::WRITING, fd_table);
 		return OK;
 	}
-	if (!_response.status_code && executeMethod(fd_table) == ERR)
+	if (executeMethod(fd_table) == ERR)
 	{
 		return ERR;
 	}
-	// TODO: figure out the correct location for this function.
-	updateEvents(AFdInfo::WAITING, fd_table);
-	
+
 	return OK;
 
 }
@@ -55,7 +60,7 @@ int	Client::readEvent(FdTable & fd_table)
 /****** readEvent - step 1 parse ******/
 /**************************************/
 //TODO: Make recv work with multiple iterations, so each iter can loop over request
-int	Client::parseRequest()
+int	Client::readRequest()
 {
 	//TODO: CHECK MAXLEN
 	_request.resize(BUFFER_SIZE, '\0');
@@ -73,70 +78,64 @@ int	Client::parseRequest()
 	_request.resize(ret);
 	printf("Request size: %lu, Bytes read: %ld\n", _request.size(), ret);
 
-	//TODO: change it to 1) continue reading 2) BAD_REQUEST 3) TO_EXECUTE (incoprotate updatedEvent())
-	if(_request_parser.parseHeader(_request) == RequestParser::BAD_REQUEST)
-	{
-		return (ERR);
-	}
-
-	generateAbsoluteTarget();
-
 	return OK;
 }
 
-void	Client::generateAbsoluteTarget()
-{
-	//TODO: resort to the correct Pathname based on default path from config (add Client* client)
-	if (_request_parser.getTargetResource() == "/")
-	{
-		_absolute_target =  "./page_sample/index.html";
-	}
-	else
-	{
-		_absolute_target =  "./page_sample" + _request_parser.getTargetResource();
-	}
-}
-/********************************************/
-/****** readEvent - step 2 check error ******/
-/********************************************/
+/***************************************************/
+/****** readEvent - step 2 check error status ******/
+/***************************************************/
 
-int	Client::checkError()
+int	Client::checkErrorStatus()
 {
-	checkHttpVersion();
-	checkMethod();
-	checkContentLength();
-	return OK;
+	//TODO: if error code, any message_body to write?
+	return (checkBadRequest()
+			|| checkHttpVersion()
+			|| checkMethod()
+			|| checkContentLength());
 }
 
-void	Client::checkHttpVersion()
+int	Client::checkBadRequest()
+{
+	if (_request_parser.parseHeader(_request) == RequestParser::BAD_REQUEST)
+	{
+		_response.status_code = 400; /* BAD REQUEST */
+		return true;
+	}
+	return false;
+}
+
+int	Client::checkHttpVersion()
 {
 	if (_request_parser.getHttpVersion().major != 1)
 	{
-		//TODO: check if anything should be added on the header field or message body?
 		_response.status_code = 505; /* HTTP VERSION NOT SUPPORTED */
+		return true;
 	}
+	return false;
 }
 
-void	Client::checkMethod()
+int	Client::checkMethod()
 {
-	if (!_response.status_code && _request_parser.getMethod() == RequestParser::OTHER)
+	if (_request_parser.getMethod() == OTHER)
 	{
-		//TODO: check if anything should be added on the header field or message body?
 		_response.status_code = 501; /* NOT IMPLEMENTED */ 
+		return true;
 	}
+	return false;
 }
 
-void	Client::checkContentLength()
+int	Client::checkContentLength()
 {
-	if (!_response.status_code &&_request_parser.getHttpVersion().minor == 0)
+	if (_request_parser.getHttpVersion().minor == 0)
 	{
 		header_iterator i = _response.header_fields.find("content-length");
 		if (i == _response.header_fields.end())
 		{
-			//TODO: check if anything should be added on the header field or message body?
 			_response.status_code = 411; /* LENGTH REQUIRED */ 
+			return true;
 		}
 	}
+	return false;
 }
 
 /****************************************/
@@ -154,13 +153,13 @@ int Client::executeMethod(FdTable & fd_table)
 	}
 	switch (_request_parser.getMethod())
 	{
-		case RequestParser::GET:
+		case GET:
 			methodGet();
 			break;
-		case RequestParser::POST:
+		case POST:
 			methodPost();
 			break;
-		case RequestParser::DELETE:
+		case DELETE:
 			methodDelete();
 			break; 
 		default:
@@ -175,15 +174,15 @@ void Client::previewMethod()
 {
 	switch (_request_parser.getMethod())
 	{
-		case RequestParser::GET:
+		case GET:
 			_oflag = O_RDONLY;
 			_file_event = AFdInfo::READING;
 			break;
-		case RequestParser::POST:
+		case POST:
 			_oflag = O_CREAT | O_WRONLY | O_APPEND;
 			_file_event = AFdInfo::WRITING;
 			break;
-		case RequestParser::DELETE:
+		case DELETE:
 			_oflag = O_RDONLY;
 			_file_event = AFdInfo::READING;
 			break; 
@@ -192,8 +191,22 @@ void Client::previewMethod()
 	}
 }
 
+void	Client::generateAbsoluteTarget()
+{
+	//TODO: resort to the correct Pathname based on default path from config (add Client* client)
+	if (_request_parser.getTargetResource() == "/")
+	{
+		_absolute_target =  "./page_sample/index.html";
+	}
+	else
+	{
+		_absolute_target =  "./page_sample" + _request_parser.getTargetResource();
+	}
+}
+
 int	Client::createFile()
 {
+	generateAbsoluteTarget();
 	int	file_fd = open(_absolute_target.c_str(), _oflag, 0644);
 	if (file_fd == ERR)
 	{
@@ -252,7 +265,6 @@ int	Client::methodOther()
 	return OK;
 }
 
-
 //TODO: retain information about the next request if present
 void	Client::resetBuffer()
 {
@@ -267,11 +279,6 @@ int	Client::writeEvent(FdTable & fd_table)
 {
 	generateResponse();
 
-	if (_file) //TODO: to clean out later
-	{
-		_file->flag = AFdInfo::TO_ERASE;
-		_file = NULL;
-	}
 	if (send(_fd, _response.response.c_str(), _response.response.size(), 0) == ERR)
 	{
 		perror("send");
@@ -285,26 +292,32 @@ int	Client::writeEvent(FdTable & fd_table)
 
 void	Client::generateResponse()
 {
-	if (!_response.status_code) //TODO: to clean out later
+	// TODO: 2 scenario here:
+	//			1) failed status code (non-zero)
+	//			2) successful status code -> to proceed on switch
+	if (!_response.status_code) //For good request:
 	{
 		switch (_request_parser.getMethod())
 		{
-			case RequestParser::GET:
+			case GET:
 				responseGet();
 				break;
-			case RequestParser::POST:
+			case POST:
 				responsePost();
 				break;
-			case RequestParser::DELETE:
+			case DELETE:
 				responseDelete();
 				break; 
 			default:
 				responseOther();
 				break;
 		}
+
+		_file->flag = AFdInfo::TO_ERASE;
+		_file = NULL;
+
 	}
-	
-	
+		
 	_response.header_fields["Host"] = "localhost";
 	_response.header_fields["Content-Length"] = WebservUtility::itoa(_response.message_body.size());
 

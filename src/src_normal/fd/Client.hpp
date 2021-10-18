@@ -27,21 +27,22 @@ class Client : public AFdInfo
 
 	/* write - process request */
 	public:
-		int		writeEvent(FdTable & fd_table);
+		int		readEvent(FdTable & fd_table);
 	private:
 		/* step 1 parse */
-		int	parseRequest();
-		void	generateAbsoluteTarget();
+		int	readRequest();
 
 		/* step 2 check error */
-		int	checkError();
-		void	checkHttpVersion();
-		void	checkMethod();
-		void	checkContentLength();
+		int	checkErrorStatus();
+		int		checkBadRequest();
+		int		checkHttpVersion();
+		int		checkMethod();
+		int		checkContentLength();
 
 		/* step 3 execute */
         int executeMethod(FdTable & fd_table);
 		void	previewMethod();
+		void	generateAbsoluteTarget();
 		int		createFile();
 		int		insertFile(FdTable & fd_table);
         int 	methodGet();
@@ -52,7 +53,7 @@ class Client : public AFdInfo
 
 	/* read - send response*/
 	public:
-		int		readEvent(FdTable & fd_table);
+		int		writeEvent(FdTable & fd_table);
 	private:
 		void	generateResponse();
 		int		responseGet();
@@ -73,14 +74,15 @@ class Client : public AFdInfo
 		typedef RequestParser::header_field_t::iterator header_iterator;
 
 	private:
-		//TODO: what TODO with client information (through accept()??)
 		//TODO: add time last active for TIMEOUT
 		int					_oflag;
 		AFdInfo::EventTypes	_file_event;
-		std::string	_absolute_target;
-		std::string	_request;
 
 		RequestParser		_request_parser;
 		File*				_file;
 		Response			_response;
+
+		std::string	_absolute_target;
+		std::string	_request;
+
 };
