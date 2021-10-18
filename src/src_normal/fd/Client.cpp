@@ -204,7 +204,7 @@ int	Client::createFile()
 
 	printf(BLUE_BOLD "Open File:" RESET_COLOR " [%d]\n", file_fd);
 
-	_file = new File(this, file_fd);
+	_file = new File(this->_index, file_fd);
 
 	return OK;
 

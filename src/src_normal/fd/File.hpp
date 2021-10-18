@@ -7,7 +7,7 @@ class Client;
 class File : public AFdInfo
 {
 	public:
-		File(Client *client, int fd);
+		File(int client_index, int fd);
 		struct pollfd	getPollFd() const;
 
 		int	readEvent(FdTable & fd_table);
@@ -18,6 +18,6 @@ class File : public AFdInfo
 		void				setContent(std::string const & content);
 
 	private:
-		Client*		_client;
 		std::string	_content;
+		int			_client_index;
 };
