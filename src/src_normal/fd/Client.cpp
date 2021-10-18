@@ -6,8 +6,7 @@
 #include <fcntl.h>
 #include <cstdlib>
 
-
-Client::Client(int fd): AFdInfo(fd), _file(NULL)
+Client::Client(int fd): AFdInfo(fd), _request(NULL),  _file(NULL)
 {
 	_response.status_code = 0;
 }
@@ -32,20 +31,28 @@ int	Client::readEvent(FdTable & fd_table)
 	{
 		return ERR;
 	}
-
-	// parser return:
-	//		1) CONT_READINg: event = READING, immediate return 
-	//		2) BAD_REQUEST: event = WRITING (in check ErrorStatus) , immediate return
-	//		3) REQUEST_COMPLETE: event = WAITING, proceed to execute.
-	if(_request_parser.parseHeader(_request) == RequestParser::CONT_READING)
+	if (_request_parser.parse(_request_string) == ERR)
 	{
-		return OK;
+		return ERR;
 	}
-	updateEvents(AFdInfo::WAITING, fd_table);
+	if (!_request)
+	{
+		_request = _request_parser.getNextRequest();
+		if (!_request)
+		{
+			resetRequestString();
+			return OK;
+		}
+	}
+	// here _request could be below 3 status:
+	//		HEADER_COMPLETE,
+	//		COMPLETE,
+	//		BAD_REQUEST
 
 	if (checkErrorStatus() == true)
 	{
 		updateEvents(AFdInfo::WRITING, fd_table);
+		//TODO: what if the status == HEADER_COMPELTE?
 		return OK;
 	}
 	if (executeMethod(fd_table) == ERR)
@@ -53,6 +60,8 @@ int	Client::readEvent(FdTable & fd_table)
 		return ERR;
 	}
 
+	updateEvents(AFdInfo::WAITING, fd_table);
+	resetRequestString();
 	return OK;
 
 }
@@ -63,8 +72,8 @@ int	Client::readEvent(FdTable & fd_table)
 int	Client::readRequest()
 {
 	//TODO: CHECK MAXLEN
-	_request.resize(BUFFER_SIZE, '\0');
-	ssize_t ret = recv(_fd, &_request[0], BUFFER_SIZE, 0);
+	_request_string.resize(BUFFER_SIZE, '\0');
+	ssize_t ret = recv(_fd, &_request_string[0], BUFFER_SIZE, 0);
 	if (ret == ERR)
 	{
 		perror("Recv");
@@ -75,8 +84,8 @@ int	Client::readRequest()
 		flag = AFdInfo::TO_ERASE;
 		return ERR;
 	}
-	_request.resize(ret);
-	printf("Request size: %lu, Bytes read: %ld\n", _request.size(), ret);
+	_request_string.resize(ret);
+	printf("Request size: %lu, Bytes read: %ld\n", _request_string.size(), ret);
 
 	return OK;
 }
@@ -96,7 +105,8 @@ int	Client::checkErrorStatus()
 
 int	Client::checkBadRequest()
 {
-	if (_request_parser.parseHeader(_request) == RequestParser::BAD_REQUEST)
+	//TODO: to modify
+	if (_request->status == Request::BAD_REQUEST)
 	{
 		_response.status_code = 400; /* BAD REQUEST */
 		return true;
@@ -166,7 +176,6 @@ int Client::executeMethod(FdTable & fd_table)
 			methodOther();
 			break;
 	}
-	resetBuffer(); //for _request
 	return OK;
 }
 
@@ -263,12 +272,6 @@ int	Client::methodDelete()
 int	Client::methodOther()
 {
 	return OK;
-}
-
-//TODO: retain information about the next request if present
-void	Client::resetBuffer()
-{
-	_request.clear();
 }
 
 /************************/
@@ -401,4 +404,10 @@ int	Client::closeEvent()
 bool	Client::updateEventsSpecial()
 {
 	return _file && _file->getEventComplete() == true;
+}
+
+//TODO: retain information about the next request if present
+void	Client::resetRequestString()
+{
+	_request_string.clear();
 }
