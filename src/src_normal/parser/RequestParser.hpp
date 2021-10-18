@@ -1,6 +1,6 @@
 #pragma once
-#include <string>
-#include <map>
+#include "Request.hpp"
+#include <queue>
 
 class RequestParser
 {
@@ -29,7 +29,7 @@ class RequestParser
 			int minor;
 		};
 
-		typedef std::map<std::string, std::string> header_field_t;
+		typedef Request::header_field_t header_field_t;
 
 	public:
 
@@ -81,6 +81,9 @@ class RequestParser
 		void print() const;
 
 	private:
+		std::queue<Request*>	_requests;
+		Request*				_request;
+
 		enum MethodType	_method;
 		std::string		_target_resource;
 		HttpVersion		_version;

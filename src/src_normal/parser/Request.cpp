@@ -20,7 +20,4 @@ bool case_insensitive_less::operator() (const std::string& x, const std::string&
 	std::string		message_body;
 */
 Request::Request()
-: status(Request::READING),
-type(Request::OTHER),
-major_version(-1),
-minor_version(-1) {}
+: status(Request::READING), type(Request::OTHER), major_version(-1), minor_version(-1) {}
