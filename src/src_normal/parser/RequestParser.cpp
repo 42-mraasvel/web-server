@@ -15,6 +15,30 @@ RequestParser::~RequestParser()
 {}
 
 /*
+Returns NULL if no request, otherwise returns next request in queue and removes it from the queue
+
+Request status:
+	HEADER_COMPLETE: still reading in message-body DATA
+	COMPLETE: can safely be deleted
+	BAD_REQUEST: error encountered in parsing
+
+IF HEADER_COMPLETE
+	an internal pointer to the request is stored in the parser, and message-body is still appended
+	if the entire message-body is read, it's status will be set to COMPLETE
+*/
+Request* RequestParser::getNextRequest()
+{
+	if (_requests.empty())
+	{
+		return NULL;
+	}
+
+	Request* request = _requests.front();
+	_requests.pop();
+	return request;
+}
+
+/*
 1. Append buffer to internal string, check for EOHEADER
 2. Check if there is a Request left over from the previous iteration(s)
 

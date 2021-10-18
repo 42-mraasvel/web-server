@@ -26,6 +26,7 @@ public:
 			case_insensitive_less> header_field_t;
 
 public:
+
 	enum RequestStatus
 	{
 		READING,

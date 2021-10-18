@@ -29,10 +29,11 @@ class RequestParser
 		~RequestParser();
 
 		int					parse(std::string const & buffer);
+		Request* getNextRequest();
+
+
+	// TO BE REMOVED
 		int parseHeader(std::string const &request); // TODO: make private
-
-
-
 		MethodType			getMethod() const;
 		const std::string&	getTargetResource() const;
 		HttpVersion			getHttpVersion() const;
