@@ -5,15 +5,35 @@
 namespace WebservUtility
 {
 
+long strtol(const char* s)
+{
+	long tmp;
+	if (strtol(s, tmp) == -1)
+	{
+		return 0;
+	}
+	return tmp;
+}
+
 long strtol(std::string const & s)
 {
-	return strtol(s.c_str());
+	long tmp;
+	if (strtol(s, tmp) == -1)
+	{
+		return 0;
+	}
+	return tmp;
+}
+
+int strtol(std::string const & s, long& n)
+{
+	return strtol(s.c_str(), n);
 }
 
 /*
-Return: long representation of string, 0 on overflow/underflow
+Return: 0 if OK, -1 on OVERFLOW
 */
-long strtol(const char* s)
+int strtol(const char* s, long& target)
 {
 	std::size_t i = 0;
 	while (isspace(s[i]))
@@ -34,15 +54,16 @@ long strtol(const char* s)
 		if (n > static_cast<unsigned long>(limit.max())
 		&& !(static_cast<long>(n) == limit.min() && negative))
 		{
-			return 0;
+			return -1;
 		}
 		++i;
 	}
 	if (negative)
 	{
-		return -n;
+		n = -n;
 	}
-	return n;
+	target = n;
+	return 0;
 }
 
 }

@@ -11,11 +11,18 @@ RequestParser::HttpVersion::HttpVersion(int maj, int min)
 RequestParser::RequestParser()
 : _status_code(200), _request(NULL), _index(0) {}
 
-RequestParser::~RequestParser()
-{}
+RequestParser::~RequestParser() {
+	while (!_requests.empty())
+	{
+		Request* x = _requests.front();
+		_requests.pop();
+		delete x;
+	}
+}
 
 /*
 Returns NULL if no request, otherwise returns next request in queue and removes it from the queue
+Returned pointer has to be deleted by the caller
 
 Request status:
 	HEADER_COMPLETE: still reading in message-body DATA
@@ -77,38 +84,26 @@ int RequestParser::parse(std::string const & buffer)
 
 	if (leftOverRequest())
 	{
-		parseMessageBody2();
-		// Header is already complete
-		// Add message-body to request (this delimits the request)
-		// if this empties the entire buffer, the while loop is never entered
+		parseMessageBody();
 	}
 
 	while (_index < _buffer.size())
 	{
-		// Check buffer for EOHEADER, and if it exceeds the MAX_HEADER_SIZE
-		// findLimit is not necessary because we do size-checking and it can at most be 2*MAX_SIZE
 		if (!checkHeaderEnd())
 		{
 			break;
 		}
-		// Initialize new request
 		newRequest();
-		// Parse header into request
 		if (parseHeader2() == ERR)
 		{
-			// Discard until the end of header and reset request???
-			// clearToEoHeader();
+			clearToEoHeader();
+			delimitRequest(Request::BAD_REQUEST);
 		}
 		else
 		{
-			// Parse body into request (this delimits the request)
-			parseMessageBody2();
+			parseMessageBody();
 		}
-
-		// Because the index is incremented during parsing, and request is delimited,
-		// we can rely on the while condition to quit when appropriate
 	}
-	// Erase everything until index from buffer
 	clearToIndex();
 	return OK;
 }
@@ -133,8 +128,11 @@ bool RequestParser::checkHeaderEnd()
 	{
 		if (_buffer.size() - _index > MAX_HEADER_SIZE)
 		{
-			// ADD BAD_REQUEST TO QUEUE
 			// Exceeded MAX_HEADER_SIZE
+			// ADD BAD_REQUEST TO QUEUE
+			newRequest();
+			delimitRequest(Request::BAD_REQUEST);
+			resetBuffer();
 		}
 		return false;
 	}
@@ -155,14 +153,103 @@ int RequestParser::parseHeader2()
 	{
 		return ERR;
 	}
+	if (parseEndLine() == ERR)
+	{
+		return ERR;
+	}
+
+	if (checkHeaderFields() == ERR)
+	{
+		return ERR;
+	}
 	return OK;
+}
+
+int RequestParser::checkHeaderFields()
+{
+	header_field_t::iterator it = _request->header_fields.find("Content-Length");
+	if (it == _request->header_fields.end())
+	{
+		_body_type = NOT_PRESENT;
+		return OK;
+	}
+	_body_type = LENGTH;
+	return parseContentLength(it->second);
 }
 
 /*
 Delimits the current request and adds it to the queue
+
+1. Check if there is a message-body (Content-Length, Transfer-Encoding)
+	- We want to check both fields and test whether to dispatch or not
+	- default dispatch is delimit the request with COMPLETE
+2. Add the message-body to the request
+3. Add request to the queue with the appropriate status based on previous step
+	- Add BAD_REQUEST in case of error
+
+Sets _index to end of _buffer or if the request is complete to the start of the next request
 */
-int RequestParser::parseMessageBody2()
+int RequestParser::parseMessageBody()
 {
+	switch (_body_type)
+	{
+		case NOT_PRESENT:
+			delimitRequest(Request::COMPLETE);
+			break;
+		case LENGTH:
+			parseContent();
+			break;
+		case CHUNKED:
+			std::cerr << "Chunked not implemented" << std::endl;
+			_request->message_body.append(_buffer.substr(_index));
+			_index = _buffer.size();
+			delimitRequest(Request::COMPLETE);
+			break;
+	}
+
+	return OK;
+}
+
+/*
+1. Check if the rest of the body is present
+2. If not present: add whatever is in the buffer and set index to end
+3. If present: add everything and set Request::COMPLETE
+*/
+int RequestParser::parseContent()
+{
+	if (_remaining_content > _buffer.size() - _index)
+	{
+		_request->message_body.append(_buffer.substr(_index));
+		_remaining_content -= _buffer.size() - _index;
+		_index = _buffer.size();
+		delimitRequest(Request::HEADER_COMPLETE);
+	}
+	else
+	{
+		_request->message_body.append(_buffer.substr(_index, _remaining_content));
+		_index += _remaining_content;
+		_remaining_content = 0;
+		delimitRequest(Request::COMPLETE);
+	}
+
+	return OK;
+}
+
+int RequestParser::parseContentLength(std::string const & value)
+{
+	for (std::size_t i = 0; i < value.size(); ++i)
+	{
+		if (!isDigit(value[i]))
+		{
+			return ERR;
+		}
+	}
+
+	if (WebservUtility::strtoul(value, _remaining_content) == -1)
+	{
+		// Overflow
+		return ERR;
+	}
 	return OK;
 }
 
@@ -174,26 +261,6 @@ Return:
 */
 int RequestParser::parseHeader(std::string const & request)
 {
-	// _index = 0;
-
-	// if (WebservUtility::findLimit(request, EOHEADER, MAX_HEADER_SIZE) == std::string::npos)
-	// {
-	// 	return BAD_REQUEST;
-	// }
-
-	// resetParser();
-
-	// if (parseRequestLine(request) == ERR)
-	// {
-	// 	return BAD_REQUEST;
-	// }
-
-	// if (parseHeaderFields(request) == ERR)
-	// {
-	// 	return BAD_REQUEST;
-	// }
-
-	// parseMessageBody(request);
 	return REQUEST_COMPLETE;
 }
 
@@ -528,11 +595,34 @@ void RequestParser::clearToIndex()
 	_index = 0;
 }
 
+void RequestParser::resetBuffer()
+{
+	_buffer.clear();
+	_index = 0;
+}
+
 void RequestParser::clearToEoHeader()
 {
-	_index = _buffer.find(EOHEADER, _index);
+	_index = _buffer.find(EOHEADER, _index) + 4;
 	clearToIndex();
 }
+
+int RequestParser::delimitRequest(Request::RequestStatus status)
+{
+	//TODO: clean up function and make it more logical
+	if (_request->status == Request::READING)
+	{
+		_requests.push(_request);
+	}
+
+	_request->status = status;
+	if (status != Request::HEADER_COMPLETE)
+	{
+		_request = NULL;
+	}
+	return OK;
+}
+
 
 /*
 Getters

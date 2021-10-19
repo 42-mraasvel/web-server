@@ -15,6 +15,11 @@ std::size_t findLimit(std::string const & s,
 					std::string const & to_find,
 					std::size_t limit);
 
+int strtol(const char* s, long& n);
+int strtol(std::string const & s, long& n);
+int strtoul(std::string const & s, unsigned long& n);
+int strtoul(const char* s, unsigned long& n);
+
 long strtol(const char* s);
 long strtol(std::string const & s);
 unsigned long strtoul(std::string const & s);

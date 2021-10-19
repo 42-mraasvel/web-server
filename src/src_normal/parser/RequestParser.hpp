@@ -22,6 +22,15 @@ class RequestParser
 		};
 
 		typedef Request::header_field_t header_field_t;
+		typedef std::queue<Request*> queue_type;
+
+	private:
+		enum MessageBodyType
+		{
+			CHUNKED,
+			LENGTH,
+			NOT_PRESENT
+		};
 
 	public:
 
@@ -63,8 +72,6 @@ class RequestParser
 
 	/* Message Body Parsing */
 
-		int parseMessageBody(std::string const & request);
-
 	/* Helpers */
 		typedef bool (*IsFunctionT)(char);
 		int parseWhiteSpace();
@@ -76,13 +83,21 @@ class RequestParser
 	/* Request Related */
 
 		int parseHeader2();
-		int parseMessageBody2();
+		int checkHeaderFields();
+		int parseContentLength(std::string const & value);
 
 		void clearToIndex();
 		void clearToEoHeader();
+		void resetBuffer();
+
 		void newRequest();
 		bool leftOverRequest() const;
 		bool checkHeaderEnd();
+
+		int parseMessageBody();
+		int parseContent();
+
+		int delimitRequest(Request::RequestStatus status);
 
 	public:
 	/* Debugging */
@@ -90,12 +105,16 @@ class RequestParser
 		void print() const;
 
 	private:
-		std::queue<Request*>	_requests;
-		int						_status_code;
-		Request*				_request;
-		std::size_t				_index;
+		queue_type	_requests;
+		int			_status_code;
+		Request*	_request;
+		std::size_t	_index;
 
-		std::string				_buffer;
+		std::string	_buffer;
+
+	/* For Message-Body Parsing */
+		MessageBodyType			_body_type;
+		std::size_t				_remaining_content;
 
 		enum MethodType	_method;
 		std::string		_target_resource;
