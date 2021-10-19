@@ -94,7 +94,7 @@ int RequestParser::parse(std::string const & buffer)
 			break;
 		}
 		newRequest();
-		if (parseHeader2() == ERR)
+		if (parseHeader() == ERR)
 		{
 			clearToEoHeader();
 			delimitRequest(Request::BAD_REQUEST);
@@ -143,7 +143,7 @@ bool RequestParser::checkHeaderEnd()
 Precondition: EOHEADER is in the buffer after the index
 Returns ERR on syntax error
 */
-int RequestParser::parseHeader2()
+int RequestParser::parseHeader()
 {
 	if (parseRequestLine() == ERR)
 	{
@@ -251,17 +251,6 @@ int RequestParser::parseContentLength(std::string const & value)
 		return ERR;
 	}
 	return OK;
-}
-
-/*
-Return:
-	- REQUEST_COMPLETE
-	- CONT_READING
-	- BAD_REQUEST // Check status_code for specific error value
-*/
-int RequestParser::parseHeader(std::string const & request)
-{
-	return REQUEST_COMPLETE;
 }
 
 /*
@@ -524,31 +513,6 @@ int RequestParser::parseEndLine()
 	return OK;
 }
 
-/*
-Message Body parsing
-*/
-
-// int RequestParser::parseMessageBody(std::string const & request)
-// {
-// 	_index += 2;
-// 	header_field_t::iterator it = _header_fields.find("content-length");
-// 	if (it == _header_fields.end())
-// 	{
-// 		return OK;
-// 	}
-
-// 	std::size_t content_length = WebservUtility::strtoul(it->second);
-// 	if (content_length == 0)
-// 	{
-// 		_message_body = request.substr(_index);
-// 	}
-// 	else
-// 	{
-// 		_message_body = request.substr(_index, content_length);
-// 	}
-// 	return OK;
-// }
-
 /* Helper Functions */
 
 void RequestParser::skip(IsFunctionT condition)
@@ -575,11 +539,6 @@ MethodType RequestParser::getMethodType(std::string const & s) const
 		}
 	}
 	return OTHER;
-}
-
-void RequestParser::resetParser()
-{
-	_header_fields.clear();
 }
 
 /* Request Functions */
@@ -651,39 +610,4 @@ RequestParser::header_field_t& RequestParser::getHeaderFields()
 const std::string& RequestParser::getMessageBody() const
 {
 	return _message_body;
-}
-
-/*
-Debugging
-*/
-
-std::string RequestParser::getMethodString() const
-{
-	switch (_method)
-	{
-		case GET:
-			return "GET";
-		case POST:
-			return "POST";
-		case DELETE:
-			return "DELETE";
-		case OTHER:
-			break;
-	}
-	return "OTHER";
-}
-
-void RequestParser::print() const
-{
-	printf(GREEN_BOLD "-- PARSED REQUEST --" RESET_COLOR "\r\n");
-	printf("%s %s HTTP/%d.%d\r\n",
-		getMethodString().c_str(), getTargetResource().c_str(),
-		getHttpVersion().major, getHttpVersion().minor);
-	
-	for (header_field_t::const_iterator it = _header_fields.begin(); it != _header_fields.end(); ++it)
-	{
-		printf("  %s: %s\r\n", it->first.c_str(), it->second.c_str());
-	}
-	printf(GREEN_BOLD "-- MESSAGE BODY --" RESET_COLOR "\r\n");
-	printf("%s\r\n", _message_body.c_str());
 }

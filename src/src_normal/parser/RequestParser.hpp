@@ -42,7 +42,6 @@ class RequestParser
 
 
 	// TO BE REMOVED
-		int parseHeader(std::string const &request); // TODO: make private
 		MethodType			getMethod() const;
 		const std::string&	getTargetResource() const;
 		HttpVersion			getHttpVersion() const;
@@ -78,11 +77,9 @@ class RequestParser
 		MethodType getMethodType(std::string const & s) const;
 		void skip(IsFunctionT condition);
 
-		void resetParser();
-
 	/* Request Related */
 
-		int parseHeader2();
+		int parseHeader();
 		int checkHeaderFields();
 		int parseContentLength(std::string const & value);
 
@@ -101,8 +98,8 @@ class RequestParser
 
 	public:
 	/* Debugging */
-		std::string getMethodString() const;
-		void print() const;
+		// std::string getMethodString() const;
+		// void print() const;
 
 	private:
 		queue_type	_requests;
