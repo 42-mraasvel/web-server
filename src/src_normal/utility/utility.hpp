@@ -15,17 +15,18 @@ std::size_t findLimit(std::string const & s,
 					std::string const & to_find,
 					std::size_t limit);
 
-int strtol(const char* s, long& n);
-int strtol(std::string const & s, long& n);
-int strtoul(std::string const & s, unsigned long& n);
-int strtoul(const char* s, unsigned long& n);
+int strtol(const char* s, long& n, int base = 10);
+int strtol(std::string const & s, long& n, int base = 10);
+int strtoul(std::string const & s, unsigned long& n, int base = 10);
+int strtoul(const char* s, unsigned long& n, int base = 10);
 
-long strtol(const char* s);
-long strtol(std::string const & s);
-unsigned long strtoul(std::string const & s);
-unsigned long strtoul(const char* s);
+long strtol(const char* s, int base = 10);
+long strtol(std::string const & s, int base = 10);
+unsigned long strtoul(std::string const & s, int base = 10);
+unsigned long strtoul(const char* s, int base = 10);
 
 std::string	itoa(int n);
+bool isBase(char x, int base);
 
 void convertToLowercase(std::string & s);
 
