@@ -19,35 +19,40 @@ enum MethodType
 
 struct Request 
 {
-public:
-	typedef std::map<
-			std::string, std::string,
-			case_insensitive_less> header_field_t;
+	public:
+		typedef std::map<
+				std::string, std::string,
+				case_insensitive_less> header_field_t;
 
-public:
+	public:
 
-	enum RequestStatus
-	{
-		READING,
-		HEADER_COMPLETE,
-		COMPLETE,
-		BAD_REQUEST
-	};
+		enum RequestStatus
+		{
+			READING,
+			HEADER_COMPLETE,
+			COMPLETE,
+			BAD_REQUEST
+		};
 
-public:
-	Request();
+	/* DEBUGGING */
+	public:
+		std::string getMethodString() const;
+		void print() const;
 
-/*
-TODO: No _prefix because public?
-*/
+	public:
+		Request();
 
-public:
-	RequestStatus	status;
+	/*
+	TODO: No _prefix because public?
+	*/
 
-	MethodType		method;
-	std::string		target_resource;
-	int				major_version;
-	int				minor_version;
-	header_field_t	header_fields;
-	std::string		message_body;
+	public:
+		RequestStatus	status;
+
+		MethodType		method;
+		std::string		target_resource;
+		int				major_version;
+		int				minor_version;
+		header_field_t	header_fields;
+		std::string		message_body;
 };
