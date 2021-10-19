@@ -76,8 +76,12 @@ void	Webserver::scanFdTable()
 		if (_fd_table[i].second->flag == AFdInfo::TO_ERASE)
 		{
 			printf(BLUE_BOLD "Close File:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
-			// TODO: remove File* _file from Client class??
 			_fd_table.eraseFd(i);
+		}
+		if (_fd_table[i].second->updateEventsSpecial() == true)
+		{
+			// when File event is finished, will mark Client as ready for WRITING
+			_fd_table[i].second->updateEvents(AFdInfo::WRITING, _fd_table);
 		}
 	}
 }

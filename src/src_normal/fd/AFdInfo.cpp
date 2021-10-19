@@ -48,3 +48,8 @@ void	AFdInfo::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
 	}
 	fd_table[_index].first.events = updated_events | POLLHUP;
 }
+
+bool	AFdInfo::updateEventsSpecial()
+{
+	return false;
+}

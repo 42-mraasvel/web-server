@@ -7,7 +7,7 @@ class Client;
 class File : public AFdInfo
 {
 	public:
-		File(int client_index, int fd);
+		File(int fd);
 		struct pollfd	getPollFd() const;
 
 		int	readEvent(FdTable & fd_table);
@@ -16,8 +16,9 @@ class File : public AFdInfo
 
 		std::string	const &	getContent() const;
 		void				setContent(std::string const & content);
+		bool				getEventComplete() const;
 
 	private:
 		std::string	_content;
-		int			_client_index;
+		bool		_event_complete;
 };

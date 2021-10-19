@@ -3,19 +3,7 @@
 #include <string>
 #include "fd/FdTable.hpp"
 #include "fd/AFdInfo.hpp"
-#include "parser/RequestParser.hpp"
-
-struct Response
-{
-	public:
-		RequestParser::header_field_t  header_fields;
-
-		std::string	response;
-		std::string http_version;
-		int			status_code;
-		std::string header_string;
-		std::string	message_body;
-};
+#include "Response.hpp"
 
 class File;
 
@@ -49,7 +37,6 @@ class Client : public AFdInfo
         int 	methodPost();
         int 	methodDelete();
         int 	methodOther();
-		void	resetBuffer();
 
 	/* read - send response*/
 	public:
@@ -72,17 +59,20 @@ class Client : public AFdInfo
 	/* utility */
 	public:
 		typedef RequestParser::header_field_t::iterator header_iterator;
+		bool	updateEventsSpecial();
+		void	resetRequestString();
 
 	private:
 		//TODO: add time last active for TIMEOUT
 		int					_oflag;
 		AFdInfo::EventTypes	_file_event;
 
+		Request*			_request;
 		RequestParser		_request_parser;
 		File*				_file;
 		Response			_response;
 
-		std::string	_absolute_target;
-		std::string	_request;
+		std::string			_absolute_target;
+		std::string			_request_string;
 
 };

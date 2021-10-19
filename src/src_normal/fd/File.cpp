@@ -5,7 +5,7 @@
 #include <poll.h>
 #include <string>
 
-File::File(int client_index, int fd): AFdInfo(fd), _client_index(client_index) {}
+File::File(int fd): AFdInfo(fd), _event_complete(false) {}
 
 struct pollfd	File::getPollFd() const
 {
@@ -30,8 +30,8 @@ int File::readEvent(FdTable & fd_table)
 	}
 	_content = std::string(buf);
 
-	fd_table[_client_index].second->updateEvents(AFdInfo::WRITING, fd_table);
 	this->updateEvents(AFdInfo::WAITING, fd_table);
+	_event_complete = true;
 
 	return OK;
 }
@@ -45,8 +45,8 @@ int File::writeEvent(FdTable & fd_table)
 		return ERR;
 	}
 
-	fd_table[_client_index].second->updateEvents(AFdInfo::WRITING, fd_table);
 	this->updateEvents(AFdInfo::WAITING, fd_table);
+	_event_complete = true;
 
 	return OK;
 }
@@ -64,4 +64,9 @@ std::string const &	File::getContent() const
 void	File::setContent(std::string const & content)
 {
 	_content = content;
+}
+
+bool	File::getEventComplete() const
+{
+	return _event_complete;
 }
