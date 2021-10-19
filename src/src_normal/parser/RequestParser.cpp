@@ -130,6 +130,7 @@ bool RequestParser::checkHeaderEnd()
 		{
 			// Exceeded MAX_HEADER_SIZE
 			// ADD BAD_REQUEST TO QUEUE
+			std::cerr << "PARSER ERROR: max header size exceeded" << std::endl;
 			newRequest();
 			delimitRequest(Request::BAD_REQUEST);
 			resetBuffer();
