@@ -46,7 +46,7 @@ void	AFdInfo::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
 			updated_events = 0;
 			break;
 	}
-	fd_table[_index].first.events = updated_events | POLLHUP;
+	fd_table[_index].first.events = updated_events;
 }
 
 bool	AFdInfo::updateEventsSpecial()

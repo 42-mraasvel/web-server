@@ -1,9 +1,11 @@
 #pragma once
 #include <sys/socket.h>
 #include <string>
-#include "fd/FdTable.hpp"
-#include "fd/AFdInfo.hpp"
+#include <queue>
+#include "FdTable.hpp"
+#include "AFdInfo.hpp"
 #include "Response.hpp"
+#include "parser/Request.hpp"
 
 class File;
 
@@ -13,44 +15,51 @@ class Client : public AFdInfo
 		Client(int fd);
 		struct pollfd getPollFd() const;
 
-	/* write - process request */
+	/* read */
 	public:
 		int		readEvent(FdTable & fd_table);
 	private:
 		/* step 1 parse */
-		int	readRequest();
+		int	parseRequest();
+		int		readRequest(std::string & buffer);
 
-		/* step 2 check error */
-		int	checkErrorStatus();
-		int		checkBadRequest();
-		int		checkHttpVersion();
-		int		checkMethod();
-		int		checkContentLength();
+		/* step 2 process request */
+		int	processRequest(FdTable & fd_table);
 
-		/* step 3 execute */
+		/* step 2.1 check error */
+		bool	checkErrorStatus();
+		bool		checkBadRequest();
+		bool		checkHttpVersion();
+		bool		checkMethod();
+		bool		checkContentLength();
+
+		/* step 2.2 execute */
         int executeMethod(FdTable & fd_table);
 		void	previewMethod();
 		void	generateAbsoluteTarget();
 		int		createFile();
 		int		insertFile(FdTable & fd_table);
-        int 	methodGet();
-        int 	methodPost();
-        int 	methodDelete();
-        int 	methodOther();
+        int 	methodGet(FdTable & fd_table);
+        int 	methodPost(FdTable & fd_table);
+        int 	methodDelete(FdTable & fd_table);
+        int 	methodOther(FdTable & fd_table);
 
-	/* read - send response*/
+		/* step 2.3 generate response */
+	private:
+		int	generateResponse();
+		int			responseGet();
+		int			responsePost();
+		int			responseDelete();
+		int			responseOther();
+
+		void		setHttpVersion();
+		void		setHeaderString();
+		void		setResponseString();
+
+
+	/* write*/
 	public:
 		int		writeEvent(FdTable & fd_table);
-	private:
-		void	generateResponse();
-		int		responseGet();
-		int		responsePost();
-		int		responseDelete();
-		int		responseOther();
-
-		void	setHttpVersion();
-		void	setHeaderString();
-		void	setResponse();
 
 	/* close */
 	public:
@@ -59,20 +68,14 @@ class Client : public AFdInfo
 	/* utility */
 	public:
 		typedef RequestParser::header_field_t::iterator header_iterator;
+		void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 		bool	updateEventsSpecial();
-		void	resetRequestString();
 
 	private:
-		//TODO: add time last active for TIMEOUT
-		int					_oflag;
-		AFdInfo::EventTypes	_file_event;
+		Request*				_request;
+		Response*				_response;
+		RequestParser			_request_parser;
+		std::queue<Response *>	_response_queue;
 
-		Request*			_request;
-		RequestParser		_request_parser;
-		File*				_file;
-		Response			_response;
-
-		std::string			_absolute_target;
-		std::string			_request_string;
 
 };
