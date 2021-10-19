@@ -2,6 +2,7 @@
 #include <string>
 #include "parser/RequestParser.hpp"
 #include "AFdInfo.hpp"
+#include "parser/Request.hpp"
 
 class File;
 
@@ -10,13 +11,15 @@ struct Response
 	public:
 	enum Status
 	{
-		NOT_COMPLETE,
+		HEADER_PENDING,
+		HEADER_COMPLETE,
 		COMPLETE
 	};
 
 	public:
 		File*				file;
 		Status				status;
+		MethodType			method;
 
 		//TODO: add time last active for TIMEOUT
 		std::string			absolute_target;
@@ -33,5 +36,13 @@ struct Response
 		std::string			string;
 
 	public:
-		Response();
+		Response(Request const & request);
+		~Response();
+	
+		int	createFile();
+	
+	private:
+		void	setHttpVersion(int minor_version);
+		void	previewMethod();
+		void	generateAbsoluteTarget(std::string const & target_resourse);
 };

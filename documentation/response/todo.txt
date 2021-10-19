@@ -1,0 +1,12 @@
+------------------
+--     NOW      --
+------------------
+
+>> restructure writeEvent
+>> review File read and write event
+
+------------------
+--    LATER     --
+------------------
+>> check if GET/DELETE request needs to read message_body
+>> check when there is syscall error, if respond error code or quite program. (double check on File event setting);

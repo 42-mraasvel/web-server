@@ -66,6 +66,11 @@ void	File::setContent(std::string const & content)
 	_content = content;
 }
 
+void	File::appendContent(std::string const & content)
+{
+	_content.append(content);
+}
+
 bool	File::getEventComplete() const
 {
 	return _event_complete;

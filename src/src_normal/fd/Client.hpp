@@ -13,6 +13,7 @@ class Client : public AFdInfo
 {
 	public:
 		Client(int fd);
+		~Client();
 		struct pollfd getPollFd() const;
 
 	/* read */
@@ -23,30 +24,42 @@ class Client : public AFdInfo
 		int	parseRequest();
 		int		readRequest(std::string & buffer);
 
-		/* step 2 process request */
+		/* step 2 retrieve request */
+		bool	retrieveRequest();
+
+		/* step 3 process request */
 		int	processRequest(FdTable & fd_table);
 
-		/* step 2.1 check error */
-		bool	checkErrorStatus();
+		/* step 3.1 init response */
+		void	initResponse();
+
+		/* step 3.2 check request error */
+		bool	isRequestError();
 		bool		checkBadRequest();
 		bool		checkHttpVersion();
 		bool		checkMethod();
 		bool		checkContentLength();
 
-		/* step 2.2 execute */
-        int executeMethod(FdTable & fd_table);
-		void	previewMethod();
-		void	generateAbsoluteTarget();
-		int		createFile();
-		int		insertFile(FdTable & fd_table);
-        int 	methodGet(FdTable & fd_table);
-        int 	methodPost(FdTable & fd_table);
-        int 	methodDelete(FdTable & fd_table);
-        int 	methodOther(FdTable & fd_table);
+		/* step 3.3 setup file */
+		int		setupFile(FdTable & fd_table);
 
-		/* step 2.3 generate response */
+		/* step 3.4 execute */
+        int 	executeMethod(FdTable & fd_table);
+        int 		methodGet(FdTable & fd_table);
+        int 		methodPost(FdTable & fd_table);
+        int 		methodDelete(FdTable & fd_table);
+        int 		methodOther(FdTable & fd_table);
+
+		/* step 4 reset */
+		void	resetRequest();
+
+	/* write*/
+	public:
+		int		writeEvent(FdTable & fd_table);
+
+		/* step 3.3 generate response */
 	private:
-		int	generateResponse();
+		int		generateResponse();
 		int			responseGet();
 		int			responsePost();
 		int			responseDelete();
@@ -57,10 +70,6 @@ class Client : public AFdInfo
 		void		setResponseString();
 
 
-	/* write*/
-	public:
-		int		writeEvent(FdTable & fd_table);
-
 	/* close */
 	public:
 		int		closeEvent();
@@ -70,6 +79,7 @@ class Client : public AFdInfo
 		typedef RequestParser::header_field_t::iterator header_iterator;
 		void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 		bool	updateEventsSpecial();
+		void	appendFileContent();
 
 	private:
 		Request*				_request;

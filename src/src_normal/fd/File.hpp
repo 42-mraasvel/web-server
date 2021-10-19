@@ -16,6 +16,7 @@ class File : public AFdInfo
 
 		std::string	const &	getContent() const;
 		void				setContent(std::string const & content);
+		void				appendContent(std::string const & content);
 		bool				getEventComplete() const;
 
 	private:
