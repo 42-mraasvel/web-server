@@ -53,19 +53,13 @@ int strtoul(const char* s, unsigned long& n, int base)
 	n = 0;
 	while (isBase(s[i], base))
 	{
+		int x = isdigit(s[i]) ? s[i] - '0' : toupper(s[i]) - 'A' + 10;
 		// overflow check
-		if ((n * base + (s[i] - '0')) < n)
+		if ((n * base + x) < n)
 		{
 			return -1;
 		}
-		if (isdigit(s[i]))
-		{
-			n = (n * base) + (s[i] - '0');
-		}
-		else
-		{
-			n = (n * base) + (toupper(s[i]) - 'A' + 10);
-		}
+		n = (n * base) + x;
 		++i;
 	}
 	return 0;

@@ -76,15 +76,8 @@ int strtol(const char* s, long& target, int base)
 	unsigned long n = 0;
 	while (isBase(s[i], base))
 	{
-		if (isdigit(s[i]))
-		{
-			n = (n * base) + (s[i] - '0');
-		}
-		else
-		{
-			n = (n * base) + (toupper(s[i]) - 'A' + 10);
-		}
-
+		int x = isdigit(s[i]) ? s[i] - '0' : toupper(s[i]) - 'A' + 10;
+		n = (n * base) + x;
 		// overflow check
 		if (n > static_cast<unsigned long>(limit.max())
 		&& !(static_cast<long>(n) == limit.min() && negative))
