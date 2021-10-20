@@ -31,7 +31,6 @@ int File::readEvent(FdTable & fd_table)
 	_content.append(std::string(buf));
 	if (ret < BUFFER_SIZE) // read EOF
 	{
-		std::cout << RED_BOLD << _content << RESET_COLOR << std::endl;
 		this->updateEvents(AFdInfo::WAITING, fd_table);
 		flag = AFdInfo::EVENT_COMPLETE;
 	}

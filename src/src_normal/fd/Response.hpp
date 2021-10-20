@@ -14,7 +14,6 @@ struct Response
 		HEADER_PENDING,
 		WITH_HEADER,
 		MESSAGE_BODY_ONLY,
-		ERROR,
 		COMPLETE
 	};
 	typedef RequestParser::header_field_t::iterator header_iterator;

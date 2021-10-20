@@ -128,7 +128,7 @@ int	Client::processRequest(FdTable & fd_table)
 	initResponse();
 	if (isRequestError() == true)
 	{
-		_response->status = Response::ERROR;
+		_response->status = Response::COMPLETE;
 		updateEvents(AFdInfo::WRITING, fd_table);
 		return OK;
 	}
@@ -306,7 +306,7 @@ int	Client::writeEvent(FdTable & fd_table)
 		}
 		if (_response_to_send)
 		{
-			_master_string.append(_response_to_send->string_to_send);
+			appendMasterString();
 		}
 		else
 		{
@@ -319,22 +319,16 @@ int	Client::writeEvent(FdTable & fd_table)
 			{
 				return ERR;
 			}
-			_master_string.append(_response_to_send->string_to_send);
+			appendMasterString();
 			if (_response_to_send->status == Response::COMPLETE)
 			{
 				resetResponseToSend();
 			}
 		}
 	}
-	if (!_master_string.empty())
+	if (sendMasterString() == ERR)
 	{
-		size_t size = std::min((size_t)BUFFER_SIZE, _master_string.size());
-		if (send(_fd, _master_string.c_str(), size, 0) == ERR)
-		{
-			perror("send");
-			return ERR;
-		}
-		_master_string.erase(0, BUFFER_SIZE);
+		return ERR;
 	}
 	return OK;
 }
@@ -355,6 +349,26 @@ void	Client::resetResponseToSend()
 	delete _response_to_send;
 	_response_queue.pop();
 	_response_to_send = NULL;
+}
+
+void	Client::appendMasterString()
+{
+	_master_string.append(_response_to_send->string_to_send);
+}
+
+int	Client::sendMasterString()
+{
+	if (!_master_string.empty())
+	{
+		size_t size = std::min((size_t)BUFFER_SIZE, _master_string.size());
+		if (send(_fd, _master_string.c_str(), size, 0) == ERR)
+		{
+			perror("send");
+			return ERR;
+		}
+		_master_string.erase(0, size);
+	}
+	return OK;
 }
 
 /************************/
@@ -389,9 +403,9 @@ void	Client::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
 	fd_table[_index].first.events = updated_events | POLLIN;
 }
 
-bool	Client::updateEventsSpecial() //TODO: to modify
+bool	Client::updateEventsSpecial()
 {
-	return !_response_queue.empty() && _response_queue.front()->file && _response_queue.front()->file->getEventComplete() == true;
+	return !_response_queue.empty() && _response_queue.front()->file && _response_queue.front()->file->flag == AFdInfo::EVENT_COMPLETE;
 }
 
 void	Client::appendFileContent()

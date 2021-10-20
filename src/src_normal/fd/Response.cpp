@@ -88,16 +88,9 @@ void	Response::deleteFile()
 
 int	Response::generateResponse()
 {
-	if (status == ERROR)
+	if (status == HEADER_PENDING)
 	{
-		status = COMPLETE;
-	}
-	else
-	{
-		if (status == HEADER_PENDING)
-		{
-			status = WITH_HEADER;
-		}
+		status = WITH_HEADER;
 		switch (method)
 		{
 			case GET:

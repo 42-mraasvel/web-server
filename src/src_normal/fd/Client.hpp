@@ -60,6 +60,8 @@ class Client : public AFdInfo
 	private:
 		bool	retrieveResponse();
 		void	resetResponseToSend();
+		void	appendMasterString();
+		int		sendMasterString();
 
 	/* close */
 	public:
