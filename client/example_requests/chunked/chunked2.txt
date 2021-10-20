@@ -1,0 +1,10 @@
+GET / HTTP/1.1
+Host: 127.0.0.1:80
+transfer-encoding: chunked
+
+214748364700 ; chunksize matters??
+0123456789
+0123456789
+
+0
+

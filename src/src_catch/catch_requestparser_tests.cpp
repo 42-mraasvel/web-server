@@ -1,6 +1,7 @@
 #include "parser/RequestParser.hpp"
 #include "settings.hpp"
 #include "utility/utility.hpp"
+#include "parser/ChunkedParser.hpp"
 #include <sstream>
 #include "catch.hpp"
 
@@ -144,14 +145,14 @@ TEST_CASE("Parser: Invalid Request-Lines", "[request_parser]")
 	REQUIRE(parser.getNextRequest() == NULL);
 }
 
-TEST_CASE("Parser: stress testing no header end", "[request-parser]")
-{
-	RequestParser parser;
-	for (std::size_t i = 0; i < 1000000; ++i)
-	{
-		parser.parse("a");
-	}
-}
+// TEST_CASE("Parser: stress testing no header end", "[request-parser]")
+// {
+// 	RequestParser parser;
+// 	for (std::size_t i = 0; i < 1000000; ++i)
+// 	{
+// 		parser.parse("a");
+// 	}
+// }
 
 TEST_CASE("Parser: valid request-lines", "[request-parser]")
 {
@@ -281,4 +282,34 @@ TEST_CASE("Parser: multiple header-fields", "[request-parser]")
 
 	REQUIRE(checkNextRequest(parser, example));
 	REQUIRE(parser.getNextRequest() == NULL);
+}
+
+TEST_CASE("parser: chunked", "[request-parser]")
+{
+	std::string input = 
+		// "GET / HTTP/1.1" CRLF
+		// "Host: 127.0.0.1:80" CRLF
+		// "Content-Type: text/plain" CRLF
+		// "Transfer-Encoding: Chunked" CRLF
+		// EOHEADER
+		"7 ; comment" CRLF
+		"Mozilla" CRLF
+		"9    ;;  " CRLF
+		"Developer" CRLF
+		"7" CRLF
+		"Network" CRLF
+		"0" CRLF
+		"Trailer: Value" CRLF
+		"Trailer: Value"
+		EOHEADER;
+	ChunkedParser parser;
+	std::string body;
+
+	for (std::size_t i = 0; i < input.size(); ++i) {
+		std::size_t index = 0;
+		parser.parse(input.substr(i, 1), index, body);
+	}
+
+	std::cout << std::endl << RED_BOLD "POST PARSE" RESET_COLOR ":" << std::endl;
+	std::cout << "Body" << std::endl << body << std::endl;
 }
