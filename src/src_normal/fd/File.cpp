@@ -25,14 +25,16 @@ int File::readEvent(FdTable & fd_table)
 	int	ret = read(_fd, buf, BUFFER_SIZE);
 	if (ret == ERR)
 	{
-		perror("read");
+		perror("read in File::readEvent()");
 		return ERR;
 	}
-	_content = std::string(buf);
-
-	this->updateEvents(AFdInfo::WAITING, fd_table);
-	_event_complete = true;
-
+	_content.append(std::string(buf));
+	if (ret < BUFFER_SIZE) // read EOF
+	{
+		std::cout << RED_BOLD << _content << RESET_COLOR << std::endl;
+		this->updateEvents(AFdInfo::WAITING, fd_table);
+		flag = AFdInfo::EVENT_COMPLETE;
+	}
 	return OK;
 }
 
@@ -46,7 +48,7 @@ int File::writeEvent(FdTable & fd_table)
 	}
 
 	this->updateEvents(AFdInfo::WAITING, fd_table);
-	_event_complete = true;
+	flag = AFdInfo::EVENT_COMPLETE;
 
 	return OK;
 }

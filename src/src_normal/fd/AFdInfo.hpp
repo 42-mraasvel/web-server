@@ -14,6 +14,7 @@ class AFdInfo
 		enum Flags
 		{
 			ACTIVE,
+			EVENT_COMPLETE,
 			TO_ERASE
 		};
 		Flags		flag;
