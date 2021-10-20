@@ -138,7 +138,7 @@ void	Response::setResponseString()
 				+ NEWLINE
 				+ message_body;
 	}
-	else if (status == MESSAGE_BODY_ONLY)
+	else if (status == MESSAGE_BODY_ONLY) //TODO: to sort out where mark flag MESSAGE_BODY_ONLy
 	{
 		string_to_send = message_body;
 	}
@@ -146,8 +146,8 @@ void	Response::setResponseString()
 
 int	Response::responseGet()
 {
-	//TODO: set up multiple sending
-	message_body = file->getContent();
+	message_body.append(file->getContent());
+	file->clearContent();
 	if (file->flag == AFdInfo::EVENT_COMPLETE)
 	{
 		status = COMPLETE;

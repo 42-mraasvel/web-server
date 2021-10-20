@@ -304,11 +304,7 @@ int	Client::writeEvent(FdTable & fd_table)
 		{
 			break;
 		}
-		if (_response_to_send)
-		{
-			appendMasterString();
-		}
-		else
+		if (!_response_to_send)
 		{
 			if (retrieveResponse() == false)
 			{
@@ -319,11 +315,15 @@ int	Client::writeEvent(FdTable & fd_table)
 			{
 				return ERR;
 			}
-			appendMasterString();
-			if (_response_to_send->status == Response::COMPLETE)
-			{
-				resetResponseToSend();
-			}
+		}
+		appendMasterString();
+		if (_response_to_send->status == Response::COMPLETE)
+		{
+			resetResponseToSend();
+		}
+		else
+		{
+			break;
 		}
 	}
 	if (sendMasterString() == ERR)

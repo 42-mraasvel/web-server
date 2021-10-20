@@ -2,10 +2,11 @@
 #include "settings.hpp"
 #include "Client.hpp"
 #include <unistd.h>
+#include <algorithm>
 #include <poll.h>
 #include <string>
 
-File::File(int fd): AFdInfo(fd), _event_complete(false) {}
+File::File(int fd): AFdInfo(fd) {}
 
 struct pollfd	File::getPollFd() const
 {
@@ -18,9 +19,7 @@ struct pollfd	File::getPollFd() const
 
 int File::readEvent(FdTable & fd_table)
 {
-	//TODO: to discuss with team how to read directly into _content;
-	//TODO: iterative reading to combine with Client::readEvent().
-
+	//TODO: keep track of total size read -> content-length
 	char	buf[BUFFER_SIZE];
 	int	ret = read(_fd, buf, BUFFER_SIZE);
 	if (ret == ERR)
@@ -39,16 +38,18 @@ int File::readEvent(FdTable & fd_table)
 
 int File::writeEvent(FdTable & fd_table)
 {
-	int	ret = write(_fd, _content.c_str(), _content.size());
-	if (ret == ERR)
+	size_t	size = std::min((size_t)BUFFER_SIZE, _content.size());
+	if (write(_fd, _content.c_str(), size) == ERR)
 	{
 		perror("write");
 		return ERR;
 	}
-
-	this->updateEvents(AFdInfo::WAITING, fd_table);
-	flag = AFdInfo::EVENT_COMPLETE;
-
+	_content.erase(0, size);
+	if (size < BUFFER_SIZE)
+	{
+		this->updateEvents(AFdInfo::WAITING, fd_table);
+		flag = AFdInfo::EVENT_COMPLETE;
+	}
 	return OK;
 }
 
@@ -67,12 +68,12 @@ void	File::setContent(std::string const & content)
 	_content = content;
 }
 
+void	File::clearContent()
+{
+	_content.clear();
+}
+
 void	File::appendContent(std::string const & content)
 {
 	_content.append(content);
-}
-
-bool	File::getEventComplete() const
-{
-	return _event_complete;
 }
