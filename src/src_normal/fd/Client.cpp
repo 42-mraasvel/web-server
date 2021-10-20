@@ -5,8 +5,9 @@
 #include <poll.h>
 #include <fcntl.h>
 #include <cstdlib>
+#include <algorithm>
 
-Client::Client(int fd): AFdInfo(fd), _request(NULL), _response(NULL) {}
+Client::Client(int fd): AFdInfo(fd), _request(NULL), _response(NULL), _response_to_send(NULL) {}
 
 Client::~Client()
 {
@@ -127,6 +128,7 @@ int	Client::processRequest(FdTable & fd_table)
 	initResponse();
 	if (isRequestError() == true)
 	{
+		_response->status = Response::COMPLETE;
 		updateEvents(AFdInfo::WRITING, fd_table);
 		return OK;
 	}
@@ -234,7 +236,7 @@ int	Client::setupFile(FdTable & fd_table)
 
 int Client::executeMethod(FdTable & fd_table)
 {
-	switch (_request->method)
+	switch (_response->method)
 	{
 		case GET:
 			methodGet(fd_table);
@@ -296,115 +298,78 @@ void	Client::resetRequest()
 
 int	Client::writeEvent(FdTable & fd_table)
 {
+	while (true)
+	{
+		if (_master_string.size() >= BUFFER_SIZE)
+		{
+			break;
+		}
+		if (_response_to_send)
+		{
+			appendMasterString();
+		}
+		else
+		{
+			if (retrieveResponse() == false)
+			{
+				updateEvents(AFdInfo::READING, fd_table);
+				break;
+			}
+			if (_response_to_send->generateResponse() == ERR)
+			{
+				return ERR;
+			}
+			appendMasterString();
+			if (_response_to_send->status == Response::COMPLETE)
+			{
+				resetResponseToSend();
+			}
+		}
+	}
+	if (sendMasterString() == ERR)
+	{
+		return ERR;
+	}
+	return OK;
+}
+
+
+bool	Client::retrieveResponse()
+{
 	if (_response_queue.empty())
 	{
-		return ERR;
+		return false;
 	}
-	if (generateResponse() == ERR)
-	{
-		return ERR;
-	}
-	Response*	response = _response_queue.front();
-	if (send(_fd, response->string.c_str(), response->string.size(), 0) == ERR)
-	{
-		perror("send");
-		return ERR;
-	}
-	if (response->status == Response::COMPLETE)
-	{
-		_response_queue.pop();
-		updateEvents(AFdInfo::READING, fd_table);
-	}
-	return OK;
+	_response_to_send = _response_queue.front();
+	return true;
 }
-/***************************************************/
-/****** writeEvent - step 2.3 generateResponse ******/
-/***************************************************/
 
-int	Client::generateResponse()
+void	Client::resetResponseToSend()
 {
-	// TODO: 2 scenario here:
-	//			1) failed status code (non-zero)
-	//			2) successful status code -> to proceed on switch
-	if (!_response->status_code) //For good request:
+	delete _response_to_send;
+	_response_queue.pop();
+	_response_to_send = NULL;
+}
+
+void	Client::appendMasterString()
+{
+	_master_string.append(_response_to_send->string_to_send);
+}
+
+int	Client::sendMasterString()
+{
+	if (!_master_string.empty())
 	{
-		switch (_response->method)
+		size_t size = std::min((size_t)BUFFER_SIZE, _master_string.size());
+		if (send(_fd, _master_string.c_str(), size, 0) == ERR)
 		{
-			case GET:
-				responseGet();
-				break;
-			case POST:
-				responsePost();
-				break;
-			case DELETE:
-				responseDelete();
-				break; 
-			default:
-				responseOther();
-				break;
+			perror("send");
+			return ERR;
 		}
-
-		_response->file->flag = AFdInfo::TO_ERASE; //TODO: move
-		_response->file = NULL; //TODO: move
-
+		_master_string.erase(0, size);
 	}
-		
-	_response->header_fields["Host"] = "localhost";
-	if (true) // TODO: only when message_body is ready??
-	{
-		_response->header_fields["Content-Length"] = WebservUtility::itoa(_response->message_body.size());
-	}
-	setHeaderString(); //TODO: placeholder, to modify
-	setResponseString(); //TODO: placeholder, to modify
 	return OK;
 }
-
-int	Client::responseGet()
-{
-	_response->status_code = 200;
-	//TODO: set up multiple sending
-	_response->message_body = _response->file->getContent();
-	return OK;
-}
-
-int	Client::responsePost()
-{
-	_response->status_code = 201;
-	return OK;
-}
-
-int	Client::responseDelete()
-{
-	//TODO: check if 204 no content
-	_response->status_code = 202;
-	return OK;
-}
-
-int	Client::responseOther()
-{
-	return OK;
-}
-
-void	Client::setHeaderString()
-{
-	for (header_iterator i = _response->header_fields.begin(); i != _response->header_fields.end(); ++i)
-	{
-		_response->header_string += (i->first + ": " + i->second + NEWLINE);
-	}
-}
-
-void	Client::setResponseString()
-{
-	// TODO: check if start of the message of part of message body;
-	_response->string = _response->http_version + " "
-			+ WebservUtility::itoa(_response->status_code) + " "
-			+ WebservUtility::getStatusMessage(_response->status_code)
-			+ NEWLINE
-			+ _response->header_string
-			+ NEWLINE
-			+ _response->message_body;
-}
-
 
 /************************/
 /****** closeEvent ******/
@@ -440,7 +405,7 @@ void	Client::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
 
 bool	Client::updateEventsSpecial()
 {
-	return !_response_queue.empty() && _response_queue.front()->file && _response_queue.front()->file->getEventComplete() == true;
+	return !_response_queue.empty() && _response_queue.front()->file && _response_queue.front()->file->flag == AFdInfo::EVENT_COMPLETE;
 }
 
 void	Client::appendFileContent()

@@ -12,9 +12,11 @@ struct Response
 	enum Status
 	{
 		HEADER_PENDING,
-		HEADER_COMPLETE,
+		WITH_HEADER,
+		MESSAGE_BODY_ONLY,
 		COMPLETE
 	};
+	typedef RequestParser::header_field_t::iterator header_iterator;
 
 	public:
 		File*				file;
@@ -33,16 +35,31 @@ struct Response
 		std::string 		header_string;
 		std::string			message_body;
 
-		std::string			string;
+		std::string			string_to_send;
 
 	public:
 		Response(Request const & request);
 		~Response();
-	
-		int	createFile();
-	
+
 	private:
 		void	setHttpVersion(int minor_version);
 		void	previewMethod();
 		void	generateAbsoluteTarget(std::string const & target_resourse);
+	
+	public:
+		int		createFile();
+		void	deleteFile();
+	
+	public:
+		int		generateResponse();
+	private:
+		int			responseGet();
+		int			responsePost();
+		int			responseDelete();
+		int			responseOther();
+		void		setHeaderString();
+		void		setResponseString();
+
+
+
 };

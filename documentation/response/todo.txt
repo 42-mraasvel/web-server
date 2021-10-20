@@ -10,3 +10,4 @@
 ------------------
 >> check if GET/DELETE request needs to read message_body
 >> check when there is syscall error, if respond error code or quite program. (double check on File event setting);
+>> how to send out response Content-length if not knowing the full message body length?

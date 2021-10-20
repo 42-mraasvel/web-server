@@ -21,14 +21,14 @@ class Client : public AFdInfo
 		int		readEvent(FdTable & fd_table);
 	private:
 		/* step 1 parse */
-		int	parseRequest();
-		int		readRequest(std::string & buffer);
+		int		parseRequest();
+		int			readRequest(std::string & buffer);
 
 		/* step 2 retrieve request */
 		bool	retrieveRequest();
 
 		/* step 3 process request */
-		int	processRequest(FdTable & fd_table);
+		int		processRequest(FdTable & fd_table);
 
 		/* step 3.1 init response */
 		void	initResponse();
@@ -57,18 +57,11 @@ class Client : public AFdInfo
 	public:
 		int		writeEvent(FdTable & fd_table);
 
-		/* step 3.3 generate response */
 	private:
-		int		generateResponse();
-		int			responseGet();
-		int			responsePost();
-		int			responseDelete();
-		int			responseOther();
-
-		void		setHttpVersion();
-		void		setHeaderString();
-		void		setResponseString();
-
+		bool	retrieveResponse();
+		void	resetResponseToSend();
+		void	appendMasterString();
+		int		sendMasterString();
 
 	/* close */
 	public:
@@ -84,8 +77,10 @@ class Client : public AFdInfo
 	private:
 		Request*				_request;
 		Response*				_response;
+		Response*				_response_to_send;
 		RequestParser			_request_parser;
 		std::queue<Response *>	_response_queue;
+		std::string				_master_string;
 
 
 };
