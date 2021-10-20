@@ -29,6 +29,7 @@ std::string	itoa(int n);
 bool isBase(char x, int base);
 
 void convertToLowercase(std::string & s);
+std::string strToLower(std::string const & s);
 
 std::string getStatusMessage(int status_code);
 
@@ -42,3 +43,4 @@ bool isQueryChar(char x);
 bool isDigit(char x);
 bool isWhiteSpace(char x);
 bool isVchar(char x);
+bool isHex(char x);

@@ -80,6 +80,7 @@ On BAD_REQUEST: discard current buffer and add BAD_REQUEST to queue (or until EO
 
 int RequestParser::parse(std::string const & buffer)
 {
+	// If there's nothing in _buffer, we can just swap
 	_buffer.append(buffer);
 
 	if (leftOverRequest())
@@ -166,16 +167,30 @@ int RequestParser::parseHeader()
 	return OK;
 }
 
+/*
+1. check content-length
+2. check chunked (transfer-encoding and (?)content-encoding(?)) : overwrites content-length
+*/
 int RequestParser::checkHeaderFields()
 {
+	_body_type = NOT_PRESENT;
 	header_field_t::iterator it = _request->header_fields.find("Content-Length");
+	if (it != _request->header_fields.end())
+	{
+		_body_type = LENGTH;
+		if (parseContentLength(it->second) == ERR)
+		{
+			return ERR;
+		}
+	}
+
+	it = _request->header_fields.find("Transfer-Encoding");
 	if (it == _request->header_fields.end())
 	{
-		_body_type = NOT_PRESENT;
 		return OK;
 	}
-	_body_type = LENGTH;
-	return parseContentLength(it->second);
+
+	return parseTransferEncoding(it->second);
 }
 
 /*
@@ -201,6 +216,7 @@ int RequestParser::parseMessageBody()
 			parseContent();
 			break;
 		case CHUNKED:
+			// parseChunked();
 			std::cerr << "Chunked not implemented" << std::endl;
 			_request->message_body.append(_buffer.substr(_index));
 			_index = _buffer.size();
@@ -208,6 +224,14 @@ int RequestParser::parseMessageBody()
 			break;
 	}
 
+	return OK;
+}
+
+/*
+If chunked has a parsing error, then there is a bad request
+*/
+int parseChunked()
+{
 	return OK;
 }
 
@@ -242,6 +266,7 @@ int RequestParser::parseContentLength(std::string const & value)
 	{
 		if (!isDigit(value[i]))
 		{
+			// invalid value
 			return ERR;
 		}
 	}
@@ -251,6 +276,17 @@ int RequestParser::parseContentLength(std::string const & value)
 		// Overflow
 		return ERR;
 	}
+	return OK;
+}
+
+int RequestParser::parseTransferEncoding(std::string const & value)
+{
+	if (WebservUtility::strToLower(value) != "chunked")
+	{
+		//TODO: status: 501: NOT IMPLEMENTED
+		return ERR;
+	}
+	_body_type = CHUNKED;
 	return OK;
 }
 

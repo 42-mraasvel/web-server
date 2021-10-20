@@ -82,6 +82,7 @@ class RequestParser
 		int parseHeader();
 		int checkHeaderFields();
 		int parseContentLength(std::string const & value);
+		int parseTransferEncoding(std::string const & value);
 
 		void clearToIndex();
 		void clearToEoHeader();
@@ -93,6 +94,7 @@ class RequestParser
 
 		int parseMessageBody();
 		int parseContent();
+		int parseChunked();
 
 		int delimitRequest(Request::RequestStatus status);
 
