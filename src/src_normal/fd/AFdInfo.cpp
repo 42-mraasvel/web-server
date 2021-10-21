@@ -49,7 +49,11 @@ void	AFdInfo::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
 	fd_table[_index].first.events = updated_events;
 }
 
-bool	AFdInfo::updateEventsSpecial()
+void	AFdInfo::update(FdTable & fd_table)
 {
-	return false;
+	if (flag == AFdInfo::TO_ERASE)
+	{
+		printf(BLUE_BOLD "Close File:" RESET_COLOR " [%d]\n", _fd);
+		fd_table.eraseFd(_index);
+	}
 }

@@ -6,7 +6,7 @@
 #include <fcntl.h>
 
 
-Response::Response(Request const & request): file(NULL), status(HEADER_PENDING), status_code(0)
+Response::Response(Request const & request): file(NULL), status(START)
 {
 	method = request.method;
 	setHttpVersion(request.minor_version);
@@ -88,9 +88,8 @@ void	Response::deleteFile()
 
 int	Response::generateResponse()
 {
-	if (status == HEADER_PENDING)
+	if (status != COMPLETE) //Error status code will be already marked as COMPLETE 
 	{
-		status = WITH_HEADER;
 		switch (method)
 		{
 			case GET:
@@ -106,6 +105,11 @@ int	Response::generateResponse()
 				responseOther();
 				break;
 		}
+		if (file->flag == AFdInfo::FILE_COMPLETE)
+		{
+			status = COMPLETE;
+			deleteFile();
+		}
 	}
 	header_fields["Host"] = "localhost";
 	if (status == COMPLETE) // TODO: only when message_body is ready??
@@ -114,7 +118,10 @@ int	Response::generateResponse()
 	}
 	setHeaderString(); //TODO: placeholder, to modify
 	setResponseString(); //TODO: placeholder, to modify
-
+	if (status == START)
+	{
+		status = HEADER_COMPLETE;
+	}
 	return OK;
 }
 
@@ -128,7 +135,7 @@ void	Response::setHeaderString()
 
 void	Response::setResponseString()
 {
-	if (status == WITH_HEADER || status == COMPLETE)
+	if (status == START || status == COMPLETE)
 	{
 		string_to_send = http_version + " "
 				+ WebservUtility::itoa(status_code) + " "
@@ -138,7 +145,7 @@ void	Response::setResponseString()
 				+ NEWLINE
 				+ message_body;
 	}
-	else if (status == MESSAGE_BODY_ONLY) //TODO: to sort out where mark flag MESSAGE_BODY_ONLy
+	else if (status == HEADER_COMPLETE) //TODO: to sort out where mark flag MESSAGE_BODY_ONLy
 	{
 		string_to_send = message_body;
 	}
@@ -148,31 +155,16 @@ int	Response::responseGet()
 {
 	message_body.append(file->getContent());
 	file->clearContent();
-	if (file->flag == AFdInfo::EVENT_COMPLETE)
-	{
-		status = COMPLETE;
-		deleteFile();
-	}
 	return OK;
 }
 
 int	Response::responsePost()
 {
-	if (file->flag == AFdInfo::EVENT_COMPLETE)
-	{
-		status = COMPLETE;
-		deleteFile();
-	}
 	return OK;
 }
 
 int	Response::responseDelete()
 {
-	if (file->flag == AFdInfo::EVENT_COMPLETE)
-	{
-		status = COMPLETE;
-		deleteFile();
-	}
 	return OK;
 }
 
