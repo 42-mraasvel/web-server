@@ -14,7 +14,8 @@ class AFdInfo
 		enum Flags
 		{
 			ACTIVE,
-			EVENT_COMPLETE,
+			FILE_START,
+			FILE_COMPLETE,
 			TO_ERASE
 		};
 		Flags		flag;
@@ -26,7 +27,7 @@ class AFdInfo
 		virtual	int		readEvent(FdTable & fd_table) = 0;
 		virtual int 	closeEvent() = 0;
 		virtual	void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
-		virtual	bool	updateEventsSpecial();
+		virtual	void	update(FdTable & fd_table);
 
 		AFdInfo();
 		AFdInfo(int fd);

@@ -6,7 +6,10 @@
 #include <poll.h>
 #include <string>
 
-File::File(int fd): AFdInfo(fd) {}
+File::File(int fd): AFdInfo(fd)
+{
+	flag = AFdInfo::ACTIVE;
+}
 
 struct pollfd	File::getPollFd() const
 {
@@ -20,18 +23,23 @@ struct pollfd	File::getPollFd() const
 int File::readEvent(FdTable & fd_table)
 {
 	//TODO: keep track of total size read -> content-length
-	char	buf[BUFFER_SIZE];
-	int	ret = read(_fd, buf, BUFFER_SIZE);
+	char	buffer[BUFFER_SIZE];
+	bzero(buffer, BUFFER_SIZE);
+	int	ret = read(_fd, buffer, BUFFER_SIZE);
 	if (ret == ERR)
 	{
-		perror("read in File::readEvent()");
+		perror("read");
 		return ERR;
 	}
-	_content.append(std::string(buf));
+	if (flag == AFdInfo::ACTIVE)
+	{
+		flag = AFdInfo::FILE_START;
+	}
+	_content.append(std::string(buffer));
 	if (ret < BUFFER_SIZE) // read EOF
 	{
 		this->updateEvents(AFdInfo::WAITING, fd_table);
-		flag = AFdInfo::EVENT_COMPLETE;
+		flag = AFdInfo::FILE_COMPLETE;
 	}
 	return OK;
 }
@@ -45,10 +53,10 @@ int File::writeEvent(FdTable & fd_table)
 		return ERR;
 	}
 	_content.erase(0, size);
-	if (size < BUFFER_SIZE)
+	if (_content.empty())
 	{
 		this->updateEvents(AFdInfo::WAITING, fd_table);
-		flag = AFdInfo::EVENT_COMPLETE;
+		flag = AFdInfo::FILE_COMPLETE;
 	}
 	return OK;
 }
@@ -73,7 +81,7 @@ void	File::clearContent()
 	_content.clear();
 }
 
-void	File::appendContent(std::string const & content)
+void	File::swapContent(std::string & content)
 {
-	_content.append(content);
+	_content.swap(content);
 }

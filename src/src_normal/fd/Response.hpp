@@ -11,9 +11,8 @@ struct Response
 	public:
 	enum Status
 	{
-		HEADER_PENDING,
-		WITH_HEADER,
-		MESSAGE_BODY_ONLY,
+		START,
+		HEADER_COMPLETE,
 		COMPLETE
 	};
 	typedef RequestParser::header_field_t::iterator header_iterator;
