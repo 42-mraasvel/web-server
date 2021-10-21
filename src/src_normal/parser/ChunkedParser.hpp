@@ -30,6 +30,7 @@ class ChunkedParser
 	Parses the next buffer and appends it to body
 	*/
 		int parse(std::string const & buffer, std::size_t & index, std::string & body);
+		bool finished() const;
 
 	/*
 	Sends body as a chunked message
@@ -57,6 +58,8 @@ class ChunkedParser
 		typedef bool (*IsFunctionType)(char x);
 		void skip(std::string const & buffer, std::size_t & index, IsFunctionType callback);
 
+		void reset();
+
 	/* Debugging */
 
 		void print(const std::string& buffer, std::size_t index) const;
@@ -66,9 +69,6 @@ class ChunkedParser
 
 		State _state;
 		State _next_state;
-		std::size_t _index;
 		std::size_t _chunk_size;
-		std::string _buffer;
 		std::string _leftover;
-		bool _received_cr;
 };

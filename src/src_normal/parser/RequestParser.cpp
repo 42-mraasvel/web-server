@@ -216,11 +216,7 @@ int RequestParser::parseMessageBody()
 			parseContent();
 			break;
 		case CHUNKED:
-			// parseChunked();
-			std::cerr << "Chunked not implemented" << std::endl;
-			_request->message_body.append(_buffer.substr(_index));
-			_index = _buffer.size();
-			delimitRequest(Request::COMPLETE);
+			parseChunked();
 			break;
 	}
 
@@ -230,8 +226,13 @@ int RequestParser::parseMessageBody()
 /*
 If chunked has a parsing error, then there is a bad request
 */
-int parseChunked()
+int RequestParser::parseChunked()
 {
+	_chunked_parser.parse(_buffer, _index, _request->message_body);
+	if (_chunked_parser.finished())
+	{
+		delimitRequest(Request::COMPLETE);
+	}
 	return OK;
 }
 
@@ -247,7 +248,7 @@ int RequestParser::parseContent()
 		_request->message_body.append(_buffer.substr(_index));
 		_remaining_content -= _buffer.size() - _index;
 		_index = _buffer.size();
-		delimitRequest(Request::HEADER_COMPLETE);
+		// delimitRequest(Request::HEADER_COMPLETE);
 	}
 	else
 	{

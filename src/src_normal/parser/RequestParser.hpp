@@ -1,5 +1,6 @@
 #pragma once
 #include "Request.hpp"
+#include "ChunkedParser.hpp"
 #include <queue>
 
 class RequestParser
@@ -112,6 +113,7 @@ class RequestParser
 		std::string	_buffer;
 
 	/* For Message-Body Parsing */
+		ChunkedParser			_chunked_parser;
 		MessageBodyType			_body_type;
 		std::size_t				_remaining_content;
 

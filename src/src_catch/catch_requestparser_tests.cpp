@@ -287,11 +287,11 @@ TEST_CASE("Parser: multiple header-fields", "[request-parser]")
 TEST_CASE("parser: chunked", "[request-parser]")
 {
 	std::string input = 
-		// "GET / HTTP/1.1" CRLF
-		// "Host: 127.0.0.1:80" CRLF
-		// "Content-Type: text/plain" CRLF
-		// "Transfer-Encoding: Chunked" CRLF
-		// EOHEADER
+		"GET / HTTP/1.1" CRLF
+		"Host: 127.0.0.1:80" CRLF
+		"Content-Type: text/plain" CRLF
+		"Transfer-Encoding: Chunked"
+		EOHEADER
 		"7 ; comment" CRLF
 		"Mozilla" CRLF
 		"9    ;;  " CRLF
@@ -302,29 +302,36 @@ TEST_CASE("parser: chunked", "[request-parser]")
 		"Trailer: Value" CRLF
 		"Trailer: Value"
 		EOHEADER;
-	
-	std::string invalid_input = 
-		"z ; comment" CRLF
-		"0" CRLF
-		CRLF;
-	std::string small_input =
-		"7 ; comment" CRLF
-		"Mozilla" CRLF
-		"0" CRLF
-		CRLF;
-	ChunkedParser parser;
-	std::string body;
+
+	RequestParser parser;
 
 	std::size_t index = 0;
-	// parser.parse(input, index, body);
 
-	// parser.parse(invalid_input, index, body);
-	parser.parse(small_input, index, body);
-	// for (std::size_t i = 0; i < small_input.size(); ++i) {
-	// 	std::size_t index = 0;
-	// 	parser.parse(small_input.substr(i, 1), index, body);
-	// }
+	for (std::size_t i = 0; i < input.size(); ++i)
+	{
+		parser.parse(input.substr(i, 1));
+	}
+
+	// parser.parse(input);
+
+	Request* request = parser.getNextRequest();
 
 	std::cout << std::endl << RED_BOLD "POST PARSE" RESET_COLOR ":" << std::endl;
-	std::cout << "Body" << std::endl << body << std::endl;
+	switch (request->status)
+	{
+		case Request::BAD_REQUEST:
+			printf("%s\n", "BAD_REQUEST");
+			break;
+		case Request::READING:
+			printf("%s\n", "READING");
+			break;
+		case Request::HEADER_COMPLETE:
+			printf("%s\n", "HEADER_COMPLETE");
+			break;
+		case Request::COMPLETE:
+			printf("%s\n", "COMPLETE");
+			break;
+	}
+	std::cout << "Body" << std::endl << request->message_body << std::endl;
+	delete request;
 }

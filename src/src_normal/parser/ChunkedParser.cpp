@@ -38,24 +38,23 @@ int ChunkedParser::parse(std::string const & buffer, std::size_t & index, std::s
 {
 	static const StateDispatchTableType state_dispatch = createStateDispatch();
 
-	// reset state to _size if it's FINISHED
-	int i = 0;
+	if (_state == FINISHED)
+	{
+		_state = SIZE;
+	}
+
 	while (index < buffer.size() && _state != FINISHED)
 	{
-		printf("ScanChar: [%d] [%c], State: [%s]\n", buffer[index],
-			convertPrint(buffer[index]), getStateString(_state).c_str());
 		if ((this->*state_dispatch[_state])(buffer, index, body) == ERR)
 		{
 			return ERR;
 		}
-		++i;
-		if (i == 6)
-		{
-			break;
-		}
 	}
-	printf("End Of ChunkedParser\n");
-	print(buffer, index);
+
+	if (_state == FINISHED)
+	{
+		reset();
+	}
 	return OK;
 }
 
@@ -73,32 +72,32 @@ int ChunkedParser::parseSize(std::string const & buffer, std::size_t & index, st
 	// all possible hexdigits have been read
 	if (index == buffer.size())
 	{
-		printf("Chunksize line is not complete, continue reading\r\n");
+		// printf("Chunksize line is not complete, continue reading\r\n");
 		return OK;
 	}
 
 	// Min of 1 hexdigit
 	if (_leftover.size() == 0)
 	{
-		printf("No HEXDIGITS were found\r\n");
+		// printf("No HEXDIGITS were found\r\n");
 		return ERR;
 	}
-	printf("Chunksize is complete\r\n");
+	// printf("Chunksize is complete\r\n");
 
 	// Overflow check
 	if (WebservUtility::strtoul(_leftover, _chunk_size, 16) == ERR)
 	{
-		printf("Chunksize Overflowed\r\n");
+		// printf("Chunksize Overflowed\r\n");
 		return ERR;
 	}
 
-	printf("Chunk size: %lu\n", _chunk_size);
+	// printf("Chunk size: %lu\n", _chunk_size);
 
-	printf("internal buffer before clearing: [\"%s\"]\n", _leftover.c_str());
+	// printf("internal buffer before clearing: [\"%s\"]\n", _leftover.c_str());
 	_leftover.clear();
 
 	// Decide next state (end of chunked is a chunksize of 0)
-	printf("Next: %d %c\n", buffer[index], buffer[index]);
+	// printf("Next: %d %c\n", buffer[index], buffer[index]);
 	if (_chunk_size == 0)
 	{
 		_next_state = TRAILER;
@@ -113,10 +112,10 @@ int ChunkedParser::parseSize(std::string const & buffer, std::size_t & index, st
 
 int ChunkedParser::parseData(std::string const & buffer, std::size_t & index, std::string & body)
 {
-	printf("parseChunkData: %lu\n", _chunk_size);
+	// printf("parseChunkData: %lu\n", _chunk_size);
 	if (buffer.size() - index >= _chunk_size)
 	{
-		printf("Buffer contains at least the entire chunk\n");
+		// printf("Buffer contains at least the entire chunk\n");
 		body.append(buffer, index, _chunk_size);
 		_next_state = SIZE;
 		_state = ENDLINE;
@@ -124,7 +123,7 @@ int ChunkedParser::parseData(std::string const & buffer, std::size_t & index, st
 	}
 	else
 	{
-		printf("Buffer contains a partial chunk\n");
+		// printf("Buffer contains a partial chunk\n");
 		body.append(buffer, index);
 		_chunk_size -= buffer.size() - index;
 		index = buffer.size();
@@ -133,26 +132,32 @@ int ChunkedParser::parseData(std::string const & buffer, std::size_t & index, st
 }
 
 /*
-Right now we just ignore trailers
-So we do DISCARDLINE until we can parse an ENDLINE
+Store line until newline
 */
 int ChunkedParser::parseTrailer(std::string const & buffer, std::size_t & index, std::string & body)
 {
-	if (buffer.find(CRLF, index) == std::string::npos)
-	{
-		_buffer.append(buffer, index);
+	std::size_t start = index;
+	index = buffer.find(CRLF, index);
+	if (_leftover.size() > 0 && (_leftover[_leftover.size() - 1] == '\r' && buffer[0] == '\n')) {
+
+		_leftover.pop_back();
+		index = 1;
+	} else if (index != std::string::npos) {
+		_leftover.append(buffer, start, index - start);
+		index += 2;
+	} else {
+		// No CRLF present yet
+		_leftover.append(buffer, start);
 		index = buffer.size();
 		return OK;
 	}
 
-	index = buffer.find(CRLF, index);
-	_buffer.clear();
-	// parseEndLine(buffer);
-	if (buffer.compare(index, 2, CRLF) == 0)
-	{
-		// parseEndLine(buffer);
+	if (_leftover.size() == 0) {
+		// Empty line, end of trailer
+		// printf("Finished parsing chunked\n");
 		_state = FINISHED;
 	}
+	_leftover.clear();
 	return OK;
 }
 
@@ -160,7 +165,7 @@ int ChunkedParser::parseEndLine(std::string const & buffer, std::size_t & index,
 {
 	if (buffer.compare(index, 2, CRLF) == 0 || (_leftover == "\r" && buffer[index] == '\n'))
 	{
-		printf("parseEndLine: Found CRLF\r\n");
+		// printf("parseEndLine: Found CRLF\r\n");
 		if (_leftover.size() == 1)
 		{
 			index += 1;
@@ -175,12 +180,12 @@ int ChunkedParser::parseEndLine(std::string const & buffer, std::size_t & index,
 	}
 	else if (buffer.size() - index > 1 || buffer[index] != '\r')
 	{
-		printf("No ENDILNE found when expecting one\r\n");
+		// printf("No ENDILNE found when expecting one\r\n");
 		return ERR;
 	}
 	else
 	{
-		printf("parseEndLine: CR at end of buffer\r\n");
+		// printf("parseEndLine: CR at end of buffer\r\n");
 		++index;
 		_leftover = "\r";
 	}
@@ -196,7 +201,7 @@ int ChunkedParser::parseDiscardLine(std::string const & buffer, std::size_t & in
 	if (_leftover == "\r" && buffer[index] == '\n')
 	{
 		assert(index == 0);
-		printf("Found NEWLINE at start of next buffer\r\n");
+		// printf("Found NEWLINE at start of next buffer\r\n");
 		++index;
 		_leftover.clear();
 		_state = _next_state;
@@ -208,17 +213,18 @@ int ChunkedParser::parseDiscardLine(std::string const & buffer, std::size_t & in
 		_leftover.clear();
 	}
 
+	std::size_t start = index;
 	index = buffer.find(CRLF, index);
 	if (index != std::string::npos)
 	{
-		printf("CRLF found, discarded rest of line\r\n");
+		// printf("CRLF found, discarded rest of line\r\n");
 		index += 2;
 		_state = _next_state;
 		return OK;
 	}
 	else if (buffer[buffer.size() - 1] == '\r')
 	{
-		printf("End of line is carriage return\r\n");
+		// printf("End of line is carriage return\r\n");
 		_leftover = "\r";
 	}
 	return OK;
@@ -231,7 +237,7 @@ has '\n' at the front
 bool ChunkedParser::hasCRLF(std::string const & buffer, std::size_t index)
 {
 	if (buffer.find(CRLF, index) == std::string::npos
-	&& (_leftover.size() == 0 || !(_leftover[_buffer.size() - 1] == '\r' && buffer[0] == '\n')))
+	&& (_leftover.size() == 0 || !(_leftover[_leftover.size() - 1] == '\r' && buffer[0] == '\n')))
 	{
 		return false;
 	}
@@ -249,6 +255,17 @@ void ChunkedParser::skip(std::string const & buffer, std::size_t & index, IsFunc
 	{
 		++index;
 	}
+}
+
+void ChunkedParser::reset()
+{
+	_chunk_size = 0;
+	_leftover.clear();
+}
+
+bool ChunkedParser::finished() const
+{
+	return _state == FINISHED;
 }
 
 
@@ -286,12 +303,12 @@ std::string ChunkedParser::getStateString(State state) const
 
 void ChunkedParser::print(const std::string& buffer, std::size_t index) const
 {
-	printf(RED_BOLD "ChunkedParser" RESET_COLOR "\n");
-	printf("State: [%s]\n", getStateString(_state).c_str());
-	printf("Next State: [%s]\n", getStateString(_next_state).c_str());
-	printf("Index: [%lu]\n", index);
-	printf("Chunk Size: [%lu]\n", _chunk_size);
-	printf("Internal Buffer: [%s]\n", _leftover.c_str());
-	printf("External buffer:\n");
-	printf("[%s]\n", buffer.c_str());
+	// printf(RED_BOLD "ChunkedParser" RESET_COLOR "\n");
+	// printf("State: [%s]\n", getStateString(_state).c_str());
+	// printf("Next State: [%s]\n", getStateString(_next_state).c_str());
+	// printf("Index: [%lu]\n", index);
+	// printf("Chunk Size: [%lu]\n", _chunk_size);
+	// printf("Internal Buffer: [%s]\n", _leftover.c_str());
+	// printf("External buffer:\n");
+	// printf("[%s]\n", buffer.c_str());
 }
