@@ -302,12 +302,26 @@ TEST_CASE("parser: chunked", "[request-parser]")
 		"Trailer: Value" CRLF
 		"Trailer: Value"
 		EOHEADER;
+	
+	std::string invalid_input = 
+		"z ; comment" CRLF
+		"0" CRLF
+		CRLF;
+	std::string small_input =
+		"7 ; comment" CRLF
+		"Mozilla" CRLF
+		"0" CRLF
+		CRLF;
 	ChunkedParser parser;
 	std::string body;
 
-	for (std::size_t i = 0; i < input.size(); ++i) {
+	std::size_t index = 0;
+	// parser.parse(input, index, body);
+	// parser.parse(invalid_input, index, body);
+
+	for (std::size_t i = 0; i < small_input.size(); ++i) {
 		std::size_t index = 0;
-		parser.parse(input.substr(i, 1), index, body);
+		parser.parse(small_input.substr(i, 1), index, body);
 	}
 
 	std::cout << std::endl << RED_BOLD "POST PARSE" RESET_COLOR ":" << std::endl;

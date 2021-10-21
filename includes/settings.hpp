@@ -23,3 +23,4 @@ Very unnecessary header includes
 #include <cstdio> // RM
 #include <iostream> // RM
 #include "color.hpp"
+#include <cassert> // RM
