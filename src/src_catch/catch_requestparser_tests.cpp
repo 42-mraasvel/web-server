@@ -317,12 +317,13 @@ TEST_CASE("parser: chunked", "[request-parser]")
 
 	std::size_t index = 0;
 	// parser.parse(input, index, body);
-	// parser.parse(invalid_input, index, body);
 
-	for (std::size_t i = 0; i < small_input.size(); ++i) {
-		std::size_t index = 0;
-		parser.parse(small_input.substr(i, 1), index, body);
-	}
+	// parser.parse(invalid_input, index, body);
+	parser.parse(small_input, index, body);
+	// for (std::size_t i = 0; i < small_input.size(); ++i) {
+	// 	std::size_t index = 0;
+	// 	parser.parse(small_input.substr(i, 1), index, body);
+	// }
 
 	std::cout << std::endl << RED_BOLD "POST PARSE" RESET_COLOR ":" << std::endl;
 	std::cout << "Body" << std::endl << body << std::endl;

@@ -5,7 +5,7 @@
 #include <vector>
 
 ChunkedParser::ChunkedParser()
-: _state(ChunkedParser::SIZE), _chunk_size(0), _received_cr(false) {}
+: _state(ChunkedParser::SIZE), _chunk_size(0) {}
 
 ChunkedParser::StateDispatchTableType ChunkedParser::createStateDispatch()
 {
@@ -49,13 +49,13 @@ int ChunkedParser::parse(std::string const & buffer, std::size_t & index, std::s
 			return ERR;
 		}
 		++i;
-		if (i == 3)
+		if (i == 6)
 		{
 			break;
 		}
 	}
 	printf("End Of ChunkedParser\n");
-	// print(buffer, index);
+	print(buffer, index);
 	return OK;
 }
 
@@ -132,6 +132,10 @@ int ChunkedParser::parseData(std::string const & buffer, std::size_t & index, st
 	return OK;
 }
 
+/*
+Right now we just ignore trailers
+So we do DISCARDLINE until we can parse an ENDLINE
+*/
 int ChunkedParser::parseTrailer(std::string const & buffer, std::size_t & index, std::string & body)
 {
 	if (buffer.find(CRLF, index) == std::string::npos)
@@ -154,33 +158,32 @@ int ChunkedParser::parseTrailer(std::string const & buffer, std::size_t & index,
 
 int ChunkedParser::parseEndLine(std::string const & buffer, std::size_t & index, std::string & body)
 {
-	if (_state == ENDLINE)
+	if (buffer.compare(index, 2, CRLF) == 0 || (_leftover == "\r" && buffer[index] == '\n'))
 	{
-		_state = SIZE;
-	}
-	// one byte edgecase
-	_state = _next_state;
-	if (buffer.size() - index == 1)
-	{
-		index += 1;
-		if (buffer[0] == '\n' && _received_cr == true)
+		printf("parseEndLine: Found CRLF\r\n");
+		if (_leftover.size() == 1)
 		{
-			_received_cr = false;
-			return OK;
+			index += 1;
 		}
-		else if (buffer[0] == '\r' && _received_cr == false)
+		else
 		{
-			_received_cr = true;
-			return OK;
+			index += 2;
 		}
-		return false;
+		_state = _next_state;
+		_leftover.clear();
+		return OK;
 	}
-
-	if (buffer.compare(index, 2, CRLF) != 0)
+	else if (buffer.size() - index > 1 || buffer[index] != '\r')
 	{
+		printf("No ENDILNE found when expecting one\r\n");
 		return ERR;
 	}
-	index += 2;
+	else
+	{
+		printf("parseEndLine: CR at end of buffer\r\n");
+		++index;
+		_leftover = "\r";
+	}
 	return OK;
 }
 
@@ -198,6 +201,11 @@ int ChunkedParser::parseDiscardLine(std::string const & buffer, std::size_t & in
 		_leftover.clear();
 		_state = _next_state;
 		return OK;
+	}
+
+	if (_leftover.size() > 0)
+	{
+		_leftover.clear();
 	}
 
 	index = buffer.find(CRLF, index);
