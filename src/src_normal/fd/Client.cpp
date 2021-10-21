@@ -150,10 +150,9 @@ bool	Client::isRequestError()
 
 bool	Client::checkBadRequest()
 {
-	//TODO: to modify
 	if (_request->status == Request::BAD_REQUEST)
 	{
-		_new_response->status_code = 400; /* BAD REQUEST */
+		_new_response->status_code = _request->status_code;
 		return true;
 	}
 	return false;
