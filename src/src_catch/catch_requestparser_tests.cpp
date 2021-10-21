@@ -314,6 +314,12 @@ TEST_CASE("parser: chunked", "[request-parser]")
 
 	// parser.parse(input);
 
+	Request example;
+	example.major_version = 1;
+	example.method = GET;
+	example.minor_version = 1;
+	example.
+
 	Request* request = parser.getNextRequest();
 
 	std::cout << std::endl << RED_BOLD "POST PARSE" RESET_COLOR ":" << std::endl;
