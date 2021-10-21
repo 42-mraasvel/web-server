@@ -139,8 +139,7 @@ int ChunkedParser::parseTrailer(std::string const & buffer, std::size_t & index,
 	std::size_t start = index;
 	index = buffer.find(CRLF, index);
 	if (_leftover.size() > 0 && (_leftover[_leftover.size() - 1] == '\r' && buffer[0] == '\n')) {
-
-		_leftover.pop_back();
+		_leftover.resize(_leftover.size() - 1); // pop_back is C++11
 		index = 1;
 	} else if (index != std::string::npos) {
 		_leftover.append(buffer, start, index - start);

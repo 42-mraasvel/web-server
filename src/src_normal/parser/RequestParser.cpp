@@ -612,6 +612,12 @@ int RequestParser::delimitRequest(Request::RequestStatus status)
 		_requests.push(_request);
 	}
 
+	if (status == Request::BAD_REQUEST)
+	{
+		//TODO: set status_code to specific version
+		_request->status_code = 400;
+	}
+
 	_request->status = status;
 	if (status != Request::HEADER_COMPLETE)
 	{

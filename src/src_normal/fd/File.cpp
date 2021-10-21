@@ -6,6 +6,10 @@
 #include <poll.h>
 #include <string>
 
+#ifdef __linux__
+#include <cstring> // for bzero
+#endif /* __linux */
+
 File::File(int fd): AFdInfo(fd)
 {
 	flag = AFdInfo::ACTIVE;

@@ -48,6 +48,7 @@ struct Request
 
 	public:
 		RequestStatus	status;
+		int				status_code;
 
 		MethodType		method;
 		std::string		target_resource;
