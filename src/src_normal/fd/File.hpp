@@ -12,7 +12,6 @@ class File : public AFdInfo
 
 		int	readEvent(FdTable & fd_table);
 		int	writeEvent(FdTable & fd_table);
-		int	closeEvent();
 
 		std::string	const &	getContent() const;
 		void				setContent(std::string const & content);

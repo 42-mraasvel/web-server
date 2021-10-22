@@ -33,23 +33,21 @@ class Response
 		bool			checkContentLength(Request const & request);
 
 	public:
-		int		executeRequest(FdTable & fd_table, Request & request);
+		void	executeRequest(FdTable & fd_table, Request & request);
 	private:
-		int		setupFile(FdTable & fd_table);
-		int			createFile();
-        int 	executeMethod(Request & request);
-        int 		methodGet();
-        int 		methodPost(Request & request);
-        int 		methodDelete();
+		int			createFile(FdTable & fd_table);
+        int 		executeMethod(Request & request);
+        int 			methodGet();
+        int 			methodPost(Request & request);
+        int 			methodDelete();
 
 	/* Client::writeEvent() */
 	public:
-		int		generateResponse();
+		void	generateResponse();
 	private:
-		int			responseGet();
-		int			responsePost();
-		int			responseDelete();
-		int			responseOther();
+		void		responseGet();
+		void		responsePost();
+		void		responseDelete();
 		void		setHeaderString();
 		void		setResponseString();
 	
@@ -62,6 +60,10 @@ class Response
 		void				deleteFile();
 		void				updateFileEvent(FdTable & fd_table);
 		bool				isFileStart() const;
+
+	private:
+		void	processError(int error_code);
+		void		generateErrorPage();
 
 	private:
 		MethodType			_method;

@@ -4,6 +4,7 @@
 #include "utility/utility.hpp"
 #include <cstdlib>
 #include <fcntl.h>
+#include <errno.h>
 
 
 Response::Response(): _status(START), _file(NULL) {}
@@ -20,10 +21,7 @@ void	Response::scanRequest(Request const & request)
 	setHttpVersion(request.minor_version);
 	previewMethod();
 	generateAbsoluteTarget(request.target_resource);
-	if (isRequestError(request) == true)
-	{
-		_status = Response::COMPLETE;
-	}
+	isRequestError(request);
 }
 
 void	Response::setHttpVersion(int minor_version)
@@ -87,7 +85,7 @@ bool	Response::checkBadRequest(Request::RequestStatus status, int request_code)
 {
 	if (status == Request::BAD_REQUEST)
 	{
-		_status_code = request_code;
+		processError(request_code);
 		return true;
 	}
 	return false;
@@ -97,7 +95,7 @@ bool	Response::checkHttpVersion(int http_major_version)
 {
 	if (http_major_version != 1)
 	{
-		_status_code = 505; /* HTTP VERSION NOT SUPPORTED */
+		processError(505); /* HTTP VERSION NOT SUPPORTED */
 		return true;
 	}
 	return false;
@@ -107,7 +105,7 @@ bool	Response::checkMethod()
 {
 	if (_method == OTHER)
 	{
-		_status_code = 501; /* NOT IMPLEMENTED */ 
+		processError(501); /* NOT IMPLEMENTED */ 
 		return true;
 	}
 	return false;
@@ -120,7 +118,7 @@ bool	Response::checkContentLength(Request const & request)
 		header_iterator i = request.header_fields.find("content-length");
 		if (i == request.header_fields.end())
 		{
-			_status_code = 411; /* LENGTH REQUIRED */ 
+			processError(411); /* LENGTH REQUIRED */ 
 			return true;
 		}
 	}
@@ -131,47 +129,43 @@ bool	Response::checkContentLength(Request const & request)
 /****** (Client::readEvent) execute request ******/
 /*************************************************/
 
-int	Response::executeRequest(FdTable & fd_table, Request & request)
+void	Response::executeRequest(FdTable & fd_table, Request & request)
 {
 	if (_status != Response::COMPLETE)
 	{
-		if (setupFile(fd_table) == ERR)
+		if (createFile(fd_table) == ERR)
 		{
-			return ERR;
+			processError(500); /* INTERNAL SERVER ERROR */
+			return ;
 		}
 		if (executeMethod(request) == ERR)
 		{
-			return ERR;
+			processError(500); /* INTERNAL SERVER ERROR */
+			return ;
 		}
 		updateFileEvent(fd_table);
 	}
-	return OK;
 }
 
-int	Response::setupFile(FdTable & fd_table)
-{
-	if (createFile() == ERR)
-	{
-		return ERR;
-	}
-	if (fd_table.insertFd(_file) == ERR)
-	{
-		return ERR;
-	}
-	return OK;
-}
-
-int	Response::createFile()
+int	Response::createFile(FdTable & fd_table)
 {
 	int	file_fd = open(_absolute_target.c_str(), _file_oflag, 0644);
 	if (file_fd == ERR)
 	{
-		// TODO: add error handling (i.e. no file find)
-		perror("open in method");
+		if (errno == ENOENT || errno == ENOTDIR)
+		{
+			processError(404); // NOTFOUND
+		}
+		else if (errno == EACCES || errno == EAGAIN || errno == EDQUOT)
+		{
+			processError(403); // FORBIDDEN
+		}
+		perror("open");
 		return ERR;
 	}
 	printf(BLUE_BOLD "Open File:" RESET_COLOR " [%d]\n", file_fd);
 	_file = new File(file_fd);
+	fd_table.insertFd(_file);
 	return OK;
 
 }
@@ -206,6 +200,10 @@ int	Response::methodDelete()
 {
 	if (remove(_absolute_target.c_str()) == ERR)
 	{
+		if (errno == EACCES || errno == EBUSY || errno == EISDIR || errno == EPERM || errno == EROFS)
+		{
+			processError(403); // FORBIDDEN
+		}
 		perror("remove in methodDelete");
 		return ERR;
 	}
@@ -217,8 +215,12 @@ int	Response::methodDelete()
 /****** (Client::writeEvent) generate response ******/
 /****************************************************/
 
-int	Response::generateResponse()
+void	Response::generateResponse()
 {
+	if (_file->flag == AFdInfo::FILE_ERROR)
+	{
+		processError(500); /* INTERNAL SERVER ERROR */
+	}
 	if (_status != COMPLETE) //Error status code will be already marked as COMPLETE 
 	{
 		switch (_method)
@@ -233,7 +235,6 @@ int	Response::generateResponse()
 				responseDelete();
 				break; 
 			default:
-				responseOther();
 				break;
 		}
 		if (_file->flag == AFdInfo::FILE_COMPLETE)
@@ -253,7 +254,6 @@ int	Response::generateResponse()
 	{
 		_status = HEADER_COMPLETE;
 	}
-	return OK;
 }
 
 void	Response::setHeaderString()
@@ -282,26 +282,20 @@ void	Response::setResponseString()
 	}
 }
 
-int	Response::responseGet()
+void	Response::responseGet()
 {
 	_message_body.append(_file->getContent());
 	_file->clearContent();
-	return OK;
 }
 
-int	Response::responsePost()
+void	Response::responsePost()
 {
-	return OK;
+	return ;
 }
 
-int	Response::responseDelete()
+void	Response::responseDelete()
 {
-	return OK;
-}
-
-int	Response::responseOther()
-{
-	return OK;
+	return ;
 }
 
 /*********************/
@@ -325,8 +319,11 @@ void	Response::clearString()
 
 void	Response::deleteFile()
 {
-	_file->flag = AFdInfo::TO_ERASE;
-	_file = NULL;
+	if (_file)
+	{
+		_file->flag = AFdInfo::TO_ERASE;
+		_file = NULL;		
+	}
 }
 
 void	Response::updateFileEvent(FdTable & fd_table)
@@ -338,6 +335,24 @@ bool	Response::isFileStart() const
 {
 	return (_file 
 			&& (_file->flag == AFdInfo::FILE_START
-				|| _file->flag == AFdInfo::FILE_COMPLETE));
+				|| _file->flag == AFdInfo::FILE_COMPLETE
+				|| _file->flag == AFdInfo::FILE_ERROR));
+}
 
+void	Response::processError(int error_code)
+{
+	if (_status != COMPLETE)
+	{
+		_status_code = error_code;
+		_status = COMPLETE;
+		generateErrorPage();
+		deleteFile();
+	}
+}
+
+void	Response::generateErrorPage()
+{
+	//TODO: to modify message
+	_message_body = WebservUtility::itoa(_status_code) + " "
+					+ WebservUtility::getStatusMessage(_status_code);
 }

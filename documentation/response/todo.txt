@@ -2,13 +2,11 @@
 --     NOW      --
 ------------------
 
->> finish on error status code
->> add generatePage() for error response
->> set up error return for internal server error
 
 ------------------
 --    LATER     --
 ------------------
+>> go through error code with team
 >> check if GET/DELETE request needs to read message_body
->> check when there is syscall error, if respond error code or quite program. (double check on File event setting);
->> how to send out response Content-length if not knowing the full message body length?
+>> modify generatePage() for error response
+>> what if File::read or File::write occurs error half way, how to draw the response?

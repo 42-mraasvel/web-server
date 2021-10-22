@@ -40,10 +40,8 @@ int	Client::readEvent(FdTable & fd_table)
 	}
 	while (retrieveRequest())
 	{
-		if (processRequest(fd_table) == ERR)
-		{
-			return ERR;
-		}
+		initResponse();
+		_new_response->executeRequest(fd_table, *_request);
 		resetRequest();
 	}
 	return OK;
@@ -55,12 +53,10 @@ int	Client::parseRequest()
 	std::string	buffer;
 	if (readRequest(buffer) == ERR)
 	{
+		closeConnection();
 		return ERR;
 	}
-	if (_request_parser.parse(buffer) == ERR)
-	{
-		return ERR;
-	}
+	_request_parser.parse(buffer);
 	return OK;
 }
 
@@ -75,7 +71,6 @@ int	Client::readRequest(std::string & buffer)
 	}
 	else if (ret == 0)
 	{
-		flag = AFdInfo::TO_ERASE;
 		return ERR;
 	}
 	buffer.resize(ret);
@@ -91,16 +86,6 @@ bool	Client::retrieveRequest()
 		return false;
 	}
 	return true;
-}
-
-int	Client::processRequest(FdTable & fd_table)
-{
-	initResponse();
-	if (_new_response->executeRequest(fd_table, *_request) == ERR)
-	{
-		return ERR;
-	}
-	return OK;
 }
 
 void	Client::initResponse()
@@ -130,14 +115,13 @@ int	Client::writeEvent(FdTable & fd_table)
 			updateEvents(AFdInfo::READING, fd_table);
 			break;
 		}
-		if (processResponse() == ERR)
-		{
-			return ERR;
-		}
+		_response->generateResponse();
+		appendResponseString();
 		resetResponse();
 	}
 	if (sendResponseString() == ERR)
 	{
+		closeConnection();
 		return ERR;
 	}
 	return OK;
@@ -154,16 +138,6 @@ bool	Client::retrieveResponse()
 		_response = _response_queue.front();
 	}
 	return true;
-}
-
-int	Client::processResponse()
-{
-	if (_response->generateResponse() == ERR)
-	{
-		return ERR;
-	}
-	appendResponseString();
-	return OK;
 }
 
 void	Client::appendResponseString()
@@ -195,16 +169,6 @@ void	Client::resetResponse()
 		_response_queue.pop();
 		_response = NULL;
 	}
-}
-
-/************************/
-/****** closeEvent ******/
-/************************/
-
-int	Client::closeEvent()
-{
-	//TODO:
-	return OK;
 }
 
 /*********************/
@@ -247,4 +211,10 @@ void	Client::update(FdTable & fd_table)
 	{
 		updateEvents(AFdInfo::WRITING, fd_table);
 	}
+}
+
+void	Client::closeConnection()
+{
+	flag = AFdInfo::TO_ERASE;
+	std::cerr << RED_BOLD << "Socket error, close connect [" << _fd << "]." << RESET_COLOR << std::endl;
 }

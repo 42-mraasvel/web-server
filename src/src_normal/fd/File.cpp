@@ -33,6 +33,8 @@ int File::readEvent(FdTable & fd_table)
 	if (ret == ERR)
 	{
 		perror("read");
+		this->updateEvents(AFdInfo::WAITING, fd_table);
+		flag = AFdInfo::FILE_ERROR;
 		return ERR;
 	}
 	if (flag == AFdInfo::ACTIVE)
@@ -54,6 +56,8 @@ int File::writeEvent(FdTable & fd_table)
 	if (write(_fd, _content.c_str(), size) == ERR)
 	{
 		perror("write");
+		this->updateEvents(AFdInfo::WAITING, fd_table);
+		flag = AFdInfo::FILE_ERROR;
 		return ERR;
 	}
 	_content.erase(0, size);
@@ -63,11 +67,6 @@ int File::writeEvent(FdTable & fd_table)
 		flag = AFdInfo::FILE_COMPLETE;
 	}
 	return OK;
-}
-
-int	File::closeEvent()
-{
-	return close(_fd);
 }
 
 std::string const &	File::getContent() const

@@ -23,8 +23,7 @@ class Client : public AFdInfo
 		int		parseRequest();
 		int			readRequest(std::string & buffer);
 		bool	retrieveRequest();
-		int		processRequest(FdTable & fd_table);
-		void		initResponse();
+		void	initResponse();
 		void	resetRequest();
 
 	/* write*/
@@ -32,20 +31,17 @@ class Client : public AFdInfo
 		int	writeEvent(FdTable & fd_table);
 	private:
 		bool	retrieveResponse();
-		int		processResponse();
 		void	appendResponseString();
 		void	resetResponse();
 		int		sendResponseString();
-
-	/* close */
-	public:
-		int		closeEvent();
 
 	/* utility */
 	public:
 		typedef RequestParser::header_field_t::iterator header_iterator;
 		void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 		void	update(FdTable & fd_table);
+	private:
+		void	closeConnection();
 
 	private:
 		RequestParser			_request_parser;
@@ -54,6 +50,4 @@ class Client : public AFdInfo
 		std::queue<Response *>	_response_queue;
 		Response*				_response;
 		std::string				_response_string;
-
-
 };

@@ -16,6 +16,7 @@ class AFdInfo
 			ACTIVE,
 			FILE_START,
 			FILE_COMPLETE,
+			FILE_ERROR,
 			TO_ERASE
 		};
 		Flags		flag;
@@ -25,7 +26,6 @@ class AFdInfo
 		virtual struct pollfd getPollFd() const = 0;
 		virtual	int		writeEvent(FdTable & fd_table) = 0;
 		virtual	int		readEvent(FdTable & fd_table) = 0;
-		virtual int 	closeEvent() = 0;
 		virtual	void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 		virtual	void	update(FdTable & fd_table);
 
