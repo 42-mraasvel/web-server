@@ -6,46 +6,56 @@
 #include <fcntl.h>
 
 
-Response::Response(Request const & request): file(NULL), status(START)
+Response::Response(): _status(START), _file(NULL) {}
+
+Response::~Response() {}
+
+/**********************************************/
+/****** (Client::readEvent) scan request ******/
+/*****************************8****************/
+
+void	Response::scanRequest(Request const & request)
 {
-	method = request.method;
+	_method = request.method;
 	setHttpVersion(request.minor_version);
 	previewMethod();
 	generateAbsoluteTarget(request.target_resource);
+	if (isRequestError(request) == true)
+	{
+		_status = Response::COMPLETE;
+	}
 }
-
-Response::~Response() {}
 
 void	Response::setHttpVersion(int minor_version)
 {
 	if (minor_version == 0)
 	{
-		http_version = "HTTP/1.0";
+		_http_version = "HTTP/1.0";
 	}
 	else
 	{
-		http_version = "HTTP/1.1";
+		_http_version = "HTTP/1.1";
 	}
 }
 
 void Response::previewMethod()
 {
-	switch (method)
+	switch (_method)
 	{
 		case GET:
-			file_oflag = O_RDONLY;
-			file_event = AFdInfo::READING;
-			status_code = 200;
+			_file_oflag = O_RDONLY;
+			_file_event = AFdInfo::READING;
+			_status_code = 200;
 			break;
 		case POST:
-			file_oflag = O_CREAT | O_WRONLY | O_APPEND;
-			file_event = AFdInfo::WRITING;
-			status_code = 201;
+			_file_oflag = O_CREAT | O_WRONLY | O_APPEND;
+			_file_event = AFdInfo::WRITING;
+			_status_code = 201;
 			break;
 		case DELETE:
-			file_oflag = O_RDONLY;
-			file_event = AFdInfo::READING;
-			status_code = 202; //TODO: check if 204 no content
+			_file_oflag = O_RDONLY;
+			_file_event = AFdInfo::READING;
+			_status_code = 202; //TODO: check if 204 no content
 			break; 
 		default:
 			break;
@@ -57,17 +67,103 @@ void	Response::generateAbsoluteTarget(std::string const & target_resource)
 	//TODO: resort to the correct Pathname based on default path from config (add Client* client)
 	if (target_resource == "/")
 	{
-		absolute_target =  "./page_sample/index.html";
+		_absolute_target =  "./page_sample/index.html";
 	}
 	else
 	{
-		absolute_target =  "./page_sample" + target_resource;
+		_absolute_target =  "./page_sample" + target_resource;
 	}
+}
+bool	Response::isRequestError(Request const & request)
+{
+	//TODO: if error code, any message_body to write?
+	return checkBadRequest(request.status, request.status_code)
+			|| checkHttpVersion(request.major_version)
+			|| checkMethod()
+			|| checkContentLength(request);
+}
+
+bool	Response::checkBadRequest(Request::RequestStatus status, int request_code)
+{
+	if (status == Request::BAD_REQUEST)
+	{
+		_status_code = request_code;
+		return true;
+	}
+	return false;
+}
+
+bool	Response::checkHttpVersion(int http_major_version)
+{
+	if (http_major_version != 1)
+	{
+		_status_code = 505; /* HTTP VERSION NOT SUPPORTED */
+		return true;
+	}
+	return false;
+}
+
+bool	Response::checkMethod()
+{
+	if (_method == OTHER)
+	{
+		_status_code = 501; /* NOT IMPLEMENTED */ 
+		return true;
+	}
+	return false;
+}
+
+bool	Response::checkContentLength(Request const & request)
+{
+	if (request.minor_version == 0)
+	{
+		header_iterator i = request.header_fields.find("content-length");
+		if (i == request.header_fields.end())
+		{
+			_status_code = 411; /* LENGTH REQUIRED */ 
+			return true;
+		}
+	}
+	return false;
+}
+
+/*************************************************/
+/****** (Client::readEvent) execute request ******/
+/*************************************************/
+
+int	Response::executeRequest(FdTable & fd_table, Request & request)
+{
+	if (_status != Response::COMPLETE)
+	{
+		if (setupFile(fd_table) == ERR)
+		{
+			return ERR;
+		}
+		if (executeMethod(request) == ERR)
+		{
+			return ERR;
+		}
+		updateFileEvent(fd_table);
+	}
+	return OK;
+}
+
+int	Response::setupFile(FdTable & fd_table)
+{
+	if (createFile() == ERR)
+	{
+		return ERR;
+	}
+	if (fd_table.insertFd(_file) == ERR)
+	{
+		return ERR;
+	}
+	return OK;
 }
 
 int	Response::createFile()
 {
-	int	file_fd = open(absolute_target.c_str(), file_oflag, 0644);
+	int	file_fd = open(_absolute_target.c_str(), _file_oflag, 0644);
 	if (file_fd == ERR)
 	{
 		// TODO: add error handling (i.e. no file find)
@@ -75,22 +171,57 @@ int	Response::createFile()
 		return ERR;
 	}
 	printf(BLUE_BOLD "Open File:" RESET_COLOR " [%d]\n", file_fd);
-	file = new File(file_fd);
+	_file = new File(file_fd);
 	return OK;
 
 }
 
-void	Response::deleteFile()
+int Response::executeMethod(Request & request)
 {
-	file->flag = AFdInfo::TO_ERASE;
-	file = NULL;
+	switch (_method)
+	{
+		case GET:
+			return methodGet();
+		case POST:
+			return methodPost(request);
+		case DELETE:
+			return methodDelete();
+		default:
+			return OK;
+	}
 }
+
+int	Response::methodGet()
+{
+	return OK;
+}
+
+int	Response::methodPost(Request & request)
+{
+	_file->swapContent(request.message_body);
+	return OK;
+}
+
+int	Response::methodDelete()
+{
+	if (remove(_absolute_target.c_str()) == ERR)
+	{
+		perror("remove in methodDelete");
+		return ERR;
+	}
+	printf(BLUE_BOLD "Delete File:" RESET_COLOR " [%s]\n", _absolute_target.c_str());
+	return OK;
+}
+
+/****************************************************/
+/****** (Client::writeEvent) generate response ******/
+/****************************************************/
 
 int	Response::generateResponse()
 {
-	if (status != COMPLETE) //Error status code will be already marked as COMPLETE 
+	if (_status != COMPLETE) //Error status code will be already marked as COMPLETE 
 	{
-		switch (method)
+		switch (_method)
 		{
 			case GET:
 				responseGet();
@@ -105,56 +236,56 @@ int	Response::generateResponse()
 				responseOther();
 				break;
 		}
-		if (file->flag == AFdInfo::FILE_COMPLETE)
+		if (_file->flag == AFdInfo::FILE_COMPLETE)
 		{
-			status = COMPLETE;
+			_status = COMPLETE;
 			deleteFile();
 		}
 	}
-	header_fields["Host"] = "localhost";
-	if (status == COMPLETE) // TODO: only when message_body is ready??
+	_header_fields["Host"] = "localhost";
+	if (_status == COMPLETE) // TODO: only when message_body is ready??
 	{
-		header_fields["Content-Length"] = WebservUtility::itoa(message_body.size());
+		_header_fields["Content-Length"] = WebservUtility::itoa(_message_body.size());
 	}
 	setHeaderString(); //TODO: placeholder, to modify
 	setResponseString(); //TODO: placeholder, to modify
-	if (status == START)
+	if (_status == START)
 	{
-		status = HEADER_COMPLETE;
+		_status = HEADER_COMPLETE;
 	}
 	return OK;
 }
 
 void	Response::setHeaderString()
 {
-	for (header_iterator i = header_fields.begin(); i !=header_fields.end(); ++i)
+	for (header_iterator i = _header_fields.begin(); i !=_header_fields.end(); ++i)
 	{
-		header_string += (i->first + ": " + i->second + NEWLINE);
+		_header_string += (i->first + ": " + i->second + NEWLINE);
 	}
 }
 
 void	Response::setResponseString()
 {
-	if (status == START || status == COMPLETE)
+	if (_status == START || _status == COMPLETE)
 	{
-		string_to_send = http_version + " "
-				+ WebservUtility::itoa(status_code) + " "
-				+ WebservUtility::getStatusMessage(status_code)
+		_string_to_send = _http_version + " "
+				+ WebservUtility::itoa(_status_code) + " "
+				+ WebservUtility::getStatusMessage(_status_code)
 				+ NEWLINE
-				+ header_string
+				+ _header_string
 				+ NEWLINE
-				+ message_body;
+				+ _message_body;
 	}
-	else if (status == HEADER_COMPLETE) //TODO: to sort out where mark flag MESSAGE_BODY_ONLy
+	else if (_status == HEADER_COMPLETE) //TODO: to sort out where mark flag MESSAGE_BODY_ONLy
 	{
-		string_to_send = message_body;
+		_string_to_send = _message_body;
 	}
 }
 
 int	Response::responseGet()
 {
-	message_body.append(file->getContent());
-	file->clearContent();
+	_message_body.append(_file->getContent());
+	_file->clearContent();
 	return OK;
 }
 
@@ -171,4 +302,42 @@ int	Response::responseDelete()
 int	Response::responseOther()
 {
 	return OK;
+}
+
+/*********************/
+/****** utility ******/
+/*********************/
+
+Response::Status	Response::getStatus() const
+{
+	return _status;
+}
+
+std::string const &	Response::getString() const
+{
+	return _string_to_send;
+}
+
+void	Response::clearString()
+{
+	_string_to_send.clear();
+}
+
+void	Response::deleteFile()
+{
+	_file->flag = AFdInfo::TO_ERASE;
+	_file = NULL;
+}
+
+void	Response::updateFileEvent(FdTable & fd_table)
+{
+	_file->updateEvents(_file_event, fd_table);
+}
+
+bool	Response::isFileStart() const
+{
+	return (_file 
+			&& (_file->flag == AFdInfo::FILE_START
+				|| _file->flag == AFdInfo::FILE_COMPLETE));
+
 }

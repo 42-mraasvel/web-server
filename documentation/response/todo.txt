@@ -2,8 +2,9 @@
 --     NOW      --
 ------------------
 
->> restructre
->> pick up various error status code from request
+>> finish on error status code
+>> add generatePage() for error response
+>> set up error return for internal server error
 
 ------------------
 --    LATER     --

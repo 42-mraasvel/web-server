@@ -6,49 +6,43 @@
 
 class File;
 
-struct Response
+class Response
 {
 	public:
-	enum Status
-	{
-		START,
-		HEADER_COMPLETE,
-		COMPLETE
-	};
-	typedef RequestParser::header_field_t::iterator header_iterator;
+		enum Status
+		{
+			START,
+			HEADER_COMPLETE,
+			COMPLETE
+		};
 
-	public:
-		File*				file;
-		Status				status;
-		MethodType			method;
-
-		//TODO: add time last active for TIMEOUT
-		std::string			absolute_target;
-		int					file_oflag;
-		AFdInfo::EventTypes	file_event;
-
-		RequestParser::header_field_t  header_fields;
-
-		std::string 		http_version;
-		int					status_code;
-		std::string 		header_string;
-		std::string			message_body;
-
-		std::string			string_to_send;
-
-	public:
-		Response(Request const & request);
+		Response();
 		~Response();
 
-	private:
-		void	setHttpVersion(int minor_version);
-		void	previewMethod();
-		void	generateAbsoluteTarget(std::string const & target_resourse);
-	
+	/* Client::readEvent() */
 	public:
-		int		createFile();
-		void	deleteFile();
-	
+		void	scanRequest(Request const & request);
+	private:
+		void		setHttpVersion(int minor_version);
+		void		previewMethod();
+		void		generateAbsoluteTarget(std::string const & target_resourse);
+		bool		isRequestError(Request const & request);
+		bool			checkBadRequest(Request::RequestStatus status, int request_code);
+		bool			checkHttpVersion(int http_major_version);
+		bool			checkMethod();
+		bool			checkContentLength(Request const & request);
+
+	public:
+		int		executeRequest(FdTable & fd_table, Request & request);
+	private:
+		int		setupFile(FdTable & fd_table);
+		int			createFile();
+        int 	executeMethod(Request & request);
+        int 		methodGet();
+        int 		methodPost(Request & request);
+        int 		methodDelete();
+
+	/* Client::writeEvent() */
 	public:
 		int		generateResponse();
 	private:
@@ -58,7 +52,30 @@ struct Response
 		int			responseOther();
 		void		setHeaderString();
 		void		setResponseString();
+	
+	/* utility */
+	public:
+		typedef RequestParser::header_field_t::const_iterator header_iterator;
+		Status				getStatus() const;
+		std::string const &	getString() const;
+		void				clearString();
+		void				deleteFile();
+		void				updateFileEvent(FdTable & fd_table);
+		bool				isFileStart() const;
 
+	private:
+		MethodType			_method;
+		Status				_status;
+		File*				_file;
+		std::string			_string_to_send;
 
+		std::string			_absolute_target;
+		int					_file_oflag;
+		AFdInfo::EventTypes	_file_event;
+		RequestParser::header_field_t  _header_fields;
 
+		std::string 		_http_version;
+		int					_status_code;
+		std::string 		_header_string;
+		std::string			_message_body;
 };

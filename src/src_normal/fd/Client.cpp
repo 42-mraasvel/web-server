@@ -49,9 +49,7 @@ int	Client::readEvent(FdTable & fd_table)
 	return OK;
 
 }
-/**************************************/
-/****** readEvent - step 1 parse ******/
-/**************************************/
+
 int	Client::parseRequest()
 {
 	std::string	buffer;
@@ -85,10 +83,6 @@ int	Client::readRequest(std::string & buffer)
 	return OK;
 }
 
-/*************************************************/
-/****** readEvent - step 2 retrieve request ******/
-/*************************************************/
-
 bool	Client::retrieveRequest()
 {
 	_request = _request_parser.getNextRequest();
@@ -99,172 +93,22 @@ bool	Client::retrieveRequest()
 	return true;
 }
 
-/************************************************/
-/****** readEvent - step 3 process request ******/
-/************************************************/
-
 int	Client::processRequest(FdTable & fd_table)
 {
 	initResponse();
-	if (isRequestError() == true)
-	{
-		_new_response->status = Response::COMPLETE;
-		updateEvents(AFdInfo::WRITING, fd_table);
-		return OK;
-	}
-	if (setupFile(fd_table) == ERR)
+	if (_new_response->executeRequest(fd_table, *_request) == ERR)
 	{
 		return ERR;
 	}
-	if (executeMethod(fd_table) == ERR)
-	{
-		return ERR;
-	}
-	_new_response->file->updateEvents(_new_response->file_event, fd_table);
 	return OK;
 }
-
-/************************************************/
-/****** readEvent - step 3.1 init response ******/
-/************************************************/
 
 void	Client::initResponse()
 {
-	_new_response = new Response(*_request);
+	_new_response = new Response();
+	_new_response->scanRequest(*_request);
 	_response_queue.push(_new_response);
 }
-
-/******************************************************/
-/****** readEvent - step 3.2 check request error ******/
-/******************************************************/
-
-//TODO: to pick up pre-defined status code from request
-bool	Client::isRequestError()
-{
-	//TODO: if error code, any message_body to write?
-	return checkBadRequest()
-			|| checkHttpVersion()
-			|| checkMethod()
-			|| checkContentLength();
-}
-
-bool	Client::checkBadRequest()
-{
-	if (_request->status == Request::BAD_REQUEST)
-	{
-		_new_response->status_code = _request->status_code;
-		return true;
-	}
-	return false;
-}
-
-bool	Client::checkHttpVersion()
-{
-	if (_request->major_version != 1)
-	{
-		_new_response->status_code = 505; /* HTTP VERSION NOT SUPPORTED */
-		return true;
-	}
-	return false;
-}
-
-bool	Client::checkMethod()
-{
-	if (_request->method == OTHER)
-	{
-		_new_response->status_code = 501; /* NOT IMPLEMENTED */ 
-		return true;
-	}
-	return false;
-}
-
-bool	Client::checkContentLength()
-{
-	if (_request->minor_version == 0)
-	{
-		header_iterator i = _request->header_fields.find("content-length");
-		if (i == _request->header_fields.end())
-		{
-			_new_response->status_code = 411; /* LENGTH REQUIRED */ 
-			return true;
-		}
-	}
-	return false;
-}
-
-/*********************************************/
-/****** readEvent - step 3.3 setup file ******/
-/*********************************************/
-
-int	Client::setupFile(FdTable & fd_table)
-{
-	if (_new_response->createFile() == ERR)
-	{
-		return ERR;
-	}
-	int	file_index = fd_table.size();
-	if (fd_table.insertFd(_new_response->file) == ERR)
-	{
-		return ERR;
-	}
-	return OK;
-}
-
-/******************************************/
-/****** readEvent - step 3.4 execute ******/
-/******************************************/
-
-int Client::executeMethod(FdTable & fd_table)
-{
-	switch (_new_response->method)
-	{
-		case GET:
-			methodGet(fd_table);
-			break;
-		case POST:
-			methodPost(fd_table);
-			break;
-		case DELETE:
-			methodDelete(fd_table);
-			break; 
-		default:
-			methodOther(fd_table);
-			break;
-	}
-	return OK;
-}
-
-int	Client::methodGet(FdTable & fd_table)
-{
-	return OK;
-}
-
-int	Client::methodPost(FdTable & fd_table)
-{
-	_new_response->file->swapContent(_request->message_body);
-	return OK;
-}
-
-int	Client::methodDelete(FdTable & fd_table)
-{
-	if (remove(_request->target_resource.c_str()) == ERR)
-	{
-		perror("remove in methodDelete");
-		return ERR;
-	}
-	printf(BLUE_BOLD "Delete File:" RESET_COLOR " [%s]\n", _request->target_resource.c_str());
-	return OK;
-}
-
-//TODO: unnecessary??
-int	Client::methodOther(FdTable & fd_table)
-{
-	return OK;
-}
-
-/**********************************************/
-/****** readEvent - step 4 reset request ******/
-/**********************************************/
 
 void	Client::resetRequest()
 {
@@ -324,8 +168,8 @@ int	Client::processResponse()
 
 void	Client::appendResponseString()
 {
-	_response_string.append(_response->string_to_send);
-	_response->string_to_send.clear();
+	_response_string.append(_response->getString());
+	_response->clearString();
 }
 
 int	Client::sendResponseString()
@@ -345,7 +189,7 @@ int	Client::sendResponseString()
 
 void	Client::resetResponse()
 {
-	if (_response->status == Response::COMPLETE)
+	if (_response->getStatus() == Response::COMPLETE)
 	{
 		delete _response;
 		_response_queue.pop();
@@ -392,11 +236,14 @@ void	Client::update(FdTable & fd_table)
 		printf(BLUE_BOLD "Close File:" RESET_COLOR " [%d]\n", _fd);
 		fd_table.eraseFd(_index);
 	}
-	// when the top response's File event starts reading (GET) or finishes writing (POST), will mark Client as ready for WRITING
+	/*
+	mark Client as ready for WRITING when:
+	1. the top response's is complete (Error)
+	2. File event starts reading (GET) or finishes writing (POST),
+	*/
 	if (!_response_queue.empty()
-		&& _response_queue.front()->file
-		&& (_response_queue.front()->file->flag == AFdInfo::FILE_START
-			|| _response_queue.front()->file->flag == AFdInfo::FILE_COMPLETE))
+		&& (_response_queue.front()->getStatus() == Response::COMPLETE
+			|| _response_queue.front()->isFileStart()))
 	{
 		updateEvents(AFdInfo::WRITING, fd_table);
 	}
