@@ -1,7 +1,6 @@
 #include "client.hpp"
 #include "UserSettings.hpp"
-#include <iostream> // RM, REMOVE
-#include <cstdio> // RM, REMOVE
+#include <cstdio>
 #include <cassert>
 #include <unistd.h>
 #include <fcntl.h>
@@ -101,6 +100,7 @@ int Client::readStdin() {
 			break;
 		}
 		request.append(buffer);
+		replaceNewlines(request);
 	}
 	return OK;
 }
@@ -130,6 +130,7 @@ int Client::readFile() {
 			break;
 		}
 		request.append(buffer);
+		replaceNewlines(request);
 	}
 	return OK;
 }
@@ -173,9 +174,10 @@ void Client::replaceNewlines(std::string& str) {
 }
 
 int Client::sendRequest() {
-	replaceNewlines(request);
 	if (PRINT_REQUEST) {
-		printf(GREEN_BOLD "SENDING" RESET_COLOR"\n[%s]\n", request.substr(0, settings->getBufferSize()).c_str());
+		std::string sub = request.substr(0, settings->getBufferSize());
+		printf(GREEN_BOLD "SENDING" RESET_COLOR"\n");
+		printMessage(sub);
 	}
 	ssize_t n = connection.sendRequest(request, std::min(settings->getBufferSize(), request.size()));
 	if (n == ERR) {
@@ -204,12 +206,31 @@ int Client::readResponse() {
 	} else if (n != 0) {
 		nothing_read = false;
 		if (PRINT_RESPONSE) {
-			printf(GREEN_BOLD "RESPONSE" RESET_COLOR "\n[%s]\n", response.c_str());
+			printf(GREEN_BOLD "RESPONSE" RESET_COLOR "\n");
+			printMessage(response);
 		}
 	} else {
 		nothing_read = true;
 	}
 	return OK;
+}
+
+void Client::printMessage(const std::string& x) const {
+	if (!PRINT_UNPRINTABLE) {
+		printf("[");
+	}
+	for (std::size_t i = 0; i < x.size(); ++i) {
+		if (!isprint(x[i]) && !PRINT_UNPRINTABLE) {
+			printf("[%d]", x[i]);
+		} else {
+			printf("%c", x[i]);
+		}
+	}
+	if (!PRINT_UNPRINTABLE) {
+		printf("]\n");
+	} else {
+		printf("\n");
+	}
 }
 
 /*
@@ -219,6 +240,9 @@ Cases for being finished:
 */
 
 bool Client::finished() const {
+	if (request.size() != 0) {
+		return false;
+	}
 	if (settings->getStdin()) {
 		return eof();
 	} else {

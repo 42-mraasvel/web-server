@@ -30,6 +30,7 @@ private:
 	int openNextFile();
 	void closeFile();
 	void replaceNewlines(std::string& str);
+	void printMessage(const std::string& x) const;
 
 private:
 	Connection connection;
