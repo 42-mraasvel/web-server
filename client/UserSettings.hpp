@@ -1,11 +1,9 @@
 #pragma once
 
 /*
-If 0: print header only
-If nonzero: print the full response
+Will print out anything the program reads
 */
-#define PRINT_MESSAGE_BODY true
-
+#define PRINT_RESPONSE true
 
 /*
 For every request the client prints the content of the file it's currently sending by default

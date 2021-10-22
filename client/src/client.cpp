@@ -1,5 +1,5 @@
 #include "client.hpp"
-#include "settings.hpp"
+#include "UserSettings.hpp"
 #include <iostream> // RM, REMOVE
 #include <cstdio> // RM, REMOVE
 #include <cassert>
@@ -35,7 +35,7 @@ void Client::timeoutSingleConnection() {
 	while (elapsedTime(begin) < settings->getReadTimeout()) {
 		readResponse();
 		if (nothing_read) {
-			printf("Timeout to exit... %d\n", settings->getReadTimeout() - elapsedTime(begin));
+			printf(RED_BOLD "Timeout to exit..." RESET_COLOR " %d\n", settings->getReadTimeout() - elapsedTime(begin));
 			sleep(1);
 		} else {
 			// reset timeout if something was read
@@ -164,6 +164,7 @@ void Client::replaceNewlines(std::string& str) {
 		}
 
 		if ((index != 0 && str[index - 1] == '\r')) {
+			index += 1;
 			continue;
 		}
 		str.replace(index, 1, "\r\n");
@@ -173,19 +174,20 @@ void Client::replaceNewlines(std::string& str) {
 
 int Client::sendRequest() {
 	replaceNewlines(request);
-	std::cout << "Before: [" << request << ']' << std::endl;
+	if (PRINT_REQUEST) {
+		printf(GREEN_BOLD "SENDING" RESET_COLOR"\n[%s]\n", request.substr(0, settings->getBufferSize()).c_str());
+	}
 	ssize_t n = connection.sendRequest(request, std::min(settings->getBufferSize(), request.size()));
 	if (n == ERR) {
 		return ERR;
 	}
 	request.erase(0, n);
-	std::cout << "After: [" << request <<  ']' << std::endl;
 	return OK;
 }
 
 int Client::openNextConnection() {
 	if (PRINT) {
-		printf(RED_BOLD "Opening a new connection..." RESET_COLOR "\n");
+		printf(GREEN_BOLD "Opening a new connection..." RESET_COLOR "\n");
 	}
 	if (connection.initConnection(settings->getHost(), settings->getPort(), !settings->getSingleConnection()) == ERR) {
 		return ERR;
@@ -201,7 +203,9 @@ int Client::readResponse() {
 		return ERR;
 	} else if (n != 0) {
 		nothing_read = false;
-		std::cout << "Response: [" << response << "]" << std::endl;
+		if (PRINT_RESPONSE) {
+			printf(GREEN_BOLD "RESPONSE" RESET_COLOR "\n[%s]\n", response.c_str());
+		}
 	} else {
 		nothing_read = true;
 	}
