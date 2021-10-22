@@ -1,0 +1,19 @@
+Options:
+
+	- Buffersize writing implementation
+		1. Read in data until END or BUFFER_SIZE
+		2. send data
+		3. repeat if not END
+	- Single connection implementation
+
+	- Stdin reading implementation
+
+
+Connection:
+	-c [ "SINGLE" | "MULTIPLE" ] (DEFAULT = "SINGLE")
+
+STDIN:
+	-stdin
+
+BUFFER_SIZE:
+	-size [NUM] (HARD LIMIT )

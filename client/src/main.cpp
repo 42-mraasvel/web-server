@@ -124,11 +124,14 @@ int main(int argc, char *argv[]) {
 		return putError("Usage: %s [OPTIONS] [REQUEST_FILE]+\r\n", argv[0]);
 	}
 
-	// std::size_t i = parseOptions();
 	Settings sets;
 	int i = sets.parseFlags(argc, argv);
 	if (i == -1) {
 		return ERR;
+	}
+
+	if (PRINT) {
+		sets.print();
 	}
 
 	if (i >= argc) {
@@ -137,11 +140,6 @@ int main(int argc, char *argv[]) {
 
 	Client client;
 
-	if (PRINT) {
-		printf(CYAN_BOLD "Settings" RESET_COLOR "\n");
-		printf(MAGENTA_BOLD  "  Port" RESET_COLOR " [%d]\n"
-		MAGENTA_BOLD "  Host" RESET_COLOR " [%s]\n\n", sets.getPort(), sets.getHost().c_str());
-	}
 
 	for (; i < argc; ++i) {
 		if (PRINT) {

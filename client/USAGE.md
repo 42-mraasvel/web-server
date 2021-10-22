@@ -1,6 +1,6 @@
 # HTTP-Client
 
-Simple C++ program to send one or multiple requests through a file to a server
+Simple C++ program to send one or multiple requests through a file or stdin to a server
 
 # Sending a request
 
@@ -12,6 +12,9 @@ Simple C++ program to send one or multiple requests through a file to a server
 # Options
 - -h [HOST_ADDR]	(DEFAULT = 127.0.0.1)
 - -p [PORT_NUM]		(DEFAULT = 8080)
+- -[ c | connection ] [ SINGLE | MULTIPLE ] (case insensitive) (DEFAULT = SINGLE)
+- -stdin (read request from stdin instead, DEFAULT = false)
+- -[ size | buffer_size ] [BUFFER_SIZE] (specify bytes per send) (DEFAULT = 4096)
 
 # Usage
 ./client.out [OPTIONS] [REQUEST_FILES]
