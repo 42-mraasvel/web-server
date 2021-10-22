@@ -14,7 +14,9 @@ Simple C++ program to send one or multiple requests through a file or stdin to a
 - -p [PORT_NUM]		(DEFAULT = 8080)
 - -[ c | connection ] [ SINGLE | MULTIPLE ] (case insensitive) (DEFAULT = SINGLE)
 - -stdin (read request from stdin instead, DEFAULT = false)
+	NOTE: Does not work wth multiple connections
 - -[ size | buffer_size ] [BUFFER_SIZE] (specify bytes per send) (DEFAULT = 4096)
+- -timeout [TIMEOUT_SECONDS] (DEFAULT = 5), number of seconds client will wait for a response after writing on a single connection
 
 # Usage
 ./client.out [OPTIONS] [REQUEST_FILES]

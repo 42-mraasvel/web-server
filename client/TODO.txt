@@ -1,19 +1,8 @@
-Options:
+Error handling:
 
-	- Buffersize writing implementation
-		1. Read in data until END or BUFFER_SIZE
-		2. send data
-		3. repeat if not END
-	- Single connection implementation
+	- How to deal with server closing the connection
 
-	- Stdin reading implementation
+Parsing:
 
-
-Connection:
-	-c [ "SINGLE" | "MULTIPLE" ] (DEFAULT = "SINGLE")
-
-STDIN:
-	-stdin
-
-BUFFER_SIZE:
-	-size [NUM] (HARD LIMIT )
+	- Parse STDIN for end of request
+	- Parse responses from the server and give output based on that

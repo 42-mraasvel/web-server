@@ -98,62 +98,72 @@ int readFile(const std::string& filename, std::string& request) {
 	return OK;
 }
 
-int sendRequest(const std::string& request, const std::string& host, int port) {
-	Client client;
-	int id = client.newConnection(host, port);
-	if (id == ERR) {
-		return ERR;
-	}
+// int sendRequest(const std::string& request, const std::string& host, int port) {
+// 	Client client;
+// 	int id = client.newConnection(host, port);
+// 	if (id == ERR) {
+// 		return ERR;
+// 	}
 
-	client.sendRequest(id, request);
+// 	client.sendRequest(id, request);
 
-	std::string response = client.receiveResponse(id);
-	if (PRINT) {
-		std::cout << YELLOW_BOLD "Response: (HEADER ONLY)" RESET_COLOR << std::endl;
-		if (PRINT_MESSAGE_BODY) {
-			std::cout << response << std::endl;
-		} else {
-			printHeader(std::cout, response);
-		}
-	}
-	return OK;
-}
+// 	std::string response = client.receiveResponse(id);
+// 	if (PRINT) {
+// 		std::cout << YELLOW_BOLD "Response: (HEADER ONLY)" RESET_COLOR << std::endl;
+// 		if (PRINT_MESSAGE_BODY) {
+// 			std::cout << response << std::endl;
+// 		} else {
+// 			printHeader(std::cout, response);
+// 		}
+// 	}
+// 	return OK;
+// }
 
 int main(int argc, char *argv[]) {
 	if (argc < 2) {
 		return putError("Usage: %s [OPTIONS] [REQUEST_FILE]+\r\n", argv[0]);
 	}
 
-	Settings sets;
-	int i = sets.parseFlags(argc, argv);
+	Settings settings;
+	int i = settings.parseFlags(argc, argv);
 	if (i == -1) {
 		return ERR;
 	}
 
 	if (PRINT) {
-		sets.print();
+		settings.print();
 	}
 
-	if (i >= argc) {
-		return putError("Error: No request files\r\n");
+	Client client(&settings);
+
+	if (!settings.getStdin()) {
+		client.setFiles(argc - i, argv + i);
 	}
 
-	Client client;
-
-
-	for (; i < argc; ++i) {
-		if (PRINT) {
-			printf(YELLOW_BOLD "Request #%d: %s" RESET_COLOR "\r\n", i, argv[i]);
-		}
-		std::string request;
-		if (readFile(argv[i], request) == ERR) {
-			std::cout << std::endl;
-			continue;
-		}
-		if (PRINT_REQUEST) {
-			std::cout << request << std::endl;
-		}
-		sendRequest(request, sets.getHost(), sets.getPort());
+	if (client.run() == ERR) {
+		return ERR;
 	}
+
+	// if (i >= argc) {
+	// 	return putError("Error: No request files\r\n");
+	// }
+
+	// Client client;
+
+
+	// for (; i < argc; ++i) {
+	// 	if (PRINT) {
+	// 		printf(YELLOW_BOLD "Request #%d: %s" RESET_COLOR "\r\n", i, argv[i]);
+	// 	}
+	// 	std::string request;
+	// 	if (readFile(argv[i], request) == ERR) {
+	// 		std::cout << std::endl;
+	// 		continue;
+	// 	}
+	// 	if (PRINT_REQUEST) {
+	// 		std::cout << request << std::endl;
+	// 	}
+	// 	sendRequest(request, sets.getHost(), sets.getPort());
+	// }
 	return OK;
 }

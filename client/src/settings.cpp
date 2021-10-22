@@ -13,7 +13,8 @@ Settings::Settings()
 port(DEFAULT_PORT),
 single_connection(DEFAULT_SINGLE_CONNECTION),
 read_stdin(DEFAULT_READ_STDIN),
-buffer_size(DEFAULT_BUFFER_SIZE)
+buffer_size(DEFAULT_BUFFER_SIZE),
+read_timeout(DEFAULT_READ_TIMEOUT)
 {}
 
 int Settings::parseFlags(int argc, const char * const*argv)
@@ -27,6 +28,7 @@ int Settings::parseFlags(int argc, const char * const*argv)
 	dispatchers.insert(std::make_pair("-stdin", &Settings::parseStdin));
 	dispatchers.insert(std::make_pair("-size", &Settings::parseBufferSize));
 	dispatchers.insert(std::make_pair("-buffer_size", &Settings::parseBufferSize));
+	dispatchers.insert(std::make_pair("-timeout", &Settings::parseReadTimeout));
 
 	int i;
 	for (i = 1; i < argc; ++i)
@@ -41,7 +43,20 @@ int Settings::parseFlags(int argc, const char * const*argv)
 			break;
 		}
 	}
+
+	if (!validSettings()) {
+		return ERR;
+	}
 	return i;
+}
+
+bool Settings::validSettings() {
+	if (read_stdin == true && single_connection == false) {
+		putError("ERROR: not implemented: currently no support for reading requests from stdin and sending it over multiple connections\n");
+		return false;
+	}
+
+	return true;
 }
 
 /* Flag Parsers */
@@ -120,6 +135,20 @@ int Settings::parseBufferSize(const char * const* x, bool last_arg, int& index)
 	return OK;
 }
 
+int Settings::parseReadTimeout(const char * const* x, bool last_arg, int& index) {
+	if (last_arg) {
+		return putError("Expected timeout: -timeout [NUM]\n");
+	}
+
+	read_timeout = strtol(*(x + 1), NULL, 10);
+	if (read_timeout <= 0) {
+		return putError("Invalid read timeout: [%s]\n", *(x + 1));
+	}
+
+	index += 1;
+	return OK;
+}
+
 /* Utils */
 
 const std::string& Settings::getHost() const
@@ -152,6 +181,10 @@ bool Settings::lastArgument(int argc, int i)
 	return i == argc - 1;
 }
 
+int Settings::getReadTimeout() const {
+	return read_timeout;
+}
+
 /* Debugging Parsing */
 
 void Settings::print() const
@@ -162,8 +195,9 @@ void Settings::print() const
 	MAGENTA_BOLD "  Single Connection" RESET_COLOR " [%s]\n"
 	MAGENTA_BOLD "  Read STDIN" RESET_COLOR " [%s]\n"
 	MAGENTA_BOLD "  BufferSize" RESET_COLOR " [%lu]\n"
+	MAGENTA_BOLD "  Timeout" RESET_COLOR " [%d]\n"
 	, port, host.c_str(), single_connection ? "true" : "false"
-	, read_stdin ? "true" : "false", buffer_size);
+	, read_stdin ? "true" : "false", buffer_size, read_timeout);
 
 	printf("\n");
 }
