@@ -37,7 +37,10 @@ struct Request
 	/* DEBUGGING */
 	public:
 		std::string getMethodString() const;
+		std::string getStatusString() const;
 		void print() const;
+		void printBodyBytes() const;
+
 
 	public:
 		Request();

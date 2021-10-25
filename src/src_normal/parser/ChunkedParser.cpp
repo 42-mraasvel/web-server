@@ -140,9 +140,11 @@ int ChunkedParser::parseTrailer(std::string const & buffer, std::size_t & index,
 	std::size_t start = index;
 	index = buffer.find(CRLF, index);
 	if (_leftover.size() > 0 && (_leftover[_leftover.size() - 1] == '\r' && buffer[0] == '\n')) {
+		// Edgecase for newline at start of next buffer
 		_leftover.resize(_leftover.size() - 1); // pop_back is C++11
 		index = 1;
 	} else if (index != std::string::npos) {
+		// CRLF is present so we append everything uo until CRLF to leftover
 		_leftover.append(buffer, start, index - start);
 		index += 2;
 	} else {
@@ -153,8 +155,6 @@ int ChunkedParser::parseTrailer(std::string const & buffer, std::size_t & index,
 	}
 
 	if (_leftover.size() == 0) {
-		// Empty line, end of trailer
-		// printf("Finished parsing chunked\n");
 		_state = FINISHED;
 	}
 	_leftover.clear();
@@ -303,12 +303,12 @@ std::string ChunkedParser::getStateString(State state) const
 
 void ChunkedParser::print(const std::string& buffer, std::size_t index) const
 {
-	// printf(RED_BOLD "ChunkedParser" RESET_COLOR "\n");
-	// printf("State: [%s]\n", getStateString(_state).c_str());
-	// printf("Next State: [%s]\n", getStateString(_next_state).c_str());
-	// printf("Index: [%lu]\n", index);
-	// printf("Chunk Size: [%lu]\n", _chunk_size);
-	// printf("Internal Buffer: [%s]\n", _leftover.c_str());
-	// printf("External buffer:\n");
-	// printf("[%s]\n", buffer.c_str());
+	printf(RED_BOLD "ChunkedParser" RESET_COLOR "\n");
+	printf("State: [%s]\n", getStateString(_state).c_str());
+	printf("Next State: [%s]\n", getStateString(_next_state).c_str());
+	printf("Index: [%lu]\n", index);
+	printf("Chunk Size: [%lu]\n", _chunk_size);
+	printf("Internal Buffer: [%s]\n", _leftover.c_str());
+	printf("External buffer:\n");
+	printf("[%s]\n", buffer.c_str());
 }
