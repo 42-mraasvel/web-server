@@ -618,7 +618,7 @@ int RequestParser::delimitRequest(Request::RequestStatus status)
 	if (status == Request::BAD_REQUEST)
 	{
 		//TODO: set status_code to specific version
-		//NOTE: the entire bufferi s discarded on a bad request
+		//NOTE: the entire buffer is discarded on a bad request
 		_request->status_code = 400;
 		resetBuffer();
 	}
