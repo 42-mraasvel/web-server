@@ -1,0 +1,8 @@
+Error handling:
+
+	- How to deal with server closing the connection
+
+Parsing:
+
+	- Parse STDIN for end of request
+	- Parse responses from the server and give output based on that
