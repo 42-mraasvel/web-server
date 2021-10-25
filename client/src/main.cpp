@@ -1,13 +1,7 @@
 #include "client.hpp"
-#include "settings.hpp"
-#include "UserSettings.hpp"
 #include <cstdarg>
-#include <cstdio>
 #include <unistd.h>
-#include <sstream>
 #include <iostream>
-#include <fstream>
-#include <sys/types.h>
 #include <sys/stat.h>
 
 int putError(const char* format, ...) {
@@ -52,110 +46,30 @@ bool isFile(const std::string& pathname) {
 	return true;
 }
 
-int toInt(const std::string& rhs) {
-	std::stringstream ss;
-	ss << rhs;
-
-	int x;
-	ss >> x;
-	return x;
-}
-
-void replaceNewlines(std::string& str) {
-	std::size_t index = 0;
-	while (index < str.size()) {
-		index = str.find("\n", index);
-		if (index == std::string::npos) {
-			break;
-		}
-
-		if ((index != 0 && str[index - 1] == '\r')) {
-			continue;
-		}
-		str.replace(index, 1, "\r\n");
-		index += 2;
-	}
-}
-
-int readFile(const std::string& filename, std::string& request) {
-
-	if (!isFile(filename)) {
-		return ERR;
-	}
-
-	std::ifstream ifs(filename.c_str());
-	if (!ifs.is_open()) {
-		return putError("Not able to open file: %s\n", filename.c_str());
-	}
-
-	request = std::string(	std::istreambuf_iterator<char>(ifs),
-							std::istreambuf_iterator<char>());
-
-	replaceNewlines(request);
-	if (request.find(EOHEADER) == std::string::npos) {
-		return putError("client: %s: no [CRLF CRLF] (end of header-field) found\r\n", filename.c_str());
-	}
-	return OK;
-}
-
-int sendRequest(const std::string& request, const std::string& host, int port) {
-	Client client;
-	int id = client.newConnection(host, port);
-	if (id == ERR) {
-		return ERR;
-	}
-
-	client.sendRequest(id, request);
-
-	std::string response = client.receiveResponse(id);
-	if (PRINT) {
-		std::cout << YELLOW_BOLD "Response: (HEADER ONLY)" RESET_COLOR << std::endl;
-		if (PRINT_MESSAGE_BODY) {
-			std::cout << response << std::endl;
-		} else {
-			printHeader(std::cout, response);
-		}
-	}
-	return OK;
-}
 
 int main(int argc, char *argv[]) {
 	if (argc < 2) {
 		return putError("Usage: %s [OPTIONS] [REQUEST_FILE]+\r\n", argv[0]);
 	}
 
-	// std::size_t i = parseOptions();
-	Settings sets;
-	int i = sets.parseFlags(argc, argv);
+	Settings settings;
+	int i = settings.parseFlags(argc, argv);
 	if (i == -1) {
 		return ERR;
 	}
 
-	if (i >= argc) {
-		return putError("Error: No request files\r\n");
-	}
-
-	Client client;
-
 	if (PRINT) {
-		printf(CYAN_BOLD "Settings" RESET_COLOR "\n");
-		printf(MAGENTA_BOLD  "  Port" RESET_COLOR " [%d]\n"
-		MAGENTA_BOLD "  Host" RESET_COLOR " [%s]\n\n", sets.getPort(), sets.getHost().c_str());
+		settings.print();
 	}
 
-	for (; i < argc; ++i) {
-		if (PRINT) {
-			printf(YELLOW_BOLD "Request #%d: %s" RESET_COLOR "\r\n", i, argv[i]);
-		}
-		std::string request;
-		if (readFile(argv[i], request) == ERR) {
-			std::cout << std::endl;
-			continue;
-		}
-		if (PRINT_REQUEST) {
-			std::cout << request << std::endl;
-		}
-		sendRequest(request, sets.getHost(), sets.getPort());
+	Client client(&settings);
+
+	if (!settings.getStdin()) {
+		client.setFiles(argc - i, argv + i);
+	}
+
+	if (client.run() == ERR) {
+		return ERR;
 	}
 	return OK;
 }
