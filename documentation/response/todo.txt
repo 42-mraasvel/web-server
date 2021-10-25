@@ -1,7 +1,8 @@
 ------------------
 --     NOW      --
 ------------------
-
+>> when it is need to have content-length
+    - HTTP 1.0 
 
 ------------------
 --    LATER     --

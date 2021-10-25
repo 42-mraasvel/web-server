@@ -40,12 +40,23 @@ int	Client::readEvent(FdTable & fd_table)
 	}
 	while (retrieveRequest())
 	{
-		initResponse();
-		_new_response->executeRequest(fd_table, *_request);
-		resetRequest();
+		processRequest(fd_table);
 	}
 	return OK;
 
+}
+
+void	Client::processRequest(FdTable & fd_table)
+{
+	if (!_request->processed)
+	{
+		initResponse();
+		_new_response->executeRequest(fd_table, *_request);
+	}
+	if (_request->status == Request::COMPLETE)
+	{
+		resetRequest();
+	}
 }
 
 int	Client::parseRequest()
@@ -80,6 +91,14 @@ int	Client::readRequest(std::string & buffer)
 
 bool	Client::retrieveRequest()
 {
+	if (_request)
+	{
+		if (_request->status == Request::COMPLETE)
+		{
+			return true;
+		}
+		return false;
+	}	
 	_request = _request_parser.getNextRequest();
 	if (!_request)
 	{

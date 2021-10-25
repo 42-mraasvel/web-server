@@ -23,8 +23,9 @@ class Client : public AFdInfo
 		int		parseRequest();
 		int			readRequest(std::string & buffer);
 		bool	retrieveRequest();
-		void	initResponse();
-		void	resetRequest();
+		void	processRequest(FdTable & fd_table);
+		void		initResponse();
+		void		resetRequest();
 
 	/* write*/
 	public:
