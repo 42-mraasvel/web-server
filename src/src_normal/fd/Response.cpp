@@ -115,7 +115,8 @@ bool	Response::checkMethod()
 bool	Response::checkExpectation(Request const & request)
 {
 	header_iterator i = request.header_fields.find("expect");
-	if (i != request.header_fields.end() && i->second != "100-continue")
+	if (i != request.header_fields.end() &&
+		!WebservUtility::caseInsensitiveEqual(i->second, "100-continue"))
 	{
 		processError(417); /* EXPECATION FAILED */ 
 		return true;
