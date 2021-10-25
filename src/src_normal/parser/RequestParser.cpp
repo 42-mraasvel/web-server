@@ -173,6 +173,7 @@ int RequestParser::parseHeader()
 */
 int RequestParser::checkHeaderFields()
 {
+	//TODO: error when both Transfer-Encoding AND Content-Length are present
 	_body_type = NOT_PRESENT;
 	header_field_t::iterator it = _request->header_fields.find("Content-Length");
 	if (it != _request->header_fields.end())
@@ -285,9 +286,10 @@ int RequestParser::parseContentLength(std::string const & value)
 
 int RequestParser::parseTransferEncoding(std::string const & value)
 {
-	if (WebservUtility::strToLower(value) != "chunked")
+	if (!WebservUtility::caseInsensitiveEqual(value, "chunked"))
 	{
 		//TODO: status: 501: NOT IMPLEMENTED
+		_request->status_code = 501;
 		return ERR;
 	}
 	_body_type = CHUNKED;
