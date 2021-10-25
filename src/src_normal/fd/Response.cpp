@@ -22,6 +22,7 @@ void	Response::scanRequest(Request const & request)
 	previewMethod();
 	generateAbsoluteTarget(request.target_resource);
 	isRequestError(request);
+	immediateResponse(request);
 }
 
 void	Response::setHttpVersion(int minor_version)
@@ -51,7 +52,7 @@ void Response::previewMethod()
 			_status_code = 201;
 			break;
 		case DELETE:
-			_file_oflag = O_RDONLY;
+			_file_oflag = O_WRONLY;
 			_file_event = AFdInfo::READING;
 			_status_code = 202; //TODO: check if 204 no content
 			break; 
@@ -74,7 +75,6 @@ void	Response::generateAbsoluteTarget(std::string const & target_resource)
 }
 bool	Response::isRequestError(Request const & request)
 {
-	//TODO: if error code, any message_body to write?
 	return checkBadRequest(request.status, request.status_code)
 			|| checkHttpVersion(request.major_version)
 			|| checkMethod()
@@ -123,7 +123,6 @@ bool	Response::checkExpectation(Request const & request)
 	return false;
 }
 
-
 bool	Response::checkContentLength(Request const & request)
 {
 	if (request.minor_version == 0)
@@ -138,26 +137,45 @@ bool	Response::checkContentLength(Request const & request)
 	return false;
 }
 
+/*
+	Condition of sending 100 continue status code:
+		- header filed: expect:100-continue
+		- http version 1.1
+		- content-length specified
+		- no message body yet
+*/
+void	Response::immediateResponse(Request const & request)
+{
+	header_iterator i_expect = request.header_fields.find("expect");
+	header_iterator i_length = request.header_fields.find("content-length");
+	if (i_expect != request.header_fields.end()
+		&& request.minor_version == 1
+		&& i_length != request.header_fields.end()
+		&& !i_length->second.empty()
+		&& request.message_body.empty())
+	{
+		_status = COMPLETE;
+		_status_code = 100; /* CONTINUE */
+	}
+}
+
 /*************************************************/
 /****** (Client::readEvent) execute request ******/
 /*************************************************/
 
 void	Response::executeRequest(FdTable & fd_table, Request & request)
 {
-	if (_status != Response::COMPLETE)
+	if (createFile(fd_table) == ERR)
 	{
-		if (createFile(fd_table) == ERR)
-		{
-			processError(500); /* INTERNAL SERVER ERROR */
-			return ;
-		}
-		if (executeMethod(request) == ERR)
-		{
-			processError(500); /* INTERNAL SERVER ERROR */
-			return ;
-		}
-		updateFileEvent(fd_table);
+		processError(500); /* INTERNAL SERVER ERROR */
+		return ;
 	}
+	if (executeMethod(request) == ERR)
+	{
+		processError(500); /* INTERNAL SERVER ERROR */
+		return ;
+	}
+	updateFileEvent(fd_table);
 }
 
 int	Response::createFile(FdTable & fd_table)
@@ -320,6 +338,11 @@ Response::Status	Response::getStatus() const
 	return _status;
 }
 
+int	Response::getStatusCode() const
+{
+	return _status_code;
+}
+
 std::string const &	Response::getString() const
 {
 	return _string_to_send;
@@ -344,11 +367,10 @@ void	Response::updateFileEvent(FdTable & fd_table)
 	_file->updateEvents(_file_event, fd_table);
 }
 
-bool	Response::isFileStart() const
+bool	Response::isFileComplete() const
 {
 	return (_file 
-			&& (_file->flag == AFdInfo::FILE_START
-				|| _file->flag == AFdInfo::FILE_COMPLETE
+			&& (_file->flag == AFdInfo::FILE_COMPLETE
 				|| _file->flag == AFdInfo::FILE_ERROR));
 }
 
@@ -367,5 +389,5 @@ void	Response::generateErrorPage()
 {
 	//TODO: to modify message
 	_message_body = WebservUtility::itoa(_status_code) + " "
-					+ WebservUtility::getStatusMessage(_status_code);
+					+ WebservUtility::getStatusMessage(_status_code) + "\n";
 }

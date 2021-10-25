@@ -1,0 +1,2 @@
+DELETE /lemon.txt HTTP/1.1
+

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <poll.h>
 #include <string>
+#include <iostream>
 
 #ifdef __linux__
 #include <cstring> // for bzero

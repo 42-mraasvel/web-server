@@ -251,7 +251,7 @@ int RequestParser::parseContent()
 		_request->message_body.append(_buffer.substr(_index));
 		_remaining_content -= _buffer.size() - _index;
 		_index = _buffer.size();
-		// delimitRequest(Request::HEADER_COMPLETE);
+		delimitRequest(Request::HEADER_COMPLETE);
 	}
 	else
 	{

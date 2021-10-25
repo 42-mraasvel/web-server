@@ -32,6 +32,7 @@ class Response
 		bool			checkMethod();
 		bool			checkExpectation(Request const & request);
 		bool			checkContentLength(Request const & request);
+		void		immediateResponse(Request const & request);
 
 	public:
 		void	executeRequest(FdTable & fd_table, Request & request);
@@ -56,11 +57,12 @@ class Response
 	public:
 		typedef RequestParser::header_field_t::const_iterator header_iterator;
 		Status				getStatus() const;
+		int					getStatusCode() const;
 		std::string const &	getString() const;
 		void				clearString();
 		void				deleteFile();
 		void				updateFileEvent(FdTable & fd_table);
-		bool				isFileStart() const;
+		bool				isFileComplete() const;
 
 	private:
 		void	processError(int error_code);

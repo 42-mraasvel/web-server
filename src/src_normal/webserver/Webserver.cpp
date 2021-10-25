@@ -53,15 +53,15 @@ int	Webserver::dispatchFd(int ready)
 		}
 		if (_fd_table[i].first.revents & POLLIN)
 		{
+			printf(BLUE_BOLD "Read event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
 			if (_fd_table[i].second->readEvent(_fd_table) == ERR)
 				return ERR;
-			printf(BLUE_BOLD "Read event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
 		}
 		if (_fd_table[i].first.revents & POLLOUT)
 		{
+			printf(BLUE_BOLD "Write event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
 			if(_fd_table[i].second->writeEvent(_fd_table) == ERR)
 				return ERR;
-			printf(BLUE_BOLD "Write event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
 		}
 		++i;
 	}

@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <cstdlib>
 #include <algorithm>
+#include <iostream>
 
 Client::Client(int fd): AFdInfo(fd), _request(NULL), _new_response(NULL), _response(NULL) {}
 
@@ -40,23 +41,17 @@ int	Client::readEvent(FdTable & fd_table)
 	}
 	while (retrieveRequest())
 	{
-		processRequest(fd_table);
+		if (!_request->processed)
+		{
+			processRequest(fd_table);
+		}
+		if (_request->status == Request::COMPLETE)
+		{
+			resetRequest();
+		}
 	}
 	return OK;
 
-}
-
-void	Client::processRequest(FdTable & fd_table)
-{
-	if (!_request->processed)
-	{
-		initResponse();
-		_new_response->executeRequest(fd_table, *_request);
-	}
-	if (_request->status == Request::COMPLETE)
-	{
-		resetRequest();
-	}
 }
 
 int	Client::parseRequest()
@@ -107,11 +102,36 @@ bool	Client::retrieveRequest()
 	return true;
 }
 
+void	Client::processRequest(FdTable & fd_table)
+{
+	initResponse();
+	if (isRequestReadyToExecute())
+	{
+		_new_response->executeRequest(fd_table, *_request);
+	}
+	setRequestProcessed();
+}
+
 void	Client::initResponse()
 {
 	_new_response = new Response();
 	_new_response->scanRequest(*_request);
 	_response_queue.push(_new_response);
+}
+
+bool	Client::isRequestReadyToExecute() const
+{
+	return _request->status == Request::COMPLETE
+			&& _new_response->getStatus() != Response::COMPLETE;
+}
+
+void	Client::setRequestProcessed()
+{
+	if (_new_response->getStatus() == Response::COMPLETE
+		&& _new_response->getStatusCode() != 100)
+	{
+		_request->processed = true;
+	}
 }
 
 void	Client::resetRequest()
@@ -135,8 +155,11 @@ int	Client::writeEvent(FdTable & fd_table)
 			break;
 		}
 		_response->generateResponse();
-		appendResponseString();
-		resetResponse();
+		if (_response->getStatus() == Response::COMPLETE)
+		{
+			appendResponseString();
+			resetResponse();
+		}
 	}
 	if (sendResponseString() == ERR)
 	{
@@ -155,6 +178,10 @@ bool	Client::retrieveResponse()
 			return false;
 		}
 		_response = _response_queue.front();
+	}
+	else if (!_response->isFileComplete())
+	{
+		return false;
 	}
 	return true;
 }
@@ -182,12 +209,9 @@ int	Client::sendResponseString()
 
 void	Client::resetResponse()
 {
-	if (_response->getStatus() == Response::COMPLETE)
-	{
-		delete _response;
-		_response_queue.pop();
-		_response = NULL;
-	}
+	delete _response;
+	_response_queue.pop();
+	_response = NULL;
 }
 
 /*********************/
@@ -226,7 +250,7 @@ void	Client::update(FdTable & fd_table)
 	*/
 	if (!_response_queue.empty()
 		&& (_response_queue.front()->getStatus() == Response::COMPLETE
-			|| _response_queue.front()->isFileStart()))
+			|| _response_queue.front()->isFileComplete()))
 	{
 		updateEvents(AFdInfo::WRITING, fd_table);
 	}
