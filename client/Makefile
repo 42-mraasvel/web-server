@@ -18,7 +18,9 @@ HDF := $(shell find $(IDIR) -name "*.hpp" -type f)
 CXX = clang++
 IFLAGS = -I$(IDIR) -I.
 LFLAGS =
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -pedantic
+CXXFLAGS = -Wall -Wextra -Werror -std=c++11 -pedantic
+UNUSED_FLAGS = -Wno-unused -Wno-unused-parameter
+# CXXFLAGS += $(UNUSED_FLAGS)
 
 ifeq ($(shell uname -s),Linux)
 	DFLAGS := -O0 -g -fsanitize=address -fsanitize=leak

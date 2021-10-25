@@ -2,6 +2,7 @@
 #include "settings.hpp"
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <errno.h>
 #include <arpa/inet.h>
 #include <iostream>
 #include <unistd.h>
@@ -11,7 +12,7 @@
 #include <cstdio>
 #endif /* __linux__ */
 
-int Connection::initConnection(const std::string& server_ip, int port) {
+int Connection::initConnection(const std::string& server_ip, int port, bool blocking) {
 	connection_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (connection_fd == ERR) {
 		perror("socket");
@@ -46,23 +47,37 @@ int Connection::initConnection(const std::string& server_ip, int port) {
 		closeConnection();
 		return ERR;
 	}
+	if (!blocking) {
+		if (fcntl(connection_fd, F_SETFL, O_NONBLOCK) == -1) {
+			perror("fcntl");
+			closeConnection();
+			return ERR;
+		}
+	}
 	return OK;
 }
 
-void Connection::sendRequest(const std::string& msg) {
-	if (send(connection_fd, msg.c_str(), msg.size(), 0) == ERR) {
+ssize_t Connection::sendRequest(const std::string& msg, std::size_t size) {
+	ssize_t n = send(connection_fd, msg.c_str(), size, 0);
+	if (n == -1) {
 		perror("send");
 	}
+	return n;
 }
 
-std::string Connection::receiveResponse() const {
-	std::string buffer(BUFFER_SIZE, '\0');
-	ssize_t n = recv(connection_fd, &buffer[0], buffer.size(), 0);
-	if (n == ERR) {
+ssize_t Connection::receiveResponse(std::string& storage) const {
+	storage.resize(BUFFER_SIZE, '\0');
+	ssize_t n = recv(connection_fd, &storage[0], BUFFER_SIZE, 0);
+	if (n == ERR && errno == EAGAIN) {
+		storage.clear();
+		return 0;
+	} else if (n == ERR) {
 		perror("recv");
-		return "";
+		storage.clear();
+		return ERR;
 	}
-	return buffer.substr(0, n);
+	storage.resize(n);
+	return n;
 }
 
 void Connection::closeConnection() {
