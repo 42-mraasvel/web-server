@@ -1,21 +1,15 @@
-123456789012345678901234567890POST /expectation.txt HTTP/1.1
-host: 127.0.0.1:80
-expect: 100-continue
-content-length: 11
-
-1234POST /test.txt HTTP/1.1
-Host: 127.0.0.1:8080
-Content-Length: 14
-
-Hello, World!
-POST /expectatio12345678901234567890POST /expectation.txt HTTP/1.1
-host: 127.0.0.1:80
-expect: 100-continue
-content-length: 11
-
-1234POST /expectation.txt HTTP/1.1
-host: 127.0.0.1:80
-expect: 100-continue
-content-length: 11
-
-123412345678901234567890123456789012345678901234567890
+This is a belated-hello!
+This is a belated-hello!
+This is a belated-hello!
+This is a belated-hello!
+This is a belated-hello!
+This is a belated-hello!
+This is a belated-hello!
+This is a belated-hello!
+This is a belated-hello!
+This is a belated-hello!
+This is a belated-hello!
+This is a belated-hello!
+This is a belated-hello!
+This is a belated-hello!
+This is a belated-hello!

@@ -62,7 +62,7 @@ class Response
 		void				clearString();
 		void				deleteFile();
 		void				updateFileEvent(FdTable & fd_table);
-		bool				isFileComplete() const;
+		bool				isFileReady() const;
 
 	private:
 		void	processError(int error_code);
