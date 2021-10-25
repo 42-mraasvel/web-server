@@ -4,11 +4,11 @@
 #include <unistd.h>
 #include <string>
 
-Config::Config(std::string const & config_file): _file_name(config_file), _server_amount(0)
+Config::Config(std::string const & config_file): _file_name(config_file), _server_amount(0), _token_index(0)
 {
 	this->parser();
-	ConfigServer dummy;
-	dummy.addPort(8080);
+	// ConfigServer dummy;
+	// dummy.addPort(8080);
 	// dummy.addPort(8081);
 	// dummy.addPort(8082);
 	// dummy.addPort(8083);
@@ -16,7 +16,7 @@ Config::Config(std::string const & config_file): _file_name(config_file), _serve
 	// dummy2.addPort(18000);
 	// dummy2.addPort(18001);
 	// dummy2.addPort(18002);
-	_servers.push_back(dummy);
+	// _servers.push_back(dummy);
 	// _servers.push_back(dummy2);
 }
 
@@ -33,7 +33,7 @@ Config::const_iterator Config::end() const
 // add comment parser
 void Config::tokenizer(std::string const & body)
 {
-	std::string const & delimiters = "\t ";
+	std::string const & delimiters = "\n\t ";
 	size_t pos, start = 0;
 	while(true)
 	{	
@@ -52,47 +52,48 @@ void Config::tokenizer(std::string const & body)
 	{
 		splitToken(body.substr(start, pos - start));
 	}
+	// for (size_t i = 0; i < _tokens.size(); i++)
+	// {
+	// 	std::cout << _tokens[i] << std::endl;
+	// }
 }
 
 int	Config::splitToken(std::string const & string)
 {
-	
-	size_t	start = string.find_first_not_of("\n");
-	size_t	semicolon_pos = string.find_first_of(";");
-	size_t	newline_pos = string.find_first_of("\n", start);
-	if (start == std::string::npos)
+	size_t pos_open_bracket = string.find_first_of("{");
+	size_t pos_close_bracket = string.find_first_of("}");
+	size_t pos_semicolon = string.find_first_of(";");
+	size_t index = 0;
+	if (pos_open_bracket != std::string::npos)
 	{
-		return (1);
-	}
-	if (semicolon_pos == std::string::npos)
-	{
-		if (newline_pos == std::string::npos)
+		if (pos_open_bracket > 0)
 		{
-			semicolon_pos = string.size();
+			_tokens.push_back(string.substr(index, pos_open_bracket - index));
 		}
-		else
+		_tokens.push_back(string.substr(pos_open_bracket, 1));
+		splitToken(string.substr(pos_open_bracket + 1));
+	}
+	else if (pos_semicolon != std::string::npos)
+	{
+		if (pos_semicolon > 0)
 		{
-			semicolon_pos = newline_pos;
+			_tokens.push_back(string.substr(index, pos_semicolon - index));
 		}
+		_tokens.push_back(string.substr(pos_semicolon, 1));
+		splitToken(string.substr(pos_semicolon + 1));
 	}
-	if (newline_pos == std::string::npos)
+	else if (pos_close_bracket != std::string::npos)
 	{
-			newline_pos = string.size();
+		if (pos_close_bracket)
+		{
+			_tokens.push_back(string.substr(index, pos_close_bracket - index));
+		}
+		_tokens.push_back(string.substr(pos_close_bracket, 1));
+		splitToken(string.substr(pos_close_bracket + 1));
 	}
-	std::string config = string.substr(start, semicolon_pos - start);
-	std::string comment = string.substr(semicolon_pos, newline_pos - semicolon_pos);
-	std::string newline = string.substr(newline_pos, 1);
-	if (config.size() > 0)
+	else if (string.size() > 0)
 	{
-		_tokens.push_back(config);
-	}
-	if (comment.size() > 0)
-	{
-		_tokens.push_back(comment);
-	}
-	if (newline.size() > 0)
-	{
-		_tokens.push_back(newline);
+		_tokens.push_back(string.substr(0));
 	}
 	return (0);
 }
@@ -121,10 +122,6 @@ int Config::parser()
 	} while(ret > 0);
 	close(fd);
 	this->tokenizer(body);
-	// for (size_t i = 0; i < _tokens.size(); i++)
-	// {
-	// 	printf("TOKEN:%lu->%s<-\n", i, _tokens[i].c_str());
-	// }
 	if (parseConfigFile() == ERR)
 	{
 		return ERR;
@@ -136,84 +133,305 @@ int Config::parser()
 // TODO: Add protection for new configserver
 int	Config::parseConfigFile()
 {
-	
-	size_t i = 0;
-	while (i < _tokens.size())
+	while (_token_index < _tokens.size())
 	{
-		if (static_cast<int>(_tokens.size()) - i < 3)
-		{
-			return ERR;
-		}
-		if (_tokens[i].compare("server") || _tokens[i + 1].compare("{"))
-		{
-			return ERR;
-		}
-		ConfigServer *new_server = new ConfigServer;
-		_servers.push_back(*new_server);
-		i = parseServer(i);
+		parseServer();
 		_server_amount++;
-		if (_tokens[i].compare("}"))
-		{
-			return ERR;
-		}
-		i++;
+		_token_index++;
 	}
 	return (0);
 }
 
-int	Config::parseServer(int i)
+int	Config::parseServer()
 {
-	while (i < static_cast<int>(_tokens.size()) && _tokens[i].compare("}"))
+	_servers.push_back(ConfigServer());
+	if (_tokens.size() < 3)
 	{
-		if (_tokens[i].compare("listen") == 0)
+		return ERR;
+	}
+	if (!checkExpectedSyntax("server"))
+	{
+		return ERR;
+	}
+	_token_index++;
+	if (!checkExpectedSyntax("{"))
+	{
+		return ERR;
+	}
+	_token_index++;
+	while (_token_index < _tokens.size() && _tokens[_token_index].compare("}"))
+	{
+		if (_tokens[_token_index].compare("listen") == 0)
 		{
-			i = parseListen(i);
+			parseListen();
 		}
-		// else if (_tokens[i].compare("client_body_size"))
-		// {
-			
-		// }
-		// else if (_tokens[i].compare("allowed_methods"))
-		// {
-
-		// }
-		// else if (_tokens[i].compare("autoindex"))
-		// {
-			
-		// }
-		// else if (_tokens[i].compare("location"))
-		// {
-			
-		// }
-		i++;
+		else if (_tokens[_token_index].compare("server_name") == 0)
+		{
+			parseServerName();
+		}
+		else if (_tokens[_token_index].compare("error_page") == 0)
+		{
+			parseErrorPage();
+		}
+		else if (_tokens[_token_index].compare("location") == 0)
+		{
+			parseLocation();
+			_token_index++;
+			continue;
+		}
+		else
+		{
+			std::cout << RED_BOLD "Config Error: '" << _tokens[_token_index] << "' is not a valid configuration" RESET_COLOR << std::endl;
+			exit(1);
+		}
+		checkExpectedSyntax(";");
+		_token_index++;
 	}
-
-	return (i);
+	if (_servers[_server_amount].portIsEmpty())
+	{
+		_servers[_server_amount].addPort(80);
+	}
+	if (_servers[_server_amount].hostIsEmpty())
+	{
+		_servers[_server_amount].addHostName("localhost");
+		_servers[_server_amount].addServerName("localhost");
+	}
+	return (_token_index);
 }
 
-// TODO: add digit protection
-int	Config::parseListen(int i)
+int	Config::parseLocation()
 {
-	i++;
-	while (_tokens[i].find_first_of(";") == std::string::npos)
+	_token_index++;
+	_servers[_server_amount].addLocation(ConfigLocation(_tokens[_token_index]));
+	_token_index++;
+	checkExpectedSyntax("{");
+	_token_index++;
+	while(_token_index < _tokens.size() && _tokens[_token_index].compare("}"))
 	{
-		int port = atoi(_tokens[i].c_str());
-		_servers[_server_amount].addPort(port);
-		i++;
+		if (_tokens[_token_index].compare("root") == 0)
+		{
+			parseRoot();
+		}
+		else if (_tokens[_token_index].compare("client_body_size") == 0)
+		{
+			parseClientBodySize();
+		}
+		else if (_tokens[_token_index].compare("allowed_methods") == 0)
+		{
+			parseAllowedMethods();
+		}
+		else if (_tokens[_token_index].compare("autoindex") == 0)
+		{
+			parseAutoindex();
+		}
+		checkExpectedSyntax(";");
+		_token_index++;
 	}
-	while (_tokens[i].compare("\n"))
-	{
-		i++;
-	}
-	return (i);
+	return (1);
 }
 
+// TODO: add protection
+int	Config::parseListen()
+{
+	_token_index++;
+	size_t split = _tokens[_token_index].find_last_of(":");
+	std::string listen;
+	if (split != std::string::npos)
+	{
+		std::string host = _tokens[_token_index].substr(0, split);
+		if (host.find_first_of(":") == std::string::npos && _servers[_server_amount].hostIsEmpty())
+		{
+			_servers[_server_amount].addHostName(host);
+		}
+		listen = _tokens[_token_index].substr(split);
+	}
+	else
+	{
+		listen = _tokens[_token_index].substr(0);
+	}
+	for (size_t i = 0; i < listen.size(); i++)
+	{
+		if (std::isdigit(listen[i]) == 0)
+		{
+			_token_index++;
+			return ERR;
+		}
+	}
+	int port = atoi(listen.c_str());
+	_servers[_server_amount].addPort(port);
+	_token_index++;
+	return (_token_index);
+}
+
+// TODO: add protection
+int	Config::parseServerName()
+{
+	_token_index++;
+	while (_tokens[_token_index].compare(";") != 0)
+	{
+		if (_servers[_server_amount].hostIsEmpty())
+		{
+			_servers[_server_amount].addHostName(_tokens[_token_index]);
+			_servers[_server_amount].addServerName(_tokens[_token_index]);
+		}
+		else if (checkServerName(_tokens[_token_index]))
+		{
+			_servers[_server_amount].addServerName(_tokens[_token_index]);
+		}
+		_token_index++;
+	}
+	return (_token_index);
+}
+
+int	Config::checkServerName(std::string name)
+{
+	std::string www = "www.";
+	std::string nl = ".nl";
+	std::string com = ".com";
+	std::string host = _servers[_server_amount].getHostName();
+	std::string variant_1 = www.substr(0).append(host);
+	std::string variant_2 = www.substr(0).append(host).append(com);
+	std::string variant_3 = www.substr(0).append(host).append(nl);
+	std::string variant_4 = host.substr(0).append(com);
+	std::string variant_5 = host.substr(0).append(nl);
+	if (variant_1.compare(name)
+		&& variant_2.compare(name)
+		&& variant_3.compare(name)
+		&& variant_4.compare(name)
+		&& variant_5.compare(name)
+		&& host.compare(name))
+	{
+		std::cout << RED_BOLD "Config Error: unexpected servername: '" << name << "' where hostname is '" << host << "'" << RESET_COLOR << std::endl;
+		exit(1);
+	}
+	return (1);
+}
+
+// TODO: add protection
+// TODO: use long long insteaad of int
+// TODO: add  kilo mega expander
+int	Config::parseClientBodySize()
+{
+	_token_index++;
+	for (size_t i = 0; i < _tokens[_token_index].size(); i++)
+	{
+		if (std::isdigit(_tokens[_token_index][i]) == 0)
+		{
+			return ERR;
+		}
+	}
+	int size = atoi(_tokens[_token_index].c_str());
+	_servers[_server_amount].addClientBodySize(size);
+	_token_index++;
+	return (_token_index);
+}
+
+// // TODO: add protection
+int	Config::parseAllowedMethods()
+{
+	_token_index++;
+	while (_tokens[_token_index].compare(";") != 0)
+	{
+		if (checkExpectedSyntax("GET", "POST", "DELETE"))
+		{
+			_servers[_server_amount].addAllowedMethods(_tokens[_token_index]);
+		}
+		_token_index++;
+	}
+	return (_token_index);
+}
+
+// TODO: add protection
+int	Config::parseAutoindex()
+{
+	_token_index++;
+	if (checkExpectedSyntax("on", "off"))
+	{
+		_servers[_server_amount].addAutoIndex(_tokens[_token_index].compare("off"));
+	}
+	_token_index++;
+	return (_token_index);
+}
+
+// TODO: check if path exists
+int	Config::parseErrorPage()
+{
+	_token_index++;
+	for (size_t i = 0; i < _tokens[_token_index].size(); i++)
+	{
+		if (std::isdigit(_tokens[_token_index][i]) == 0)
+		{
+			return ERR;
+		}
+	}
+	int page_number = atoi(_tokens[_token_index].c_str());
+	_token_index++;
+	_servers[_server_amount].addErrorPage(page_number, _tokens[_token_index]);
+	_token_index++;
+	return (_token_index);
+}
+
+int	Config::parseIndex()
+{
+	_token_index++;
+	while (_tokens[_token_index].compare(";") != 0)
+	{
+		_servers[_server_amount].addIndex(_tokens[_token_index]);
+		_token_index++;
+	}
+	return (_token_index);
+}
+
+int	Config::checkExpectedSyntax(std::string str)
+{
+	if (_tokens[_token_index].compare(str) != 0)
+	{
+		std::cout << RED_BOLD "Config Error: expected " << str << " instead of " << _tokens[_token_index] << RESET_COLOR << std::endl;
+		exit(1);
+	}
+	return (1);
+}
+
+int	Config::checkExpectedSyntax(std::string str1, std::string str2)
+{
+	if (_tokens[_token_index].compare(str1) != 0 
+		&& _tokens[_token_index].compare(str2) != 0)
+	{
+		std::cout << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
+		exit(1);
+	}
+	return (1);
+}
+
+int	Config::checkExpectedSyntax(std::string str1, std::string str2, std::string str3)
+{
+	if (_tokens[_token_index].compare(str1) != 0 
+		&& _tokens[_token_index].compare(str2) != 0
+		&& _tokens[_token_index].compare(str3) != 0)
+	{
+		std::cout << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 <<" or " << str3 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
+		exit(1);
+	}
+	return (1);
+}
+
+
+
+int	Config::parseRoot()
+{
+	_token_index++;
+	if (_tokens[_token_index].compare(";"))
+	{
+		_servers[_server_amount].addRoot(_tokens[_token_index]);
+	}
+	_token_index++;
+	return (1);
+}
 
 /* Debugging */
 
 void Config::print() const
 {
-	std::cout << "Configuration File: " << _file_name << std::endl;
 	for (const_iterator it = begin(); it != end(); ++it)
 	{
 		std::cout << MAGENTA_BOLD "Server" RESET_COLOR " #" << (it - begin() + 1) << std::endl;

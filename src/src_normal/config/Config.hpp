@@ -24,19 +24,27 @@ class Config
 		int	splitToken(std::string const & string);
 		void tokenizer(std::string const & body);
 		int	parseConfigFile();
-		int	parseServer(int index);
-		int	parseListen(int index);
-		int parseServerName(int index);
-		int parseClientBodySize(int index);
-		int parseAllowedMethods(int index);
-		int	parseLocation(int index);
-		int	parseAutoindex(int index);
+		int	parseServer();
+		int	parseListen();
+		int	parseServerName();
+		int	checkServerName(std::string name);
+		int parseClientBodySize();
+		int parseAllowedMethods();
+		int	parseLocation();
+		int	parseAutoindex();
+		int	parseErrorPage();
+		int	parseIndex();
+		int	parseRoot();
+		int	checkExpectedSyntax(std::string str);
+		int	checkExpectedSyntax(std::string str1, std::string str2);
+		int	checkExpectedSyntax(std::string str1, std::string str2, std::string str3);
 
 	private:
 		const std::string&			_file_name;
 		std::vector<ConfigServer>	_servers;
 		std::vector<std::string>	_tokens;
 		int							_server_amount;
+		size_t						_token_index;
 		
 	/* Debugging */
 	public:
