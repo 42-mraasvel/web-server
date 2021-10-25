@@ -68,8 +68,9 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 			- This rare condition is only likely to occur when a client has improperly converted a POST request to a GET request with long query information, when the client has descended into a "black hole" of redirection (e.g., a redirected URI prefix that points to a suffix of itself) or when the server is under attack by a client attempting to exploit potential security holes.
 		? 415 UNSOPPORTED MEDIA TYPE
 			- The format problem might be due to the request’s indicated Content-Type or Content-Encoding, or as a result of inspecting the data directly.
-		? 417 EXPECATION FAILED
-			- Indicates that the expectation given in the request’s [Expect] header field (Section 5.1.1) could not be met by at least one of the inbound servers.
+		v 417 EXPECATION FAILED
+			- A server that receives an Expect field-value other than "100-continue" MAY respond with a 417 (Expectation Failed) status code to indicate that the unexpected expectation cannot be met.
+
 	??	x 426 UPGRADE REQUIRED
 			- Indicates that the server refuses to perform the request using the current protocol but might be willing to do so after the client upgrades to a different protocol.
 			- MUST send an [Upgrade] header field to indicate the required protocol(s) (Section 6.7 of [RFC7230]).
@@ -77,7 +78,7 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 	>> 5xx (Server Error)
 		- Indicates that the server is aware that it has erred or is incapable of performing the requested method. Except when responding to a HEAD request, the server SHOULD send a representation containing an explanation of the error situation, and whether it is a temporary or permanent condition.
 
-		? 500 INTERNAL SERVER ERROR
+		v 500 INTERNAL SERVER ERROR
 			- Indicates that the server encountered an unexpected condition that prevented it from fulfilling the request.		
 		v 501 NOT IMPLEMENTED
 			- Indicates that the server does not support the functionality required to fulfill the request.  This is the appropriate response when the server does not recognize the request method and is not capable of supporting it for any resource.

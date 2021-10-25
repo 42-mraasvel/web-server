@@ -30,6 +30,7 @@ class Response
 		bool			checkBadRequest(Request::RequestStatus status, int request_code);
 		bool			checkHttpVersion(int http_major_version);
 		bool			checkMethod();
+		bool			checkExpectation(Request const & request);
 		bool			checkContentLength(Request const & request);
 
 	public:

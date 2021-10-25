@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <fcntl.h>
 #include <errno.h>
-
+#include <iostream>
 
 Response::Response(): _status(START), _file(NULL) {}
 
@@ -78,6 +78,7 @@ bool	Response::isRequestError(Request const & request)
 	return checkBadRequest(request.status, request.status_code)
 			|| checkHttpVersion(request.major_version)
 			|| checkMethod()
+			|| checkExpectation(request)
 			|| checkContentLength(request);
 }
 
@@ -110,6 +111,18 @@ bool	Response::checkMethod()
 	}
 	return false;
 }
+
+bool	Response::checkExpectation(Request const & request)
+{
+	header_iterator i = request.header_fields.find("expect");
+	if (i != request.header_fields.end() && i->second != "100-continue")
+	{
+		processError(417); /* EXPECATION FAILED */ 
+		return true;
+	}
+	return false;
+}
+
 
 bool	Response::checkContentLength(Request const & request)
 {
@@ -217,7 +230,7 @@ int	Response::methodDelete()
 
 void	Response::generateResponse()
 {
-	if (_file->flag == AFdInfo::FILE_ERROR)
+	if (_file && _file->flag == AFdInfo::FILE_ERROR)
 	{
 		processError(500); /* INTERNAL SERVER ERROR */
 	}

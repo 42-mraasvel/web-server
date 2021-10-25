@@ -1,0 +1,18 @@
+
+------------------------------------
+--    [Expect]: [100-continue]    --
+------------------------------------
+>> Error
+    A server that receives an Expect field-value other than 100-continue MAY respond with a 417 (Expectation Failed) status code to indicate that the unexpected expectation cannot be met.
+>> Success
+    1. HTTP/1.0
+        1.1 A server that receives a 100-continue expectation in an HTTP/1.0 request MUST ignore that expectation.
+    2. HTTP/1.1 (or later)
+        2.1 without message body yet (indicates a request message body will follow,)
+            2.1.1 send an immediate response with a final status code, if that status can be determined by examining just the request-line and header fields,
+                - A server that responds with a final status code before reading the entire message body SHOULD indicate in that response whether it intends to close the connection or continue reading and discarding the request message (see Section 6.6 of [RFC7230]).
+            2.1.2 or send an immediate 100 (Continue) response to encourage the client to send the request’s message body.
+                - The origin server MUST NOT wait for the message body before sending the 100 (Continue) response.
+                - A server that sends a 100 (Continue) response MUST ultimately send a final status code, once the message body is received and processed, unless the connection is closed prematurely.
+        2.2 already received some or all of the message body for the corresponding request, or if the framing indicates that there is no message body.
+            - A server MAY omit sending a 100 (Continue) response 
