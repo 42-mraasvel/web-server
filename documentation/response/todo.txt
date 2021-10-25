@@ -2,7 +2,7 @@
 --     NOW      --
 ------------------
 >> debug multiple request/response flow
-    - BAD REQUEST if send get + expect1 + expect2
+    - when buffer_size = 20, message body too fase with 100-continue (get2 + expect0 + expect1)
 
 
 >> when it is need to have content-length
@@ -18,3 +18,6 @@
 >> modify generatePage() for error response
 >> what if File::read or File::write occurs error half way, how to draw the response?
 >> exception handling (Allocation error);
+>> automate the test for response correctness
+
+std::cout << RED_BOLD << " " << RESET_COLOR << std::endl;
