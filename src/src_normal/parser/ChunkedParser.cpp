@@ -47,6 +47,7 @@ int ChunkedParser::parse(std::string const & buffer, std::size_t & index, std::s
 	{
 		if ((this->*state_dispatch[_state])(buffer, index, body) == ERR)
 		{
+			reset();
 			return ERR;
 		}
 	}

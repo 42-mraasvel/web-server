@@ -97,7 +97,7 @@ int RequestParser::parse(std::string const & buffer)
 		newRequest();
 		if (parseHeader() == ERR)
 		{
-			clearToEoHeader();
+			// clearToEoHeader();
 			delimitRequest(Request::BAD_REQUEST);
 		}
 		else
@@ -228,8 +228,11 @@ If chunked has a parsing error, then there is a bad request
 */
 int RequestParser::parseChunked()
 {
-	_chunked_parser.parse(_buffer, _index, _request->message_body);
-	if (_chunked_parser.finished())
+	if (_chunked_parser.parse(_buffer, _index, _request->message_body) == ERR)
+	{
+		delimitRequest(Request::BAD_REQUEST);
+	}
+	else if (_chunked_parser.finished())
 	{
 		delimitRequest(Request::COMPLETE);
 	}
@@ -615,7 +618,9 @@ int RequestParser::delimitRequest(Request::RequestStatus status)
 	if (status == Request::BAD_REQUEST)
 	{
 		//TODO: set status_code to specific version
+		//NOTE: the entire bufferi s discarded on a bad request
 		_request->status_code = 400;
+		resetBuffer();
 	}
 
 	_request->status = status;

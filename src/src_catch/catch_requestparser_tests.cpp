@@ -28,10 +28,28 @@ bool checkNextRequest(RequestParser& x, Request::RequestStatus expected)
 	std::string		message_body;
 */
 
-bool checkNextRequest(RequestParser& x, const Request& y)
+void printRequest(const std::string& name, const Request& y) {
+	std::cout << "-- REQUEST " << name << " -- " << std::endl;
+	std::cout << "Status: " << y.status << std::endl;
+	std::cout << y.getMethodString() << " " << y.target_resource << " HTTP/" << y.major_version << "." << y.minor_version << std::endl;
+	for (auto it = y.header_fields.begin(); it != y.header_fields.end(); ++it) {
+		std::cout << it->first << ": " << it->second << std::endl;
+	}
+	std::cout << y.message_body << std::endl;
+}
+
+bool checkNextRequest(RequestParser& x, const Request& y, bool print = false)
 {
 	Request* r = x.getNextRequest();
-	
+	if (r == NULL) {
+		return false;
+	}
+
+	if (print) {
+		printRequest("INPUT", y);
+		printRequest("NEXT_REQUEST", *r);
+	}
+
 	bool result = r != NULL &&
 		r->status == y.status &&
 		r->target_resource == y.target_resource &&
@@ -315,29 +333,36 @@ TEST_CASE("parser: chunked", "[request-parser]")
 	// parser.parse(input);
 
 	Request example;
+	example.status = Request::COMPLETE;
 	example.major_version = 1;
 	example.method = GET;
+	example.target_resource = "/";
 	example.minor_version = 1;
-	example.
+	example.header_fields["Host"] = "127.0.0.1:80";
+	example.header_fields["Content-Type"] = "text/plain";
+	example.header_fields["Transfer-Encoding"] = "Chunked";
+	example.message_body = "MozillaDeveloperNetwork";
 
-	Request* request = parser.getNextRequest();
+	REQUIRE(checkNextRequest(parser, example));
+}
 
-	std::cout << std::endl << RED_BOLD "POST PARSE" RESET_COLOR ":" << std::endl;
-	switch (request->status)
-	{
-		case Request::BAD_REQUEST:
-			printf("%s\n", "BAD_REQUEST");
-			break;
-		case Request::READING:
-			printf("%s\n", "READING");
-			break;
-		case Request::HEADER_COMPLETE:
-			printf("%s\n", "HEADER_COMPLETE");
-			break;
-		case Request::COMPLETE:
-			printf("%s\n", "COMPLETE");
-			break;
+TEST_CASE("parser: chunked invalid", "[request-parser]")
+{
+	std::string inputs[] = {
+		"Transfer-Encoding: chunked, chunked" EOHEADER "7" CRLF "Mozilla" CRLF "0" EOHEADER,
+		"Transfer-Encoding: chunked" EOHEADER "1247192348912341247123" CRLF "Mozilla" CRLF "0" EOHEADER,
+		"Transfer-Encoding: chunked" EOHEADER "Z" CRLF "0" EOHEADER
+	};
+
+	std::string prefix = "GET / HTTP/1.1" CRLF;
+
+	RequestParser parser;
+	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i) {
+		// std::cout << "REQUEST" << std::endl << prefix + inputs[i] << std::endl;
+		parser.parse(prefix + inputs[i]);
+		Request* r = parser.getNextRequest();
+		REQUIRE(r != NULL);
+		REQUIRE(r->status == Request::BAD_REQUEST);
+		delete r;
 	}
-	std::cout << "Body" << std::endl << request->message_body << std::endl;
-	delete request;
 }
