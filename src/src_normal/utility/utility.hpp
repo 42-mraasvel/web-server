@@ -34,6 +34,7 @@ bool isBase(char x, int base);
 
 void convertToLowercase(std::string & s);
 std::string strToLower(std::string const & s);
+bool caseInsensitiveEqual(const std::string& a, const std::string& b);
 
 std::string getStatusMessage(int status_code);
 
