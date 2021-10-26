@@ -154,9 +154,9 @@ int	Client::writeEvent(FdTable & fd_table)
 			&& retrieveResponse())
 	{
 		_response->generateResponse();
+		appendResponseString();
 		if (_response->getStatus() == Response::COMPLETE)
 		{
-			appendResponseString();
 			resetResponse();
 		}
 	}
@@ -178,6 +178,7 @@ bool	Client::retrieveResponse()
 			return false;
 		}
 		_response = _response_queue.front();
+		_response->prepareToWrite();
 	}
 	else if (!_response->isFileReady())
 	{

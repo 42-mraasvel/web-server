@@ -1,0 +1,32 @@
+chunked-body =	*chunk
+				last-chunk
+				trailer-part
+				CRLF
+
+				chunk = chunk-size [ chunk-ext ] CRLF
+						chunk-data CRLF
+
+						chunk-size = 1*HEXDIG
+						chunk-data = 1*OCTET ; a sequence of chunk-size octets
+				last-chunk = 1*("0") [ chunk-ext ] CRLF
+
+
+--------------------
+--    Request    --
+--------------------
+	- If any transfer coding other than chunked is applied to a request payload body, the sender MUST apply chunked as the final transfer coding to ensure that the message is properly framed. 
+	- If a Transfer-Encoding header field is present in a request and the chunked transfer coding is not the final encoding, the message body length cannot be determined reliably; the server MUST respond with the 400 (Bad Request) status code and then close the connection.
+	- If a message is received without Transfer-Encoding and with either multiple Content-Length header fields having differing field-values or a single Content-Length header field having an invalid value, then the message framing is invalid and the recipient MUST treat it as an unrecoverable error. If this is a request message, the server MUST respond with a 400 (Bad Request) status code and then close the connection.
+
+--------------------
+--    Response    --
+--------------------
+	- A recipient MUST be able to parse the chunked transfer coding (Section 4.1) because it plays a crucial role in framing messages when the payload body size is not known in advance.
+	- A server that receives a request message with a transfer coding it does not understand SHOULD respond with 501 (Not Implemented).
+	- A sender MUST NOT apply chunked more than once to a message body (i.e., chunking an already chunked message is not allowed).
+	- If any transfer coding other than chunked is applied to a response payload body, the sender MUST either apply chunked as the final transfer coding or terminate the message by closing the connection.
+	- A server MUST NOT send a Transfer-Encoding header field in any
+	response with a status code of 1xx (Informational) or 204 (No
+	Content).
+	- A sender MUST NOT send a Content-Length header field in any message that contains a Transfer-Encoding header field.
+	

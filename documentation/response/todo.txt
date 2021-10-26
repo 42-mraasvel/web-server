@@ -2,15 +2,15 @@
 --     NOW      --
 ------------------
 >> debug multiple request/response flow
-    - when buffer_size = 20, message body too fase with 100-continue (get2 + expect0 + expect1)
-
-
->> when it is need to have content-length
-    - HTTP 1.0 
 
 >> Chunked response
 
->> check if GET/DELETE request needs to read message_body
+>> to discuss with maarten:
+    - header-filed always insert new value/pair instead of 'update'
+
+    - 411 LENGTH REQUIRED??? how to check?
+
+
 >> POST: if target resource already exist, also return 201 CREATED or other?
 
 ------------------

@@ -1,0 +1,11 @@
+----------------------
+--     Request      --
+----------------------
+	- A payload within a GET or DELETE request message has no defined semantics; sending a payload body on a GET or DELETE request might cause some existing implementations to reject the request.
+
+
+--------------------
+--    Response    --
+--------------------
+	- All 1xx (Informational), 204 (No Content), and 304 (Not Modified) responses do not include a message body.
+	- All other responses do include a message body, although the body might be of zero length.

@@ -8,7 +8,7 @@
 #include <errno.h>
 #include <iostream>
 
-Response::Response(): _status(START), _file(NULL) {}
+Response::Response(): _status(START), _file(NULL), _header_sent(false), _chunked(false) {}
 
 Response::~Response() {}
 
@@ -23,7 +23,10 @@ void	Response::scanRequest(Request const & request)
 	previewMethod();
 	generateAbsoluteTarget(request.target_resource);
 	isRequestError(request);
-	immediateResponse(request);
+	if (_status != COMPLETE)
+	{
+		continueResponse(request);
+	}
 }
 
 void	Response::setHttpVersion(int minor_version)
@@ -80,7 +83,8 @@ bool	Response::isRequestError(Request const & request)
 			|| checkHttpVersion(request.major_version)
 			|| checkMethod()
 			|| checkExpectation(request)
-			|| checkContentLength(request);
+		//	|| checkContentLength(request)
+			;
 }
 
 bool	Response::checkBadRequest(Request::RequestStatus status, int request_code)
@@ -115,9 +119,8 @@ bool	Response::checkMethod()
 
 bool	Response::checkExpectation(Request const & request)
 {
-	header_iterator i = request.header_fields.find("expect");
-	if (i != request.header_fields.end() &&
-		!WebservUtility::caseInsensitiveEqual(i->second, "100-continue"))
+	if (request.header_fields.contains("expect") &&
+		!WebservUtility::caseInsensitiveEqual(request.header_fields.get("expect").first->second, "100-continue"))
 	{
 		processError(417); /* EXPECATION FAILED */ 
 		return true;
@@ -129,8 +132,7 @@ bool	Response::checkContentLength(Request const & request)
 {
 	if (request.minor_version == 0)
 	{
-		header_iterator i = request.header_fields.find("content-length");
-		if (i == request.header_fields.end())
+		if (!request.header_fields.contains("content-length"))
 		{
 			processError(411); /* LENGTH REQUIRED */ 
 			return true;
@@ -146,14 +148,12 @@ bool	Response::checkContentLength(Request const & request)
 		- content-length specified
 		- no message body yet
 */
-void	Response::immediateResponse(Request const & request)
+void	Response::continueResponse(Request const & request)
 {
-	header_iterator i_expect = request.header_fields.find("expect");
-	header_iterator i_length = request.header_fields.find("content-length");
-	if (i_expect != request.header_fields.end()
+	if (request.header_fields.contains("expect")
 		&& request.minor_version == 1
-		&& i_length != request.header_fields.end()
-		&& !i_length->second.empty()
+		&& request.header_fields.contains("content-length")
+		&& !(request.header_fields.get("content-length").first->second.empty())
 		&& request.message_body.empty())
 	{
 		_status = COMPLETE;
@@ -208,28 +208,28 @@ int Response::executeMethod(Request & request)
 	switch (_method)
 	{
 		case GET:
-			return methodGet();
+			return executeGet();
 		case POST:
-			return methodPost(request);
+			return executePost(request);
 		case DELETE:
-			return methodDelete();
+			return executeDelete();
 		default:
 			return OK;
 	}
 }
 
-int	Response::methodGet()
+int	Response::executeGet()
 {
 	return OK;
 }
 
-int	Response::methodPost(Request & request)
+int	Response::executePost(Request & request)
 {
 	_file->swapContent(request.message_body);
 	return OK;
 }
 
-int	Response::methodDelete()
+int	Response::executeDelete()
 {
 	if (remove(_absolute_target.c_str()) == ERR)
 	{
@@ -245,74 +245,63 @@ int	Response::methodDelete()
 	return OK;
 }
 
-/****************************************************/
-/****** (Client::writeEvent) generate response ******/
-/****************************************************/
+/***************************************************/
+/****** (Client::writeEvent) prepare to write ******/
+/***************************************************/
 
-void	Response::generateResponse()
+void	Response::prepareToWrite()
 {
-	if (_file && _file->flag == AFdInfo::FILE_ERROR)
+	checkFileError();
+	defineEncoding();
+}
+
+void	Response::checkFileError()
+{
+	if (_status != COMPLETE && _file && _file->flag == AFdInfo::FILE_ERROR)
 	{
 		processError(500); /* INTERNAL SERVER ERROR */
 	}
-	if (_status != COMPLETE) //Error status code will be already marked as COMPLETE 
+}
+
+void	Response::defineEncoding()
+{
+	if (_status != COMPLETE
+		&& _http_version == "HTTP/1.1"
+		&& _method == GET)
 	{
-		switch (_method)
+		if (_file && _file->getContent().size() >= BUFFER_SIZE)
 		{
-			case GET:
-				responseGet();
-				break;
-			case POST:
-				responsePost();
-				break;
-			case DELETE:
-				responseDelete();
-				break; 
-			default:
-				break;
+			_chunked = true;
 		}
-		if (_file && _file->flag == AFdInfo::FILE_COMPLETE)
-		{
-			_status = COMPLETE;
-			deleteFile();
-		}
-	}
-	if (_status == COMPLETE) // TODO: only when message_body is ready??
-	{
-		_header_fields["Host"] = "localhost";
-		_header_fields["Content-Length"] = WebservUtility::itoa(_message_body.size());
-	}
-	setHeaderString(); //TODO: placeholder, to modify
-	setResponseString(); //TODO: placeholder, to modify
-	if (_status == START)
-	{
-		_status = HEADER_COMPLETE;
 	}
 }
 
-void	Response::setHeaderString()
+/****************************************************/
+/****** (Client::writeEvent) generate response ******/
+/***************************************************/
+
+void	Response::generateResponse()
 {
-	for (header_iterator i = _header_fields.begin(); i !=_header_fields.end(); ++i)
+	if (_status != COMPLETE)
 	{
-		_header_string += (i->first + ": " + i->second + NEWLINE);
+		responseMethod();
+		checkFileComplete();
 	}
+	setStringToSent();
 }
 
-void	Response::setResponseString()
+void	Response::responseMethod()
 {
-	if (_status == START || _status == COMPLETE)
+	switch (_method)
 	{
-		_string_to_send = _http_version + " "
-				+ WebservUtility::itoa(_status_code) + " "
-				+ WebservUtility::getStatusMessage(_status_code)
-				+ NEWLINE
-				+ _header_string
-				+ NEWLINE
-				+ _message_body;
-	}
-	else if (_status == HEADER_COMPLETE) //TODO: to sort out where mark flag MESSAGE_BODY_ONLy
-	{
-		_string_to_send = _message_body;
+		case GET:
+			return responseGet();
+		case POST:
+			return responsePost();
+		case DELETE:
+			return responseDelete();
+		default:
+			return ;
 	}
 }
 
@@ -331,6 +320,95 @@ void	Response::responseDelete()
 {
 	_message_body = "Target delete successfully!\n";
 	return ;
+}
+
+void	Response::checkFileComplete()
+{
+	if (_status != COMPLETE && _file && _file->flag == AFdInfo::FILE_COMPLETE)
+	{
+		_status = COMPLETE;
+		deleteFile();
+	}
+}
+
+void	Response::setStringToSent()
+{
+	if (_chunked)
+	{
+		doChunked();
+	}
+	else
+	{
+		noChunked();
+	}
+}
+
+void	Response::doChunked()
+{
+	encodeMessageBody();
+	if (!_header_sent)
+	{		
+		_header_fields["Host"] = "localhost";
+		_header_fields["Transfer-Encoding"] = "chunked";
+		setHeaderString();
+		_string_to_send += _http_version + " "
+				+ WebservUtility::itoa(_status_code) + " "
+				+ WebservUtility::getStatusMessage(_status_code)
+				+ NEWLINE
+				+ _header_string
+				+ NEWLINE;
+		_header_sent = true;
+	}
+	if (_header_sent)
+	{
+		_string_to_send.append(_message_body);
+		_message_body.clear();
+	}
+}
+
+void	Response::encodeMessageBody()
+{
+	if (!_message_body.empty())
+	{
+		_message_body.insert(0, "\n*******\n");
+		_message_body.append("\n*******\n");
+	}
+}
+
+void	Response::setHeaderString()
+{
+	for (header_iterator i = _header_fields.begin(); i !=_header_fields.end(); ++i)
+	{
+		_header_string += (i->first + ": " + i->second + NEWLINE);
+	}
+}
+
+void	Response::noChunked()
+{
+	if (_status == COMPLETE)
+	{
+		_header_fields["Host"] = "localhost";
+		setContentLength();
+		setHeaderString();
+		_string_to_send = _http_version + " "
+				+ WebservUtility::itoa(_status_code) + " "
+				+ WebservUtility::getStatusMessage(_status_code)
+				+ NEWLINE
+				+ _header_string
+				+ NEWLINE
+				+ _message_body;
+	}
+}
+
+void	Response::setContentLength()
+{
+	if (_header_fields.contains("transfer-encoding")
+		|| (_status_code >= 100 && _status_code < 200)
+		|| _status_code == 204)
+	{
+		return ;
+	}
+	_header_fields["Content-Length"] = WebservUtility::itoa(_message_body.size());
 }
 
 /*********************/

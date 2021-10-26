@@ -32,27 +32,40 @@ class Response
 		bool			checkMethod();
 		bool			checkExpectation(Request const & request);
 		bool			checkContentLength(Request const & request);
-		void		immediateResponse(Request const & request);
+		void		continueResponse(Request const & request);
 
 	public:
 		void	executeRequest(FdTable & fd_table, Request & request);
 	private:
 		int			createFile(FdTable & fd_table);
         int 		executeMethod(Request & request);
-        int 			methodGet();
-        int 			methodPost(Request & request);
-        int 			methodDelete();
+        int 			executeGet();
+        int 			executePost(Request & request);
+        int 			executeDelete();
 
 	/* Client::writeEvent() */
 	public:
+		void	prepareToWrite();
+	private:
+		void		checkFileError();
+		void		defineEncoding();
+
+	public:
 		void	generateResponse();
 	private:
-		void		responseGet();
-		void		responsePost();
-		void		responseDelete();
-		void		setHeaderString();
-		void		setResponseString();
-	
+		void		responseMethod();
+		void			responseGet();
+		void			responsePost();
+		void			responseDelete();
+		void		checkFileComplete();
+		void		setStringToSent();
+		void			doChunked();
+		void			noChunked();
+		void			setContentLength();
+		void			setHeaderString();
+		void			encodeMessageBody();
+
+
 	/* utility */
 	public:
 		typedef RequestParser::header_field_t::const_iterator header_iterator;
@@ -83,4 +96,7 @@ class Response
 		int					_status_code;
 		std::string 		_header_string;
 		std::string			_message_body;
+
+		bool				_header_sent;
+		bool				_chunked;
 };
