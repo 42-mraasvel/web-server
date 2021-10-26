@@ -2,6 +2,7 @@
 #include "settings.hpp"
 #include "fd/File.hpp"
 #include "utility/utility.hpp"
+#include "parser/HeaderField.hpp"
 #include <cstdlib>
 #include <fcntl.h>
 #include <errno.h>

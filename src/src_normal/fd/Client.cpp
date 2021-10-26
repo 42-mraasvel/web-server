@@ -41,14 +41,11 @@ int	Client::readEvent(FdTable & fd_table)
 	}
 	while (retrieveRequest())
 	{
-		if (!_request->processed)
+		if (!_request->executed)
 		{
 			processRequest(fd_table);
 		}
-		if (_request->status == Request::COMPLETE)
-		{
-			resetRequest();
-		}
+		reset();
 	}
 	return OK;
 
@@ -104,18 +101,21 @@ bool	Client::retrieveRequest()
 
 void	Client::processRequest(FdTable & fd_table)
 {
-	initResponse();
+	if (!_new_response)
+	{
+		initResponse();
+	}
+	_new_response->scanRequest(*_request);
 	if (isRequestReadyToExecute())
 	{
 		_new_response->executeRequest(fd_table, *_request);
+		_request->executed = true;
 	}
-	setRequestProcessed();
 }
 
 void	Client::initResponse()
 {
 	_new_response = new Response();
-	_new_response->scanRequest(*_request);
 	_response_queue.push(_new_response);
 }
 
@@ -125,12 +125,15 @@ bool	Client::isRequestReadyToExecute() const
 			&& _new_response->getStatus() != Response::COMPLETE;
 }
 
-void	Client::setRequestProcessed()
+void	Client::reset()
 {
-	if (_new_response->getStatus() == Response::COMPLETE
-		&& _new_response->getStatusCode() != 100)
+	if (_request->status == Request::COMPLETE)
 	{
-		_request->processed = true;
+		resetRequest();
+	}
+	else if (_new_response->getStatus() == Response::COMPLETE)
+	{
+		_new_response = NULL;
 	}
 }
 

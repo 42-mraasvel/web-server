@@ -15,7 +15,7 @@
 Request::Request()
 : status(Request::READING),
 status_code(200),
-processed(false),
+executed(false),
 method(OTHER),
 major_version(-1),
 minor_version(-1) {}

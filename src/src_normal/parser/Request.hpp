@@ -42,7 +42,7 @@ struct Request
 	public:
 		RequestStatus	status;
 		int				status_code;
-		bool			processed;
+		bool			executed;
 
 		MethodType		method;
 		std::string		target_resource;
