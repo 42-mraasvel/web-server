@@ -211,6 +211,10 @@ int	Config::parseLocation()
 		{
 			parseAutoindex();
 		}
+		else if (_tokens[_token_index].compare("index") == 0)
+		{
+			parseIndex();
+		}
 		checkExpectedSyntax(";");
 		_token_index++;
 	}
