@@ -30,7 +30,6 @@ Config::const_iterator Config::end() const
 	return (this->_servers.end());
 }
 
-// add comment parser
 void Config::tokenizer(std::string const & body)
 {
 	std::string const & delimiters = "\n\t ";
@@ -52,10 +51,6 @@ void Config::tokenizer(std::string const & body)
 	{
 		splitToken(body.substr(start, pos - start));
 	}
-	// for (size_t i = 0; i < _tokens.size(); i++)
-	// {
-	// 	std::cout << _tokens[i] << std::endl;
-	// }
 }
 
 int	Config::splitToken(std::string const & string)
@@ -187,6 +182,7 @@ int	Config::parseServer()
 		_servers[_server_amount].addHostName("localhost");
 		_servers[_server_amount].addServerName("localhost");
 	}
+	checkExpectedSyntax("}");
 	return (OK);
 }
 
@@ -442,7 +438,6 @@ void	Config::configError(std::string str)
 }
 
 /* Debugging */
-
 void Config::print() const
 {
 	for (const_iterator it = begin(); it != end(); ++it)
