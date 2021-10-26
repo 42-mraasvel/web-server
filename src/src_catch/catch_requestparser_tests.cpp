@@ -55,7 +55,8 @@ bool checkNextRequest(RequestParser& x, const Request& y, bool print = false)
 		r->target_resource == y.target_resource &&
 		r->major_version == y.major_version &&
 		r->minor_version == y.minor_version &&
-		r->header_fields == y.header_fields &&
+		r->header_fields.size() == y.header_fields.size() &&
+		std::equal(r->header_fields.begin(), r->header_fields.end(), y.header_fields.begin()) &&
 		r->message_body == y.message_body;
 	delete r;
 	return result;

@@ -1,13 +1,5 @@
 #pragma once
-# include <map>
-# include <string>
-# include <functional>
-
-struct case_insensitive_less
-	: public std::binary_function<std::string, std::string, bool>
-{
-	bool operator() (const std::string& x, const std::string& y) const;
-};
+# include "HeaderField.hpp"
 
 enum MethodType
 {
@@ -20,9 +12,7 @@ enum MethodType
 struct Request 
 {
 	public:
-		typedef std::map<
-				std::string, std::string,
-				case_insensitive_less> header_field_t;
+		typedef HeaderField header_field_t;
 
 	public:
 
