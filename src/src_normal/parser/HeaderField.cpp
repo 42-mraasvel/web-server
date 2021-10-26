@@ -18,12 +18,12 @@ HeaderField::value_type& HeaderField::operator[](const key_type& key)
 bool HeaderField::contains(const key_type& key)
 {
 	_cached_iterator = _map.find(key);
-	return _cached_iterator == _map.end();
+	return _cached_iterator != _map.end();
 }
 
 bool HeaderField::contains(const key_type& key) const
 {
-	return _map.find(key) == _map.end();
+	return _map.find(key) != _map.end();
 }
 
 HeaderField::value_type& HeaderField::get()
@@ -31,14 +31,16 @@ HeaderField::value_type& HeaderField::get()
 	return _cached_iterator->second;
 }
 
-HeaderField::value_type& HeaderField::get(const key_type& key)
+HeaderField::pair_type HeaderField::get(const key_type& key)
 {
-	return _map.find(key)->second;
+	iterator it = _map.find(key);
+	return std::make_pair(it, it != _map.end());
 }
 
-const HeaderField::value_type& HeaderField::get(const key_type& key) const
+HeaderField::const_pair_type HeaderField::get(const key_type& key) const
 {
-	return _map.find(key)->second;
+	const_iterator it = _map.find(key);
+	return std::make_pair(it, it != _map.end());
 }
 
 /* Map Accessors */

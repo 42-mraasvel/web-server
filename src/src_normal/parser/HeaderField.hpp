@@ -30,14 +30,16 @@ public:
 	typedef map_t::iterator iterator;
 	typedef map_t::const_iterator const_iterator;
 	typedef map_t::size_type size_type;
+	typedef std::pair<iterator, bool> pair_type;
+	typedef std::pair<const_iterator, bool> const_pair_type;
 
 public:
 	value_type& operator[](const key_type& key);
 	bool contains(const key_type& key);
 	bool contains(const key_type& key) const;
 	value_type& get();
-	value_type& get(const key_type& key);
-	const value_type& get(const key_type& key) const;
+	pair_type get(const key_type& key);
+	const_pair_type get(const key_type& key) const;
 
 /* Regular Map Accessors */
 	iterator find(const key_type& key);
