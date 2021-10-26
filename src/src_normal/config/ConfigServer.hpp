@@ -10,7 +10,7 @@ class ConfigServer
 		ConfigServer();
 		void	addPort(int port);
 		void	addServerName(std::string name);
-		void	addClientBodySize(int client_body_size);
+		void	addClientBodySize(size_t client_body_size);
 		void	addAllowedMethods(std::string method);
 		void	addAutoIndex(int status);
 		void	addIndex(std::string index);

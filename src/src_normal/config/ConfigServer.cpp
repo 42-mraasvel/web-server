@@ -14,7 +14,7 @@ void	ConfigServer::addServerName(std::string name)
 	this->_server_name.push_back(name);
 }
 
-void	ConfigServer::addClientBodySize(int client_body_size)
+void	ConfigServer::addClientBodySize(size_t client_body_size)
 {
 	this->_locations[_locations.size() - 1].addClientBodySize(client_body_size);
 }

@@ -10,7 +10,7 @@ void ConfigLocation::addRoot(std::string root)
 	this->_root = root;
 }
 
-void ConfigLocation::addClientBodySize(int client_body_size)
+void ConfigLocation::addClientBodySize(size_t client_body_size)
 {
 	this->_client_body_size = client_body_size;
 }
@@ -124,7 +124,3 @@ void ConfigLocation::printCgi() const
 	}
 	std::cout << ']' << std::endl;
 }
-
-
-
-

@@ -23,6 +23,7 @@ class Config
 		std::string const & tokenPreper(std::string str);
 		int	splitToken(std::string const & string);
 		void tokenizer(std::string const & body);
+
 		int	parseConfigFile();
 		int	parseServer();
 		int	parseListen();
@@ -35,9 +36,11 @@ class Config
 		int	parseErrorPage();
 		int	parseIndex();
 		int	parseRoot();
+		
 		int	checkExpectedSyntax(std::string str);
 		int	checkExpectedSyntax(std::string str1, std::string str2);
 		int	checkExpectedSyntax(std::string str1, std::string str2, std::string str3);
+		void	configError(std::string str);
 
 	private:
 		const std::string&			_file_name;

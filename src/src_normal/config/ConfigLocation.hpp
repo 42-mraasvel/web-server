@@ -9,7 +9,7 @@ class ConfigLocation
 	public:
 		ConfigLocation(std::string path);
 		void	addRoot(std::string root);
-		void	addClientBodySize(int client_body_size);
+		void	addClientBodySize(size_t client_body_size);
 		void	addAllowedMethods(std::string method);
 		void	addAutoIndex(int status);
 		void	addIndex(std::string index);
@@ -21,7 +21,7 @@ class ConfigLocation
 		std::vector<std::string>	_index;
 		std::vector<std::string>	_allowed_methods;
 		std::vector<std::string>	_cgi;
-		int							_client_body_size;
+		size_t						_client_body_size;
 		int							_autoindex_status;
 
 	/* Debugging */

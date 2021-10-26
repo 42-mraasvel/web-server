@@ -108,13 +108,13 @@ int Config::parser()
 
 	if ((fd = open(_file_name.c_str(), O_RDONLY)) == -1)
 	{
-		return ERR;
+		configError("filename: " + _file_name);
 	}
 	do
 	{
 		if ((ret = read(fd, buf, BUFFER_SIZE)) == -1)
 		{
-			return ERR;
+			configError("read");
 		}
 		buf[ret] = 0;
 		body += buf;
@@ -122,10 +122,7 @@ int Config::parser()
 	} while(ret > 0);
 	close(fd);
 	this->tokenizer(body);
-	if (parseConfigFile() == ERR)
-	{
-		return ERR;
-	}
+	parseConfigFile();
 	return (0);
 }
 
@@ -139,7 +136,7 @@ int	Config::parseConfigFile()
 		_server_amount++;
 		_token_index++;
 	}
-	return (0);
+	return (OK);
 }
 
 int	Config::parseServer()
@@ -147,17 +144,11 @@ int	Config::parseServer()
 	_servers.push_back(ConfigServer());
 	if (_tokens.size() < 3)
 	{
-		return ERR;
+		configError("Configuration Error");
 	}
-	if (!checkExpectedSyntax("server"))
-	{
-		return ERR;
-	}
+	checkExpectedSyntax("server");
 	_token_index++;
-	if (!checkExpectedSyntax("{"))
-	{
-		return ERR;
-	}
+	checkExpectedSyntax("{");
 	_token_index++;
 	while (_token_index < _tokens.size() && _tokens[_token_index].compare("}"))
 	{
@@ -196,7 +187,7 @@ int	Config::parseServer()
 		_servers[_server_amount].addHostName("localhost");
 		_servers[_server_amount].addServerName("localhost");
 	}
-	return (_token_index);
+	return (OK);
 }
 
 int	Config::parseLocation()
@@ -243,7 +234,13 @@ int	Config::parseListen()
 		{
 			_servers[_server_amount].addHostName(host);
 		}
-		listen = _tokens[_token_index].substr(split);
+		size_t start = _tokens[_token_index].find_first_not_of(":", split);
+		if (start == std::string::npos)
+		{
+			configError("Listen config error");
+		}
+		listen = _tokens[_token_index].substr(start);
+
 	}
 	else
 	{
@@ -253,8 +250,7 @@ int	Config::parseListen()
 	{
 		if (std::isdigit(listen[i]) == 0)
 		{
-			_token_index++;
-			return ERR;
+			configError("unexpected syntax: " + listen);
 		}
 	}
 	int port = atoi(listen.c_str());
@@ -263,7 +259,6 @@ int	Config::parseListen()
 	return (_token_index);
 }
 
-// TODO: add protection
 int	Config::parseServerName()
 {
 	_token_index++;
@@ -307,26 +302,53 @@ int	Config::checkServerName(std::string name)
 	return (1);
 }
 
-// TODO: add protection
-// TODO: use long long insteaad of int
-// TODO: add  kilo mega expander
+int	Config::parseRoot()
+{
+	_token_index++;
+	if (_tokens[_token_index].compare(";"))
+	{
+		_servers[_server_amount].addRoot(_tokens[_token_index]);
+	}
+	_token_index++;
+	return (1);
+}
+
 int	Config::parseClientBodySize()
 {
 	_token_index++;
-	for (size_t i = 0; i < _tokens[_token_index].size(); i++)
+	std::string client_body_size = _tokens[_token_index];
+	for (size_t i = 0; i < client_body_size.size(); i++)
 	{
-		if (std::isdigit(_tokens[_token_index][i]) == 0)
+		if (std::isdigit(client_body_size[i]) == 0)
 		{
-			return ERR;
+			client_body_size[i] =toupper(client_body_size[i]);
+			if (client_body_size.find_first_of("KGM") == client_body_size.size() - 1)
+			{
+				if (client_body_size[i] == 'K')
+				{
+					client_body_size = client_body_size.substr(0, i).append("000");
+				}
+				else if(client_body_size[i]== 'M')
+				{
+					client_body_size = client_body_size.substr(0, i).append("000000");
+				}
+				else if(client_body_size[i] == 'G')
+				{
+					client_body_size = client_body_size.substr(0, i).append("000000000");
+				}
+			}
+			else
+			{
+				configError("unexpected syntax: " + client_body_size);
+			}
 		}
 	}
-	int size = atoi(_tokens[_token_index].c_str());
+	size_t size = atol(client_body_size.c_str());
 	_servers[_server_amount].addClientBodySize(size);
 	_token_index++;
 	return (_token_index);
 }
 
-// // TODO: add protection
 int	Config::parseAllowedMethods()
 {
 	_token_index++;
@@ -341,7 +363,6 @@ int	Config::parseAllowedMethods()
 	return (_token_index);
 }
 
-// TODO: add protection
 int	Config::parseAutoindex()
 {
 	_token_index++;
@@ -353,7 +374,6 @@ int	Config::parseAutoindex()
 	return (_token_index);
 }
 
-// TODO: check if path exists
 int	Config::parseErrorPage()
 {
 	_token_index++;
@@ -361,7 +381,7 @@ int	Config::parseErrorPage()
 	{
 		if (std::isdigit(_tokens[_token_index][i]) == 0)
 		{
-			return ERR;
+			configError(_tokens[_token_index]);
 		}
 	}
 	int page_number = atoi(_tokens[_token_index].c_str());
@@ -415,17 +435,10 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2, std::string 
 	return (1);
 }
 
-
-
-int	Config::parseRoot()
+void	Config::configError(std::string str)
 {
-	_token_index++;
-	if (_tokens[_token_index].compare(";"))
-	{
-		_servers[_server_amount].addRoot(_tokens[_token_index]);
-	}
-	_token_index++;
-	return (1);
+	std::cout << RED_BOLD << "Config error: " << str << std::endl;
+	exit(1);
 }
 
 /* Debugging */
