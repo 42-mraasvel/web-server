@@ -2,15 +2,6 @@
 #include "color.hpp"
 #include <cstdio> // RM, REMOVE: FOR PRINT/DEBUGGING
 
-bool case_insensitive_less::operator() (const std::string& x, const std::string& y) const
-{
-	for (std::size_t i = 0; i < x.size() && i < y.size(); ++i) {
-		if (toupper(x[i]) != toupper(y[i])) {
-			return toupper(x[i]) < toupper(y[i]);
-		}
-	}
-	return x.size() < y.size();
-}
 /*
 	RequestStatus	status;
 
