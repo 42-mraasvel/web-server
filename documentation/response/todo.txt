@@ -7,14 +7,18 @@
 
 >> when it is need to have content-length
     - HTTP 1.0 
->> 415 UNSUPPORTED MEDIA TYPE
->> Negotiation
+
 >> Chunked response
+
+>> check if GET/DELETE request needs to read message_body
+>> POST: if target resource already exist, also return 201 CREATED or other?
 
 ------------------
 --    LATER     --
 ------------------
->> check if GET/DELETE request needs to read message_body
+>> Range Request
+>> 415 UNSUPPORTED MEDIA TYPE
+>> Negotiation
 >> modify generatePage() for error response
 >> what if File::read or File::write occurs error half way, how to draw the response?
 >> exception handling (Allocation error);

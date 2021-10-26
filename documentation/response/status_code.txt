@@ -27,8 +27,6 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 	- 200 OK: if the action has been enacted and the response message includes a representation describing the status.
 
 
-	- A payload within a DELETE request message has no defined semantics; sending a payload body on a DELETE request might cause some existing implementations to reject the request.
-
 ------------------
 --    General   --
 ------------------

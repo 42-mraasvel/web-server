@@ -54,7 +54,7 @@ void Response::previewMethod()
 		case DELETE:
 			_file_oflag = O_WRONLY;
 			_file_event = AFdInfo::WAITING;
-			_status_code = 202; //TODO: check if 204 no content
+			_status_code = 200;
 			break; 
 		default:
 			break;
@@ -328,6 +328,7 @@ void	Response::responsePost()
 
 void	Response::responseDelete()
 {
+	_message_body = "Target delete successfully!\n";
 	return ;
 }
 
