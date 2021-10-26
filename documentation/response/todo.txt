@@ -1,26 +1,21 @@
 ------------------
 --     NOW      --
 ------------------
->> debug multiple request/response flow
-
->> Chunked response
-
 >> to discuss with maarten:
-    - header-filed always insert new value/pair instead of 'update'
-
     - 411 LENGTH REQUIRED??? how to check?
-
+    - what if File::read or File::write occurs error half way, how to draw the response?
 
 >> POST: if target resource already exist, also return 201 CREATED or other?
+>> Content-type?
 
 ------------------
 --    LATER     --
 ------------------
+>> test multiple request/response flow
 >> Range Request
 >> 415 UNSUPPORTED MEDIA TYPE
 >> Negotiation
 >> modify generatePage() for error response
->> what if File::read or File::write occurs error half way, how to draw the response?
 >> exception handling (Allocation error);
 >> automate the test for response correctness
 

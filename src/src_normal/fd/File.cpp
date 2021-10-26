@@ -27,7 +27,6 @@ struct pollfd	File::getPollFd() const
 
 int File::readEvent(FdTable & fd_table)
 {
-	//TODO: keep track of total size read -> content-length
 	char	buffer[BUFFER_SIZE + 1];
 	bzero(buffer, BUFFER_SIZE + 1);
 	int	ret = read(_fd, buffer, BUFFER_SIZE);

@@ -370,8 +370,13 @@ void	Response::encodeMessageBody()
 {
 	if (!_message_body.empty())
 	{
-		_message_body.insert(0, "\n*******\n");
-		_message_body.append("\n*******\n");
+		std::string chunk_size = WebservUtility::itoa(_message_body.size(), 16) + NEWLINE;
+		_message_body.insert(0, chunk_size);
+		_message_body.append(NEWLINE);
+	}
+	if (_status == COMPLETE)
+	{
+		_message_body.append(CHUNK_TAIL);
 	}
 }
 

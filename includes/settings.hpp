@@ -9,6 +9,7 @@
 #define CRLF "\r\n"
 #define NEWLINE CRLF
 #define EOHEADER CRLF CRLF
+#define CHUNK_TAIL "0" CRLF CRLF
 
 /*
 Parsing Specific Defines
