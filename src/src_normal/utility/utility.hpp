@@ -25,11 +25,16 @@ long strtol(std::string const & s, int base = 10);
 unsigned long strtoul(std::string const & s, int base = 10);
 unsigned long strtoul(const char* s, int base = 10);
 
-std::string	itoa(int n);
+std::string itoa(unsigned long n, unsigned int base = 10);
+std::string itoa(unsigned int n, unsigned int base = 10);
+std::string itoa(long n, unsigned int base = 10);
+std::string itoa(int n, unsigned int base = 10);
+
 bool isBase(char x, int base);
 
 void convertToLowercase(std::string & s);
 std::string strToLower(std::string const & s);
+bool caseInsensitiveEqual(const std::string& a, const std::string& b);
 
 std::string getStatusMessage(int status_code);
 

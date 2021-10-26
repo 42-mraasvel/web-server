@@ -147,13 +147,9 @@ void	Client::resetRequest()
 
 int	Client::writeEvent(FdTable & fd_table)
 {
-	while (_response_string.size() < BUFFER_SIZE)
+	while (_response_string.size() < BUFFER_SIZE
+			&& retrieveResponse())
 	{
-		if (retrieveResponse() == false)
-		{
-			updateEvents(AFdInfo::READING, fd_table);
-			break;
-		}
 		_response->generateResponse();
 		if (_response->getStatus() == Response::COMPLETE)
 		{
@@ -166,6 +162,7 @@ int	Client::writeEvent(FdTable & fd_table)
 		closeConnection();
 		return ERR;
 	}
+	updateEvents(AFdInfo::READING, fd_table);
 	return OK;
 }
 
@@ -179,7 +176,7 @@ bool	Client::retrieveResponse()
 		}
 		_response = _response_queue.front();
 	}
-	else if (!_response->isFileComplete())
+	else if (!_response->isFileReady())
 	{
 		return false;
 	}
@@ -245,12 +242,14 @@ void	Client::update(FdTable & fd_table)
 	}
 	/*
 	mark Client as ready for WRITING when:
-	1. the top response's is complete (Error)
-	2. File event starts reading (GET) or finishes writing (POST),
+	1. _response_string is to be sent
+	2. the top response's is complete (Error)
+	3. File event starts reading (GET) or finishes writing (POST),
 	*/
-	if (!_response_queue.empty()
-		&& (_response_queue.front()->getStatus() == Response::COMPLETE
-			|| _response_queue.front()->isFileComplete()))
+	if (!_response_string.empty()
+		|| (!_response_queue.empty()
+			&& (_response_queue.front()->getStatus() == Response::COMPLETE
+				|| _response_queue.front()->isFileReady())))
 	{
 		updateEvents(AFdInfo::WRITING, fd_table);
 	}

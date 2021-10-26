@@ -53,7 +53,7 @@ void Response::previewMethod()
 			break;
 		case DELETE:
 			_file_oflag = O_WRONLY;
-			_file_event = AFdInfo::READING;
+			_file_event = AFdInfo::WAITING;
 			_status_code = 202; //TODO: check if 204 no content
 			break; 
 		default:
@@ -115,7 +115,8 @@ bool	Response::checkMethod()
 bool	Response::checkExpectation(Request const & request)
 {
 	header_iterator i = request.header_fields.find("expect");
-	if (i != request.header_fields.end() && i->second != "100-continue")
+	if (i != request.header_fields.end() &&
+		!WebservUtility::caseInsensitiveEqual(i->second, "100-continue"))
 	{
 		processError(417); /* EXPECATION FAILED */ 
 		return true;
@@ -233,12 +234,13 @@ int	Response::methodDelete()
 	{
 		if (errno == EACCES || errno == EBUSY || errno == EISDIR || errno == EPERM || errno == EROFS)
 		{
-			processError(403); // FORBIDDEN
+			processError(403); /* FORBIDDEN */
 		}
 		perror("remove in methodDelete");
 		return ERR;
 	}
 	printf(BLUE_BOLD "Delete File:" RESET_COLOR " [%s]\n", _absolute_target.c_str());
+	_file->flag = AFdInfo::FILE_COMPLETE;
 	return OK;
 }
 
@@ -268,15 +270,15 @@ void	Response::generateResponse()
 			default:
 				break;
 		}
-		if (_file->flag == AFdInfo::FILE_COMPLETE)
+		if (_file && _file->flag == AFdInfo::FILE_COMPLETE)
 		{
 			_status = COMPLETE;
 			deleteFile();
 		}
 	}
-	_header_fields["Host"] = "localhost";
 	if (_status == COMPLETE) // TODO: only when message_body is ready??
 	{
+		_header_fields["Host"] = "localhost";
 		_header_fields["Content-Length"] = WebservUtility::itoa(_message_body.size());
 	}
 	setHeaderString(); //TODO: placeholder, to modify
@@ -367,11 +369,13 @@ void	Response::updateFileEvent(FdTable & fd_table)
 	_file->updateEvents(_file_event, fd_table);
 }
 
-bool	Response::isFileComplete() const
+bool	Response::isFileReady() const
 {
-	return (_file 
+	return _file 
 			&& (_file->flag == AFdInfo::FILE_COMPLETE
-				|| _file->flag == AFdInfo::FILE_ERROR));
+				|| _file->flag == AFdInfo::FILE_ERROR
+				|| (_file->flag == AFdInfo::FILE_START
+					&& !_file->getContent().empty()));
 }
 
 void	Response::processError(int error_code)
