@@ -1,10 +1,7 @@
 #pragma once
 #include "ConfigServer.hpp"
 #include <vector>
-
-#ifdef __linux__
 #include <string>
-#endif /* __linux__ */
 
 class Config
 {
@@ -43,7 +40,7 @@ class Config
 		void	configError(std::string str);
 
 	private:
-		const std::string&			_file_name;
+		const std::string			_file_name;
 		std::vector<ConfigServer>	_servers;
 		std::vector<std::string>	_tokens;
 		int							_server_amount;
@@ -53,5 +50,3 @@ class Config
 	public:
 		void print() const;
 };
-
-

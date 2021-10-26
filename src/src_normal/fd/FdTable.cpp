@@ -30,10 +30,10 @@ Complexity: O(1)
 	_pollfd_table[index] = _pollfd_table.back();
 	_pollfd_table.pop_back();
 	// TODO: close event monitoring
+	_fd_info_table.back()->setIndex(index);
 	delete _fd_info_table[index];
 	_fd_info_table[index] = _fd_info_table.back();
 	_fd_info_table.pop_back();
-	_fd_info_table[index]->setIndex(index);
 	return OK;
 }
 

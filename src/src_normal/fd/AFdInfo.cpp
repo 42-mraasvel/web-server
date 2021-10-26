@@ -1,6 +1,7 @@
 #include "AFdInfo.hpp"
 #include "settings.hpp"
 #include <unistd.h>
+#include <poll.h>
 
 AFdInfo::AFdInfo(): _fd(-1) {}
 
@@ -27,4 +28,23 @@ std::size_t AFdInfo::getIndex() const
 void AFdInfo::setIndex(std::size_t index)
 {
 	_index = index;
+}
+
+void	AFdInfo::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
+{
+	short int updated_events;
+
+	switch (type)
+	{
+		case AFdInfo::READING:
+			updated_events = POLLIN;
+			break;
+		case AFdInfo::WRITING:
+			updated_events = POLLOUT;
+			break;
+		case AFdInfo::WAITING:
+			updated_events = 0;
+			break;
+	}
+	fd_table[_index].first.events = updated_events | POLLHUP;
 }

@@ -1,0 +1,45 @@
+-------------------
+-- Header-Fields --
+-------------------
+
+	header-field	=	field-name ":" OWS field-value OWS
+	field-name		=	token
+	field-value		=	*( field-content )
+	field-content	=	field-vchar [ 1*( SP / HTAB ) field-vchar ]
+	field-vchar		=	VCHAR / obs-text
+
+	OWS				=	*( SP / HTAB )
+
+	VCHAR 			=	any char except seperators
+
+	-- obs-fold --
+
+	obs-fold		=	CRLF 1*( SP / HTAB )
+	; obsolete line folding
+	; see Section 3.2.4
+
+	section 3.2.4. of [RFC7230] mentions that a server can reject messages with this obsolete folding
+
+-----------------
+-- Field-Value --
+-----------------
+
+	field-value		=	*( field-content )
+	field-content	=	field-vchar [ 1*( SP / HTAB ) field-vchar ]
+	field-vchar		=	VCHAR / obs-text
+
+---------------
+-- Algorithm --
+---------------
+
+	Precondition: EOHEADER has to be present in the request
+
+	while (str.compare(CRLF) != 0) // If it starts with a CRLF, it means we have reached the EOHEADER (2 CRLF in a row)
+	{
+		1. Skip field-name
+		2. Put field-name into 'key' string
+		3. Skip ":", skip OWS
+		4. Put field-value into 'value' string
+		5. Skip OWS until CRLF
+		6. assert CRLF, skip CRLF
+	}

@@ -6,7 +6,7 @@ all: $(NAME)
 # Compilation
 $(NAME): $(OBJ)
 	$(CXX) -o $@ $(OBJ) $(LFLAGS)
-$(OBJ): $(ODIR)/%.o: $(SDIR)/%.cpp
+$(OBJ): $(ODIR)/%.o: $(SDIR)/%.cpp Makefile
 	@mkdir -p $(@D)
 	$(CXX) -c -o $@ $< $(CXXFLAGS) $(IFLAGS)
 $(DDIR)/%.d: $(SDIR)/%.cpp
@@ -24,8 +24,10 @@ re: fclean
 	$(MAKE) all
 
 # Catch
-.PHONY: catch
+.PHONY: catch debug
 catch:
 	$(MAKE) all USING_CATCH=1
+debug:
+	$(MAKE) all DEBUG=1
 
 -include $(DEP)
