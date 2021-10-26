@@ -41,6 +41,7 @@ int	Client::readEvent(FdTable & fd_table)
 	}
 	while (retrieveRequest())
 	{
+		_request->print();
 		if (!_request->executed)
 		{
 			processRequest(fd_table);

@@ -73,8 +73,10 @@ void Request::print() const
 {
 	printf(GREEN_BOLD "-- PARSED REQUEST --" RESET_COLOR "\r\n");
 	printf("Status: %s\n", getStatusString().c_str());
-	printf("%s %s HTTP/%d.%d\r\n",
-		getMethodString().c_str(), target_resource.c_str(),
+	printf("%s [%s][%s] HTTP/%d.%d\r\n",
+		getMethodString().c_str(),
+		target_resource.c_str(),
+		query.c_str(),
 		major_version, minor_version);
 	
 	for (header_field_t::const_iterator it = header_fields.begin(); it != header_fields.end(); ++it)

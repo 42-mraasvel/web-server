@@ -46,6 +46,7 @@ struct Request
 
 		MethodType		method;
 		std::string		target_resource;
+		std::string		query;
 		int				major_version;
 		int				minor_version;
 		header_field_t	header_fields;
