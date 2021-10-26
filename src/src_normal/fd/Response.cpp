@@ -81,6 +81,7 @@ bool	Response::isRequestError(Request const & request)
 {
 	return checkBadRequest(request.status, request.status_code)
 			|| checkHttpVersion(request.major_version)
+			|| checkHost(request)
 			|| checkMethod()
 			|| checkExpectation(request)
 		//	|| checkContentLength(request)
@@ -107,6 +108,23 @@ bool	Response::checkHttpVersion(int http_major_version)
 	return false;
 }
 
+bool	Response::checkHost(Request const & request)
+{
+	if (request.minor_version == 1)
+	{
+		if (!request.header_fields.contains("host"))
+		{
+			processError(400); /* BAD REQUEST */
+			return true;
+		}
+		else
+		{
+			// TODO: check for invalid host
+		}
+	}
+	return false;
+}
+
 bool	Response::checkMethod()
 {
 	if (_method == OTHER)
@@ -120,7 +138,7 @@ bool	Response::checkMethod()
 bool	Response::checkExpectation(Request const & request)
 {
 	if (request.header_fields.contains("expect") &&
-		!WebservUtility::caseInsensitiveEqual(request.header_fields.get("expect").first->second, "100-continue"))
+		!WebservUtility::caseInsensitiveEqual(request.header_fields.find("expect")->second, "100-continue"))
 	{
 		processError(417); /* EXPECATION FAILED */ 
 		return true;
@@ -153,7 +171,7 @@ void	Response::continueResponse(Request const & request)
 	if (request.header_fields.contains("expect")
 		&& request.minor_version == 1
 		&& request.header_fields.contains("content-length")
-		&& !(request.header_fields.get("content-length").first->second.empty())
+		&& !(request.header_fields.find("content-length")->second.empty())
 		&& request.message_body.empty())
 	{
 		_status = COMPLETE;
@@ -313,6 +331,9 @@ void	Response::responseGet()
 
 void	Response::responsePost()
 {
+	//TODO: fill in URI-reference
+	_header_fields["Location"] = _absolute_target;
+	_message_body = "New content is created on " + _absolute_target;
 	return ;
 }
 
@@ -345,22 +366,15 @@ void	Response::setStringToSent()
 
 void	Response::doChunked()
 {
-	encodeMessageBody();
 	if (!_header_sent)
 	{		
-		_header_fields["Host"] = "localhost";
 		_header_fields["Transfer-Encoding"] = "chunked";
-		setHeaderString();
-		_string_to_send += _http_version + " "
-				+ WebservUtility::itoa(_status_code) + " "
-				+ WebservUtility::getStatusMessage(_status_code)
-				+ NEWLINE
-				+ _header_string
-				+ NEWLINE;
+		setHeader();
 		_header_sent = true;
 	}
 	if (_header_sent)
 	{
+		encodeMessageBody();
 		_string_to_send.append(_message_body);
 		_message_body.clear();
 	}
@@ -380,11 +394,27 @@ void	Response::encodeMessageBody()
 	}
 }
 
-void	Response::setHeaderString()
+void	Response::setHeader()
+{
+	setStringStatusLine();
+	setStringHeader();
+	_string_to_send = _string_status_line + NEWLINE
+					+ _string_header + NEWLINE;
+
+}
+
+void	Response::setStringStatusLine()
+{
+	_string_status_line = _http_version + " "
+							+ WebservUtility::itoa(_status_code) + " "
+							+ WebservUtility::getStatusMessage(_status_code);
+}
+
+void	Response::setStringHeader()
 {
 	for (header_iterator i = _header_fields.begin(); i !=_header_fields.end(); ++i)
 	{
-		_header_string += (i->first + ": " + i->second + NEWLINE);
+		_string_header += (i->first + ": " + i->second + NEWLINE);
 	}
 }
 
@@ -392,16 +422,9 @@ void	Response::noChunked()
 {
 	if (_status == COMPLETE)
 	{
-		_header_fields["Host"] = "localhost";
 		setContentLength();
-		setHeaderString();
-		_string_to_send = _http_version + " "
-				+ WebservUtility::itoa(_status_code) + " "
-				+ WebservUtility::getStatusMessage(_status_code)
-				+ NEWLINE
-				+ _header_string
-				+ NEWLINE
-				+ _message_body;
+		setHeader();
+		_string_to_send.append(_message_body);
 	}
 }
 

@@ -29,6 +29,7 @@ class Response
 		bool		isRequestError(Request const & request);
 		bool			checkBadRequest(Request::RequestStatus status, int request_code);
 		bool			checkHttpVersion(int http_major_version);
+		bool			checkHost(Request const & request);
 		bool			checkMethod();
 		bool			checkExpectation(Request const & request);
 		bool			checkContentLength(Request const & request);
@@ -62,8 +63,10 @@ class Response
 		void			doChunked();
 		void			noChunked();
 		void			setContentLength();
-		void			setHeaderString();
 		void			encodeMessageBody();
+		void			setHeader();
+		void				setStringHeader();
+		void				setStringStatusLine();
 
 
 	/* utility */
@@ -85,16 +88,18 @@ class Response
 		MethodType			_method;
 		Status				_status;
 		File*				_file;
-		std::string			_string_to_send;
 
 		std::string			_absolute_target;
 		int					_file_oflag;
 		AFdInfo::EventTypes	_file_event;
-		RequestParser::header_field_t  _header_fields;
 
+		RequestParser::header_field_t  _header_fields;
 		std::string 		_http_version;
 		int					_status_code;
-		std::string 		_header_string;
+
+		std::string			_string_to_send;
+		std::string			_string_status_line;
+		std::string 		_string_header;
 		std::string			_message_body;
 
 		bool				_header_sent;

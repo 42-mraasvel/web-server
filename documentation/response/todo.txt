@@ -1,17 +1,26 @@
 ------------------
 --     NOW      --
 ------------------
+    
+>> fill response header
+    - Content-type?
+    - Date & time?
+    - Server name?
+
+>> what if File::read or File::write occurs error half way, how to draw the response?
+
+>> Maarten to change:
+    - A server MUST respond with a 400 (Bad Request) status code to any HTTP/1.1 request message that lacks a Host header field and to any request message that contains more than one Host header field or a Host header field with an invalid field-value. [RFC7230 page 45] >> Client handle no Host or invalid, parser handle multiple host
+
 >> to discuss with maarten:
     - 411 LENGTH REQUIRED??? how to check?
-    - what if File::read or File::write occurs error half way, how to draw the response?
-
->> POST: if target resource already exist, also return 201 CREATED or other?
->> Content-type?
+    -If a Transfer-Encoding header field is present in a request and the chunked transfer coding is not the final encoding, the message body length cannot be determined reliably; the server MUST respond with the 400 (Bad Request) status code and then close the connection.
 
 ------------------
 --    LATER     --
 ------------------
->> test multiple request/response flow
+>> check for Invalid Host
+>> Correct Location - URI in POST response && message_body
 >> Range Request
 >> 415 UNSUPPORTED MEDIA TYPE
 >> Negotiation

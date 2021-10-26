@@ -11,11 +11,13 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 ------------------
 --     POST     --
 ------------------
+	- Almost all of the status codes defined by this specification might be received in a response to POST (the exceptions being 206 (Partial Content), 304 (Not Modified), and 416 (Range Not Satisfiable)).
 
-	- 201 CREATED: The request succeeded, and a new resource created as a result.
-		- [Location] header field that provides an identifier for the primary resource created (Section 7.1.2)- ???representation that describes the status of the request while referring to the new resource(s).
-	- 200 OK: (cache related)
+	- 201 CREATED: If one or more resources has been created on the origin server as a result of successfully processing a POST request, the origin server SHOULD send a 201 (Created) response containing a Location header field that provides an identifier for the primary resource created (Section 7.1.2) and a representation that describes the status of the request while referring to the new resource(s).
+	
+	- 200 OK: For cases where an origin server wishes the client to be able to cache the result of a POST in a way that can be reused by a later GET, the origin server MAY send a 200 (OK) response containing the result and a Content-Location header field that has the same value as the POST’s effective request URI (Section 3.1.4.2).
 
+	???	- 303 SEE OTHER: If the result of processing a POST would be equivalent to a representation of an existing resource, an origin server MAY redirect the user agent to that resource by sending a 303 (See Other) response with the existing resource’s identifier in the Location field. This has the benefits of providing the user agent a resource identifier and transferring the representation via a method more amenable to shared caching, though at the cost of an extra request if the user agent does not already have the representation cached.
 
 ------------------
 --    DELETE    --
