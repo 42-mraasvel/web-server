@@ -8,7 +8,10 @@
 Functionality:
 	- operator[key] = value
 	- bool contains(key)
-	- value_type& get(key); // Should only be called after contains(key)
+	- value_type& get(); Returns the value of the key foundin call to last contains(key)
+	- pair_type get(key):
+		pair_type.first: iterator to element if it exists
+		pair_type.second: bool that's true if the element was present, otherwise false
 */
 
 
