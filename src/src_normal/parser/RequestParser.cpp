@@ -173,25 +173,26 @@ int RequestParser::parseHeader()
 */
 int RequestParser::checkHeaderFields()
 {
-	//TODO: error when both Transfer-Encoding AND Content-Length are present
 	_body_type = NOT_PRESENT;
-	header_field_t::iterator it = _request->header_fields.find("Content-Length");
-	if (it != _request->header_fields.end())
+	header_field_t::pair_type content_length = _request->header_fields.get("Content-Length");
+	header_field_t::pair_type encoding = _request->header_fields.get("Transfer-Encoding");
+
+	if (content_length.second && encoding.second)
 	{
-		_body_type = LENGTH;
-		if (parseContentLength(it->second) == ERR)
-		{
-			return ERR;
-		}
+		std::cerr << "Both content-length and transfer-encoding are present" << std::endl;
+		return ERR;
 	}
 
-	it = _request->header_fields.find("Transfer-Encoding");
-	if (it == _request->header_fields.end())
+	if (content_length.second)
 	{
-		return OK;
+		return parseContentLength(content_length.first->second);
+	}
+	else if (encoding.second)
+	{
+		return parseTransferEncoding(encoding.first->second);
 	}
 
-	return parseTransferEncoding(it->second);
+	return OK;
 }
 
 /*
@@ -281,6 +282,7 @@ int RequestParser::parseContentLength(std::string const & value)
 		// Overflow
 		return ERR;
 	}
+	_body_type = LENGTH;
 	return OK;
 }
 
@@ -631,34 +633,4 @@ int RequestParser::delimitRequest(Request::RequestStatus status)
 		_request = NULL;
 	}
 	return OK;
-}
-
-
-/*
-Getters
-*/
-
-MethodType RequestParser::getMethod() const
-{
-	return _method;
-}
-
-const std::string& RequestParser::getTargetResource() const
-{
-	return _target_resource;
-}
-
-RequestParser::HttpVersion RequestParser::getHttpVersion() const
-{
-	return _version;
-}
-
-RequestParser::header_field_t& RequestParser::getHeaderFields()
-{
-	return _header_fields;
-}
-
-const std::string& RequestParser::getMessageBody() const
-{
-	return _message_body;
 }

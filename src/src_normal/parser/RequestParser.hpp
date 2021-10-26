@@ -40,14 +40,6 @@ class RequestParser
 
 		int					parse(std::string const & buffer);
 		Request* getNextRequest();
-
-
-	// TO BE REMOVED
-		MethodType			getMethod() const;
-		const std::string&	getTargetResource() const;
-		HttpVersion			getHttpVersion() const;
-		header_field_t&		getHeaderFields();
-		const std::string&	getMessageBody() const;
 	
 	private:
 	/* Request Line Parsing */
@@ -99,11 +91,6 @@ class RequestParser
 
 		int delimitRequest(Request::RequestStatus status);
 
-	public:
-	/* Debugging */
-		// std::string getMethodString() const;
-		// void print() const;
-
 	private:
 		queue_type	_requests;
 		int			_status_code;
@@ -116,11 +103,4 @@ class RequestParser
 		ChunkedParser			_chunked_parser;
 		MessageBodyType			_body_type;
 		std::size_t				_remaining_content;
-
-		enum MethodType	_method;
-		std::string		_target_resource;
-		HttpVersion		_version;
-		header_field_t	_header_fields;
-		std::string		_message_body;
-
 };
