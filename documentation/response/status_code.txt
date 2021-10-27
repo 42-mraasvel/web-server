@@ -57,7 +57,7 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 		O 408 REQUEST TIMEOUT
 			- Indicates that the server did not receive a complete request message within the time that it was prepared to wait.
 			- A server SHOULD send the "close" connection option (Section 6.1 of [RFC7230]) in the response.  - If the client has an outstanding request in transit, the client MAY repeat that request on a new connection.
-		v 411 LENGTH REQUIRED
+		x 411 LENGTH REQUIRED
 			- Indicates that the server refuses to accept the request without a defined [Content-Length].
 		v/m 413 PAYLOAD TOO LARGE
 			- Indicates that the server is refusing to process a request because the request payload is larger than the server is willing or able to process.
@@ -65,7 +65,7 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
    			- If the condition is temporary, the server SHOULD generate a [Retry-After] header field to indicate that it is temporary and afterwhat time the client MAY try again.
 		v/m 414 URI TOO LONG
 			- This rare condition is only likely to occur when a client has improperly converted a POST request to a GET request with long query information, when the client has descended into a "black hole" of redirection (e.g., a redirected URI prefix that points to a suffix of itself) or when the server is under attack by a client attempting to exploit potential security holes.
-		? 415 UNSUPPORTED MEDIA TYPE
+		x 415 UNSUPPORTED MEDIA TYPE
 			- The format problem might be due to the request’s indicated Content-Type or Content-Encoding, or as a result of inspecting the data directly.
 		v 417 EXPECATION FAILED
 			- A server that receives an Expect field-value other than "100-continue" MAY respond with a 417 (Expectation Failed) status code to indicate that the unexpected expectation cannot be met.

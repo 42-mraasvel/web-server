@@ -81,11 +81,8 @@ bool	Response::isRequestError(Request const & request)
 {
 	return checkBadRequest(request.status, request.status_code)
 			|| checkHttpVersion(request.major_version)
-			|| checkHost(request)
 			|| checkMethod()
-			|| checkExpectation(request)
-		//	|| checkContentLength(request)
-			;
+			|| checkExpectation(request);
 }
 
 bool	Response::checkBadRequest(Request::RequestStatus status, int request_code)
@@ -108,23 +105,6 @@ bool	Response::checkHttpVersion(int http_major_version)
 	return false;
 }
 
-bool	Response::checkHost(Request const & request)
-{
-	if (request.minor_version == 1)
-	{
-		if (!request.header_fields.contains("host"))
-		{
-			processError(400); /* BAD REQUEST */
-			return true;
-		}
-		else
-		{
-			// TODO: check for invalid host
-		}
-	}
-	return false;
-}
-
 bool	Response::checkMethod()
 {
 	if (_method == OTHER)
@@ -142,19 +122,6 @@ bool	Response::checkExpectation(Request const & request)
 	{
 		processError(417); /* EXPECATION FAILED */ 
 		return true;
-	}
-	return false;
-}
-
-bool	Response::checkContentLength(Request const & request)
-{
-	if (request.minor_version == 0)
-	{
-		if (!request.header_fields.contains("content-length"))
-		{
-			processError(411); /* LENGTH REQUIRED */ 
-			return true;
-		}
 	}
 	return false;
 }

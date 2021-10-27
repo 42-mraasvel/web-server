@@ -29,10 +29,8 @@ class Response
 		bool		isRequestError(Request const & request);
 		bool			checkBadRequest(Request::RequestStatus status, int request_code);
 		bool			checkHttpVersion(int http_major_version);
-		bool			checkHost(Request const & request);
 		bool			checkMethod();
 		bool			checkExpectation(Request const & request);
-		bool			checkContentLength(Request const & request);
 		void		continueResponse(Request const & request);
 
 	public:

@@ -8,24 +8,29 @@
     - Server name?
 
 >> what if File::read or File::write occurs error half way, how to draw the response?
-
->> Maarten to change:
-    - A server MUST respond with a 400 (Bad Request) status code to any HTTP/1.1 request message that lacks a Host header field and to any request message that contains more than one Host header field or a Host header field with an invalid field-value. [RFC7230 page 45] >> Client handle no Host or invalid, parser handle multiple host
-
->> to discuss with maarten:
-    - 411 LENGTH REQUIRED??? how to check?
-    -If a Transfer-Encoding header field is present in a request and the chunked transfer coding is not the final encoding, the message body length cannot be determined reliably; the server MUST respond with the 400 (Bad Request) status code and then close the connection.
+    - finish chunked 
+>> use access to check file (directory) in general
+>> change POST to 201 + 204 (use access())
+>> Correct Location - URI in POST response && message_body
 
 ------------------
 --    LATER     --
 ------------------
->> check for Invalid Host
->> Correct Location - URI in POST response && message_body
->> Range Request
->> 415 UNSUPPORTED MEDIA TYPE
->> Negotiation
+
 >> modify generatePage() for error response
 >> exception handling (Allocation error);
 >> automate the test for response correctness
 
+>> Range Request
+>> Negotiation
+>> Conditional Request
+
 std::cout << RED_BOLD << " " << RESET_COLOR << std::endl;
+
+
+---------------------------
+--    MAARTEN RAASVELDT  --
+---------------------------
+>> to check for Host (400 Bad Request):
+>> transfer encoding
+    - add close connection flag for 
