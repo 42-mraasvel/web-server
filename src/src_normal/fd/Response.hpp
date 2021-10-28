@@ -3,6 +3,7 @@
 #include "parser/RequestParser.hpp"
 #include "AFdInfo.hpp"
 #include "parser/Request.hpp"
+#include "MediaType.hpp"
 
 class File;
 
@@ -30,6 +31,7 @@ class Response
 		bool			checkBadRequest(Request::RequestStatus status, int request_code);
 		bool			checkHttpVersion(int http_major_version);
 		bool			checkMethod();
+		bool				findMethod(MethodType method) const;
 		bool			checkExpectation(Request const & request);
 		void		continueResponse(Request const & request);
 
@@ -60,16 +62,22 @@ class Response
 		void		setStringToSent();
 		void			doChunked();
 		void			noChunked();
-		void			setContentLength();
 		void			encodeMessageBody();
 		void			setHeader();
-		void				setStringHeader();
+		void				setDate();
+		void				setServer();
+		void				setRetryAfter();
+		void				setAllow();
+		void				setTransferEncodingOrContentLength();
+		void					setContentLength();
+		void				setContentType();
 		void				setStringStatusLine();
+		void				setStringHeader();
 
 
 	/* utility */
 	public:
-		typedef RequestParser::header_field_t::const_iterator header_iterator;
+		typedef RequestParser::header_field_t::const_iterator	header_iterator;
 		Status				getStatus() const;
 		int					getStatusCode() const;
 		std::string const &	getString() const;
@@ -83,6 +91,9 @@ class Response
 		void		generateErrorPage();
 
 	private:
+		typedef	std::vector<std::string>::const_iterator		method_const_iterator;
+		typedef	std::vector<std::string>::iterator				method_iterator;
+
 		MethodType			_method;
 		Status				_status;
 		File*				_file;
@@ -102,4 +113,10 @@ class Response
 
 		bool				_header_sent;
 		bool				_chunked;
+
+		/* config related */
+		std::vector<std::string>	_allowed_methods;
+		std::string					_server_name;
+		MediaType::Map				_media_type_map;
+
 };

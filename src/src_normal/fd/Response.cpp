@@ -3,12 +3,25 @@
 #include "fd/File.hpp"
 #include "utility/utility.hpp"
 #include "parser/HeaderField.hpp"
+#include <vector>
 #include <cstdlib>
 #include <fcntl.h>
 #include <errno.h>
 #include <iostream>
+#include <time.h>
+#include <algorithm>
 
-Response::Response(): _status(START), _file(NULL), _header_sent(false), _chunked(false) {}
+Response::Response(): _status(START), _file(NULL), _header_sent(false), _chunked(false)
+{
+	// TODO: to change it properly with configuration
+	_allowed_methods.push_back("GET");
+	_allowed_methods.push_back("POST");
+	_allowed_methods.push_back("DELETE");
+	_server_name = "Awesome Pyxis";
+	//TODO: to discuss with team
+	MediaType::initMap(_media_type_map);
+
+}
 
 Response::~Response() {}
 
@@ -112,7 +125,33 @@ bool	Response::checkMethod()
 		processError(501); /* NOT IMPLEMENTED */ 
 		return true;
 	}
+	if (!findMethod(_method))
+	{
+		processError(405); /* METHOD NOT ALLOWED */ 
+		return true;		
+	}
 	return false;
+}
+
+bool	Response::findMethod(MethodType const method) const
+{
+	std::string	method_string;
+	switch (method)
+	{
+		case GET:
+			method_string = "GET";
+			break ;
+		case POST:
+			method_string = "POST";
+			break ;
+		case DELETE:
+			method_string = "DELETE";
+			break ;
+		default:
+			method_string = "OTHER";
+	}
+	method_const_iterator	it = std::find(_allowed_methods.begin(), _allowed_methods.end(), method_string);
+	return it != _allowed_methods.end();
 }
 
 bool	Response::checkExpectation(Request const & request)
@@ -335,7 +374,6 @@ void	Response::doChunked()
 {
 	if (!_header_sent)
 	{		
-		_header_fields["Transfer-Encoding"] = "chunked";
 		setHeader();
 		_header_sent = true;
 	}
@@ -364,6 +402,12 @@ void	Response::encodeMessageBody()
 void	Response::setHeader()
 {
 	setStringStatusLine();
+	setServer();
+	setDate();
+	setRetryAfter();
+	setAllow();
+	setTransferEncodingOrContentLength();
+	setContentType();
 	setStringHeader();
 	_string_to_send = _string_status_line + NEWLINE
 					+ _string_header + NEWLINE;
@@ -375,6 +419,90 @@ void	Response::setStringStatusLine()
 	_string_status_line = _http_version + " "
 							+ WebservUtility::itoa(_status_code) + " "
 							+ WebservUtility::getStatusMessage(_status_code);
+}
+
+void	Response::setServer()
+{
+	_header_fields["Server"] = _server_name;
+}
+
+void	Response::setDate()
+{
+	char		buf[1000];
+	time_t		now = time(0);
+	struct tm	tm = *gmtime(&now);
+	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", &tm);
+	
+	_header_fields["Data"] = std::string(buf);
+}
+
+void	Response::setRetryAfter()
+{
+	if (_status_code >= 300 && _status_code < 400)
+	{
+		_header_fields["Retry-After"] = WebservUtility::itoa(RETRY_AFTER_SECONDS);
+	}
+}
+
+void	Response::setAllow()
+{
+	if (_status_code == 405)
+	{
+		std::string	value;
+		for (method_iterator it = _allowed_methods.begin(); it != _allowed_methods.end(); ++it)
+		{
+			value.append(*it + ", ");
+		}
+		if (!value.empty())
+		{
+			value.erase(value.size() - 2, 2);
+		}
+		_header_fields["Allow"] = value;
+	}
+}
+
+void	Response::setTransferEncodingOrContentLength()
+{
+	if (_chunked)
+	{
+		_header_fields["Transfer-Encoding"] = "chunked";
+	}
+	else
+	{
+		setContentLength();
+	}
+
+}
+
+void	Response::setContentLength()
+{
+	if ((_status_code >= 100 && _status_code < 200)
+		|| _status_code == 204)
+	{
+		return ;
+	}
+	_header_fields["Content-Length"] = WebservUtility::itoa(_message_body.size());
+}
+
+void	Response::setContentType()
+{
+	if (_method == GET && _status_code == 200)
+	{
+		size_t	find = _absolute_target.find_last_of(".");
+		std::string extensin = _absolute_target.substr(find);
+		if (_media_type_map.contains(extensin))
+		{
+			_header_fields["Content-Type"] = _media_type_map.get();
+		}
+		else
+		{
+			_header_fields["Content-Type"] = "application/octet-stream";
+		}
+	}
+	else if (!_message_body.empty())
+	{
+		_header_fields["Content-Type"] = "text/plain;charset=UTF-8";
+	}
 }
 
 void	Response::setStringHeader()
@@ -389,21 +517,9 @@ void	Response::noChunked()
 {
 	if (_status == COMPLETE)
 	{
-		setContentLength();
 		setHeader();
 		_string_to_send.append(_message_body);
 	}
-}
-
-void	Response::setContentLength()
-{
-	if (_header_fields.contains("transfer-encoding")
-		|| (_status_code >= 100 && _status_code < 200)
-		|| _status_code == 204)
-	{
-		return ;
-	}
-	_header_fields["Content-Length"] = WebservUtility::itoa(_message_body.size());
 }
 
 /*********************/
