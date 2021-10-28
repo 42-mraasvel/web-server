@@ -54,12 +54,14 @@ int	Webserver::dispatchFd(int ready)
 		if (_fd_table[i].first.revents & POLLIN)
 		{
 			printf(BLUE_BOLD "Read event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
-			_fd_table[i].second->readEvent(_fd_table);
+			if (_fd_table[i].second->readEvent(_fd_table) == ERR)
+				return ERR;
 		}
 		if (_fd_table[i].first.revents & POLLOUT)
 		{
 			printf(BLUE_BOLD "Write event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
-			_fd_table[i].second->writeEvent(_fd_table);
+			if(_fd_table[i].second->writeEvent(_fd_table) == ERR)
+				return ERR;
 		}
 		++i;
 	}
@@ -71,12 +73,7 @@ void	Webserver::scanFdTable()
 {
 	for (std::size_t i = 0; i < _fd_table.size(); ++i)
 	{
-		if (_fd_table[i].second->flag == AFdInfo::TO_ERASE)
-		{
-			printf(BLUE_BOLD "Close File:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
-			// TODO: remove File* _file from Client class??
-			_fd_table.eraseFd(i);
-		}
+		_fd_table[i].second->update(_fd_table);
 	}
 }
 

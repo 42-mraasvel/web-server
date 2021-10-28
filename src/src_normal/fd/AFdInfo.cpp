@@ -46,5 +46,14 @@ void	AFdInfo::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
 			updated_events = 0;
 			break;
 	}
-	fd_table[_index].first.events = updated_events | POLLHUP;
+	fd_table[_index].first.events = updated_events;
+}
+
+void	AFdInfo::update(FdTable & fd_table)
+{
+	if (flag == AFdInfo::TO_ERASE)
+	{
+		printf(BLUE_BOLD "Close File:" RESET_COLOR " [%d]\n", _fd);
+		fd_table.eraseFd(_index);
+	}
 }

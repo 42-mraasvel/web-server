@@ -7,17 +7,17 @@ class Client;
 class File : public AFdInfo
 {
 	public:
-		File(Client *client, int fd);
+		File(int fd);
 		struct pollfd	getPollFd() const;
 
 		int	readEvent(FdTable & fd_table);
 		int	writeEvent(FdTable & fd_table);
-		int	closeEvent();
 
 		std::string	const &	getContent() const;
 		void				setContent(std::string const & content);
+		void				clearContent();
+		void				swapContent(std::string & content);
 
 	private:
-		Client*		_client;
 		std::string	_content;
 };

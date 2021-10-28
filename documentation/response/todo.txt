@@ -1,0 +1,36 @@
+------------------
+--     NOW      --
+------------------
+    
+>> fill response header
+    - Content-type?
+    - Date & time?
+    - Server name?
+
+>> what if File::read or File::write occurs error half way, how to draw the response?
+    - finish chunked 
+>> use access to check file (directory) in general
+>> change POST to 201 + 204 (use access())
+>> Correct Location - URI in POST response && message_body
+
+------------------
+--    LATER     --
+------------------
+
+>> modify generatePage() for error response
+>> exception handling (Allocation error);
+>> automate the test for response correctness
+
+>> Range Request
+>> Negotiation
+>> Conditional Request
+
+std::cout << RED_BOLD << " " << RESET_COLOR << std::endl;
+
+
+---------------------------
+--    MAARTEN RAASVELDT  --
+---------------------------
+>> to check for Host (400 Bad Request):
+>> transfer encoding
+    - add close connection flag for 

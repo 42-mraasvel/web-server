@@ -9,80 +9,336 @@ RequestParser::HttpVersion::HttpVersion(int maj, int min)
 : major(maj), minor(min) {}
 
 RequestParser::RequestParser()
-: _status_code(200) {}
+: _status_code(200), _request(NULL), _index(0) {}
+
+RequestParser::~RequestParser() {
+	while (!_requests.empty())
+	{
+		Request* x = _requests.front();
+		_requests.pop();
+		delete x;
+	}
+}
 
 /*
-Return:
-	- REQUEST_COMPLETE
-	- CONT_READING
-	- BAD_REQUEST // Check status_code for specific error value
+Returns NULL if no request, otherwise returns next request in queue and removes it from the queue
+Returned pointer has to be deleted by the caller
+
+Request status:
+	HEADER_COMPLETE: still reading in message-body DATA
+	COMPLETE: can safely be deleted
+	BAD_REQUEST: error encountered in parsing
+
+IF HEADER_COMPLETE
+	an internal pointer to the request is stored in the parser, and message-body is still appended
+	if the entire message-body is read, it's status will be set to COMPLETE
 */
-int RequestParser::parseHeader(std::string const & request)
+Request* RequestParser::getNextRequest()
 {
-	_index = 0;
-
-	if (WebservUtility::findLimit(request, EOHEADER, MAX_HEADER_SIZE) == std::string::npos)
+	if (_requests.empty())
 	{
-		return BAD_REQUEST;
+		return NULL;
 	}
 
-	resetParser();
+	Request* request = _requests.front();
+	_requests.pop();
+	return request;
+}
 
-	if (parseRequestLine(request) == ERR)
+/*
+1. Append buffer to internal string, check for EOHEADER
+2. Check if there is a Request left over from the previous iteration(s)
+
+Leftover Request:
+	- Header is complete
+	- Add message-body to request
+
+	- GOTO Check if Request is finished
+
+No request:
+	- If no header: return and wait for the next buffer
+	- InitRequest and parse Header
+	- Add request to the Queue, parse message-body until you can
+
+	- GOTO Check if Request is finished
+
+Check if Request is finished:
+	Finished Request:
+		- Delimit request
+		- Back to "No Request", using the rest of the buffer (if any)
+	Unfinished Request:
+		- Set request to READING
+		- End
+End:
+	Remove everything from _buffer until the index
+
+Definitions:
+	Delimit a request: add it to the queue and set it's status to COMPLETE, and set Request* request to NULL
+
+On BAD_REQUEST: discard current buffer and add BAD_REQUEST to queue (or until EOHEADER)
+*/
+
+int RequestParser::parse(std::string const & buffer)
+{
+	// If there's nothing in _buffer, we can just swap
+	_buffer.append(buffer);
+
+	if (leftOverRequest())
 	{
-		return BAD_REQUEST;
+		parseMessageBody();
 	}
 
-	if (parseHeaderFields(request) == ERR)
+	while (_index < _buffer.size())
 	{
-		return BAD_REQUEST;
+		if (!checkHeaderEnd())
+		{
+			break;
+		}
+		newRequest();
+		if (parseHeader() == ERR)
+		{
+			// clearToEoHeader();
+			delimitRequest(Request::BAD_REQUEST);
+		}
+		else
+		{
+			parseMessageBody();
+		}
+	}
+	clearToIndex();
+	return OK;
+}
+
+/*
+Returns true if there is a request we're currently reading into
+*/
+bool RequestParser::leftOverRequest() const
+{
+	return _request != NULL && _request->status != Request::COMPLETE;
+}
+
+/*
+Check if _buffer contains the EOHEADER (CRLF CRLF)
+Adds BAD_REQUEST to queue if size exceeds limit
+
+returns true if the header is present and everything is cool
+*/
+bool RequestParser::checkHeaderEnd()
+{
+	if (_buffer.find(EOHEADER, _index) == std::string::npos)
+	{
+		if (_buffer.size() - _index > MAX_HEADER_SIZE)
+		{
+			// Exceeded MAX_HEADER_SIZE
+			// ADD BAD_REQUEST TO QUEUE
+			std::cerr << "PARSER ERROR: max header size exceeded" << std::endl;
+			newRequest();
+			delimitRequest(Request::BAD_REQUEST);
+			resetBuffer();
+		}
+		return false;
+	}
+	return true;
+}
+
+/*
+Precondition: EOHEADER is in the buffer after the index
+Returns ERR on syntax error
+*/
+int RequestParser::parseHeader()
+{
+	if (parseRequestLine() == ERR)
+	{
+		return ERR;
+	}
+	if (parseHeaderFields() == ERR)
+	{
+		return ERR;
+	}
+	if (parseEndLine() == ERR)
+	{
+		return ERR;
 	}
 
-	parseMessageBody(request);
-	return REQUEST_COMPLETE;
+	if (checkHeaderFields() == ERR)
+	{
+		return ERR;
+	}
+	return OK;
+}
+
+/*
+1. check content-length
+2. check chunked (transfer-encoding and (?)content-encoding(?)) : overwrites content-length
+*/
+int RequestParser::checkHeaderFields()
+{
+	_body_type = NOT_PRESENT;
+	header_field_t::pair_type content_length = _request->header_fields.get("Content-Length");
+	header_field_t::pair_type encoding = _request->header_fields.get("Transfer-Encoding");
+
+	if (content_length.second && encoding.second)
+	{
+		std::cerr << "Both content-length and transfer-encoding are present" << std::endl;
+		return ERR;
+	}
+
+	if (content_length.second)
+	{
+		return parseContentLength(content_length.first->second);
+	}
+	else if (encoding.second)
+	{
+		return parseTransferEncoding(encoding.first->second);
+	}
+
+	return OK;
+}
+
+/*
+Delimits the current request and adds it to the queue
+
+1. Check if there is a message-body (Content-Length, Transfer-Encoding)
+	- We want to check both fields and test whether to dispatch or not
+	- default dispatch is delimit the request with COMPLETE
+2. Add the message-body to the request
+3. Add request to the queue with the appropriate status based on previous step
+	- Add BAD_REQUEST in case of error
+
+Sets _index to end of _buffer or if the request is complete to the start of the next request
+*/
+int RequestParser::parseMessageBody()
+{
+	switch (_body_type)
+	{
+		case NOT_PRESENT:
+			delimitRequest(Request::COMPLETE);
+			break;
+		case LENGTH:
+			parseContent();
+			break;
+		case CHUNKED:
+			parseChunked();
+			break;
+	}
+
+	return OK;
+}
+
+/*
+If chunked has a parsing error, then there is a bad request
+*/
+int RequestParser::parseChunked()
+{
+	if (_chunked_parser.parse(_buffer, _index, _request->message_body) == ERR)
+	{
+		delimitRequest(Request::BAD_REQUEST);
+	}
+	else if (_chunked_parser.finished())
+	{
+		delimitRequest(Request::COMPLETE);
+	}
+	return OK;
+}
+
+/*
+1. Check if the rest of the body is present
+2. If not present: add whatever is in the buffer and set index to end
+3. If present: add everything and set Request::COMPLETE
+*/
+int RequestParser::parseContent()
+{
+	if (_remaining_content > _buffer.size() - _index)
+	{
+		_request->message_body.append(_buffer.substr(_index));
+		_remaining_content -= _buffer.size() - _index;
+		_index = _buffer.size();
+		delimitRequest(Request::HEADER_COMPLETE);
+	}
+	else
+	{
+		_request->message_body.append(_buffer.substr(_index, _remaining_content));
+		_index += _remaining_content;
+		_remaining_content = 0;
+		delimitRequest(Request::COMPLETE);
+	}
+
+	return OK;
+}
+
+int RequestParser::parseContentLength(std::string const & value)
+{
+	for (std::size_t i = 0; i < value.size(); ++i)
+	{
+		if (!isDigit(value[i]))
+		{
+			// invalid value
+			return ERR;
+		}
+	}
+
+	if (WebservUtility::strtoul(value, _remaining_content) == -1)
+	{
+		// Overflow
+		return ERR;
+	}
+	_body_type = LENGTH;
+	return OK;
+}
+
+int RequestParser::parseTransferEncoding(std::string const & value)
+{
+	if (!WebservUtility::caseInsensitiveEqual(value, "chunked"))
+	{
+		//TODO: status: 501: NOT IMPLEMENTED
+		_request->status_code = 501;
+		return ERR;
+	}
+	_body_type = CHUNKED;
+	return OK;
 }
 
 /*
 Request Line Parsing
 See documentation for ABNF and details
 */
-int RequestParser::parseRequestLine(std::string const & request)
+int RequestParser::parseRequestLine()
 {
-	if (parseMethod(request) != OK)
+	if (parseMethod() != OK)
 	{
 		return ERR;
 	}
 
-	if (parseSpace(request) != OK)
+	if (parseSpace() != OK)
 	{
 		return ERR;
 	}
 
-	if (parseTargetResource(request) != OK)
+	if (parseTargetResource() != OK)
 	{
 		return ERR;
 	}
 
-	if (parseSpace(request) != OK)
+	if (parseSpace() != OK)
 	{
 		return ERR;
 	}
 
-	if (parseVersion(request) != OK)
+	if (parseVersion() != OK)
 	{
 		return ERR;
 	}
 
-	if (parseEndLine(request) != OK)
+	if (parseEndLine() != OK)
 	{
 		return ERR;
 	}
 	return OK;
 }
 
-int RequestParser::parseSpace(std::string const & s)
+int RequestParser::parseSpace()
 {
-	if (s[_index] != ' ')
+	if (_buffer[_index] != ' ')
 	{
 		return ERR;
 	}
@@ -90,113 +346,115 @@ int RequestParser::parseSpace(std::string const & s)
 	return OK;
 }
 
-int RequestParser::parseMethod(std::string const & s)
+int RequestParser::parseMethod()
 {
 	std::size_t start = _index;
-	if (!isTokenChar(s[_index]))
+	if (!isTokenChar(_buffer[_index]))
 	{
 		return ERR;
 	}
 
-	skip(s, isTokenChar);
-	_method = getMethodType(s.substr(start, _index - start));
+	skip(isTokenChar);
+	_request->method = getMethodType(_buffer.substr(start, _index - start));
 	return OK;
 }
 
-int RequestParser::parseTargetResource(std::string const & s)
+int RequestParser::parseTargetResource()
 {
 	std::size_t start = _index;
-	if (skipAbsolutePath(s) == false) {
+	if (skipAbsolutePath() == false) {
 		return ERR;
 	}
-	skipQuery(s);
-	_target_resource = s.substr(start, _index - start);
+	_request->target_resource = _buffer.substr(start, _index - start);
+	start = _index;
+	skipQuery();
+	_request->query = _buffer.substr(start, _index - start);
 	return OK;
 }
 
-bool RequestParser::skipAbsolutePath(std::string const & s)
+bool RequestParser::skipAbsolutePath()
 {
-	if (s[_index] != '/')
+	if (_buffer[_index] != '/')
 	{
 		return false;
 	}
 
-	while (s[_index] == '/')
+	while (_buffer[_index] == '/')
 	{
 		// NginX skips all slashes
-		while (s[_index] == '/')
+		while (_buffer[_index] == '/')
 		{
 			++_index;
 		}
-		if (!isPchar(s[_index]))
+		if (!isPchar(_buffer[_index]))
 		{
 			break;
 		}
-		skip(s, isPchar);
+		skip(isPchar);
 	}
 	return true;
 }
 
-bool RequestParser::skipQuery(std::string const & s)
+bool RequestParser::skipQuery()
 {
-	if (s[_index] != '?') {
+	if (_buffer[_index] != '?') {
 		return true;
 	}
 
-	skip(s, isQueryChar);
-	if (s[_index] == '#') {
+	skip(isQueryChar);
+	if (_buffer[_index] == '#') {
 		++_index;
 	}
 	return true;
 }
 
-int RequestParser::parseVersion(std::string const & s)
+int RequestParser::parseVersion()
 {
 	// parse prefix
-	if (s.compare(_index, 5, "HTTP/") != 0)
+	if (_buffer.compare(_index, 5, "HTTP/") != 0)
 	{
 		return ERR;
 	}
 	_index += 5;
-	if (!parseMajorVersion(s))
+	if (!parseMajorVersion())
 	{
 		return ERR;
 	}
 	// parse dot
-	if (s[_index] != '.')
+	if (_buffer[_index] != '.')
 	{
 		return ERR;
 	}
 	++_index;
 
-	if (!parseMinorVersion(s))
+	if (!parseMinorVersion())
 	{
 		return ERR;
 	}
 	return OK;
 }
 
-bool RequestParser::parseMajorVersion(std::string const & s)
+bool RequestParser::parseMajorVersion()
 {
-	if (s[_index] == '0' || !isDigit(s[_index]))
+	if (_buffer[_index] == '0' || !isDigit(_buffer[_index]))
 	{
 		return false;
 	}
 	std::size_t start = _index;
-	skip(s, isDigit);
-	_version.major = WebservUtility::strtol(s.data() + start);
+	skip(isDigit);
+	_request->major_version = WebservUtility::strtol(_buffer.data() + start);
 	return true;
 }
 
-bool RequestParser::parseMinorVersion(std::string const & s)
+bool RequestParser::parseMinorVersion()
 {
 	std::size_t start = _index;
-	skip(s, isDigit);
+	skip(isDigit);
 	if (_index - start > 3 || _index - start == 0)
 	{
 		return false;
 	}
-	_version.minor = WebservUtility::strtol(s.data() + start);
+	_request->minor_version = WebservUtility::strtol(_buffer.data() + start);
 	return true;
 }
 
@@ -205,50 +463,49 @@ Header Field Parsing
 	Precondition: Ends with CRLF CRLF
 */
 
-int RequestParser::parseHeaderFields(std::string const & request)
+int RequestParser::parseHeaderFields()
 {
-	while (request.compare(_index, 2, CRLF) != 0)
+	while (_buffer.compare(_index, 2, CRLF) != 0)
 	{
 		std::string key, value;
-		if (parseFieldName(request, key) == ERR)
+		if (parseFieldName(key) == ERR)
 		{
 			return ERR;
 		}
-		if (parseColon(request) == ERR)
+		if (parseColon() == ERR)
 		{
 			return ERR;
 		}
-		parseWhiteSpace(request);
-		if (parseFieldValue(request, value) == ERR)
+		parseWhiteSpace();
+		if (parseFieldValue(value) == ERR)
 		{
 			return ERR;
 		}
-		parseWhiteSpace(request);
-		if (parseEndLine(request) == ERR)
+		parseWhiteSpace();
+		if (parseEndLine() == ERR)
 		{
 			return ERR;
 		}
-		_header_fields[key] = value;
+		_request->header_fields[key] = value;
 	}
 	return OK;
 }
 
-int RequestParser::parseFieldName(std::string const & request, std::string & key)
+int RequestParser::parseFieldName(std::string & key)
 {
-	if (!isTokenChar(request[_index]))
+	if (!isTokenChar(_buffer[_index]))
 	{
 		return ERR;
 	}
 	std::size_t start = _index;
-	skip(request, isTokenChar);
-	key = request.substr(start, _index - start);
-	WebservUtility::convertToLowercase(key);
+	skip(isTokenChar);
+	key = _buffer.substr(start, _index - start);
 	return OK;
 }
 
-int RequestParser::parseColon(std::string const & request)
+int RequestParser::parseColon()
 {
-	if (request[_index] != ':')
+	if (_buffer[_index] != ':')
 	{
 		return ERR;
 	}
@@ -256,13 +513,13 @@ int RequestParser::parseColon(std::string const & request)
 	return OK;
 }
 
-int RequestParser::parseWhiteSpace(std::string const & request)
+int RequestParser::parseWhiteSpace()
 {
-	if (!isWhiteSpace(request[_index]))
+	if (!isWhiteSpace(_buffer[_index]))
 	{
 		return ERR;
 	}
-	skip(request, isWhiteSpace);
+	skip(isWhiteSpace);
 	return OK;
 }
 
@@ -275,27 +532,27 @@ Notes:
 	- Can be empty
 	- Can contain spaces/whitespace
 */
-int RequestParser::parseFieldValue(std::string const & request, std::string & value)
+int RequestParser::parseFieldValue(std::string & value)
 {
 	std::size_t start = _index;
 	std::size_t end = _index;
-	while (request.compare(_index, 2, CRLF) != 0)
+	while (_buffer.compare(_index, 2, CRLF) != 0)
 	{
-		if (!isVchar(request[_index]))
+		if (!isVchar(_buffer[_index]))
 		{
 			return ERR;
 		}
-		skip(request, isVchar);
+		skip(isVchar);
 		end = _index;
-		skip(request, isWhiteSpace);
+		skip(isWhiteSpace);
 	}
-	value = request.substr(start, end - start);
+	value = _buffer.substr(start, end - start);
 	return OK;
 }
 
-int RequestParser::parseEndLine(std::string const & request)
+int RequestParser::parseEndLine()
 {
-	if (request.compare(_index, 2, CRLF) != 0)
+	if (_buffer.compare(_index, 2, CRLF) != 0)
 	{
 		return ERR;
 	}
@@ -303,42 +560,17 @@ int RequestParser::parseEndLine(std::string const & request)
 	return OK;
 }
 
-/*
-Message Body parsing
-*/
-
-int RequestParser::parseMessageBody(std::string const & request)
-{
-	_index += 2;
-	header_field_t::iterator it = _header_fields.find("content-length");
-	if (it == _header_fields.end())
-	{
-		return OK;
-	}
-
-	std::size_t content_length = WebservUtility::strtoul(it->second);
-	if (content_length == 0)
-	{
-		_message_body = request.substr(_index);
-	}
-	else
-	{
-		_message_body = request.substr(_index, content_length);
-	}
-	return OK;
-}
-
 /* Helper Functions */
 
-void RequestParser::skip(std::string const & s, IsFunctionT condition)
+void RequestParser::skip(IsFunctionT condition)
 {
-	while (condition(s[_index]) && _index < s.size())
+	while (condition(_buffer[_index]) && _index < _buffer.size())
 	{
 		++_index;
 	}
 }
 
-enum RequestParser::MethodType RequestParser::getMethodType(std::string const & s) const
+MethodType RequestParser::getMethodType(std::string const & s) const
 {
 	static const std::string types[] = {
 		"GET",
@@ -356,71 +588,51 @@ enum RequestParser::MethodType RequestParser::getMethodType(std::string const & 
 	return OTHER;
 }
 
-void RequestParser::resetParser()
+/* Request Functions */
+
+void RequestParser::newRequest()
 {
-	_header_fields.clear();
+	_request = new Request;
 }
 
-/*
-Getters
-*/
-
-enum RequestParser::MethodType RequestParser::getMethod() const
+void RequestParser::clearToIndex()
 {
-	return _method;
+	_buffer.erase(0, _index);
+	_index = 0;
 }
 
-const std::string& RequestParser::getTargetResource() const
+void RequestParser::resetBuffer()
 {
-	return _target_resource;
+	_buffer.clear();
+	_index = 0;
 }
 
-RequestParser::HttpVersion RequestParser::getHttpVersion() const
+void RequestParser::clearToEoHeader()
 {
-	return _version;
+	_index = _buffer.find(EOHEADER, _index) + 4;
+	clearToIndex();
 }
 
-RequestParser::header_field_t& RequestParser::getHeaderFields()
+int RequestParser::delimitRequest(Request::RequestStatus status)
 {
-	return _header_fields;
-}
-
-const std::string& RequestParser::getMessageBody() const
-{
-	return _message_body;
-}
-
-/*
-Debugging
-*/
-
-std::string RequestParser::getMethodString() const
-{
-	switch (_method)
+	//TODO: clean up function and make it more logical
+	if (_request->status == Request::READING)
 	{
-		case GET:
-			return "GET";
-		case POST:
-			return "POST";
-		case DELETE:
-			return "DELETE";
-		case OTHER:
-			break;
+		_requests.push(_request);
 	}
-	return "OTHER";
-}
 
-void RequestParser::print() const
-{
-	printf(GREEN_BOLD "-- PARSED REQUEST --" RESET_COLOR "\r\n");
-	printf("%s %s HTTP/%d.%d\r\n",
-		getMethodString().c_str(), getTargetResource().c_str(),
-		getHttpVersion().major, getHttpVersion().minor);
-	
-	for (header_field_t::const_iterator it = _header_fields.begin(); it != _header_fields.end(); ++it)
+	if (status == Request::BAD_REQUEST)
 	{
-		printf("  %s: %s\r\n", it->first.c_str(), it->second.c_str());
+		//TODO: set status_code to specific version
+		//NOTE: the entire buffer is discarded on a bad request
+		_request->status_code = 400;
+		resetBuffer();
 	}
-	printf(GREEN_BOLD "-- MESSAGE BODY --" RESET_COLOR "\r\n");
-	printf("%s\r\n", _message_body.c_str());
+
+	_request->status = status;
+	if (status != Request::HEADER_COMPLETE)
+	{
+		_request = NULL;
+	}
+	return OK;
 }

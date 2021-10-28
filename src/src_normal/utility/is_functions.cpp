@@ -45,3 +45,9 @@ bool isDigit(char x)
 {
 	return x >= '0' && x <= '9';
 }
+
+bool isHex(char x)
+{
+	return isDigit(x) ||
+		(toupper(x) >= 'A' && toupper(x) <= 'F');
+}

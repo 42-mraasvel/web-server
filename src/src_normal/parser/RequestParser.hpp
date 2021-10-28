@@ -1,18 +1,11 @@
 #pragma once
-#include <string>
-#include <map>
+#include "Request.hpp"
+#include "ChunkedParser.hpp"
+#include <queue>
 
 class RequestParser
 {
 	public:
-		enum MethodType
-		{
-			GET,
-			POST,
-			DELETE,
-			OTHER
-		};
-
 		enum ParseResult
 		{
 			REQUEST_COMPLETE,
@@ -29,64 +22,85 @@ class RequestParser
 			int minor;
 		};
 
-		typedef std::map<std::string, std::string> header_field_t;
+		typedef Request::header_field_t header_field_t;
+		typedef std::queue<Request*> queue_type;
+
+	private:
+		enum MessageBodyType
+		{
+			CHUNKED,
+			LENGTH,
+			NOT_PRESENT
+		};
 
 	public:
 
 		RequestParser();
+		~RequestParser();
 
-		int					parseHeader(std::string const &request);
-		enum MethodType		getMethod() const;
-		const std::string&	getTargetResource() const;
-		HttpVersion			getHttpVersion() const;
-		header_field_t&		getHeaderFields();
-		const std::string&	getMessageBody() const;
+		int					parse(std::string const & buffer);
+		Request* getNextRequest();
 	
 	private:
 	/* Request Line Parsing */
-		int parseRequestLine(std::string const & request);
-		int parseSpace(std::string const & s);
-		int parseMethod(std::string const & s);
-		int parseTargetResource(std::string const & s);
-		bool skipAbsolutePath(std::string const & s);
-		bool skipQuery(std::string const & s);
-		int parseVersion(std::string const & s);
-		bool parseMajorVersion(std::string const & s);
-		bool parseMinorVersion(std::string const & s);
+		int parseRequestLine();
+		int parseSpace();
+		int parseMethod();
+		int parseTargetResource();
+		bool skipAbsolutePath();
+		bool skipQuery();
+		int parseVersion();
+		bool parseMajorVersion();
+		bool parseMinorVersion();
 
 	/* Header Field Parsing */
 
-		int parseHeaderFields(std::string const & request);
+		int parseHeaderFields();
 
-		int parseFieldName(std::string const & request, std::string & key);
-		int parseColon(std::string const & request);
-		int parseFieldValue(std::string const & request, std::string & value);
-		int parseEndLine(std::string const & request);
+		int parseFieldName(std::string & key);
+		int parseColon();
+		int parseFieldValue(std::string & value);
+		int parseEndLine();
 
 	/* Message Body Parsing */
 
-		int parseMessageBody(std::string const & request);
-
 	/* Helpers */
 		typedef bool (*IsFunctionT)(char);
-		int parseWhiteSpace(std::string const & request);
-		enum MethodType getMethodType(std::string const & s) const;
-		void skip(std::string const & s, IsFunctionT condition);
+		int parseWhiteSpace();
+		MethodType getMethodType(std::string const & s) const;
+		void skip(IsFunctionT condition);
 
-		void resetParser();
-	
-	public:
-	/* Debugging */
-		std::string getMethodString() const;
-		void print() const;
+	/* Request Related */
+
+		int parseHeader();
+		int checkHeaderFields();
+		int parseContentLength(std::string const & value);
+		int parseTransferEncoding(std::string const & value);
+
+		void clearToIndex();
+		void clearToEoHeader();
+		void resetBuffer();
+
+		void newRequest();
+		bool leftOverRequest() const;
+		bool checkHeaderEnd();
+
+		int parseMessageBody();
+		int parseContent();
+		int parseChunked();
+
+		int delimitRequest(Request::RequestStatus status);
 
 	private:
-		enum MethodType	_method;
-		std::string		_target_resource;
-		HttpVersion		_version;
-		header_field_t	_header_fields;
-		std::string		_message_body;
+		queue_type	_requests;
+		int			_status_code;
+		Request*	_request;
+		std::size_t	_index;
 
-		std::size_t		_index;
-		int				_status_code;
+		std::string	_buffer;
+
+	/* For Message-Body Parsing */
+		ChunkedParser			_chunked_parser;
+		MessageBodyType			_body_type;
+		std::size_t				_remaining_content;
 };
