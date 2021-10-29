@@ -18,7 +18,7 @@ Parsing Specific Defines
 /*
 Response Specific Defines
 */
-#define BUFFER_SIZE 5 // TODO: evaluate later
+#define BUFFER_SIZE 4096 // TODO: evaluate later
 #define CHUNK_TAIL "0" CRLF CRLF
 #define RETRY_AFTER_SECONDS 30
 

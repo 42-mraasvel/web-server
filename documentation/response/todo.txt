@@ -3,8 +3,6 @@
 ------------------
 >> understand: host/server name/root/location/_absolute_target
 
-
->> improve structure/flow on file access check
 >> use access to check file (directory) in general
 
 >> Connection header-field
@@ -15,7 +13,8 @@
 
 >> To discuss:
     - implementation of MediaType + how to define charset?
-
+    - if only send a string, no response for bad-request?
+    
 ------------------
 --    LATER     --
 ------------------
