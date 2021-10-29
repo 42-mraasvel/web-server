@@ -50,7 +50,7 @@ void	Response::scanRequestHeader(Request const & request)
 void	Response::setCloseConnectionFlag(Request const & request)
 {
 	// TODO: to incorporate with reqeust
-	if (true)
+	if (false)
 	{
 		_close_connection = true;
 	}
