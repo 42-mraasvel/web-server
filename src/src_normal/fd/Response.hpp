@@ -22,25 +22,28 @@ class Response
 
 	/* Client::readEvent() */
 	public:
-		void	scanRequest(Request const & request);
+		void	scanRequestHeader(Request const & request);
 	private:
 		void		setHttpVersion(int minor_version);
 		void		generateAbsoluteTarget(std::string const & target_resourse);
 		void		previewMethod();
 		bool		isRequestError(Request const & request);
-		bool			checkBadRequest(Request::RequestStatus status, int request_code);
-		bool			checkHttpVersion(int http_major_version);
-		bool			checkMethod();
+		bool			isBadRequest(Request::RequestStatus status, int request_code);
+		bool			isHttpVersionError(int http_major_version);
+		bool			isMethodError();
 		bool				findMethod(MethodType method) const;
-		bool			checkExpectation(Request const & request);
+		bool			isExpectationError(Request const & request);
 		void		continueResponse(Request const & request);
 
 	public:
 		void	executeRequest(FdTable & fd_table, Request & request);
 	private:
 		int			createFile(FdTable & fd_table);
-		bool			checkFileAccess();
-		bool			checkFileAuthorization();
+		void			setFileParameter(int & access_flag, int & open_flag);
+		bool			isFileReady(int access_flag);
+		bool				isFileExist();
+		bool				isFileAuthorized(int access_flag);
+		int				openFile(int open_flag, FdTable & fd_table);
         int 		executeMethod(Request & request);
         int 			executeGet();
         int 			executePost(Request & request);
@@ -98,8 +101,6 @@ class Response
 		File*				_file;
 
 		std::string			_absolute_target;
-		int					_file_open_flag;
-		int					_file_access_flag;
 		AFdInfo::EventTypes	_file_event;
 
 		RequestParser::header_field_t  _header_fields;

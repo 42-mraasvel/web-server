@@ -25,6 +25,7 @@ class Client : public AFdInfo
 		bool	retrieveRequest();
 		void	processRequest(FdTable & fd_table);
 		void		initResponse();
+		void		checkRequestStatus();
 		bool		isRequestReadyToExecute() const;
 		void	reset();
 		void		resetRequest();

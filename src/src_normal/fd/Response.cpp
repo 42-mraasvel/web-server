@@ -25,18 +25,17 @@ Response::Response(): _status(START), _file(NULL), _header_sent(false), _chunked
 
 Response::~Response() {}
 
-/**********************************************/
-/****** (Client::readEvent) scan request ******/
-/*****************************8****************/
+/*****************************************************/
+/****** (Client::readEvent) scan request header ******/
+/*****************************************************/
 
-void	Response::scanRequest(Request const & request)
+void	Response::scanRequestHeader(Request const & request)
 {
 	_method = request.method;
 	setHttpVersion(request.minor_version);
 	generateAbsoluteTarget(request.target_resource);
 	previewMethod();
-	isRequestError(request);
-	if (_status != COMPLETE)
+	if (!isRequestError(request))
 	{
 		continueResponse(request);
 	}
@@ -72,37 +71,28 @@ void Response::previewMethod()
 	switch (_method)
 	{
 		case GET:
-			_file_open_flag = O_RDONLY;
-			_file_access_flag = R_OK;
-			_file_event = AFdInfo::READING;
 			_status_code = 200;
-			break;
+			return;
 		case POST:
-			_file_open_flag = O_CREAT | O_WRONLY | O_APPEND;
-			_file_access_flag = W_OK;
-			_file_event = AFdInfo::WRITING;
 			_status_code = 201;
-			break;
+			return;
 		case DELETE:
-			_file_open_flag = O_WRONLY;
-			_file_access_flag = W_OK;
-			_file_event = AFdInfo::WAITING;
 			_status_code = 204;
-			break; 
+			return;
 		default:
-			break;
+			return;
 	}
 }
 
 bool	Response::isRequestError(Request const & request)
 {
-	return checkBadRequest(request.status, request.status_code)
-			|| checkHttpVersion(request.major_version)
-			|| checkMethod()
-			|| checkExpectation(request);
+	return isBadRequest(request.status, request.status_code)
+			|| isHttpVersionError(request.major_version)
+			|| isMethodError()
+			|| isExpectationError(request);
 }
 
-bool	Response::checkBadRequest(Request::RequestStatus status, int request_code)
+bool	Response::isBadRequest(Request::RequestStatus status, int request_code)
 {
 	if (status == Request::BAD_REQUEST)
 	{
@@ -112,7 +102,7 @@ bool	Response::checkBadRequest(Request::RequestStatus status, int request_code)
 	return false;
 }
 
-bool	Response::checkHttpVersion(int http_major_version)
+bool	Response::isHttpVersionError(int http_major_version)
 {
 	if (http_major_version != 1)
 	{
@@ -122,7 +112,7 @@ bool	Response::checkHttpVersion(int http_major_version)
 	return false;
 }
 
-bool	Response::checkMethod()
+bool	Response::isMethodError()
 {
 	if (_method == OTHER)
 	{
@@ -158,7 +148,7 @@ bool	Response::findMethod(MethodType const method) const
 	return it != _allowed_methods.end();
 }
 
-bool	Response::checkExpectation(Request const & request)
+bool	Response::isExpectationError(Request const & request)
 {
 	if (request.header_fields.contains("expect") &&
 		!WebservUtility::caseInsensitiveEqual(request.header_fields.find("expect")->second, "100-continue"))
@@ -210,11 +200,82 @@ void	Response::executeRequest(FdTable & fd_table, Request & request)
 
 int	Response::createFile(FdTable & fd_table)
 {
-	if (checkFileAccess() == false)
+	int	access_flag;
+	int	open_flag;
+	setFileParameter(access_flag, open_flag);
+
+	if (!isFileReady(access_flag))
 	{
 		return ERR;
 	}
-	int	file_fd = open(_absolute_target.c_str(), _file_open_flag, 0644);
+	return openFile(open_flag, fd_table);
+}
+
+void	Response::setFileParameter(int & access_flag, int & open_flag)
+{
+	switch(_method)
+	{
+		case GET:
+			access_flag = R_OK;
+			open_flag = O_RDONLY;
+			_file_event = AFdInfo::READING;
+			return ;
+		case POST:
+			access_flag = W_OK;
+			open_flag = O_CREAT | O_WRONLY | O_APPEND;
+			_file_event = AFdInfo::WRITING;
+			return ;
+		case DELETE:
+			access_flag = W_OK;
+			open_flag = O_WRONLY;
+			_file_event = AFdInfo::WAITING;
+			return ;
+		case OTHER:
+		defaul:
+			return;
+	}
+}
+
+bool	Response::isFileReady(int access_flag)
+{
+	if (_method == GET || _method == DELETE)
+	{
+		return isFileExist() && isFileAuthorized(access_flag);
+	}
+	if (_method == POST)
+	{
+		if (access(_absolute_target.c_str(), F_OK) == OK)
+		{
+			_status_code = 204; /* NO CONTENT */
+			return isFileAuthorized(access_flag);
+		}
+	}
+	return true;
+}
+
+bool	Response::isFileExist()
+{
+	if (access(_absolute_target.c_str(), F_OK) == ERR)
+	{
+		processError(404); /* NOTFOUND */
+		return false;
+	}
+	return true;
+}
+
+bool	Response::isFileAuthorized(int access_flag)
+{
+	if (access(_absolute_target.c_str(), access_flag) == ERR)
+	{
+		processError(403); /* FORBIDDEN */
+		return false;
+	}
+	return true;
+}
+
+int	Response::openFile(int open_flag, FdTable & fd_table)
+{
+	int	file_fd = open(_absolute_target.c_str(), open_flag, 0644);
 	if (file_fd == ERR)
 	{
 		perror("open");
@@ -224,40 +285,8 @@ int	Response::createFile(FdTable & fd_table)
 	_file = new File(file_fd);
 	fd_table.insertFd(_file);
 	return OK;
-
 }
 
-bool	Response::checkFileAccess()
-{
-	if (_method == GET || _method == DELETE)
-	{
-		if (access(_absolute_target.c_str(), F_OK) == ERR)
-		{
-			processError(404); /* NOTFOUND */
-			return false;
-		}
-		return checkFileAuthorization();
-	}
-	if (_method == POST)
-	{
-		if (access(_absolute_target.c_str(), F_OK) == OK)
-		{
-			_status_code = 204; /* NO CONTENT */
-			return checkFileAuthorization();
-		}
-	}
-	return true;
-}
-
-bool	Response::checkFileAuthorization()
-{
-	if (access(_absolute_target.c_str(), _file_access_flag) == ERR)
-	{
-		processError(403); /* FORBIDDEN */
-		return false;
-	}
-	return true;
-}
 
 int Response::executeMethod(Request & request)
 {
@@ -362,7 +391,10 @@ void	Response::responseGet()
 void	Response::responsePost()
 {
 	//TODO: fill in URI-reference
-	_header_fields["Location"] = _absolute_target;
+	if (_status_code == 201)
+	{
+		_header_fields["Location"] = _absolute_target;
+	}
 	return ;
 }
 
@@ -424,7 +456,6 @@ void	Response::encodeMessageBody()
 void	Response::setHeader()
 {
 	setStringStatusLine();
-	setServer();
 	setDate();
 	setRetryAfter();
 	setAllow();

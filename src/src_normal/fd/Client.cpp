@@ -105,8 +105,9 @@ void	Client::processRequest(FdTable & fd_table)
 	if (!_new_response)
 	{
 		initResponse();
+		_new_response->scanRequestHeader(*_request);
+		checkRequestStatus();
 	}
-	_new_response->scanRequest(*_request);
 	if (isRequestReadyToExecute())
 	{
 		_new_response->executeRequest(fd_table, *_request);
@@ -120,10 +121,19 @@ void	Client::initResponse()
 	_response_queue.push(_new_response);
 }
 
+void	Client::checkRequestStatus()
+{
+	if (_new_response->getStatus() == Response::COMPLETE
+		&& _new_response->getStatusCode() != 100)
+	{
+		_request->executed = true;
+	}
+}
+
 bool	Client::isRequestReadyToExecute() const
 {
 	return _request->status == Request::COMPLETE
-			&& _new_response->getStatus() != Response::COMPLETE;
+			&& !_request->executed;
 }
 
 void	Client::reset()
@@ -132,7 +142,7 @@ void	Client::reset()
 	{
 		resetRequest();
 	}
-	else if (_new_response->getStatus() == Response::COMPLETE)
+	else if (_new_response && _new_response->getStatus() == Response::COMPLETE)
 	{
 		_new_response = NULL;
 	}

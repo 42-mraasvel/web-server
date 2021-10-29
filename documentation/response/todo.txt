@@ -1,7 +1,7 @@
 ------------------
 --     NOW      --
 ------------------
-!!!>> understand: host/server name/root/location/_absolute_target
+>> understand: host/server name/root/location/_absolute_target
 
 
 >> improve structure/flow on file access check
@@ -14,7 +14,6 @@
     - headerfield: Location | Retry-After
 
 >> To discuss:
-    - Response header: [server] is for server_name? is it necessary?
     - implementation of MediaType + how to define charset?
 
 ------------------
