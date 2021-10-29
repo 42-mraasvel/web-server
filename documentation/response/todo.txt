@@ -5,20 +5,21 @@
 
 >> use access to check file (directory) in general
 
->> Connection header-field
-
 >> Correct Location - URI in POST response && message_body
+
 >> Redirection (3xx)
     - headerfield: Location | Retry-After
 
 >> To discuss:
     - implementation of MediaType + how to define charset?
     - if only send a string, no response for bad-request?
+    - tear-down process go through
+        - should implement close in stage or not?
     
 ------------------
 --    LATER     --
 ------------------
-
+>> set _close_connection flag from request.
 >> modify generatePage() for error response
 >> exception handling (Allocation error);
 >> automate the test for response correctness

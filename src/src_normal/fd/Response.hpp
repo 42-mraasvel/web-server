@@ -24,17 +24,17 @@ class Response
 	public:
 		void	scanRequestHeader(Request const & request);
 	private:
-		void		setCloseConnectionFlag(Request const & request);
 		void		setHttpVersion(int minor_version);
 		void		generateAbsoluteTarget(std::string const & target_resourse);
 		void		previewMethod();
 		bool		isRequestError(Request const & request);
+		bool			isConnectionError(Request const & request);
 		bool			isBadRequest(Request::RequestStatus status, int request_code);
 		bool			isHttpVersionError(int http_major_version);
 		bool			isMethodError();
 		bool				findMethod(MethodType method) const;
 		bool			isExpectationError(Request const & request);
-		void		continueResponse(Request const & request);
+		void				continueResponse(Request const & request);
 
 	public:
 		void	executeRequest(FdTable & fd_table, Request & request);
@@ -69,6 +69,7 @@ class Response
 		void			encodeMessageBody();
 		void			setHeader();
 		void				setDate();
+		void				setConnection();
 		void				setRetryAfter();
 		void				setAllow();
 		void				setTransferEncodingOrContentLength();

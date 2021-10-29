@@ -1,5 +1,4 @@
-GET / HTTP/1.1
-Host: 1
-Content-length: 22
+GET / HTTP/1.0
+Host: localhost
+Connection: Keep-alive
 
-I shouldn't be here!

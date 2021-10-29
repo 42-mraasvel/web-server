@@ -1,5 +1,6 @@
 DELETE /lemon.txt HTTP/1.1
 Host: localhost
 Content-length: 22
+Connection: keep-AlivE
 
 I shouldn't be here!

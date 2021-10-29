@@ -1,0 +1,48 @@
+-----------------------------------
+--    Connection Header Field    --
+-----------------------------------
+	- Proxy or gateway MUST remove or replace any received connection options before forwarding the message.
+	- Connection options are case-insensitive.
+	- [Connection: close]
+		- The "close" connection option is defined for a sender to signal that this connection will be closed after after the current request/response is complete.
+		- A client that does not support persistent connections MUST send the "close" connection option in every request message.
+		- A server that does not support persistent connections MUST send the "close" connection option in every response message that does not have a 1xx (Informational) status code.
+
+-----------------------
+--    Persistence    --
+-----------------------
+	- HTTP/1.1 defaults to the use of "persistent connections".
+	- A recipient determines whether a connection is persistent or not based on the most recently received message’s protocol version and Connection header field (if any):
+		o If the "close" connection option is present, the connection will not persist after the current response; else,
+		o If the received protocol is HTTP/1.1 (or later), the connection will persist after the current response; else,
+		o If the received protocol is HTTP/1.0, the "keep-alive" connection option is present, the recipient is not a proxy, and the recipient wishes to honor the HTTP/1.0 "keep-alive" mechanism, the connection will persist after the current response; otherwise,
+		o (HTTP/1.0 response without a "keep-alive" connection option) The connection will close after the current response.
+
+		+-------+------------------------------+-----------+
+		| HTTP	|	     Connection Header     | No header |
+		|version+---------+------------+-------+           |
+		| 		| "close" |"keep-alive"| other |		   |
+		+-------+---------+------------+-------+-----------+
+		| 1.0	|  CLOSE  | NO-CLOSE   | ERROR |    CLOSE  |
+		+-------+---------+------------+-------+-----------+
+		| 1.1	|  CLOSE  | NO-CLOSE   | ERROR |  NO-CLOSE |
+		+-------+---------+------------+-------+-----------+
+
+
+
+---------------–––––––––--------
+--    Failure and Time-out    --
+----------------–––––––––-------
+	- A client or server that wishes to time out SHOULD issue a graceful close on the connection. Implementations SHOULD constantly monitor open connections for a received closure signal and respond to it as appropriate, since prompt closure of both sides of a connection enables allocated system resources to be reclaimed.
+	- A client, server, or proxy MAY close the transport connection at any time.
+
+---------------–––––-
+--    Tear-down    --
+----------------––––-
+	- A client that sends a "close" connection option MUST NOT send further requests on that connection and MUST close the connection after reading the final response message corresponding to this request.
+	- A server that receives a "close" connection option MUST initiate a close of the connection (see below) after it sends the final response to the request that contained "close". The server SHOULD send a "close" connection option in its final response on that connection. The server MUST NOT process any further requests received on that connection. 
+	- A server that sends a "close" connection option MUST initiate a close of the connection (see below) after it sends the response containing "close". The server MUST NOT process any further requests received on that connection. 
+	- A client that receives a "close" connection option MUST cease sending requests on that connection and close the connection after reading the response message containing the "close"; if additional pipelined requests had been sent on the connection, the client SHOULD NOT assume that they will be processed by the server.
+
+	>> Close in stages:
+		- To avoid the TCP reset problem, servers typically close a connection in stages. First, the server performs a half-close by closing only the write side of the read/write connection. The server then continues to read from the connection until it receives a corresponding close by the client, or until the server is reasonably certain that its own TCP stack has received the client’s acknowledgement of the packet(s) containing the server’s last response. Finally, the server fully closes the connection.

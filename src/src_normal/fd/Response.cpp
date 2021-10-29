@@ -37,22 +37,12 @@ Response::~Response() {}
 void	Response::scanRequestHeader(Request const & request)
 {
 	_method = request.method;
-	setCloseConnectionFlag(request);
 	setHttpVersion(request.minor_version);
 	generateAbsoluteTarget(request.target_resource);
 	previewMethod();
 	if (!isRequestError(request))
 	{
 		continueResponse(request);
-	}
-}
-
-void	Response::setCloseConnectionFlag(Request const & request)
-{
-	// TODO: to incorporate with reqeust
-	if (false)
-	{
-		_close_connection = true;
 	}
 }
 
@@ -101,10 +91,33 @@ void Response::previewMethod()
 
 bool	Response::isRequestError(Request const & request)
 {
-	return isBadRequest(request.status, request.status_code)
+	return isConnectionError(request)
+			|| isBadRequest(request.status, request.status_code)
 			|| isHttpVersionError(request.major_version)
 			|| isMethodError()
 			|| isExpectationError(request);
+}
+
+bool	Response::isConnectionError(Request const & request)
+{
+	// TODO: incorporate request's flag
+	if (request.header_fields.contains("connection"))
+	{
+		if(WebservUtility::caseInsensitiveEqual(request.header_fields.find("connection")->second, "close"))
+		{
+			_close_connection = true;
+		}
+		else if (!WebservUtility::caseInsensitiveEqual(request.header_fields.find("connection")->second, "keep-alive"))
+		{
+			processError(400); /* BAD REQUEST */
+			return true;
+		}
+	}
+	else if (request.major_version == 1 && request.minor_version == 0)
+	{
+		_close_connection = true;
+	}
+	return false;
 }
 
 bool	Response::isBadRequest(Request::RequestStatus status, int request_code)
@@ -472,6 +485,7 @@ void	Response::setHeader()
 {
 	setStringStatusLine();
 	setDate();
+	setConnection();
 	setRetryAfter();
 	setAllow();
 	setTransferEncodingOrContentLength();
@@ -497,6 +511,18 @@ void	Response::setDate()
 	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", &tm);
 	
 	_header_fields["Data"] = std::string(buf);
+}
+
+void	Response::setConnection()
+{
+	if (_close_connection)
+	{
+		_header_fields["Connection"] = "close";
+	}
+	else
+	{
+		_header_fields["Connection"] = "keep-alive";
+	}
 }
 
 void	Response::setRetryAfter()
