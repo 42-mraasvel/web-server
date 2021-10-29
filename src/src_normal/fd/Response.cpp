@@ -12,15 +12,20 @@
 #include <time.h>
 #include <algorithm>
 
-Response::Response(): _status(START), _file(NULL), _header_sent(false), _chunked(false)
+Response::Response()
 {
+	_file = NULL;
+	_status = START;
+	_header_sent = false;
+	_chunked = false;
+	_close_connection = false;
+
 	// TODO: to change it properly with configuration
 	_allowed_methods.push_back("GET");
 	_allowed_methods.push_back("POST");
 	_allowed_methods.push_back("DELETE");
 	//TODO: to discuss with team
 	MediaType::initMap(_media_type_map);
-
 }
 
 Response::~Response() {}
@@ -32,12 +37,22 @@ Response::~Response() {}
 void	Response::scanRequestHeader(Request const & request)
 {
 	_method = request.method;
+	setCloseConnectionFlag(request);
 	setHttpVersion(request.minor_version);
 	generateAbsoluteTarget(request.target_resource);
 	previewMethod();
 	if (!isRequestError(request))
 	{
 		continueResponse(request);
+	}
+}
+
+void	Response::setCloseConnectionFlag(Request const & request)
+{
+	// TODO: to incorporate with reqeust
+	if (true)
+	{
+		_close_connection = true;
 	}
 }
 
@@ -577,6 +592,11 @@ void	Response::noChunked()
 Response::Status	Response::getStatus() const
 {
 	return _status;
+}
+
+bool	Response::getCloseConnectionFlag() const
+{
+	return _close_connection;
 }
 
 int	Response::getStatusCode() const

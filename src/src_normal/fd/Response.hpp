@@ -24,6 +24,7 @@ class Response
 	public:
 		void	scanRequestHeader(Request const & request);
 	private:
+		void		setCloseConnectionFlag(Request const & request);
 		void		setHttpVersion(int minor_version);
 		void		generateAbsoluteTarget(std::string const & target_resourse);
 		void		previewMethod();
@@ -81,6 +82,7 @@ class Response
 	public:
 		typedef RequestParser::header_field_t::const_iterator	header_iterator;
 		Status				getStatus() const;
+		bool				getCloseConnectionFlag() const;
 		int					getStatusCode() const;
 		std::string const &	getString() const;
 		void				clearString();
@@ -96,27 +98,32 @@ class Response
 		typedef	std::vector<std::string>::const_iterator		method_const_iterator;
 		typedef	std::vector<std::string>::iterator				method_iterator;
 
+		/* config related */
+		std::vector<std::string>	_allowed_methods;
+		MediaType::Map				_media_type_map;
+
+		/* info */
 		MethodType			_method;
-		Status				_status;
-		File*				_file;
-
 		std::string			_absolute_target;
-		AFdInfo::EventTypes	_file_event;
-
 		RequestParser::header_field_t  _header_fields;
 		std::string 		_http_version;
 		int					_status_code;
 
+		/* file related */
+		File*				_file;
+		AFdInfo::EventTypes	_file_event;
+
+		/* flags */
+		Status				_status;
+		bool				_header_sent;
+		bool				_chunked;
+		bool				_close_connection;
+
+		/* strings to send out */
 		std::string			_string_to_send;
 		std::string			_string_status_line;
 		std::string 		_string_header;
 		std::string			_message_body;
 
-		bool				_header_sent;
-		bool				_chunked;
-
-		/* config related */
-		std::vector<std::string>	_allowed_methods;
-		MediaType::Map				_media_type_map;
 
 };

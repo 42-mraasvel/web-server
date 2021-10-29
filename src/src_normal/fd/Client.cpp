@@ -164,11 +164,10 @@ int	Client::writeEvent(FdTable & fd_table)
 	while (_response_string.size() < BUFFER_SIZE
 			&& retrieveResponse())
 	{
-		_response->checkFileError();
-		_response->generateResponse();
-		appendResponseString();
+		processResponse();
 		if (_response->getStatus() == Response::COMPLETE)
 		{
+			checkConnection();
 			resetResponse();
 		}
 	}
@@ -199,10 +198,48 @@ bool	Client::retrieveResponse()
 	return true;
 }
 
+void	Client::processResponse()
+{
+	_response->checkFileError();
+	_response->generateResponse();
+	if (flag != AFdInfo::TO_ERASE)
+	{
+		appendResponseString();
+	}
+}
+
 void	Client::appendResponseString()
 {
 	_response_string.append(_response->getString());
 	_response->clearString();
+}
+
+void	Client::checkConnection()
+{
+	if (_response->getCloseConnectionFlag())
+	{
+		closeConnection();
+	}
+}
+
+void	Client::resetResponse()
+{
+	delete _response;
+	_response_queue.pop();
+	_response = NULL;
+	if (flag == AFdInfo::TO_ERASE)
+	{
+		cleanQueue();
+	}
+}
+
+void	Client::cleanQueue()
+{
+	while (!_response_queue.empty())
+	{
+		_response_queue.front()->deleteFile();
+		_response_queue.pop();
+	}
 }
 
 int	Client::sendResponseString()
@@ -218,13 +255,6 @@ int	Client::sendResponseString()
 		_response_string.erase(0, size);
 	}
 	return OK;
-}
-
-void	Client::resetResponse()
-{
-	delete _response;
-	_response_queue.pop();
-	_response = NULL;
 }
 
 /*********************/
@@ -253,7 +283,7 @@ void	Client::update(FdTable & fd_table)
 {
 	if (flag == AFdInfo::TO_ERASE)
 	{
-		printf(BLUE_BOLD "Close File:" RESET_COLOR " [%d]\n", _fd);
+		printf(BLUE_BOLD "Close Connection:" RESET_COLOR " [%d]\n", _fd);
 		fd_table.eraseFd(_index);
 	}
 	/*
@@ -273,6 +303,9 @@ void	Client::update(FdTable & fd_table)
 
 void	Client::closeConnection()
 {
-	flag = AFdInfo::TO_ERASE;
-	std::cerr << RED_BOLD << "Socket error, close connect [" << _fd << "]." << RESET_COLOR << std::endl;
+	if (flag != AFdInfo::TO_ERASE)
+	{
+		std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
+		flag = AFdInfo::TO_ERASE;
+	}
 }

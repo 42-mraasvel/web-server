@@ -35,8 +35,11 @@ class Client : public AFdInfo
 		int	writeEvent(FdTable & fd_table);
 	private:
 		bool	retrieveResponse();
-		void	appendResponseString();
+		void	processResponse();
+		void		appendResponseString();
+		void	checkConnection();
 		void	resetResponse();
+		void		cleanQueue();
 		int		sendResponseString();
 
 	/* utility */
