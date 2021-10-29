@@ -1,11 +1,14 @@
 ------------------
 --     NOW      --
 ------------------
+!!!>> understand: host/server name/root/location/_absolute_target
 
->> what if File::read or File::write occurs error half way, how to draw the response?
-    - finish chunked 
+
+>> improve structure/flow on file access check
 >> use access to check file (directory) in general
->> change POST to 201 + 204 (use access())
+
+>> Connection header-field
+
 >> Correct Location - URI in POST response && message_body
 >> Redirection (3xx)
     - headerfield: Location | Retry-After
@@ -33,5 +36,7 @@ std::cout << RED_BOLD << " " << RESET_COLOR << std::endl;
 --    MAARTEN RAASVELDT  --
 ---------------------------
 >> to check for Host (400 Bad Request):
->> transfer encoding
-    - add close connection flag for 
+>> to mark close connection flag:
+    - transfer encoding
+    - When Content-Length is valid, but the sender closes the connection or the recipient times out before complete message_body received, the recipient MUST consider the message to be incomplete and close the connection.
+>> An origin server MAY respond with a status code of 415 (Unsupported Media Type) if a representation in the request message has a content coding that is not acceptable.

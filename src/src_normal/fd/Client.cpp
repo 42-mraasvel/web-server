@@ -154,6 +154,7 @@ int	Client::writeEvent(FdTable & fd_table)
 	while (_response_string.size() < BUFFER_SIZE
 			&& retrieveResponse())
 	{
+		_response->checkFileError();
 		_response->generateResponse();
 		appendResponseString();
 		if (_response->getStatus() == Response::COMPLETE)
@@ -179,7 +180,7 @@ bool	Client::retrieveResponse()
 			return false;
 		}
 		_response = _response_queue.front();
-		_response->prepareToWrite();
+		_response->defineEncoding();
 	}
 	else if (!_response->isFileReady())
 	{

@@ -32,17 +32,37 @@ When a message includes a payload body, the representation header fields describ
             >> Multipart (a category of document broken into pieces, often with different MIME types)
                 message
                 multipart
-            Note: Most web servers send unrecognized resources as the application/octet-stream MIME type. 
-        
+            >> Most web servers send unrecognized resources as the application/octet-stream MIME type. 
 
+    --------------------------------------
+    --    [Content-Encoding: token]    --
+    --------------------------------------
+        - The "Content-Encoding" header field indicates what content codings have been applied to the representation, beyond those inherent in the media type, and thus what decoding mechanisms have to be applied in order to obtain data in the media type referenced by the Content-Type header field. 
+        - Content-Encoding is primarily used to allow a representation’s data to be compressed without losing the identity of its underlying media type.
+        - An origin server MAY respond with a status code of 415 (Unsupported Media Type) if a representation in the request message has a content coding that is not acceptable.
+
+    ----------------------------------------------------------
+    --    [Content-Location: absolute-URI / partial-URI]    --
+    ----------------------------------------------------------
+        - The "Content-Location" header field references a URI that can be used as an identifier for a specific resource corresponding to the representation in this message’s payload.
+        - In summary: not needed for this webserv project.
+        - [RFC 7231 3.1.4.2]
+
+
++-------------------------------------------+
+| Payload Header Field:                     |
++-------------------------------------------+
+|   Content-Length                          |
+|   Content-Range                           |
+|   Trailer                                 |
+|   Transfer-Encoding                       |
++-------------------------------------------+
 
     ------------------------------
     --    [Content-Length]      --
     ------------------------------
         - A sender MUST NOT send a Content-Length header field in any message that contains a Transfer-Encoding header field. 
         - A server MUST NOT send a Content-Length header field in any response with a status code of 1xx (Informational) or 204 (No Content).
-
-
 
 +-------------------------------------------+
 | Response Header Field:                    |

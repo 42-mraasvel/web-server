@@ -25,8 +25,8 @@ class Response
 		void	scanRequest(Request const & request);
 	private:
 		void		setHttpVersion(int minor_version);
-		void		previewMethod();
 		void		generateAbsoluteTarget(std::string const & target_resourse);
+		void		previewMethod();
 		bool		isRequestError(Request const & request);
 		bool			checkBadRequest(Request::RequestStatus status, int request_code);
 		bool			checkHttpVersion(int http_major_version);
@@ -39,6 +39,8 @@ class Response
 		void	executeRequest(FdTable & fd_table, Request & request);
 	private:
 		int			createFile(FdTable & fd_table);
+		bool			checkFileAccess();
+		bool			checkFileAuthorization();
         int 		executeMethod(Request & request);
         int 			executeGet();
         int 			executePost(Request & request);
@@ -46,10 +48,8 @@ class Response
 
 	/* Client::writeEvent() */
 	public:
-		void	prepareToWrite();
-	private:
-		void		checkFileError();
-		void		defineEncoding();
+		void	defineEncoding();
+		void	checkFileError();
 
 	public:
 		void	generateResponse();
@@ -99,7 +99,8 @@ class Response
 		File*				_file;
 
 		std::string			_absolute_target;
-		int					_file_oflag;
+		int					_file_open_flag;
+		int					_file_access_flag;
 		AFdInfo::EventTypes	_file_event;
 
 		RequestParser::header_field_t  _header_fields;

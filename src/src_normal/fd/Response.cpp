@@ -4,6 +4,7 @@
 #include "utility/utility.hpp"
 #include "parser/HeaderField.hpp"
 #include <vector>
+#include <unistd.h>
 #include <cstdlib>
 #include <fcntl.h>
 #include <errno.h>
@@ -33,8 +34,8 @@ void	Response::scanRequest(Request const & request)
 {
 	_method = request.method;
 	setHttpVersion(request.minor_version);
-	previewMethod();
 	generateAbsoluteTarget(request.target_resource);
+	previewMethod();
 	isRequestError(request);
 	if (_status != COMPLETE)
 	{
@@ -54,30 +55,6 @@ void	Response::setHttpVersion(int minor_version)
 	}
 }
 
-void Response::previewMethod()
-{
-	switch (_method)
-	{
-		case GET:
-			_file_oflag = O_RDONLY;
-			_file_event = AFdInfo::READING;
-			_status_code = 200;
-			break;
-		case POST:
-			_file_oflag = O_CREAT | O_WRONLY | O_APPEND;
-			_file_event = AFdInfo::WRITING;
-			_status_code = 201;
-			break;
-		case DELETE:
-			_file_oflag = O_WRONLY;
-			_file_event = AFdInfo::WAITING;
-			_status_code = 200;
-			break; 
-		default:
-			break;
-	}
-}
-
 void	Response::generateAbsoluteTarget(std::string const & target_resource)
 {
 	//TODO: resort to the correct Pathname based on default path from config (add Client* client)
@@ -90,6 +67,34 @@ void	Response::generateAbsoluteTarget(std::string const & target_resource)
 		_absolute_target =  "./page_sample" + target_resource;
 	}
 }
+
+void Response::previewMethod()
+{
+	switch (_method)
+	{
+		case GET:
+			_file_open_flag = O_RDONLY;
+			_file_access_flag = R_OK;
+			_file_event = AFdInfo::READING;
+			_status_code = 200;
+			break;
+		case POST:
+			_file_open_flag = O_CREAT | O_WRONLY | O_APPEND;
+			_file_access_flag = W_OK;
+			_file_event = AFdInfo::WRITING;
+			_status_code = 201;
+			break;
+		case DELETE:
+			_file_open_flag = O_WRONLY;
+			_file_access_flag = W_OK;
+			_file_event = AFdInfo::WAITING;
+			_status_code = 204;
+			break; 
+		default:
+			break;
+	}
+}
+
 bool	Response::isRequestError(Request const & request)
 {
 	return checkBadRequest(request.status, request.status_code)
@@ -206,17 +211,13 @@ void	Response::executeRequest(FdTable & fd_table, Request & request)
 
 int	Response::createFile(FdTable & fd_table)
 {
-	int	file_fd = open(_absolute_target.c_str(), _file_oflag, 0644);
+	if (checkFileAccess() == false)
+	{
+		return ERR;
+	}
+	int	file_fd = open(_absolute_target.c_str(), _file_open_flag, 0644);
 	if (file_fd == ERR)
 	{
-		if (errno == ENOENT || errno == ENOTDIR)
-		{
-			processError(404); // NOTFOUND
-		}
-		else if (errno == EACCES || errno == EAGAIN || errno == EDQUOT)
-		{
-			processError(403); // FORBIDDEN
-		}
 		perror("open");
 		return ERR;
 	}
@@ -225,6 +226,38 @@ int	Response::createFile(FdTable & fd_table)
 	fd_table.insertFd(_file);
 	return OK;
 
+}
+
+bool	Response::checkFileAccess()
+{
+	if (_method == GET || _method == DELETE)
+	{
+		if (access(_absolute_target.c_str(), F_OK) == ERR)
+		{
+			processError(404); /* NOTFOUND */
+			return false;
+		}
+		return checkFileAuthorization();
+	}
+	if (_method == POST)
+	{
+		if (access(_absolute_target.c_str(), F_OK) == OK)
+		{
+			_status_code = 204; /* NO CONTENT */
+			return checkFileAuthorization();
+		}
+	}
+	return true;
+}
+
+bool	Response::checkFileAuthorization()
+{
+	if (access(_absolute_target.c_str(), _file_access_flag) == ERR)
+	{
+		processError(403); /* FORBIDDEN */
+		return false;
+	}
+	return true;
 }
 
 int Response::executeMethod(Request & request)
@@ -257,11 +290,7 @@ int	Response::executeDelete()
 {
 	if (remove(_absolute_target.c_str()) == ERR)
 	{
-		if (errno == EACCES || errno == EBUSY || errno == EISDIR || errno == EPERM || errno == EROFS)
-		{
-			processError(403); /* FORBIDDEN */
-		}
-		perror("remove in methodDelete");
+		perror("remove");
 		return ERR;
 	}
 	printf(BLUE_BOLD "Delete File:" RESET_COLOR " [%s]\n", _absolute_target.c_str());
@@ -269,23 +298,9 @@ int	Response::executeDelete()
 	return OK;
 }
 
-/***************************************************/
-/****** (Client::writeEvent) prepare to write ******/
-/***************************************************/
-
-void	Response::prepareToWrite()
-{
-	checkFileError();
-	defineEncoding();
-}
-
-void	Response::checkFileError()
-{
-	if (_status != COMPLETE && _file && _file->flag == AFdInfo::FILE_ERROR)
-	{
-		processError(500); /* INTERNAL SERVER ERROR */
-	}
-}
+/********************************************************/
+/****** (Client::writeEvent) pre-generate response ******/
+/********************************************************/
 
 void	Response::defineEncoding()
 {
@@ -293,10 +308,20 @@ void	Response::defineEncoding()
 		&& _http_version == "HTTP/1.1"
 		&& _method == GET)
 	{
-		if (_file && _file->getContent().size() >= BUFFER_SIZE)
+		if (_file
+			&& _file->flag != AFdInfo::FILE_ERROR
+			&& _file->getContent().size() >= BUFFER_SIZE)
 		{
 			_chunked = true;
 		}
+	}
+}
+
+void	Response::checkFileError()
+{
+	if (_status != COMPLETE && _file && _file->flag == AFdInfo::FILE_ERROR)
+	{
+		processError(500); /* INTERNAL SERVER ERROR */
 	}
 }
 
@@ -339,13 +364,11 @@ void	Response::responsePost()
 {
 	//TODO: fill in URI-reference
 	_header_fields["Location"] = _absolute_target;
-	_message_body = "New content is created on " + _absolute_target;
 	return ;
 }
 
 void	Response::responseDelete()
 {
-	_message_body = "Target delete successfully!\n";
 	return ;
 }
 
