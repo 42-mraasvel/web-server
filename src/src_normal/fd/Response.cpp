@@ -18,7 +18,6 @@ Response::Response(): _status(START), _file(NULL), _header_sent(false), _chunked
 	_allowed_methods.push_back("GET");
 	_allowed_methods.push_back("POST");
 	_allowed_methods.push_back("DELETE");
-	_server_name = "Awesome Pyxis";
 	//TODO: to discuss with team
 	MediaType::initMap(_media_type_map);
 
@@ -442,11 +441,6 @@ void	Response::setStringStatusLine()
 	_string_status_line = _http_version + " "
 							+ WebservUtility::itoa(_status_code) + " "
 							+ WebservUtility::getStatusMessage(_status_code);
-}
-
-void	Response::setServer()
-{
-	_header_fields["Server"] = _server_name;
 }
 
 void	Response::setDate()

@@ -65,7 +65,6 @@ class Response
 		void			encodeMessageBody();
 		void			setHeader();
 		void				setDate();
-		void				setServer();
 		void				setRetryAfter();
 		void				setAllow();
 		void				setTransferEncodingOrContentLength();
@@ -117,7 +116,6 @@ class Response
 
 		/* config related */
 		std::vector<std::string>	_allowed_methods;
-		std::string					_server_name;
 		MediaType::Map				_media_type_map;
 
 };
