@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
 #include "parser/RequestParser.hpp"
-#include "AFdInfo.hpp"
 #include "parser/Request.hpp"
+#include "fd/AFdInfo.hpp"
 #include "MediaType.hpp"
 
 class File;
@@ -28,8 +28,9 @@ class Response
 	public:
 		void	scanRequestHeader(Request const & request);
 	private:
-		void		generateEffectiveRequestURI();
-		void		generateAbsoluteTarget();
+		std::string const &	generateAuthority(Request const & request, std::string const & default_server);
+		void		generateEffectiveRequestURI(std::string const & authority);
+		void		generateAbsoluteFilePath(std::string const & root, std::string const & default_file);
 		void		previewMethod();
 		bool		isRequestError(Request const & request);
 		bool			isConnectionError(Request const & request);
@@ -106,12 +107,13 @@ class Response
 		/* config related */
 		std::vector<std::string>	_allowed_methods;
 		MediaType::Map				_media_type_map;
-
+		std::string					_authority;
+		std::string					_effective_request_uri;
+		std::string					_absolute_file_path;
+		
 		/* info */
 		MethodType			_method;
 		std::string			_target_resource;
-		std::string			_effective_request_uri;
-		std::string			_absolute_target;
 		RequestParser::header_field_t  _header_fields;
 		std::string 		_http_version;
 		int					_status_code;

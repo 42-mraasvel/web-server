@@ -1,4 +1,4 @@
-GET / HTTP/1.1
+GET /funny.html HTTP/1.1
 Host: 1
 Content-length: 22
 

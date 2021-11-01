@@ -2,12 +2,14 @@
 --     NOW      --
 ------------------
 
->> check if target resources is directory
-
->> Effective Request URI to create?
-
 >> Redirection (3xx)
     - headerfield: Location | Retry-After
+
+>> resolve with config file
+    - general
+    - default error page?
+    - HTTP redirection?
+    - auto index
 
 >> To discuss:
     - implementation of MediaType + how to define charset?

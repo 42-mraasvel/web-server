@@ -32,23 +32,6 @@ Response::Response(Request const & request)
 	MediaType::initMap(_media_type_map);
 }
 
-Response::~Response() {}
-
-/*****************************************************/
-/****** (Client::readEvent) scan request header ******/
-/*****************************************************/
-
-void	Response::scanRequestHeader(Request const & request)
-{
-	generateEffectiveRequestURI();
-	generateAbsoluteTarget();
-	previewMethod();
-	if (!isRequestError(request))
-	{
-		continueResponse(request);
-	}
-}
-
 void	Response::setHttpVersion(int minor_version)
 {
 	if (minor_version == 0)
@@ -61,25 +44,60 @@ void	Response::setHttpVersion(int minor_version)
 	}
 }
 
+Response::~Response() {}
 
-void	Response::generateEffectiveRequestURI()
+/*****************************************************/
+/****** (Client::readEvent) scan request header ******/
+/*****************************************************/
+
+void	Response::scanRequestHeader(Request const & request)
 {
-	std::string	URI_scheme = "http://";
-	// TODO: authority to incorporate with configuration file
-	std::string authority = "localhost";
-	_effective_request_uri = URI_scheme + authority + _target_resource;
+	/*
+	TODO: to retrieve from config class
+	1. find server blocks that matches IP + Port
+	2. find server blocks that match server_name with "Host" header
+		- if no host or no match, choose default server
+	3. inside chosen server block, find location block that match with target resource.
+	4. inside the location block, take root
+	*/
+	std::string	default_file = "index.html";
+	std::string root = "./page_sample";
+	std::string	default_server = "localhost";
+	std::string authority = generateAuthority(request, default_server);
+	generateEffectiveRequestURI(authority);
+	generateAbsoluteFilePath(root, default_file);
+
+	previewMethod();
+	if (!isRequestError(request))
+	{
+		continueResponse(request);
+	}
 }
 
-void	Response::generateAbsoluteTarget()
+std::string const &	Response::generateAuthority(Request const & request, std::string const & default_server)
 {
-	//TODO: resort to the correct Pathname based on default path from config (add Client* client)
-	if (_target_resource == "/")
+	if (request.header_fields.contains("host"))
 	{
-		_absolute_target =  "./page_sample/index.html";
+		return request.header_fields.find("host")->second;
 	}
 	else
 	{
-		_absolute_target =  "./page_sample" + _target_resource;
+		return default_server;
+	}
+}
+
+void	Response::generateEffectiveRequestURI(std::string const & authority)
+{
+	std::string URI_scheme = "http://";
+	_effective_request_uri = URI_scheme + authority + _target_resource;
+}
+
+void	Response::generateAbsoluteFilePath(std::string const & root, std::string const & default_file)
+{
+	_absolute_file_path = root + _target_resource;
+	if (_target_resource.back() == '/')
+	{
+		_absolute_file_path += default_file;
 	}
 }
 
@@ -284,7 +302,7 @@ bool	Response::isFileReady(int access_flag)
 	}
 	if (_method == POST)
 	{
-		if (access(_absolute_target.c_str(), F_OK) == OK)
+		if (access(_absolute_file_path.c_str(), F_OK) == OK)
 		{
 			_status_code = 204; /* NO CONTENT */
 			return isFileAuthorized(access_flag);
@@ -295,7 +313,7 @@ bool	Response::isFileReady(int access_flag)
 
 bool	Response::isFileExist()
 {
-	if (access(_absolute_target.c_str(), F_OK) == ERR)
+	if (access(_absolute_file_path.c_str(), F_OK) == ERR)
 	{
 		processError(404); /* NOTFOUND */
 		return false;
@@ -305,7 +323,7 @@ bool	Response::isFileExist()
 
 bool	Response::isFileAuthorized(int access_flag)
 {
-	if (access(_absolute_target.c_str(), access_flag) == ERR)
+	if (access(_absolute_file_path.c_str(), access_flag) == ERR)
 	{
 		processError(403); /* FORBIDDEN */
 		return false;
@@ -315,7 +333,7 @@ bool	Response::isFileAuthorized(int access_flag)
 
 int	Response::openFile(int open_flag, FdTable & fd_table)
 {
-	int	file_fd = open(_absolute_target.c_str(), open_flag, 0644);
+	int	file_fd = open(_absolute_file_path.c_str(), open_flag, 0644);
 	if (file_fd == ERR)
 	{
 		perror("open");
@@ -356,12 +374,12 @@ int	Response::executePost(Request & request)
 
 int	Response::executeDelete()
 {
-	if (remove(_absolute_target.c_str()) == ERR)
+	if (remove(_absolute_file_path.c_str()) == ERR)
 	{
 		perror("remove");
 		return ERR;
 	}
-	printf(BLUE_BOLD "Delete File:" RESET_COLOR " [%s]\n", _absolute_target.c_str());
+	printf(BLUE_BOLD "Delete File:" RESET_COLOR " [%s]\n", _absolute_file_path.c_str());
 	_file->flag = AFdInfo::FILE_COMPLETE;
 	return OK;
 }
@@ -589,8 +607,8 @@ void	Response::setContentType()
 {
 	if (_method == GET && _status_code == 200)
 	{
-		size_t	find = _absolute_target.find_last_of(".");
-		std::string extensin = _absolute_target.substr(find);
+		size_t	find = _absolute_file_path.find_last_of(".");
+		std::string extensin = _absolute_file_path.substr(find);
 		if (_media_type_map.contains(extensin))
 		{
 			_header_fields["Content-Type"] = _media_type_map.get();
