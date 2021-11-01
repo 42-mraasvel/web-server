@@ -40,6 +40,7 @@ Response::~Response() {}
 
 void	Response::scanRequestHeader(Request const & request)
 {
+	generateEffectiveRequestURI();
 	generateAbsoluteTarget();
 	previewMethod();
 	if (!isRequestError(request))
@@ -58,6 +59,15 @@ void	Response::setHttpVersion(int minor_version)
 	{
 		_http_version = "HTTP/1.1";
 	}
+}
+
+
+void	Response::generateEffectiveRequestURI()
+{
+	std::string	URI_scheme = "http://";
+	// TODO: authority to incorporate with configuration file
+	std::string authority = "localhost";
+	_effective_request_uri = URI_scheme + authority + _target_resource;
 }
 
 void	Response::generateAbsoluteTarget()
@@ -420,10 +430,10 @@ void	Response::responseGet()
 
 void	Response::responsePost()
 {
-	//TODO: fill in URI-reference
 	if (_status_code == 201)
 	{
-		_header_fields["Location"] = _absolute_target;
+		_header_fields["Location"] = _target_resource;
+		_message_body = "New content created!\n" + _effective_request_uri + "\n";
 	}
 	return ;
 }

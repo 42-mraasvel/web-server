@@ -1,11 +1,10 @@
 ------------------
 --     NOW      --
 ------------------
->> understand: host/server name/root/location/_absolute_target
 
 >> check if target resources is directory
 
->> Correct Location - URI in POST response && message_body
+>> Effective Request URI to create?
 
 >> Redirection (3xx)
     - headerfield: Location | Retry-After

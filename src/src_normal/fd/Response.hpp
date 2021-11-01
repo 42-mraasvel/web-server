@@ -28,6 +28,7 @@ class Response
 	public:
 		void	scanRequestHeader(Request const & request);
 	private:
+		void		generateEffectiveRequestURI();
 		void		generateAbsoluteTarget();
 		void		previewMethod();
 		bool		isRequestError(Request const & request);
@@ -109,6 +110,7 @@ class Response
 		/* info */
 		MethodType			_method;
 		std::string			_target_resource;
+		std::string			_effective_request_uri;
 		std::string			_absolute_target;
 		RequestParser::header_field_t  _header_fields;
 		std::string 		_http_version;
