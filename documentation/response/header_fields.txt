@@ -137,13 +137,6 @@ When a message includes a payload body, the representation header fields describ
             Server: CERN/3.0 libwww/2.17
         - An origin server SHOULD NOT generate a Server field containing needlessly fine-grained detail and SHOULD limit the addition of subproducts by third parties. Overly long and detailed Server field values increase response latency and potentially reveal internal implementation details that might make it (slightly) easier for attackers to find and exploit known security holes.
 
-------------------
---    [Host]    --
-------------------
-
-    - A server MUST respond with a 400 (Bad Request) status code to any HTTP/1.1 request message that lacks a Host header field and to any request message that contains more than one Host header field or a Host header field with an invalid field-value. [RFC7230 page 45]
-    - A client MUST send a Host header field in an HTTP/1.1 request even if the request-target is in the absolute-form, since this allows the Host information to be forwarded through ancient HTTP/1.0 proxies that might not have implemented Host.
-
 ------------------------------------
 --    [Expect]: [100-continue]    --
 ------------------------------------

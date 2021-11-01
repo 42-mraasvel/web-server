@@ -1,0 +1,33 @@
+--------------------------------------
+--    Request Target (origin-form)  --
+--------------------------------------
+*1. origin-form = absolute-path [ "?" query ]
+	- a request directly to an origin server (other than CONNECT or server-wide OPTIONS)
+2. absolute-form = absolute-URI
+	- a request to a proxy (other than CONNECT or server-wide OPTIONS)
+3. authority-form
+	- (only used for) CONNECT requests
+4. asterisk-form
+	- (only used for) server-wide OPTION requests
+
+------------------------------------------
+--    [Host] = uri-host [ ":" port ]    --
+------------------------------------------
+    - A server MUST respond with a 400 (Bad Request) status code to any HTTP/1.1 request message that lacks a Host header field and to any request message that contains more than one Host header field or a Host header field with an invalid field-value. [RFC7230 page 45]
+    - A client MUST send a Host header field in an HTTP/1.1 request even if the request-target is in the absolute-form, since this allows the Host information to be forwarded through ancient HTTP/1.0 proxies that might not have implemented Host.
+
+---------------------------------
+--    Effective Request URI    --
+---------------------------------
+	- For a User Agent, the effective request URI is the target URI.
+	- Construction:
+		1. If the request target is in absolute-form, the effect request URI is the same as the request target.
+		2. Otherwise = scheme + "://" + authority + combined path and query
+			- URI scheme:				http | https
+			- authority:				request's "Host" header field (non-empty), or else:
+										default server_name (if port differs, then ":" + port number is appended).
+			- combined path and query:	same as the request-target
+	- ??? Recipients of an HTTP/1.0 request that lacks a Host header field might need to use heuristics (e.g., examination of the URI path for something unique to a particular host) in order to guess the effective request URI’s authority component.
+	
+	- The Origin Server needs to decide whether or not to provide service for this effective request URI.
+

@@ -12,13 +12,17 @@
 #include <time.h>
 #include <algorithm>
 
-Response::Response()
+Response::Response(Request const & request)
 {
 	_file = NULL;
 	_status = START;
 	_header_sent = false;
 	_chunked = false;
 	_close_connection = false;
+
+	_method = request.method;
+	_target_resource = request.target_resource;
+	setHttpVersion(request.minor_version);
 
 	// TODO: to change it properly with configuration
 	_allowed_methods.push_back("GET");
@@ -36,9 +40,7 @@ Response::~Response() {}
 
 void	Response::scanRequestHeader(Request const & request)
 {
-	_method = request.method;
-	setHttpVersion(request.minor_version);
-	generateAbsoluteTarget(request.target_resource);
+	generateAbsoluteTarget();
 	previewMethod();
 	if (!isRequestError(request))
 	{
@@ -58,16 +60,16 @@ void	Response::setHttpVersion(int minor_version)
 	}
 }
 
-void	Response::generateAbsoluteTarget(std::string const & target_resource)
+void	Response::generateAbsoluteTarget()
 {
 	//TODO: resort to the correct Pathname based on default path from config (add Client* client)
-	if (target_resource == "/")
+	if (_target_resource == "/")
 	{
 		_absolute_target =  "./page_sample/index.html";
 	}
 	else
 	{
-		_absolute_target =  "./page_sample" + target_resource;
+		_absolute_target =  "./page_sample" + _target_resource;
 	}
 }
 

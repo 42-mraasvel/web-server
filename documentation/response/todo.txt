@@ -3,7 +3,7 @@
 ------------------
 >> understand: host/server name/root/location/_absolute_target
 
->> use access to check file (directory) in general
+>> check if target resources is directory
 
 >> Correct Location - URI in POST response && message_body
 

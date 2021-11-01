@@ -17,15 +17,18 @@ class Response
 			COMPLETE
 		};
 
-		Response();
+	public:
+		Response(Request const & request);
+	private:
+		void	setHttpVersion(int minor_version);
+	public:
 		~Response();
 
 	/* Client::readEvent() */
 	public:
 		void	scanRequestHeader(Request const & request);
 	private:
-		void		setHttpVersion(int minor_version);
-		void		generateAbsoluteTarget(std::string const & target_resourse);
+		void		generateAbsoluteTarget();
 		void		previewMethod();
 		bool		isRequestError(Request const & request);
 		bool			isConnectionError(Request const & request);
@@ -105,6 +108,7 @@ class Response
 
 		/* info */
 		MethodType			_method;
+		std::string			_target_resource;
 		std::string			_absolute_target;
 		RequestParser::header_field_t  _header_fields;
 		std::string 		_http_version;
