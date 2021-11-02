@@ -60,18 +60,27 @@ void	Response::scanRequestHeader(Request const & request)
 	3. inside chosen server block, find location block that match with target resource.
 	4. inside the location block, take root
 	*/
+	bool		redirect_flag = false;
+	int			redirect_code = 301;
+	std::string	redirect_text = "http://this_is_the_redirect_url.com";
 	std::string	default_file = "index.html";
-	std::string root = "./page_sample";
+	std::string	root = "./page_sample";
 	std::string	default_server = "localhost";
-	std::string authority = generateAuthority(request, default_server);
+	std::string	authority = generateAuthority(request, default_server);
 	generateEffectiveRequestURI(authority);
 	generateAbsoluteFilePath(root, default_file);
 
 	previewMethod();
-	if (!isRequestError(request))
+	if (isRequestError(request))
 	{
-		continueResponse(request);
+		return ;
 	}
+	if (redirect_flag)
+	{
+		returnRedirect(redirect_code, redirect_text);
+		return ;
+	}
+	continueResponse(request);
 }
 
 std::string const &	Response::generateAuthority(Request const & request, std::string const & default_server)
@@ -217,6 +226,25 @@ bool	Response::isExpectationError(Request const & request)
 	return false;
 }
 
+// TODO: to sort out a better structure for below functions
+void	Response::returnRedirect(int code, std::string text)
+{
+	if (_status != COMPLETE)
+	{
+		_status = COMPLETE;
+		_status_code = code;
+		if (_status_code >= 300 && _status_code < 400)
+		{
+			_effective_request_uri = text;
+			_message_body = "Redirect to " + text + "\n";
+		}
+		else
+		{
+			_message_body = text;
+		}
+	}
+}
+
 /*
 	Condition of sending 100 continue status code:
 		- header filed: expect:100-continue
@@ -226,7 +254,8 @@ bool	Response::isExpectationError(Request const & request)
 */
 void	Response::continueResponse(Request const & request)
 {
-	if (request.header_fields.contains("expect")
+	if (_status != COMPLETE 
+		&& request.header_fields.contains("expect")
 		&& request.minor_version == 1
 		&& request.header_fields.contains("content-length")
 		&& !(request.header_fields.find("content-length")->second.empty())
@@ -516,6 +545,7 @@ void	Response::setHeader()
 	setStringStatusLine();
 	setDate();
 	setConnection();
+	setLocation();
 	setRetryAfter();
 	setAllow();
 	setTransferEncodingOrContentLength();
@@ -552,6 +582,18 @@ void	Response::setConnection()
 	else
 	{
 		_header_fields["Connection"] = "keep-alive";
+	}
+}
+
+void	Response::setLocation()
+{
+	if (_status_code == 201)
+	{
+		_header_fields["Location"] = _target_resource;
+	}
+	else if (_status_code >= 300 && _status_code < 400)
+	{
+		_header_fields["Location"] = _effective_request_uri;
 	}
 }
 

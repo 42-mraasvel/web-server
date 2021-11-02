@@ -3,7 +3,7 @@
 ------------------
 
 >> Redirection (3xx)
-    - headerfield: Location | Retry-After
+    - is URL good for Location header?
 
 >> resolve with config file
     - general
@@ -16,6 +16,7 @@
     - if only send a string, no response for bad-request?
     - tear-down process go through
         - should implement close in stage or not?
+    - redirection: do we config rewrite? try-files?
     
 ------------------
 --    LATER     --
@@ -40,3 +41,8 @@ std::cout << RED_BOLD << " " << RESET_COLOR << std::endl;
     - transfer encoding (see note on request part)
     - When Content-Length is valid, but the sender closes the connection or the recipient times out before complete message_body received, the recipient MUST consider the message to be incomplete and close the connection.
 >> An origin server MAY respond with a status code of 415 (Unsupported Media Type) if a representation in the request message has a content coding that is not acceptable.
+
+---------------
+--    NIELS  --
+---------------
+>> "return" in the location block.

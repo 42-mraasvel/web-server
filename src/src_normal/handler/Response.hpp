@@ -39,7 +39,8 @@ class Response
 		bool			isMethodError();
 		bool				findMethod(MethodType method) const;
 		bool			isExpectationError(Request const & request);
-		void				continueResponse(Request const & request);
+		void		returnRedirect(int code, std::string text);
+		void		continueResponse(Request const & request);
 
 	public:
 		void	executeRequest(FdTable & fd_table, Request & request);
@@ -75,6 +76,7 @@ class Response
 		void			setHeader();
 		void				setDate();
 		void				setConnection();
+		void				setLocation();
 		void				setRetryAfter();
 		void				setAllow();
 		void				setTransferEncodingOrContentLength();
@@ -110,7 +112,7 @@ class Response
 		std::string					_authority;
 		std::string					_effective_request_uri;
 		std::string					_absolute_file_path;
-		
+
 		/* info */
 		MethodType			_method;
 		std::string			_target_resource;

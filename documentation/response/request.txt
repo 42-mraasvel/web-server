@@ -31,3 +31,15 @@
 	
 	- The Origin Server needs to decide whether or not to provide service for this effective request URI.
 
+
+server{
+	listen 80;
+	server_name a;
+}
+
+server{
+	listen 127.0.0.1:80;
+	server_name b;
+}
+
+request host: 127.0.0.1:80

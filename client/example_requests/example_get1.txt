@@ -1,4 +1,4 @@
-GET / HTTP/1.0
-Host: localhost
+GET /check/ HTTP/1.0
+Host: 1
 Connection: Keep-alive
 
