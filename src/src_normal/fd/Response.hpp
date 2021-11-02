@@ -3,6 +3,7 @@
 #include "parser/RequestParser.hpp"
 #include "AFdInfo.hpp"
 #include "parser/Request.hpp"
+#include "cgi/CgiHandler.hpp"
 
 class File;
 
@@ -83,6 +84,7 @@ class Response
 		void		generateErrorPage();
 
 	private:
+
 		MethodType			_method;
 		Status				_status;
 		File*				_file;
@@ -102,4 +104,7 @@ class Response
 
 		bool				_header_sent;
 		bool				_chunked;
+
+		CgiHandler			_cgi_handler;
+		bool _is_cgi;
 };

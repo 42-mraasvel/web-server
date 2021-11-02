@@ -152,6 +152,12 @@ void	Response::continueResponse(Request const & request)
 
 void	Response::executeRequest(FdTable & fd_table, Request & request)
 {
+	if (_cgi_handler.isCgi(&request)) {
+		_cgi_handler.execute(&request);
+		_is_cgi = true;
+		_file = NULL;
+		return ;
+	}
 	if (createFile(fd_table) == ERR)
 	{
 		processError(500); /* INTERNAL SERVER ERROR */
@@ -254,7 +260,11 @@ void	Response::defineEncoding()
 		&& _http_version == "HTTP/1.1"
 		&& _method == GET)
 	{
-		if (_file && _file->getContent().size() >= BUFFER_SIZE)
+		if (_is_cgi && _cgi_handler.getContent().size() >= BUFFER_SIZE)
+		{
+			_chunked = true;
+		}
+		else if (_file && _file->getContent().size() >= BUFFER_SIZE)
 		{
 			_chunked = true;
 		}
@@ -292,8 +302,13 @@ void	Response::responseMethod()
 
 void	Response::responseGet()
 {
-	_message_body.append(_file->getContent());
-	_file->clearContent();
+	if (_is_cgi) {
+		_message_body.append(_cgi_handler.getContent());
+		_cgi_handler.clearContent();
+	} else {
+		_message_body.append(_file->getContent());
+		_file->clearContent();
+	}
 }
 
 void	Response::responsePost()
@@ -312,7 +327,11 @@ void	Response::responseDelete()
 
 void	Response::checkFileComplete()
 {
-	if (_status != COMPLETE && _file && _file->flag == AFdInfo::FILE_COMPLETE)
+	if (_is_cgi && _status != COMPLETE && _cgi_handler.getStatus() == CgiHandler::COMPLETE)
+	{
+		_status = COMPLETE;
+	}
+	else if (_status != COMPLETE && _file && _file->flag == AFdInfo::FILE_COMPLETE)
 	{
 		_status = COMPLETE;
 		deleteFile();
@@ -446,6 +465,10 @@ void	Response::updateFileEvent(FdTable & fd_table)
 
 bool	Response::isFileReady() const
 {
+	if (_is_cgi) {
+		return _cgi_handler.isComplete();
+	}
+
 	return _file 
 			&& (_file->flag == AFdInfo::FILE_COMPLETE
 				|| _file->flag == AFdInfo::FILE_ERROR

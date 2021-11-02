@@ -1,7 +1,7 @@
 #pragma once
 #define OK 0
 #define ERR -1
-#define INCOMPLETE 1
+// #define INCOMPLETE 1
 
 #define BACKLOG 10 //TODO: check later
 #define TIMEOUT 10000
