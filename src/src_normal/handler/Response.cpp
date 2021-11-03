@@ -12,13 +12,14 @@
 #include <time.h>
 #include <algorithm>
 
-Response::Response(Request const & request)
+Response::Response(Request const & request): _file_handler(request.method)
 {
-	_file = NULL;
 	_status = START;
 	_header_sent = false;
 	_chunked = false;
 	_close_connection = false;
+
+	_is_cgi = false;
 
 	_method = request.method;
 	_target_resource = request.target_resource;
@@ -70,7 +71,6 @@ void	Response::scanRequestHeader(Request const & request)
 	generateEffectiveRequestURI(authority);
 	generateAbsoluteFilePath(root, default_file);
 
-	previewMethod();
 	if (isRequestError(request))
 	{
 		return ;
@@ -103,29 +103,13 @@ void	Response::generateEffectiveRequestURI(std::string const & authority)
 
 void	Response::generateAbsoluteFilePath(std::string const & root, std::string const & default_file)
 {
-	_absolute_file_path = root + _target_resource;
+	std::string	path;
+	path = root + _target_resource;
 	if (_target_resource.back() == '/')
 	{
-		_absolute_file_path += default_file;
+		path += default_file;
 	}
-}
-
-void Response::previewMethod()
-{
-	switch (_method)
-	{
-		case GET:
-			_status_code = 200;
-			return;
-		case POST:
-			_status_code = 201;
-			return;
-		case DELETE:
-			_status_code = 204;
-			return;
-		default:
-			return;
-	}
+	_file_handler.setAbsoluteFilePath(path);
 }
 
 bool	Response::isRequestError(Request const & request)
@@ -272,145 +256,14 @@ void	Response::continueResponse(Request const & request)
 
 void	Response::executeRequest(FdTable & fd_table, Request & request)
 {
-	if (createFile(fd_table) == ERR)
+	if (_is_cgi)
 	{
-		processError(500); /* INTERNAL SERVER ERROR */
-		return ;
+		// TODO:: add _cgi_handler.executeRequest();
 	}
-	if (executeMethod(request) == ERR)
+	else
 	{
-		processError(500); /* INTERNAL SERVER ERROR */
-		return ;
+		_file_handler.executeRequest(fd_table, request);
 	}
-	updateFileEvent(fd_table);
-}
-
-int	Response::createFile(FdTable & fd_table)
-{
-	int	access_flag;
-	int	open_flag;
-	setFileParameter(access_flag, open_flag);
-
-	if (!isFileReady(access_flag))
-	{
-		return ERR;
-	}
-	return openFile(open_flag, fd_table);
-}
-
-void	Response::setFileParameter(int & access_flag, int & open_flag)
-{
-	switch(_method)
-	{
-		case GET:
-			access_flag = R_OK;
-			open_flag = O_RDONLY;
-			_file_event = AFdInfo::READING;
-			return ;
-		case POST:
-			access_flag = W_OK;
-			open_flag = O_CREAT | O_WRONLY | O_APPEND;
-			_file_event = AFdInfo::WRITING;
-			return ;
-		case DELETE:
-			access_flag = W_OK;
-			open_flag = O_WRONLY;
-			_file_event = AFdInfo::WAITING;
-			return ;
-		case OTHER:
-		defaul:
-			return;
-	}
-}
-
-bool	Response::isFileReady(int access_flag)
-{
-	if (_method == GET || _method == DELETE)
-	{
-		return isFileExist() && isFileAuthorized(access_flag);
-	}
-	if (_method == POST)
-	{
-		if (access(_absolute_file_path.c_str(), F_OK) == OK)
-		{
-			_status_code = 204; /* NO CONTENT */
-			return isFileAuthorized(access_flag);
-		}
-	}
-	return true;
-}
-
-bool	Response::isFileExist()
-{
-	if (access(_absolute_file_path.c_str(), F_OK) == ERR)
-	{
-		processError(404); /* NOTFOUND */
-		return false;
-	}
-	return true;
-}
-
-bool	Response::isFileAuthorized(int access_flag)
-{
-	if (access(_absolute_file_path.c_str(), access_flag) == ERR)
-	{
-		processError(403); /* FORBIDDEN */
-		return false;
-	}
-	return true;
-}
-
-int	Response::openFile(int open_flag, FdTable & fd_table)
-{
-	int	file_fd = open(_absolute_file_path.c_str(), open_flag, 0644);
-	if (file_fd == ERR)
-	{
-		perror("open");
-		return ERR;
-	}
-	printf(BLUE_BOLD "Open File:" RESET_COLOR " [%d]\n", file_fd);
-	_file = new File(file_fd);
-	fd_table.insertFd(_file);
-	return OK;
-}
-
-
-int Response::executeMethod(Request & request)
-{
-	switch (_method)
-	{
-		case GET:
-			return executeGet();
-		case POST:
-			return executePost(request);
-		case DELETE:
-			return executeDelete();
-		default:
-			return OK;
-	}
-}
-
-int	Response::executeGet()
-{
-	return OK;
-}
-
-int	Response::executePost(Request & request)
-{
-	_file->swapContent(request.message_body);
-	return OK;
-}
-
-int	Response::executeDelete()
-{
-	if (remove(_absolute_file_path.c_str()) == ERR)
-	{
-		perror("remove");
-		return ERR;
-	}
-	printf(BLUE_BOLD "Delete File:" RESET_COLOR " [%s]\n", _absolute_file_path.c_str());
-	_file->flag = AFdInfo::FILE_COMPLETE;
-	return OK;
 }
 
 /********************************************************/
@@ -419,24 +272,13 @@ int	Response::executeDelete()
 
 void	Response::defineEncoding()
 {
-	if (_status != COMPLETE
-		&& _http_version == "HTTP/1.1"
-		&& _method == GET)
+	if (_is_cgi)
 	{
-		if (_file
-			&& _file->flag != AFdInfo::FILE_ERROR
-			&& _file->getContent().size() >= BUFFER_SIZE)
-		{
-			_chunked = true;
-		}
+		// TODO:: add cgo check chunekd (error proof)
 	}
-}
-
-void	Response::checkFileError()
-{
-	if (_status != COMPLETE && _file && _file->flag == AFdInfo::FILE_ERROR)
+	else if (_file_handler.isChunked(_http_version))
 	{
-		processError(500); /* INTERNAL SERVER ERROR */
+		_chunked = true;
 	}
 }
 
@@ -446,56 +288,48 @@ void	Response::checkFileError()
 
 void	Response::generateResponse()
 {
-	if (_status != COMPLETE)
+	if (!isComplete() && !isResponseError())
 	{
-		responseMethod();
-		checkFileComplete();
+		generateMessageBody();
 	}
+	finishHandler();
 	setStringToSent();
 }
 
-void	Response::responseMethod()
+bool	Response::isResponseError()
 {
-	switch (_method)
+	if (_is_cgi)
 	{
-		case GET:
-			return responseGet();
-		case POST:
-			return responsePost();
-		case DELETE:
-			return responseDelete();
-		default:
-			return ;
+		// TODO
+		return true;
+	}
+	else
+	{
+		return _file_handler.isFileError();
 	}
 }
 
-void	Response::responseGet()
+void	Response::generateMessageBody()
 {
-	_message_body.append(_file->getContent());
-	_file->clearContent();
-}
-
-void	Response::responsePost()
-{
-	if (_status_code == 201)
+	if (_is_cgi)
 	{
-		_header_fields["Location"] = _target_resource;
-		_message_body = "New content created!\n" + _effective_request_uri + "\n";
+		// TODO
 	}
-	return ;
-}
-
-void	Response::responseDelete()
-{
-	return ;
-}
-
-void	Response::checkFileComplete()
-{
-	if (_status != COMPLETE && _file && _file->flag == AFdInfo::FILE_COMPLETE)
+	else
 	{
-		_status = COMPLETE;
-		deleteFile();
+		_file_handler.generateMessageBody(_message_body, _effective_request_uri);
+	}
+}
+
+void	Response::finishHandler()
+{
+	if (_is_cgi)
+	{
+		// TODO
+	}
+	else
+	{
+		_file_handler.finishFile();
 	}
 }
 
@@ -687,9 +521,18 @@ void	Response::noChunked()
 /****** utility ******/
 /*********************/
 
-Response::Status	Response::getStatus() const
+bool	Response::isComplete() const
 {
-	return _status;
+	if (_is_cgi)
+	{
+		// TODO: add CGI
+		return true;
+	}
+	else
+	{
+		return _file_handler.getResponseComplete();
+	}
+	
 }
 
 bool	Response::getCloseConnectionFlag() const
@@ -699,7 +542,15 @@ bool	Response::getCloseConnectionFlag() const
 
 int	Response::getStatusCode() const
 {
-	return _status_code;
+	if (_is_cgi)
+	{
+		// TODO return CGI
+		return _status_code;
+	}
+	else
+	{
+		return _file_handler.getStatusCode();
+	}
 }
 
 std::string const &	Response::getString() const
@@ -712,29 +563,20 @@ void	Response::clearString()
 	_string_to_send.clear();
 }
 
-void	Response::deleteFile()
+bool	Response::isHandlerReadyToWrite() const
 {
-	if (_file)
+	if (_is_cgi)
 	{
-		_file->flag = AFdInfo::TO_ERASE;
-		_file = NULL;		
+		// TODO return CGI
+		return true;
+	}
+	else
+	{
+		return _file_handler.isFileReady();
 	}
 }
 
-void	Response::updateFileEvent(FdTable & fd_table)
-{
-	_file->updateEvents(_file_event, fd_table);
-}
-
-bool	Response::isFileReady() const
-{
-	return _file 
-			&& (_file->flag == AFdInfo::FILE_COMPLETE
-				|| _file->flag == AFdInfo::FILE_ERROR
-				|| (_file->flag == AFdInfo::FILE_START
-					&& !_file->getContent().empty()));
-}
-
+// XXX: to change
 void	Response::processError(int error_code)
 {
 	if (_status != COMPLETE)
@@ -746,6 +588,7 @@ void	Response::processError(int error_code)
 	}
 }
 
+// XXX: to add in process
 void	Response::generateErrorPage()
 {
 	//TODO: to modify message

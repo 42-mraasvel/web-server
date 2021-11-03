@@ -3,6 +3,7 @@
 #include "parser/RequestParser.hpp"
 #include "parser/Request.hpp"
 #include "fd/AFdInfo.hpp"
+#include "FileHandler.hpp"
 #include "MediaType.hpp"
 
 class File;
@@ -31,7 +32,6 @@ class Response
 		std::string const &	generateAuthority(Request const & request, std::string const & default_server);
 		void		generateEffectiveRequestURI(std::string const & authority);
 		void		generateAbsoluteFilePath(std::string const & root, std::string const & default_file);
-		void		previewMethod();
 		bool		isRequestError(Request const & request);
 		bool			isConnectionError(Request const & request);
 		bool			isBadRequest(Request::RequestStatus status, int request_code);
@@ -45,30 +45,17 @@ class Response
 	public:
 		void	executeRequest(FdTable & fd_table, Request & request);
 	private:
-		int			createFile(FdTable & fd_table);
-		void			setFileParameter(int & access_flag, int & open_flag);
-		bool			isFileReady(int access_flag);
-		bool				isFileExist();
-		bool				isFileAuthorized(int access_flag);
-		int				openFile(int open_flag, FdTable & fd_table);
-        int 		executeMethod(Request & request);
-        int 			executeGet();
-        int 			executePost(Request & request);
-        int 			executeDelete();
 
 	/* Client::writeEvent() */
 	public:
 		void	defineEncoding();
-		void	checkFileError();
 
 	public:
 		void	generateResponse();
 	private:
-		void		responseMethod();
-		void			responseGet();
-		void			responsePost();
-		void			responseDelete();
-		void		checkFileComplete();
+		bool		isResponseError();
+		void		generateMessageBody();
+		void		finishHandler();
 		void		setStringToSent();
 		void			doChunked();
 		void			noChunked();
@@ -89,14 +76,13 @@ class Response
 	/* utility */
 	public:
 		typedef RequestParser::header_field_t::const_iterator	header_iterator;
-		Status				getStatus() const;
 		bool				getCloseConnectionFlag() const;
 		int					getStatusCode() const;
 		std::string const &	getString() const;
 		void				clearString();
 		void				deleteFile();
-		void				updateFileEvent(FdTable & fd_table);
-		bool				isFileReady() const;
+		bool				isHandlerReadyToWrite() const;
+		bool				isComplete() const;
 
 	private:
 		void	processError(int error_code);
@@ -135,6 +121,10 @@ class Response
 		std::string			_string_status_line;
 		std::string 		_string_header;
 		std::string			_message_body;
+
+		/* handler */
+		bool				_is_cgi;
+		FileHandler			_file_handler;
 
 
 };

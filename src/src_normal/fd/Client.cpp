@@ -123,7 +123,7 @@ void	Client::initResponse(Request const & request)
 void	Client::checkRequestStatus()
 {
 	_new_response->scanRequestHeader(*_request);
-	if (_new_response->getStatus() == Response::COMPLETE
+	if (_new_response->isComplete()
 		&& _new_response->getStatusCode() != 100)
 	{
 		_request->executed = true;
@@ -142,7 +142,7 @@ void	Client::reset()
 	{
 		resetRequest();
 	}
-	else if (_new_response && _new_response->getStatus() == Response::COMPLETE)
+	else if (_new_response && _new_response->isComplete())
 	{
 		_new_response = NULL;
 	}
@@ -165,7 +165,7 @@ int	Client::writeEvent(FdTable & fd_table)
 			&& retrieveResponse())
 	{
 		processResponse();
-		if (_response->getStatus() == Response::COMPLETE)
+		if (_new_response->isComplete())
 		{
 			checkConnection();
 			resetResponse();
@@ -191,7 +191,7 @@ bool	Client::retrieveResponse()
 		_response = _response_queue.front();
 		_response->defineEncoding();
 	}
-	else if (!_response->isFileReady())
+	else if (!_response->isHandlerReadyToWrite())
 	{
 		return false;
 	}
@@ -200,7 +200,6 @@ bool	Client::retrieveResponse()
 
 void	Client::processResponse()
 {
-	_response->checkFileError();
 	_response->generateResponse();
 	if (flag != AFdInfo::TO_ERASE)
 	{
@@ -294,8 +293,8 @@ void	Client::update(FdTable & fd_table)
 	*/
 	if (!_response_string.empty()
 		|| (!_response_queue.empty()
-			&& (_response_queue.front()->getStatus() == Response::COMPLETE
-				|| _response_queue.front()->isFileReady())))
+			&& (_response_queue.front()->isComplete()
+				|| _response_queue.front()->isHandlerReadyToWrite())))
 	{
 		updateEvents(AFdInfo::WRITING, fd_table);
 	}
