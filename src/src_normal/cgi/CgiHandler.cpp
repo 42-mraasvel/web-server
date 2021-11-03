@@ -5,6 +5,8 @@
 #define SCRIPT_PATH "/usr/bin/python3"
 #define SCRIPT_NAME "python3"
 
+// Configuration: CGI .py /usr/bin/python3
+
 CgiHandler::CgiHandler()
 : _status(CgiHandler::INCOMPLETE) {}
 

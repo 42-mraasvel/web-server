@@ -25,7 +25,7 @@ class CgiHandler
 		void clearContent();
 
 	private:
-		Status	_status;
+		Status		_status;
 		int			_status_code;
 		std::string _message_body;
 		HeaderField _header;
