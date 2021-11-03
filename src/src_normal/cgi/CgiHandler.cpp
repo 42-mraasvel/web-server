@@ -39,7 +39,8 @@ bool CgiHandler::isCgi(Request* request) {
 			if (end != std::string::npos) {
 				_meta_variables.push_back(MetaVariableType("PATH_INFO", _target.substr()));
 			} else {
-				_meta_variables.push_back(MetaVariableType("PATH_INFO", ""));
+				//TODO: should this be "/" or "" (EMPTY) ?
+				_meta_variables.push_back(MetaVariableType("PATH_INFO", "/"));
 			}
 
 			return true;
