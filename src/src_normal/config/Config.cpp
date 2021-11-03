@@ -2,6 +2,7 @@
 #include "settings.hpp"
 #include <fcntl.h>
 #include <unistd.h>
+#include <cstdlib>
 #include <string>
 #include <iostream>
 #include "utility/utility.hpp"
