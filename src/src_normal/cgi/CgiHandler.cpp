@@ -1,58 +1,74 @@
 #include "CgiHandler.hpp"
 #include "settings.hpp"
+#include "utility/utility.hpp"
 
 #define CGI_EXTENSION ".py"
+
+#ifdef __linux__
 #define SCRIPT_PATH "/usr/bin/python3"
+#else
+#define SCRIPT_PATH "/Users/mraasvel/.brew/bin/python3"
+#endif
+
 #define SCRIPT_NAME "python3"
 
-// Configuration: CGI .py /usr/bin/python3
+// Configuration syntax: CGI .py /usr/bin/python3
 
 CgiHandler::CgiHandler()
 : _status(CgiHandler::INCOMPLETE) {}
 
 /*
-Returns true if the Request is supposed to be of type CGI
-Need:
-	- Request URI to determine if it contains the file extension
-	- Configuration settings to access location CGI options
+Precondition: target always starts with '/'
 
-URI Example:
-
-	/x/y/z.cgi/a/b/c?querya=s=d=fsl%23
-
-	TARGET_RESOURCE = /x/y/z.cgi/a/b/c
-
-	SCRIPT_PATH = /x/y/z.cgi
-	QUERY_STRING = querya=s=d=fsl%23
-	PATH_INFO = /a/b/c
+Component analysis:
+	/c1/c2/c3/c4
+	If component ends in EXTENSION: true
 */
-bool CgiHandler::isCgi(Request* request) const
-{
-	std::size_t index = request->target_resource.find(CGI_EXTENSION);
 
-	// TODO: check all the .cgi extensions, not just the first one
-	index += sizeof(CGI_EXTENSION) - 1;
-	if (index != std::string::npos &&
-	(index == request->target_resource.size()
-	|| request->target_resource[index] == '/'))
-	{
-		printf("Valid CGI: %s\n", request->target_resource.c_str());
-		return true;
+bool CgiHandler::isCgi(Request* request) {
+
+	const std::string& target = request->target_resource;
+
+	std::size_t index = 0;
+	while (true) {
+		// Find the end of component: ('/') or std::string::npos
+		std::size_t end = target.find("/", index + 1);
+		if (WebservUtility::stringEndsWith(target, CGI_EXTENSION, index, end)) {
+
+			_target = target.substr(0, end);
+			if (end != std::string::npos) {
+				_meta_variables.push_back(MetaVariableType("PATH_INFO", _target.substr()));
+			} else {
+				_meta_variables.push_back(MetaVariableType("PATH_INFO", ""));
+			}
+
+			return true;
+		} else if (end == std::string::npos) {
+			break;
+		}
+		index = end;
 	}
 	return false;
 }
 
 /*
-1. Preparation: HeaderChecks, ScriptLocation, MetaVariables
+1. Preparation: ScriptLocation, MetaVariables
+
+	- ScriptLocation: based off Configuration options
+	- MetaVariables
+
 2. Open pipes to connect STDIN and STDOUT
 3. Fork and execute the script, store the PID internally
 4. Close unused pipe ends
 */
 int CgiHandler::execute(Request* request)
 {
+	generateMetaVariables();
 	printf("-- Executing CGI --\n");
 	_message_body = "1234";
 	_status = COMPLETE;
+	_meta_variables.print();
+	_meta_variables.clear();
 	return OK;
 }
 
@@ -86,4 +102,15 @@ int CgiHandler::getStatusCode() const
 CgiHandler::Status CgiHandler::getStatus() const
 {
 	return _status;
+}
+
+
+void CgiHandler::print() const {
+
+	printf("TARGET: %s\n", _target.c_str());
+	for (MetaVariableContainerType::const_iterator it = _meta_variables.begin();
+		it != _meta_variables.end(); ++it)
+	{
+		printf("%s: %s\n", it->first.c_str(), it->second.c_str());
+	}
 }
