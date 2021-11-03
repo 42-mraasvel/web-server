@@ -3,6 +3,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string>
+#include <iostream>
+#include "utility/utility.hpp"
+#include <map>
 
 Config::Config(std::string const & config_file): _file_name(config_file), _server_amount(0), _token_index(0)
 {
@@ -151,6 +154,10 @@ int	Config::parseServer()
 		{
 			parseListen();
 		}
+		else if (_tokens[_token_index].compare("client_body_size") == 0)
+		{
+			parseClientBodySize();
+		}
 		else if (_tokens[_token_index].compare("server_name") == 0)
 		{
 			parseServerName();
@@ -173,14 +180,9 @@ int	Config::parseServer()
 		checkExpectedSyntax(";");
 		_token_index++;
 	}
-	if (_servers[_server_amount].portIsEmpty())
+	if (_servers[_server_amount].emptyAddress())
 	{
-		_servers[_server_amount].addPort(80);
-	}
-	if (_servers[_server_amount].hostIsEmpty())
-	{
-		_servers[_server_amount].addHostName("localhost");
-		_servers[_server_amount].addServerName("localhost");
+		_servers[_server_amount].addAddress("0.0.0.0", 80);
 	}
 	checkExpectedSyntax("}");
 	return (OK);
@@ -199,10 +201,6 @@ int	Config::parseLocation()
 		{
 			parseRoot();
 		}
-		else if (_tokens[_token_index].compare("client_body_size") == 0)
-		{
-			parseClientBodySize();
-		}
 		else if (_tokens[_token_index].compare("allowed_methods") == 0)
 		{
 			parseAllowedMethods();
@@ -214,6 +212,10 @@ int	Config::parseLocation()
 		else if (_tokens[_token_index].compare("index") == 0)
 		{
 			parseIndex();
+		}
+		else if (_tokens[_token_index].compare("cgi") == 0)
+		{
+			parseCgi();
 		}
 		checkExpectedSyntax(";");
 		_token_index++;
@@ -227,23 +229,20 @@ int	Config::parseListen()
 	_token_index++;
 	size_t split = _tokens[_token_index].find_last_of(":");
 	std::string listen;
+	std::string host;
 	if (split != std::string::npos)
 	{
-		std::string host = _tokens[_token_index].substr(0, split);
-		if (host.find_first_of(":") == std::string::npos && _servers[_server_amount].hostIsEmpty())
-		{
-			_servers[_server_amount].addHostName(host);
-		}
+		host = _tokens[_token_index].substr(0, split);
 		size_t start = _tokens[_token_index].find_first_not_of(":", split);
 		if (start == std::string::npos)
 		{
 			configError("Listen config error");
 		}
 		listen = _tokens[_token_index].substr(start);
-
 	}
 	else
 	{
+		host = "0.0.0.0";
 		listen = _tokens[_token_index].substr(0);
 	}
 	for (size_t i = 0; i < listen.size(); i++)
@@ -254,7 +253,7 @@ int	Config::parseListen()
 		}
 	}
 	int port = atoi(listen.c_str());
-	_servers[_server_amount].addPort(port);
+	_servers[_server_amount].addAddress(host, port);
 	_token_index++;
 	return (_token_index);
 }
@@ -264,42 +263,10 @@ int	Config::parseServerName()
 	_token_index++;
 	while (_tokens[_token_index].compare(";") != 0)
 	{
-		if (_servers[_server_amount].hostIsEmpty())
-		{
-			_servers[_server_amount].addHostName(_tokens[_token_index]);
-			_servers[_server_amount].addServerName(_tokens[_token_index]);
-		}
-		else if (checkServerName(_tokens[_token_index]))
-		{
-			_servers[_server_amount].addServerName(_tokens[_token_index]);
-		}
+		_servers[_server_amount].addServerName(_tokens[_token_index]);
 		_token_index++;
 	}
 	return (_token_index);
-}
-
-int	Config::checkServerName(std::string name)
-{
-	std::string www = "www.";
-	std::string nl = ".nl";
-	std::string com = ".com";
-	std::string host = _servers[_server_amount].getHostName();
-	std::string variant_1 = www.substr(0).append(host);
-	std::string variant_2 = www.substr(0).append(host).append(com);
-	std::string variant_3 = www.substr(0).append(host).append(nl);
-	std::string variant_4 = host.substr(0).append(com);
-	std::string variant_5 = host.substr(0).append(nl);
-	if (variant_1.compare(name)
-		&& variant_2.compare(name)
-		&& variant_3.compare(name)
-		&& variant_4.compare(name)
-		&& variant_5.compare(name)
-		&& host.compare(name))
-	{
-		std::cout << RED_BOLD "Config Error: unexpected servername: '" << name << "' where hostname is '" << host << "'" << RESET_COLOR << std::endl;
-		exit(1);
-	}
-	return (1);
 }
 
 int	Config::parseRoot()
@@ -343,7 +310,11 @@ int	Config::parseClientBodySize()
 			}
 		}
 	}
-	size_t size = atol(client_body_size.c_str());
+	size_t size = WebservUtility::strtoul(client_body_size);
+	if (size == 0)
+	{
+		size = ULONG_MAX;
+	}
 	_servers[_server_amount].addClientBodySize(size);
 	_token_index++;
 	return (_token_index);
@@ -388,6 +359,25 @@ int	Config::parseErrorPage()
 	_token_index++;
 	_servers[_server_amount].addErrorPage(page_number, _tokens[_token_index]);
 	_token_index++;
+	return (_token_index);
+}
+
+int	Config::parseCgi()
+{
+	_token_index++;
+	std::string extention;
+	std::string path;
+	if (_tokens[_token_index].compare(";") != 0)
+	{
+		extention = _tokens[_token_index];
+		_token_index++;
+	}
+	if (_tokens[_token_index].compare(";") != 0)
+	{
+		path = _tokens[_token_index];
+		_token_index++;
+	}
+	_servers[_server_amount].addCgi(extention, path);
 	return (_token_index);
 }
 
@@ -440,6 +430,16 @@ void	Config::configError(std::string str)
 	std::cout << RED_BOLD << "Config error: " << str << std::endl;
 	exit(1);
 }
+
+
+
+
+// Utility
+
+
+
+
+
 
 /* Debugging */
 void Config::print() const

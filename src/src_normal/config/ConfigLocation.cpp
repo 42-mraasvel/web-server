@@ -10,11 +10,6 @@ void ConfigLocation::addRoot(std::string root)
 	this->_root = root;
 }
 
-void ConfigLocation::addClientBodySize(size_t client_body_size)
-{
-	this->_client_body_size = client_body_size;
-}
-
 void	ConfigLocation::addAllowedMethods(std::string method)
 {
 	this->_allowed_methods.push_back(method);
@@ -30,6 +25,12 @@ void	ConfigLocation::addIndex(std::string index)
 	this->_index.push_back(index);
 }
 
+void	ConfigLocation::addCgi(std::string extention, std::string path)
+{
+	std::pair<std::string, std::string> cgi(extention, path);
+	this->_cgi.push_back(cgi);
+}
+
 /* Debugging */
 void	ConfigLocation::print() const
 {
@@ -38,7 +39,6 @@ void	ConfigLocation::print() const
 	printIndex();
 	printAutoIndex();
 	printAllowedMethods();
-	printClientBodySize();
 	printCgi();
 }
 
@@ -62,12 +62,6 @@ void	ConfigLocation::printRoot() const
 	std::cout << ']' << std::endl;
 }
 
-void ConfigLocation::printClientBodySize() const
-{
-	std::cout << "  \t" WHITE_BOLD << "Client Body Size:" RESET_COLOR " [";
-	std::cout << _client_body_size;
-	std::cout << ']' << std::endl;
-}
 
 void ConfigLocation::printAllowedMethods() const
 {
@@ -120,7 +114,7 @@ void ConfigLocation::printCgi() const
 		{
 			std::cout << ", ";
 		}
-		std::cout << _cgi[i];
+		std::cout << _cgi[i].first << ";" << _cgi[i].second;
 	}
 	std::cout << ']' << std::endl;
 }
