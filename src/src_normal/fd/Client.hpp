@@ -27,8 +27,8 @@ class Client : public AFdInfo
 		void		initResponse(Request const & request);
 		void		checkRequestStatus();
 		bool		isRequestReadyToExecute() const;
-		void	reset();
-		void		resetRequest();
+		bool		isRequestExecuted() const;
+		void	resetRequest();
 
 	/* write*/
 	public:
@@ -38,6 +38,7 @@ class Client : public AFdInfo
 		void	processResponse();
 		void		appendResponseString();
 		void	checkConnection();
+		void		closeConnection();
 		void	resetResponse();
 		void		cleanQueue();
 		int		sendResponseString();
@@ -48,7 +49,7 @@ class Client : public AFdInfo
 		void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 		void	update(FdTable & fd_table);
 	private:
-		void	closeConnection();
+		bool	isResponseReadyToWrite() const;
 
 	private:
 		RequestParser			_request_parser;

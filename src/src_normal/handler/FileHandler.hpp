@@ -11,42 +11,43 @@ class FileHandler
 	public:
 		FileHandler(MethodType method);
 
-	/* execute request in read event*/
+	/* execute request in read event */
 	public:
-		int		executeRequest(FdTable & fd_table, Request & request);
+		bool	executeRequest(FdTable & fd_table, Request & request);
 	private:
-		int			createFile(FdTable & fd_table);
+		bool		createFile(FdTable & fd_table);
 		void    	    setFileParameter();
-		bool		    isFileReady();
+		bool		    isFileAccessible();
 		bool		    	isFileExist();
 		bool		    	isFileAuthorized();
-		bool			isFileOpened(FdTable & fd_table);
-		int 		executeFile(Request & request);
-		int 			executeGet();
-		int 			executePost(Request & request);
-		int 			executeDelete();
+		bool			openFile(FdTable & fd_table);
+		bool 		executeFile(Request & request);
+		bool 			executeGet();
+		bool 			executePost(Request & request);
+		bool 			executeDelete();
+		void		updateFileEvent(FdTable & fd_table);
 
-	/* generate response in write event*/
+	/* generate response in write event */
 	public:
-		void		generateMessageBody(std::string & message_body, std::string const & effective_request_uri);
+		bool	isFileEventError();
+		void	generateMessageBody(std::string & message_body, std::string const & effective_request_uri);
+		void	finish();
 	private:
-		void			generateMessageBodyGet(std::string & message_body);
-		void			generateMessageBodyPost(std::string & message_body, std::string const & effective_request_uri);
-		void			generateMessageBodyDelete(std::string & message_body);
+		void		generateMessageBodyGet(std::string & message_body);
+		void		generateMessageBodyPost(std::string & message_body, std::string const & effective_request_uri);
+		void		generateMessageBodyDelete(std::string & message_body);
 
+	/* utility */
 	private:
-		void	updateFileEvent(FdTable & fd_table);
 		void    deleteFile();
 		void    processError(int error_code);
 
 	public:
 		void    setAbsoluteFilePath(std::string const & path);
-		void	finishFile();
 		bool	isChunked(std::string const & http_version) const;
-		bool	isFileReady() const;
-		bool	isFileError();
-		bool	getResponseComplete() const;
+		bool	isFileReadyForResponse() const;
 		int		getStatusCode() const;
+		void	clean();
 
 	private:
 		MethodType      		_method;
@@ -56,7 +57,6 @@ class FileHandler
 		std::string     		_absolute_file_path;
 
 		File*           _file;
- 		bool			_response_complete;
 		int             _status_code;
 	   
 

@@ -2,9 +2,7 @@
 --     NOW      --
 ------------------
 
->> FileHandler
-    - process error to resolve.
-    - compilation debug.
+>> to figure mark response complete
 
 >> Redirection (3xx)
     - is URL good for Location header?

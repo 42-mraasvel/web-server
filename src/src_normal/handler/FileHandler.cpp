@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-FileHandler::FileHandler(MethodType method): _method(method), _file(NULL), _response_complete(false) {}
+FileHandler::FileHandler(MethodType method): _method(method), _file(NULL) {}
 
 void    FileHandler::setAbsoluteFilePath(std::string const & path)
 {
@@ -17,7 +17,7 @@ void    FileHandler::setAbsoluteFilePath(std::string const & path)
 
 int	FileHandler::executeRequest(FdTable & fd_table, Request & request)
 {
-	if (createFile(fd_table) == ERR || executeFile(request) == ERR)
+	if (!createFile(fd_table) || !executeFile(request))
 	{
 		return ERR;
 	}
@@ -25,21 +25,14 @@ int	FileHandler::executeRequest(FdTable & fd_table, Request & request)
 	return OK;
 }
 
-
 /*******************************************/
 /****** execute request - create file ******/
 /*******************************************/
 
-int FileHandler::createFile(FdTable & fd_table)
+bool	FileHandler::createFile(FdTable & fd_table)
 {
 	setFileParameter();
-
-	if (!isFileReady() || !isFileOpened(fd_table))
-	{
-		return ERR;
-	}
-	return OK;
-
+	return isFileAccessible() && openFile(fd_table);
 }
 
 void	FileHandler::setFileParameter()
@@ -70,7 +63,7 @@ void	FileHandler::setFileParameter()
 	}
 }
 
-bool	FileHandler::isFileReady()
+bool	FileHandler::isFileAccessible()
 {
 	if (_method == GET || _method == DELETE)
 	{
@@ -107,7 +100,7 @@ bool	FileHandler::isFileAuthorized()
 	return true;
 }
 
-bool	FileHandler::isFileOpened(FdTable & fd_table)
+bool	FileHandler::openFile(FdTable & fd_table)
 {
 	int	file_fd = open(_absolute_file_path.c_str(), _open_flag, 0644);
 	if (file_fd == ERR)
@@ -126,7 +119,7 @@ bool	FileHandler::isFileOpened(FdTable & fd_table)
 /****** execute request - execute file *****/
 /*******************************************/
 
-int FileHandler::executeFile(Request & request)
+bool	FileHandler::executeFile(Request & request)
 {
 	switch (_method)
 	{
@@ -141,33 +134,53 @@ int FileHandler::executeFile(Request & request)
 	}
 }
 
-int	FileHandler::executeGet()
+bool	FileHandler::executeGet()
 {
-	return OK;
+	return true;
 }
 
-int	FileHandler::executePost(Request & request)
+bool	FileHandler::executePost(Request & request)
 {
 	_file->swapContent(request.message_body);
-	return OK;
+	return true;
 }
 
-int	FileHandler::executeDelete()
+bool	FileHandler::executeDelete()
 {
 	if (remove(_absolute_file_path.c_str()) == ERR)
 	{
 		perror("remove");
 		processError(500); /* INTERNAL SERVER ERROR */
-		return ERR;
+		return false;
 	}
 	printf(BLUE_BOLD "Delete File:" RESET_COLOR " [%s]\n", _absolute_file_path.c_str());
 	_file->flag = AFdInfo::FILE_COMPLETE;
-	return OK;
+	return true;
+}
+
+/************************************************/
+/****** execute request - update file event *****/
+/************************************************/
+
+void	FileHandler::updateFileEvent(FdTable & fd_table)
+{
+	_file->updateEvents(_file_event, fd_table);
 }
 
 /******************************/
 /****** generate response *****/
 /******************************/
+
+bool	FileHandler::isFileEventError()
+{
+	if (_file && _file->flag == AFdInfo::FILE_ERROR)
+	{
+		processError(500); /* INTERNAL SERVER ERROR */
+		return true;
+	}
+	return false;
+}
+
 
 void	FileHandler::generateMessageBody(std::string & message_body, std::string const & effective_request_uri)
 {
@@ -204,13 +217,10 @@ void	FileHandler::generateMessageBodyDelete(std::string & message_body)
 	return ;
 }
 
-void	FileHandler::finishFile()
+void	FileHandler::finish()
 {
-	if (!_response_complete
-		&& _file
-		&& _file->flag == AFdInfo::FILE_COMPLETE)
+	if (_file && _file->flag == AFdInfo::FILE_COMPLETE)
 	{
-		_response_complete = true;
 		deleteFile();
 	}
 }
@@ -219,26 +229,17 @@ void	FileHandler::finishFile()
 /****** utility - private ******/
 /*******************************/
 
-void	FileHandler::updateFileEvent(FdTable & fd_table)
-{
-	_file->updateEvents(_file_event, fd_table);
-}
-
 void	FileHandler::deleteFile()
 {
-	if (_file)
-	{
-		_file->flag = AFdInfo::TO_ERASE;
-		_file = NULL;		
-	}
+	_file->flag = AFdInfo::TO_ERASE;
+	_file = NULL;		
 }
 
 void	FileHandler::processError(int error_code)
 {
-	if (!_response_complete)
+	_status_code = error_code;
+	if (_file)
 	{
-		_status_code = error_code;
-		_response_complete = true;
 		deleteFile();
 	}
 }
@@ -247,11 +248,6 @@ void	FileHandler::processError(int error_code)
 /****** utility - public ******/
 /******************************/
 
-bool	FileHandler::getResponseComplete() const
-{
-	return _response_complete;
-}
-
 int	FileHandler::getStatusCode() const
 {
 	return _status_code;
@@ -259,8 +255,7 @@ int	FileHandler::getStatusCode() const
 
 bool	FileHandler::isChunked(std::string const & http_version) const
 {
-	if (!_response_complete
-		&& http_version == "HTTP/1.1"
+	if (http_version == "HTTP/1.1"
 		&& _method == GET)
 	{
 		return _file
@@ -270,7 +265,7 @@ bool	FileHandler::isChunked(std::string const & http_version) const
 	return false;
 }
 
-bool	FileHandler::isFileReady() const
+bool	FileHandler::isFileReadyForResponse() const
 {
 	return _file 
 			&& (_file->flag == AFdInfo::FILE_COMPLETE
@@ -279,14 +274,7 @@ bool	FileHandler::isFileReady() const
 					&& !_file->getContent().empty()));
 }
 
-bool	FileHandler::isFileError()
+void	FileHandler::clean()
 {
-	if (!_response_complete
-		&& _file
-		&& _file->flag == AFdInfo::FILE_ERROR)
-	{
-		processError(500); /* INTERNAL SERVER ERROR */
-		return false;
-	}
-	return true;
+	deleteFile();
 }

@@ -5,6 +5,7 @@
 #include "fd/AFdInfo.hpp"
 #include "FileHandler.hpp"
 #include "MediaType.hpp"
+#include "RequestValidator.hpp"
 
 class File;
 
@@ -27,20 +28,19 @@ class Response
 
 	/* Client::readEvent() */
 	public:
-		void	scanRequestHeader(Request const & request);
+		void	initiate(Request const & request);
 	private:
+		void		resolveConfig(Request const & request);
 		std::string const &	generateAuthority(Request const & request, std::string const & default_server);
-		void		generateEffectiveRequestURI(std::string const & authority);
-		void		generateAbsoluteFilePath(std::string const & root, std::string const & default_file);
-		bool		isRequestError(Request const & request);
-		bool			isConnectionError(Request const & request);
-		bool			isBadRequest(Request::RequestStatus status, int request_code);
-		bool			isHttpVersionError(int http_major_version);
-		bool			isMethodError();
-		bool				findMethod(MethodType method) const;
-		bool			isExpectationError(Request const & request);
-		void		returnRedirect(int code, std::string text);
-		void		continueResponse(Request const & request);
+		void				generateEffectiveRequestURI(std::string const & authority);
+		void				generateAbsoluteFilePath(std::string const & root, std::string const & default_file);
+		void		checkConnection(Request const & request);
+		void		validateRequest(Request const & request);
+		void		processImmdiateResponse(Request const & request);
+		bool			isRedirectResponse() const;
+		void			processRedirectResponse();
+		bool			isContinueResponse() const;
+		void			processContinueResponse(Request const & request);
 
 	public:
 		void	executeRequest(FdTable & fd_table, Request & request);
@@ -53,10 +53,13 @@ class Response
 	public:
 		void	generateResponse();
 	private:
-		bool		isResponseError();
 		void		generateMessageBody();
-		void		finishHandler();
-		void		setStringToSent();
+		bool			isExecutionSuccessful();
+		void			generateHandlerMessageBody();
+		void			finishHandler();
+		void			generateOtherMessageBody();
+		void				generateErrorPage();
+		void		setStringToSend();
 		void			doChunked();
 		void			noChunked();
 		void			encodeMessageBody();
@@ -80,24 +83,18 @@ class Response
 		int					getStatusCode() const;
 		std::string const &	getString() const;
 		void				clearString();
-		void				deleteFile();
 		bool				isHandlerReadyToWrite() const;
 		bool				isComplete() const;
 
 	private:
-		void	processError(int error_code);
-		void		generateErrorPage();
-
-	private:
-		typedef	std::vector<std::string>::const_iterator		method_const_iterator;
 		typedef	std::vector<std::string>::iterator				method_iterator;
 
 		/* config related */
-		std::vector<std::string>	_allowed_methods;
 		MediaType::Map				_media_type_map;
 		std::string					_authority;
 		std::string					_effective_request_uri;
 		std::string					_absolute_file_path;
+		std::vector<std::string>	_allowed_methods; //TODO: to incorporate from Config
 
 		/* info */
 		MethodType			_method;
@@ -124,6 +121,7 @@ class Response
 
 		/* handler */
 		bool				_is_cgi;
+		RequestValidator	_request_validator;
 		FileHandler			_file_handler;
 
 

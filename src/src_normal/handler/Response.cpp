@@ -18,9 +18,9 @@ Response::Response(Request const & request): _file_handler(request.method)
 	_header_sent = false;
 	_chunked = false;
 	_close_connection = false;
-
 	_is_cgi = false;
 
+	_status_code = 0;
 	_method = request.method;
 	_target_resource = request.target_resource;
 	setHttpVersion(request.minor_version);
@@ -47,11 +47,25 @@ void	Response::setHttpVersion(int minor_version)
 
 Response::~Response() {}
 
-/*****************************************************/
-/****** (Client::readEvent) scan request header ******/
-/*****************************************************/
+/************************************************/
+/****** (Client::readEvent) init response  ******/
+/************************************************/
 
-void	Response::scanRequestHeader(Request const & request)
+void	Response::initiate(Request const & request)
+{
+	resolveConfig(request);
+	checkConnection(request);
+	if (validateRequest(request))
+	{
+		processImmdiateResponse(request);
+	}
+}
+
+/********************************************/
+/****** init response - resolve config ******/
+/********************************************/
+
+void	Response::resolveConfig(Request const & request)
 {
 	/*
 	TODO: to retrieve from config class
@@ -61,26 +75,12 @@ void	Response::scanRequestHeader(Request const & request)
 	3. inside chosen server block, find location block that match with target resource.
 	4. inside the location block, take root
 	*/
-	bool		redirect_flag = false;
-	int			redirect_code = 301;
-	std::string	redirect_text = "http://this_is_the_redirect_url.com";
 	std::string	default_file = "index.html";
 	std::string	root = "./page_sample";
 	std::string	default_server = "localhost";
 	std::string	authority = generateAuthority(request, default_server);
 	generateEffectiveRequestURI(authority);
 	generateAbsoluteFilePath(root, default_file);
-
-	if (isRequestError(request))
-	{
-		return ;
-	}
-	if (redirect_flag)
-	{
-		returnRedirect(redirect_code, redirect_text);
-		return ;
-	}
-	continueResponse(request);
 }
 
 std::string const &	Response::generateAuthority(Request const & request, std::string const & default_server)
@@ -111,143 +111,96 @@ void	Response::generateAbsoluteFilePath(std::string const & root, std::string co
 	}
 	_file_handler.setAbsoluteFilePath(path);
 }
+/**********************************************/
+/****** init response - check connection ******/
+/**********************************************/
 
-bool	Response::isRequestError(Request const & request)
+void	Response::checkConnection(Request const & request)
 {
-	return isConnectionError(request)
-			|| isBadRequest(request.status, request.status_code)
-			|| isHttpVersionError(request.major_version)
-			|| isMethodError()
-			|| isExpectationError(request);
-}
-
-bool	Response::isConnectionError(Request const & request)
-{
-	// TODO: incorporate request's flag
-	if (request.header_fields.contains("connection"))
+	if (false) // TODO: change to if (request.close_connection)
+	{
+		_close_connection = true;
+	}
+	else if (request.header_fields.contains("connection"))
 	{
 		if(WebservUtility::caseInsensitiveEqual(request.header_fields.find("connection")->second, "close"))
 		{
 			_close_connection = true;
-		}
-		else if (!WebservUtility::caseInsensitiveEqual(request.header_fields.find("connection")->second, "keep-alive"))
-		{
-			processError(400); /* BAD REQUEST */
-			return true;
 		}
 	}
 	else if (request.major_version == 1 && request.minor_version == 0)
 	{
 		_close_connection = true;
 	}
-	return false;
 }
 
-bool	Response::isBadRequest(Request::RequestStatus status, int request_code)
-{
-	if (status == Request::BAD_REQUEST)
-	{
-		processError(request_code);
-		return true;
-	}
-	return false;
-}
+/************************************************/
+/****** init response - validate request  *******/
+/************************************************/
 
-bool	Response::isHttpVersionError(int http_major_version)
+bool	Response::validateRequest(Request const & request)
 {
-	if (http_major_version != 1)
+	if (!_request_validator.isRequestValid(request))
 	{
-		processError(505); /* HTTP VERSION NOT SUPPORTED */
-		return true;
+		_status_code = _request_validator.getStatusCode();
+		// xxx: process error;
+		return false;
 	}
-	return false;
+	return true;
 }
+/****************************************************/
+/****** (Client::readEvent) immediate response ******/
+/****************************************************/
 
-bool	Response::isMethodError()
+bool	Response::processImmdiateResponse(Request const & request)
 {
-	if (_method == OTHER)
+	if (isRedirectResponse())
 	{
-		processError(501); /* NOT IMPLEMENTED */ 
-		return true;
+		processRedirectResponse();
 	}
-	if (!findMethod(_method))
+	else if (isContinuteResponse(request))
 	{
-		processError(405); /* METHOD NOT ALLOWED */ 
-		return true;		
-	}
-	return false;
-}
-
-bool	Response::findMethod(MethodType const method) const
-{
-	std::string	method_string;
-	switch (method)
-	{
-		case GET:
-			method_string = "GET";
-			break ;
-		case POST:
-			method_string = "POST";
-			break ;
-		case DELETE:
-			method_string = "DELETE";
-			break ;
-		default:
-			method_string = "OTHER";
-	}
-	method_const_iterator	it = std::find(_allowed_methods.begin(), _allowed_methods.end(), method_string);
-	return it != _allowed_methods.end();
-}
-
-bool	Response::isExpectationError(Request const & request)
-{
-	if (request.header_fields.contains("expect") &&
-		!WebservUtility::caseInsensitiveEqual(request.header_fields.find("expect")->second, "100-continue"))
-	{
-		processError(417); /* EXPECATION FAILED */ 
-		return true;
-	}
-	return false;
-}
-
-// TODO: to sort out a better structure for below functions
-void	Response::returnRedirect(int code, std::string text)
-{
-	if (_status != COMPLETE)
-	{
-		_status = COMPLETE;
-		_status_code = code;
-		if (_status_code >= 300 && _status_code < 400)
-		{
-			_effective_request_uri = text;
-			_message_body = "Redirect to " + text + "\n";
-		}
-		else
-		{
-			_message_body = text;
-		}
+		processContinueResponse();
 	}
 }
 
-/*
-	Condition of sending 100 continue status code:
-		- header filed: expect:100-continue
-		- http version 1.1
-		- content-length specified
-		- no message body yet
-*/
-void	Response::continueResponse(Request const & request)
+bool	Response::isRedirectResponse()
 {
-	if (_status != COMPLETE 
-		&& request.header_fields.contains("expect")
-		&& request.minor_version == 1
-		&& request.header_fields.contains("content-length")
-		&& !(request.header_fields.find("content-length")->second.empty())
-		&& request.message_body.empty())
+	// TODO: to incorporate config
+	bool	redirect_flag = false;
+	return redirect_flag;
+}
+
+void	Response::processRedirectResponse()
+{
+	// TODO: to incorporate config
+	int			redirect_code = 301;
+	std::string	redirect_text = "http://this_is_the_redirect_url.com";
+
+	markComplete(redirect_code);
+	if (_status_code >= 300 && _status_code < 400)
 	{
-		_status = COMPLETE;
-		_status_code = 100; /* CONTINUE */
+		_effective_request_uri = redirect_text;
+		_message_body = "Redirect to " + text + "\n";
 	}
+	else
+	{
+		_message_body = text;
+	}
+}
+
+bool	Response::isContinuteResponse(Request const & request) const
+{
+	return request.header_fields.contains("expect")
+			&& request.minor_version == 1
+			&& request.header_fields.contains("content-length")
+			&& !(request.header_fields.find("content-length")->second.empty())
+			&& request.message_body.empty())
+}
+
+void	Response::processContinueResponse()
+{
+	markComplete(100);
 }
 
 /*************************************************/
@@ -258,11 +211,15 @@ void	Response::executeRequest(FdTable & fd_table, Request & request)
 {
 	if (_is_cgi)
 	{
-		// TODO:: add _cgi_handler.executeRequest();
+		// TODO: add _cgi_handler.executeRequest();
+		// TODO: set status and status_code if complete/error;
 	}
 	else
 	{
-		_file_handler.executeRequest(fd_table, request);
+		if (_file_handler.executeRequest(fd_table, request) == ERR)
+		{
+			markComplete(_file_handler.getStatusCode());
+		}
 	}
 }
 
@@ -272,13 +229,16 @@ void	Response::executeRequest(FdTable & fd_table, Request & request)
 
 void	Response::defineEncoding()
 {
-	if (_is_cgi)
+	if (_status != COMPLETE)
 	{
-		// TODO:: add cgo check chunekd (error proof)
-	}
-	else if (_file_handler.isChunked(_http_version))
-	{
-		_chunked = true;
+		if (_is_cgi)
+		{
+			// TODO:: add cgo check chunekd (error proof)
+		}
+		else if (_file_handler.isChunked(_http_version))
+		{
+			_chunked = true;
+		}
 	}
 }
 
@@ -288,16 +248,29 @@ void	Response::defineEncoding()
 
 void	Response::generateResponse()
 {
-	if (!isComplete() && !isResponseError())
-	{
-		generateMessageBody();
-	}
-	finishHandler();
+	generateMessageBody();
 	setStringToSent();
 }
 
-bool	Response::isResponseError()
+void	Response::generateMessageBody()
 {
+	if (isExecutionSuccessful())
+	{
+		generateHandlerMessageBody();
+		finishHandler();
+	}
+	else
+	{
+		generateOtherMessageBody();
+	}
+}
+
+bool	Response::isExecutionSuccessful()
+{
+	if (_status == COMPLETE)
+	{
+		return false;
+	}
 	if (_is_cgi)
 	{
 		// TODO
@@ -305,11 +278,16 @@ bool	Response::isResponseError()
 	}
 	else
 	{
-		return _file_handler.isFileError();
+		if (_file_handler.isFileEventError())
+		{
+			markComplete(_file_handler.getStatusCode());
+			return false;
+		}
+		return true;
 	}
 }
 
-void	Response::generateMessageBody()
+void	Response::generateHandlerMessageBody()
 {
 	if (_is_cgi)
 	{
@@ -321,6 +299,18 @@ void	Response::generateMessageBody()
 	}
 }
 
+void	Response::generateOtherMessageBody()
+{
+	generateErrorPage(); //TODO: to improve
+}
+
+void	Response::generateErrorPage()
+{
+	//TODO: to modify message
+	_message_body = WebservUtility::itoa(_status_code) + " "
+					+ WebservUtility::getStatusMessage(_status_code) + "\n";
+}
+
 void	Response::finishHandler()
 {
 	if (_is_cgi)
@@ -329,11 +319,15 @@ void	Response::finishHandler()
 	}
 	else
 	{
-		_file_handler.finishFile();
+		_status_code = _file_handler.getStatusCode();			
+		_file_handler.finish();
 	}
 }
+/****************************************************/
+/****** generate response - set string to send ******/
+/****************************************************/
 
-void	Response::setStringToSent()
+void	Response::setStringToSend()
 {
 	if (_chunked)
 	{
@@ -521,18 +515,15 @@ void	Response::noChunked()
 /****** utility ******/
 /*********************/
 
+void	Response::markComplete(int code)
+{
+	_status = COMPLETE;
+	_status_code = code;
+}
+
 bool	Response::isComplete() const
 {
-	if (_is_cgi)
-	{
-		// TODO: add CGI
-		return true;
-	}
-	else
-	{
-		return _file_handler.getResponseComplete();
-	}
-	
+	return _status == COMPLETE;
 }
 
 bool	Response::getCloseConnectionFlag() const
@@ -542,15 +533,7 @@ bool	Response::getCloseConnectionFlag() const
 
 int	Response::getStatusCode() const
 {
-	if (_is_cgi)
-	{
-		// TODO return CGI
-		return _status_code;
-	}
-	else
-	{
-		return _file_handler.getStatusCode();
-	}
+	return _status_code;
 }
 
 std::string const &	Response::getString() const
@@ -572,26 +555,6 @@ bool	Response::isHandlerReadyToWrite() const
 	}
 	else
 	{
-		return _file_handler.isFileReady();
+		return _file_handler.isFileReadyForResponse();
 	}
-}
-
-// XXX: to change
-void	Response::processError(int error_code)
-{
-	if (_status != COMPLETE)
-	{
-		_status_code = error_code;
-		_status = COMPLETE;
-		generateErrorPage();
-		deleteFile();
-	}
-}
-
-// XXX: to add in process
-void	Response::generateErrorPage()
-{
-	//TODO: to modify message
-	_message_body = WebservUtility::itoa(_status_code) + " "
-					+ WebservUtility::getStatusMessage(_status_code) + "\n";
 }
