@@ -24,6 +24,10 @@ TEST_CASE("IsCgi tests", "[cgi]")
     REQUIRE(cgi_handler.isCgi(&r) == true);
     r.target_resource = "/.py";
     REQUIRE(cgi_handler.isCgi(&r) == true);
+    r.target_resource = "/.py/";
+    REQUIRE(cgi_handler.isCgi(&r) == true);
+    r.target_resource = "/.py/a";
+    REQUIRE(cgi_handler.isCgi(&r) == true);
 
 /* False Tests */
     r.target_resource = "/";

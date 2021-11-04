@@ -35,13 +35,15 @@ bool CgiHandler::isCgi(Request* request) {
 		std::size_t end = target.find("/", index + 1);
 		if (WebservUtility::stringEndsWith(target, CGI_EXTENSION, index, end)) {
 
+			//TODO: _target and PATH_INFO should be the full_path, so SERVER_ROOT/current
 			_target = target.substr(0, end);
 			if (end != std::string::npos) {
-				_meta_variables.push_back(MetaVariableType("PATH_INFO", _target.substr()));
+				_meta_variables.push_back(MetaVariableType("PATH_INFO", target.substr(end)));
 			} else {
 				//TODO: should this be "/" or "" (EMPTY) ?
-				_meta_variables.push_back(MetaVariableType("PATH_INFO", "/"));
+				_meta_variables.push_back(MetaVariableType("PATH_INFO", ""));
 			}
+			_meta_variables.clear();
 
 			return true;
 		} else if (end == std::string::npos) {
@@ -64,11 +66,12 @@ bool CgiHandler::isCgi(Request* request) {
 */
 int CgiHandler::execute(Request* request)
 {
-	generateMetaVariables();
+	// generateMetaVariables();
 	printf("-- Executing CGI --\n");
 	_message_body = "1234";
 	_status = COMPLETE;
-	_meta_variables.print();
+
+	print();
 	_meta_variables.clear();
 	return OK;
 }
