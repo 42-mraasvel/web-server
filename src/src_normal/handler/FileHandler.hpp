@@ -10,44 +10,46 @@ class FileHandler
 {
 	public:
 		FileHandler(MethodType method);
+		~FileHandler();
 
 	/* execute request in read event */
 	public:
-		bool	executeRequest(FdTable & fd_table, Request & request);
+		int		executeRequest(FdTable & fd_table, Request & request);
 	private:
-		bool		createFile(FdTable & fd_table);
+		int			createFile(FdTable & fd_table);
 		void    	    setFileParameter();
 		bool		    isFileAccessible();
 		bool		    	isFileExist();
 		bool		    	isFileAuthorized();
 		bool			openFile(FdTable & fd_table);
-		bool 		executeFile(Request & request);
-		bool 			executeGet();
-		bool 			executePost(Request & request);
-		bool 			executeDelete();
+		int 		executeFile(Request & request);
+		int 			executeGet();
+		int 			executePost(Request & request);
+		int 			executeDelete();
 		void		updateFileEvent(FdTable & fd_table);
 
 	/* generate response in write event */
 	public:
-		bool	isFileEventError();
+		bool	evaluateExecutionError();
+		bool	evaluateExecutionCompletion();
 		void	generateMessageBody(std::string & message_body, std::string const & effective_request_uri);
-		void	finish();
 	private:
 		void		generateMessageBodyGet(std::string & message_body);
 		void		generateMessageBodyPost(std::string & message_body, std::string const & effective_request_uri);
 		void		generateMessageBodyDelete(std::string & message_body);
 
 	/* utility */
-	private:
-		void    deleteFile();
-		void    processError(int error_code);
-
 	public:
 		void    setAbsoluteFilePath(std::string const & path);
+		std::string const &	getAbsoluteFilePath() const;
+		int		getStatusCode() const;
 		bool	isChunked(std::string const & http_version) const;
 		bool	isFileReadyForResponse() const;
-		int		getStatusCode() const;
-		void	clean();
+		bool	isFileError() const;
+		bool	isFileComplete() const;
+		bool	isFileReading() const;
+	private:
+		void    deleteFile();
 
 	private:
 		MethodType      		_method;

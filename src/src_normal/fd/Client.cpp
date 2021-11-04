@@ -242,7 +242,7 @@ void	Client::cleanQueue()
 {
 	while (!_response_queue.empty())
 	{
-		_response_queue.front()->finishHandler();
+		delete _response_queue.front();
 		_response_queue.pop();
 	}
 }
@@ -291,7 +291,7 @@ void	Client::update(FdTable & fd_table)
 		printf(BLUE_BOLD "Close Connection:" RESET_COLOR " [%d]\n", _fd);
 		fd_table.eraseFd(_index);
 	}
-	if (!_response_string.empty()
+	else if (!_response_string.empty()
 		|| isResponseReadyToWrite())
 	{
 		updateEvents(AFdInfo::WRITING, fd_table);

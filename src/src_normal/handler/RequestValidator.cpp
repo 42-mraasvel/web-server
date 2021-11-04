@@ -1,5 +1,4 @@
 #include "RequestValidator.hpp"
-#include "parser/Request.hpp"
 #include "utility/utility.hpp"
 
 int RequestValidator::getStatusCode() const
@@ -9,10 +8,15 @@ int RequestValidator::getStatusCode() const
 
 bool	RequestValidator::isRequestValid(Request const & request)
 {
+	// TODO: to change it properly with configuration
+	_allowed_methods.push_back("GET");
+	_allowed_methods.push_back("POST");
+	_allowed_methods.push_back("DELETE");
+
 	return !isBadRequest(request.status, request.status_code)
 			&& isConnectionValid(request)
 			&& isHttpVersionValid(request.major_version)
-			&& isMethodValid()
+			&& isMethodValid(request.method)
 			&& isExpectationValid(request);
 }
 
@@ -23,7 +27,7 @@ bool	RequestValidator::isBadRequest(Request::RequestStatus status, int request_c
 		_status_code = request_code;
 		return true;
 	}
-	return flase;
+	return false;
 }
 
 bool	RequestValidator::isConnectionValid(Request const & request)
@@ -35,7 +39,6 @@ bool	RequestValidator::isConnectionValid(Request const & request)
 			_status_code = 400; /* BAD REQUEST */
             return false;
 		}
-	}
 	return true;
 }
 
@@ -49,14 +52,14 @@ bool	RequestValidator::isHttpVersionValid(int http_major_version)
 	return true;
 }
 
-bool	RequestValidator::isMethodValid()
+bool	RequestValidator::isMethodValid(MethodType const method)
 {
-	if (_method == OTHER)
+	if (method == OTHER)
 	{
 		_status_code = 501; /* NOT IMPLEMENTED */ 
 		return false;
 	}
-	if (!findMethod(_method))
+	if (!findMethod(method))
 	{
 		_status_code = 405; /* METHOD NOT ALLOWED */ 
 		return false;		
@@ -66,11 +69,6 @@ bool	RequestValidator::isMethodValid()
 
 bool	RequestValidator::findMethod(MethodType const method) const
 {
-	// TODO: to change it properly with configuration
-	_allowed_methods.push_back("GET");
-	_allowed_methods.push_back("POST");
-	_allowed_methods.push_back("DELETE");
-
 	std::string	method_string;
 	switch (method)
 	{

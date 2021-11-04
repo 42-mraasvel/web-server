@@ -23,8 +23,6 @@ class Response
 		Response(Request const & request);
 	private:
 		void	setHttpVersion(int minor_version);
-	public:
-		~Response();
 
 	/* Client::readEvent() */
 	public:
@@ -34,17 +32,16 @@ class Response
 		std::string const &	generateAuthority(Request const & request, std::string const & default_server);
 		void				generateEffectiveRequestURI(std::string const & authority);
 		void				generateAbsoluteFilePath(std::string const & root, std::string const & default_file);
-		void		checkConnection(Request const & request);
-		void		validateRequest(Request const & request);
+		void		evaluateConnectionFlag(Request const & request);
+		int			validateRequest(Request const & request);
 		void		processImmdiateResponse(Request const & request);
 		bool			isRedirectResponse() const;
 		void			processRedirectResponse();
-		bool			isContinueResponse() const;
-		void			processContinueResponse(Request const & request);
+		bool			isContinueResponse(Request const & request) const;
+		void			processContinueResponse();
 
 	public:
 		void	executeRequest(FdTable & fd_table, Request & request);
-	private:
 
 	/* Client::writeEvent() */
 	public:
@@ -53,12 +50,11 @@ class Response
 	public:
 		void	generateResponse();
 	private:
+		void		evaluateExecutionError();
 		void		generateMessageBody();
-		bool			isExecutionSuccessful();
 		void			generateHandlerMessageBody();
-		void			finishHandler();
-		void			generateOtherMessageBody();
-		void				generateErrorPage();
+		void			generateErrorPage();
+		void		evaluateExecutionCompletion();
 		void		setStringToSend();
 		void			doChunked();
 		void			noChunked();
@@ -83,12 +79,13 @@ class Response
 		int					getStatusCode() const;
 		std::string const &	getString() const;
 		void				clearString();
-		bool				isHandlerReadyToWrite() const;
 		bool				isComplete() const;
-
+		bool				isHandlerReadyToWrite() const;
 	private:
 		typedef	std::vector<std::string>::iterator				method_iterator;
+		void				markComplete(int code);
 
+	private:
 		/* config related */
 		MediaType::Map				_media_type_map;
 		std::string					_authority;
@@ -102,10 +99,6 @@ class Response
 		RequestParser::header_field_t  _header_fields;
 		std::string 		_http_version;
 		int					_status_code;
-
-		/* file related */
-		File*				_file;
-		AFdInfo::EventTypes	_file_event;
 
 		/* flags */
 		Status				_status;

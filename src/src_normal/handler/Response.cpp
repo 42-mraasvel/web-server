@@ -45,8 +45,6 @@ void	Response::setHttpVersion(int minor_version)
 	}
 }
 
-Response::~Response() {}
-
 /************************************************/
 /****** (Client::readEvent) init response  ******/
 /************************************************/
@@ -54,11 +52,12 @@ Response::~Response() {}
 void	Response::initiate(Request const & request)
 {
 	resolveConfig(request);
-	checkConnection(request);
-	if (validateRequest(request))
+	evaluateConnectionFlag(request);
+	if (validateRequest(request) == ERR)
 	{
-		processImmdiateResponse(request);
+		return ;
 	}
+	processImmdiateResponse(request);
 }
 
 /********************************************/
@@ -103,21 +102,28 @@ void	Response::generateEffectiveRequestURI(std::string const & authority)
 
 void	Response::generateAbsoluteFilePath(std::string const & root, std::string const & default_file)
 {
-	std::string	path;
-	path = root + _target_resource;
+	_absolute_file_path = root + _target_resource;
 	if (_target_resource.back() == '/')
 	{
-		path += default_file;
+		_absolute_file_path += default_file;
 	}
-	_file_handler.setAbsoluteFilePath(path);
+	if (_is_cgi)
+	{
+		// TODO_CGI: _cgi_handler.setAbsoluteFilePath(_absolute_file_path);
+	}
+	else
+	{
+		_file_handler.setAbsoluteFilePath(_absolute_file_path);
+	}
 }
+
 /**********************************************/
 /****** init response - check connection ******/
 /**********************************************/
 
-void	Response::checkConnection(Request const & request)
+void	Response::evaluateConnectionFlag(Request const & request)
 {
-	if (false) // TODO: change to if (request.close_connection)
+	if (false) // TODO_CGI: change to if (request.close_connection)
 	{
 		_close_connection = true;
 	}
@@ -138,33 +144,32 @@ void	Response::checkConnection(Request const & request)
 /****** init response - validate request  *******/
 /************************************************/
 
-bool	Response::validateRequest(Request const & request)
+int	Response::validateRequest(Request const & request)
 {
 	if (!_request_validator.isRequestValid(request))
 	{
-		_status_code = _request_validator.getStatusCode();
-		// xxx: process error;
-		return false;
+		markComplete(_request_validator.getStatusCode());
+		return ERR;
 	}
-	return true;
+	return OK;
 }
 /****************************************************/
 /****** (Client::readEvent) immediate response ******/
 /****************************************************/
 
-bool	Response::processImmdiateResponse(Request const & request)
+void	Response::processImmdiateResponse(Request const & request)
 {
 	if (isRedirectResponse())
 	{
 		processRedirectResponse();
 	}
-	else if (isContinuteResponse(request))
+	else if (isContinueResponse(request))
 	{
 		processContinueResponse();
 	}
 }
 
-bool	Response::isRedirectResponse()
+bool	Response::isRedirectResponse() const
 {
 	// TODO: to incorporate config
 	bool	redirect_flag = false;
@@ -181,21 +186,21 @@ void	Response::processRedirectResponse()
 	if (_status_code >= 300 && _status_code < 400)
 	{
 		_effective_request_uri = redirect_text;
-		_message_body = "Redirect to " + text + "\n";
+		_message_body = "Redirect to " + redirect_text + "\n";
 	}
 	else
 	{
-		_message_body = text;
+		_message_body = redirect_text;
 	}
 }
 
-bool	Response::isContinuteResponse(Request const & request) const
+bool	Response::isContinueResponse(Request const & request) const
 {
 	return request.header_fields.contains("expect")
 			&& request.minor_version == 1
 			&& request.header_fields.contains("content-length")
 			&& !(request.header_fields.find("content-length")->second.empty())
-			&& request.message_body.empty())
+			&& request.message_body.empty();
 }
 
 void	Response::processContinueResponse()
@@ -211,8 +216,7 @@ void	Response::executeRequest(FdTable & fd_table, Request & request)
 {
 	if (_is_cgi)
 	{
-		// TODO: add _cgi_handler.executeRequest();
-		// TODO: set status and status_code if complete/error;
+		// TODO_CGI: add _cgi_handler.executeRequest(): markComplete if there is error (clean cgi fd if error);
 	}
 	else
 	{
@@ -233,7 +237,7 @@ void	Response::defineEncoding()
 	{
 		if (_is_cgi)
 		{
-			// TODO:: add cgo check chunekd (error proof)
+			// TODO_CGI:: add cgi check chunekd (error proof)
 		}
 		else if (_file_handler.isChunked(_http_version))
 		{
@@ -248,42 +252,39 @@ void	Response::defineEncoding()
 
 void	Response::generateResponse()
 {
+	evaluateExecutionError();
 	generateMessageBody();
-	setStringToSent();
+	evaluateExecutionCompletion();
+	setStringToSend();
+}
+
+void	Response::evaluateExecutionError()
+{
+	if (_status != COMPLETE)
+	{
+		if (_is_cgi)
+		{
+			// TODO_CGI _cgi_handler.evaluateExecutionError() (clean cgi fd if error)
+		}
+		else
+		{
+			if (_file_handler.evaluateExecutionError())
+			{
+				markComplete(500); /* INTERNAL SERVER ERROR */
+			}
+		}
+	}
 }
 
 void	Response::generateMessageBody()
 {
-	if (isExecutionSuccessful())
+	if (_status != COMPLETE)
 	{
 		generateHandlerMessageBody();
-		finishHandler();
 	}
 	else
 	{
-		generateOtherMessageBody();
-	}
-}
-
-bool	Response::isExecutionSuccessful()
-{
-	if (_status == COMPLETE)
-	{
-		return false;
-	}
-	if (_is_cgi)
-	{
-		// TODO
-		return true;
-	}
-	else
-	{
-		if (_file_handler.isFileEventError())
-		{
-			markComplete(_file_handler.getStatusCode());
-			return false;
-		}
-		return true;
+		generateErrorPage();
 	}
 }
 
@@ -291,17 +292,12 @@ void	Response::generateHandlerMessageBody()
 {
 	if (_is_cgi)
 	{
-		// TODO
+		// TODO_CGI _cgi_handler.generateMessageBody(_message_body, ...)
 	}
 	else
 	{
 		_file_handler.generateMessageBody(_message_body, _effective_request_uri);
 	}
-}
-
-void	Response::generateOtherMessageBody()
-{
-	generateErrorPage(); //TODO: to improve
 }
 
 void	Response::generateErrorPage()
@@ -311,18 +307,24 @@ void	Response::generateErrorPage()
 					+ WebservUtility::getStatusMessage(_status_code) + "\n";
 }
 
-void	Response::finishHandler()
+void	Response::evaluateExecutionCompletion()
 {
-	if (_is_cgi)
+	if (_status != COMPLETE)
 	{
-		// TODO
-	}
-	else
-	{
-		_status_code = _file_handler.getStatusCode();			
-		_file_handler.finish();
+		if (_is_cgi)
+		{
+			// TODO_CGI: _cgi_handler.evaluateExecutionCompletion() (clean cgi fd if complete)
+		}
+		else
+		{
+			if (_file_handler.evaluateExecutionCompletion())
+			{
+				markComplete(_file_handler.getStatusCode());
+			}
+		}
 	}
 }
+
 /****************************************************/
 /****** generate response - set string to send ******/
 /****************************************************/
@@ -511,20 +513,9 @@ void	Response::noChunked()
 	}
 }
 
-/*********************/
-/****** utility ******/
-/*********************/
-
-void	Response::markComplete(int code)
-{
-	_status = COMPLETE;
-	_status_code = code;
-}
-
-bool	Response::isComplete() const
-{
-	return _status == COMPLETE;
-}
+/******************************/
+/****** utility - public ******/
+/******************************/
 
 bool	Response::getCloseConnectionFlag() const
 {
@@ -546,15 +537,30 @@ void	Response::clearString()
 	_string_to_send.clear();
 }
 
+bool	Response::isComplete() const
+{
+	return _status == COMPLETE;
+}
+
 bool	Response::isHandlerReadyToWrite() const
 {
 	if (_is_cgi)
 	{
-		// TODO return CGI
+		// TODO_CGI return CGI
 		return true;
 	}
 	else
 	{
 		return _file_handler.isFileReadyForResponse();
 	}
+}
+
+/*******************************/
+/****** utility - private ******/
+/*******************************/
+
+void	Response::markComplete(int code)
+{
+	_status = COMPLETE;
+	_status_code = code;
 }

@@ -1,6 +1,7 @@
 #pragma once
-
-struct Request;
+#include "parser/Request.hpp"
+#include <vector>
+#include <string>
 
 class RequestValidator
 {
@@ -10,8 +11,8 @@ class RequestValidator
 		bool		isBadRequest(Request::RequestStatus status, int request_code);
 		bool		isConnectionValid(Request const & request);
 		bool		isHttpVersionValid(int http_major_version);
-		bool		isMethodValid();
-		bool			findMethod(MethodType method) const;
+		bool		isMethodValid(MethodType const method);
+		bool			findMethod(MethodType const method) const;
 		bool		isExpectationValid(Request const & request);
 
     public:
