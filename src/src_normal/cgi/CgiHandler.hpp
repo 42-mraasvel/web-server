@@ -42,6 +42,10 @@ class CgiHandler
 		void generateMetaVariables(const Request* request);
 		void metaVariableContent(const Request* request);
 
+		int initializeCgiConnection(int* cgi_fds);
+		int initializeCgiReader(int* cgi_fds);
+		int initializeCgiSender(int* cgi_fds);
+
 	private:
 		Status		_status;
 		int			_status_code;
@@ -49,6 +53,7 @@ class CgiHandler
 		HeaderField _header;
 
 	private:
+		std::string _script;
 		std::string _target;
 		MetaVariableContainerType _meta_variables;
 };

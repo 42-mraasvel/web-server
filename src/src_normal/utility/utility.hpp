@@ -41,7 +41,11 @@ std::string getStatusMessage(int status_code);
 bool stringEndsWith(const std::string &s, const std::string& to_find,
                 std::size_t begin = 0, std::size_t end = std::string::npos);
 
+void closePipe(int* fds);
+
 }
+
+int syscallError(const char* str);
 
 bool isSeperator(char x);
 bool isControl(char x);

@@ -1,6 +1,8 @@
 #include "CgiHandler.hpp"
 #include "settings.hpp"
 #include "utility/utility.hpp"
+#include "utility/macros.hpp"
+#include <unistd.h>
 
 #define CGI_EXTENSION ".py"
 
@@ -59,17 +61,32 @@ bool CgiHandler::isCgi(const Request* request) {
 	- ScriptLocation: based off Configuration options
 	- MetaVariables
 
-2. Open pipes to connect STDIN and STDOUT
+2. Open pipes to connect STDIN and STDOUT, create new instances
 3. Fork and execute the script, store the PID internally
 4. Close unused pipe ends
 */
 int CgiHandler::execute(const Request* request)
 {
-	generateMetaVariables(request);
 	printf("-- Executing CGI --\n");
-	_message_body = "1234";
-	_status = COMPLETE;
 
+	/* 1. Preparation */
+	_script = SCRIPT_PATH;
+	generateMetaVariables(request);
+
+	/* 2. Open pipes, create FdClasses */
+	int fds[2];
+	if (initializeCgiConnection(fds) == ERR)
+	{
+		return ERR;
+	}
+	/* 3. Fork */
+	// executeCgi(fds);
+
+
+	/* 4. Close unused pipes */
+	WebservUtility::closePipe(fds);
+
+	_status = COMPLETE;
 	print();
 	_meta_variables.clear();
 	return OK;
@@ -81,7 +98,7 @@ Already known: PATH_INFO
 To Generate:
 
 	Content-Length, Content-Type (message-body related)
-	PATH_TRANSLATED: Extract from PATH_INFO
+	[OPTIONAL] PATH_TRANSLATED: Extract from PATH_INFO
 	[OPTIONAL] REMOTE_HOST: Hostname of client
 	SCRIPT_NAME: _target ? OR fullpath of the CGI itself?
 	SERVER_NAME: What the client connected to, using Host field or default
@@ -151,6 +168,36 @@ void CgiHandler::metaVariableContent(const Request* request)
 	{
 		_meta_variables.push_back(MetaVariableType("CONTENT_TYPE", p.first->second));
 	}
+}
+
+/*
+Initializes the CgiReader, CgiSender classes
+Stores the FDs used inside of the CGI in rfds
+*/
+int CgiHandler::initializeCgiConnection(int* cgi_fds)
+{
+	if (initializeCgiReader(cgi_fds) == ERR)
+	{
+		return ERR;
+	}
+
+	if (initializeCgiSender(cgi_fds) == ERR)
+	{
+		// We have to clean up CgiReader
+		return ERR;
+	}
+
+	return OK;
+}
+
+int CgiHandler::initializeCgiReader(int* cgi_fds)
+{
+	return OK;
+}
+
+int CgiHandler::initializeCgiSender(int* cgi_fds)
+{
+	return OK;
 }
 
 bool CgiHandler::isComplete() const
