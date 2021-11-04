@@ -25,7 +25,7 @@ Component analysis:
 	If component ends in EXTENSION: true
 */
 
-bool CgiHandler::isCgi(Request* request) {
+bool CgiHandler::isCgi(const Request* request) {
 
 	const std::string& target = request->target_resource;
 
@@ -35,7 +35,7 @@ bool CgiHandler::isCgi(Request* request) {
 		std::size_t end = target.find("/", index + 1);
 		if (WebservUtility::stringEndsWith(target, CGI_EXTENSION, index, end)) {
 
-			//TODO: _target and PATH_INFO should be the full_path, so SERVER_ROOT/current
+			//TODO: _target should be the FULL path (?) /SERVER_ROOT/_target
 			_target = target.substr(0, end);
 			if (end != std::string::npos) {
 				_meta_variables.push_back(MetaVariableType("PATH_INFO", target.substr(end)));
@@ -43,7 +43,6 @@ bool CgiHandler::isCgi(Request* request) {
 				//TODO: should this be "/" or "" (EMPTY) ?
 				_meta_variables.push_back(MetaVariableType("PATH_INFO", ""));
 			}
-			_meta_variables.clear();
 
 			return true;
 		} else if (end == std::string::npos) {
@@ -64,9 +63,9 @@ bool CgiHandler::isCgi(Request* request) {
 3. Fork and execute the script, store the PID internally
 4. Close unused pipe ends
 */
-int CgiHandler::execute(Request* request)
+int CgiHandler::execute(const Request* request)
 {
-	// generateMetaVariables();
+	generateMetaVariables(request);
 	printf("-- Executing CGI --\n");
 	_message_body = "1234";
 	_status = COMPLETE;
@@ -74,6 +73,84 @@ int CgiHandler::execute(Request* request)
 	print();
 	_meta_variables.clear();
 	return OK;
+}
+
+/*
+Already known: PATH_INFO
+
+To Generate:
+
+	Content-Length, Content-Type (message-body related)
+	PATH_TRANSLATED: Extract from PATH_INFO
+	[OPTIONAL] REMOTE_HOST: Hostname of client
+	SCRIPT_NAME: _target ? OR fullpath of the CGI itself?
+	SERVER_NAME: What the client connected to, using Host field or default
+
+Easy Copy:
+
+	QUERY_STRING: present in the request
+	REMOTE_ADDR: IPv4 address of client
+	REQUEST_METHOD: from Request
+	SERVER_PORT: from Client or Server parent class
+	SERVER_PROTOCOL: from request
+
+Header-Fields:
+
+	PROTOCOL_SPECIFIC_META_VARIABLES
+	HTTP_*
+	From HeaderField of the request
+
+Hardcoded:
+
+	GATEWAY_INTERFACE = CGI/1.1
+	SERVER_SOFTWARE = custom server name ("Plebserv Reforged")
+*/
+void CgiHandler::generateMetaVariables(const Request* request)
+{
+	/* To Generate */
+	// TODO: REMOTE_HOST, SERVER_NAME, PATH_TRANSLATED
+	metaVariableContent(request);
+	// metaVariablePathTranslated();
+
+	// TODO: check if Correct interpretation of SCRIPT_NAME variable
+	_meta_variables.push_back(MetaVariableType("SCRIPT_NAME", _target.c_str()));
+	// TODO: Should be the server name the client connected to (host-header-field)
+	_meta_variables.push_back(MetaVariableType("SERVER_NAME", "127.0.0.1"));
+	
+
+	/* Easy Copy */
+	_meta_variables.push_back(MetaVariableType("QUERY_STRING", request->query.c_str()));
+	_meta_variables.push_back(
+		MetaVariableType("REQUEST_METHOD", request->getMethodString().c_str()));
+	_meta_variables.push_back(
+		MetaVariableType("SERVER_PROTOCOL", request->getProtocolString().c_str()));
+
+	// TODO: REMOTE_ADDR, SERVER_PORT from socket information, REMOTE_ADDR from accept information
+	_meta_variables.push_back(MetaVariableType("REMOTE_ADDR", "127.0.0.1"));
+	_meta_variables.push_back(MetaVariableType("SERVER_PORT", "80"));
+
+	/* Header-Fields */
+	// TODO: copy header-field values
+
+	/* Hardcoded */
+	_meta_variables.push_back(MetaVariableType("SERVER_SOFTWARE", "Plebserv Reforged"));
+	_meta_variables.push_back(MetaVariableType("GATEWAY_INTERFACE", "CGI/1.1"));
+}
+
+void CgiHandler::metaVariableContent(const Request* request)
+{
+	if (request->message_body.size() == 0)
+	{
+		return;
+	}
+
+	_meta_variables.push_back(
+		MetaVariableType("CONTENT_LENGTH", WebservUtility::itoa(request->message_body.size())));
+	HeaderField::const_pair_type p = request->header_fields.get("content-type");
+	if (p.second)
+	{
+		_meta_variables.push_back(MetaVariableType("CONTENT_TYPE", p.first->second));
+	}
 }
 
 bool CgiHandler::isComplete() const

@@ -20,8 +20,8 @@ class CgiHandler
 	public:
 		CgiHandler();
 
-		bool isCgi(Request* request);
-		int execute(Request* request);
+		bool isCgi(const Request* request);
+		int execute(const Request* request);
 		bool isComplete() const;
 
 		const std::string& getContent() const;
@@ -36,6 +36,11 @@ class CgiHandler
 	/* Debugging */
 	public:
 		void print() const;
+	
+	private:
+
+		void generateMetaVariables(const Request* request);
+		void metaVariableContent(const Request* request);
 
 	private:
 		Status		_status;

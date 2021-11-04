@@ -55,7 +55,18 @@ std::string Request::getStatusString() const
 			return "BAD_REQUEST";
 	}
 	return "???";
+}
 
+std::string Request::getProtocolString() const
+{
+	if (minor_version == 1)
+	{
+		return "HTTP/1.1";
+	}
+	else
+	{
+		return "HTTP/1.0";
+	}
 }
 
 void Request::printBodyBytes() const
