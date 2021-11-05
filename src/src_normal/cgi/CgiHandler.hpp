@@ -49,8 +49,11 @@ class CgiHandler
 		int initializeCgiReader(int* cgi_fds, FdTable& fd_table);
 		int initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request* r);
 
-		int forkCgi(int* cgi_fds);
-		int prepareCgi(int* cgi_fds) const;
+		int forkCgi(int* cgi_fds, FdTable& fd_table);
+		int prepareCgi(int* cgi_fds, FdTable& fd_table) const;
+		int closeAll(FdTable& fd_table) const;
+		int setEnvironment() const;
+		int setRedirection(int* cgi_fds) const;
 		int executeChildProcess() const;
 
 	private:

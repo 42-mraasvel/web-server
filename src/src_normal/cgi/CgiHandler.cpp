@@ -76,8 +76,10 @@ int CgiHandler::execute(Request* request, FdTable& fd_table)
 {
 	printf("-- Executing CGI --\n");
 
+	// TODO: Check if TARGET exists: access file incase it's a BAD_GATEWAY
 	/* 1. Preparation */
 	_script = SCRIPT_PATH;
+	_target = SERVER_ROOT + _target;
 	generateMetaVariables(request);
 
 	/* 2. Open pipes, create FdClasses */
@@ -87,11 +89,8 @@ int CgiHandler::execute(Request* request, FdTable& fd_table)
 		return ERR;
 	}
 
-	_target = SERVER_ROOT + _target;
 	/* 3. Fork */
-	forkCgi(fds);
-	// executeCgi(fds);
-
+	forkCgi(fds, fd_table);
 
 	/* 4. Close unused pipes */
 	WebservUtility::closePipe(fds);
@@ -246,7 +245,7 @@ int CgiHandler::initializeCgiReader(int* cgi_fds, FdTable& fd_table)
 
 /* Forking, Execve'ing */
 
-int CgiHandler::forkCgi(int* cgi_fds)
+int CgiHandler::forkCgi(int* cgi_fds, FdTable& fd_table)
 {
 	_cgi_pid = fork();
 	if (_cgi_pid == ERR)
@@ -256,7 +255,7 @@ int CgiHandler::forkCgi(int* cgi_fds)
 	}
 	else if (_cgi_pid == 0)
 	{
-		if (prepareCgi(cgi_fds) == ERR)
+		if (prepareCgi(cgi_fds, fd_table) == ERR)
 		{
 			exit(EXIT_FAILURE);
 		}
@@ -278,8 +277,74 @@ int CgiHandler::executeChildProcess() const
 2. Initialize environment
 3. Initialize stdin, stdout through dup2
 */
-int CgiHandler::prepareCgi(int* cgi_fds) const
+int CgiHandler::prepareCgi(int* cgi_fds, FdTable& fd_table) const
 {
+	if (closeAll(fd_table) == ERR)
+	{
+		return ERR;
+	}
+
+	if (setEnvironment() == ERR)
+	{
+		return ERR;
+	}
+
+	if (setRedirection(cgi_fds) == ERR)
+	{
+		return ERR;
+	}
+
+	return OK;
+}
+
+int CgiHandler::closeAll(FdTable& fd_table) const
+{
+	for (std::size_t i = 0; i < fd_table.size(); ++i)
+	{
+		if (close(fd_table[i].second->getFd()) == ERR)
+		{
+			syscallError(_FUNC_ERR("close"));
+		}
+	}
+	return OK;
+}
+
+// TODO: REMOVE function
+static void printEnv() {
+	char** envp = WebservUtility::getEnvp();
+
+	for (std::size_t i = 0; envp[i] != NULL; ++i)
+	{
+		printf("E[%lu]: %s\n", i, envp[i]);
+	}
+}
+
+int CgiHandler::setEnvironment() const
+{
+	for (MetaVariableContainerType::const_iterator it = _meta_variables.begin();
+		it != _meta_variables.end(); ++it)
+	{
+		if (setenv(it->first.c_str(), it->second.c_str(), true) == ERR)
+		{
+			return syscallError(_FUNC_ERR("setenv"));
+		}
+	}
+
+	return OK;
+}
+
+int CgiHandler::setRedirection(int* cgi_fds) const
+{
+	if (dup2(cgi_fds[0], STDIN_FILENO) == ERR)
+	{
+		return syscallError(_FUNC_ERR("dup2"));
+	}
+	if (dup2(cgi_fds[1], STDOUT_FILENO) == ERR)
+	{
+		return syscallError(_FUNC_ERR("dup2"));
+	}
+
+	WebservUtility::closePipe(cgi_fds);
 	return OK;
 }
 
