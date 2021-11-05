@@ -62,6 +62,12 @@ static std::string	get_event(short bits)
 		str.append("POLLOUT ");
 	if (bits & POLLHUP)
 		str.append("POLLHUP ");
+	if (bits & POLLRDHUP)
+		str.append("POLLRDHUP ");
+	if (bits & POLLERR)
+		str.append("POLLERR ");
+	if (bits & POLLNVAL)
+		str.append("POLLNVAL ");
 	return str;
 }
 

@@ -2,6 +2,7 @@
 #include "settings.hpp"
 #include "utility/utility.hpp"
 #include "cgi/CgiHandler.hpp"
+#include <poll.h>
 
 /* Note: Configuration not integrated yet */
 TEST_CASE("IsCgi tests", "[cgi]")
@@ -50,6 +51,8 @@ TEST_CASE("Cgi Generate Meta-variables") {
 	Request r;
 	CgiHandler cgi;
 
+	FdTable fd_table;
+
 	r.target_resource = "/x/y/z.py/path/info";
 	r.query = "abcde=sa=d%20";
 	r.method = GET;
@@ -58,5 +61,5 @@ TEST_CASE("Cgi Generate Meta-variables") {
 	r.message_body = "1234";
 	r.header_fields["Content-Type"] = "plain/text";
 	REQUIRE(cgi.isCgi(&r) == true);
-	cgi.execute(&r);
+	cgi.execute(&r, fd_table);
 }

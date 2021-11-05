@@ -2,6 +2,8 @@
 #include "settings.hpp"
 #include "utility/utility.hpp"
 #include "utility/macros.hpp"
+#include "CgiSender.hpp"
+#include "CgiReader.hpp"
 #include <unistd.h>
 
 #define CGI_EXTENSION ".py"
@@ -12,12 +14,14 @@
 #define SCRIPT_PATH "/Users/mraasvel/.brew/bin/python3"
 #endif
 
-#define SCRIPT_NAME "python3"
+#ifdef __linux__
+#define SERVER_ROOT "/home/mraasvel/work/codam/webserv-pyxis/page_sample"
+#endif /* __linux__ */
 
 // Configuration syntax: CGI .py /usr/bin/python3
 
 CgiHandler::CgiHandler()
-: _status(CgiHandler::INCOMPLETE) {}
+: _status(CgiHandler::INCOMPLETE), _sender(NULL), _reader(NULL) {}
 
 /*
 Precondition: target always starts with '/'
@@ -65,7 +69,7 @@ bool CgiHandler::isCgi(const Request* request) {
 3. Fork and execute the script, store the PID internally
 4. Close unused pipe ends
 */
-int CgiHandler::execute(const Request* request)
+int CgiHandler::execute(Request* request, FdTable& fd_table)
 {
 	printf("-- Executing CGI --\n");
 
@@ -75,7 +79,7 @@ int CgiHandler::execute(const Request* request)
 
 	/* 2. Open pipes, create FdClasses */
 	int fds[2];
-	if (initializeCgiConnection(fds) == ERR)
+	if (initializeCgiConnection(fds, fd_table, request) == ERR)
 	{
 		return ERR;
 	}
@@ -174,29 +178,53 @@ void CgiHandler::metaVariableContent(const Request* request)
 Initializes the CgiReader, CgiSender classes
 Stores the FDs used inside of the CGI in rfds
 */
-int CgiHandler::initializeCgiConnection(int* cgi_fds)
+int CgiHandler::initializeCgiConnection(int* cgi_fds, FdTable& fd_table, Request* r)
 {
-	if (initializeCgiReader(cgi_fds) == ERR)
+	if (initializeCgiReader(cgi_fds, fd_table) == ERR)
 	{
 		return ERR;
 	}
 
-	if (initializeCgiSender(cgi_fds) == ERR)
+	if (initializeCgiSender(cgi_fds, fd_table, r) == ERR)
 	{
-		// We have to clean up CgiReader
 		return ERR;
 	}
 
 	return OK;
 }
 
-int CgiHandler::initializeCgiReader(int* cgi_fds)
+int CgiHandler::initializeCgiReader(int* cgi_fds, FdTable& fd_table)
 {
+	int fds[2];
+
+	if (pipe(fds) == ERR)
+	{
+		return syscallError(_FUNC_ERR("pipe"));
+	}
+
+	// Reader needs the READ end of the pipe, so it gives the WRITE end to the CGI
+	cgi_fds[1] = fds[1];
+
+	// Instantiate the CgiReader class and add it to the FdTable.
+	close(fds[0]);
 	return OK;
 }
 
-int CgiHandler::initializeCgiSender(int* cgi_fds)
+int CgiHandler::initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request* r)
 {
+	int fds[2];
+
+	if (pipe(fds) == ERR)
+	{
+		return syscallError(_FUNC_ERR("pipe"));
+	}
+
+	// Sender needs the WRITE end of the pipe, so it gives the READ end to the CGI
+	cgi_fds[0] = fds[0];
+
+	// Instantiate the CgiSender class and add it to the FdTable
+	_sender = new CgiSender(fds[0], r);
+	fd_table.insertFd(_sender);
 	return OK;
 }
 

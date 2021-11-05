@@ -4,8 +4,8 @@
 /*
 Wrapper for calling perror and returning ERR code
 */
-int syscallError(const char* str)
+int syscallError(const std::string& str)
 {
-	perror(str);
+	perror(("syscallError: " + str).c_str());
 	return ERR;
 }

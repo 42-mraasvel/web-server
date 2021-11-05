@@ -2,6 +2,9 @@
 
 # include "parser/Request.hpp"
 # include "parser/HeaderField.hpp"
+# include "fd/FdTable.hpp"
+# include "CgiSender.hpp"
+# include "CgiReader.hpp"
 
 # include <vector>
 # include <utility>
@@ -21,7 +24,7 @@ class CgiHandler
 		CgiHandler();
 
 		bool isCgi(const Request* request);
-		int execute(const Request* request);
+		int execute(Request* request, FdTable& fd_table);
 		bool isComplete() const;
 
 		const std::string& getContent() const;
@@ -42,9 +45,9 @@ class CgiHandler
 		void generateMetaVariables(const Request* request);
 		void metaVariableContent(const Request* request);
 
-		int initializeCgiConnection(int* cgi_fds);
-		int initializeCgiReader(int* cgi_fds);
-		int initializeCgiSender(int* cgi_fds);
+		int initializeCgiConnection(int* cgi_fds, FdTable& fd_table, Request* r);
+		int initializeCgiReader(int* cgi_fds, FdTable& fd_table);
+		int initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request* r);
 
 	private:
 		Status		_status;
@@ -56,4 +59,6 @@ class CgiHandler
 		std::string _script;
 		std::string _target;
 		MetaVariableContainerType _meta_variables;
+		CgiSender* _sender;
+		CgiReader* _reader;
 };

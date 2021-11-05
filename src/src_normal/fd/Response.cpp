@@ -153,7 +153,7 @@ void	Response::continueResponse(Request const & request)
 void	Response::executeRequest(FdTable & fd_table, Request & request)
 {
 	if (_cgi_handler.isCgi(&request)) {
-		_cgi_handler.execute(&request);
+		_cgi_handler.execute(&request, fd_table);
 		_is_cgi = true;
 		_file = NULL;
 		return ;

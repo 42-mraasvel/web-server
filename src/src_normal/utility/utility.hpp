@@ -45,7 +45,7 @@ void closePipe(int* fds);
 
 }
 
-int syscallError(const char* str);
+int syscallError(const std::string& str);
 
 bool isSeperator(char x);
 bool isControl(char x);
