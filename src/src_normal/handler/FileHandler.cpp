@@ -208,28 +208,28 @@ bool	FileHandler::evaluateExecutionCompletion()
 /****** generate response - message body *****/
 /*********************************************/
 
-void	FileHandler::generateMessageBody(std::string & message_body, std::string const & effective_request_uri)
+void	FileHandler::setMessageBody(std::string & message_body, std::string const & effective_request_uri)
 {
 	switch (_method)
 	{
 		case GET:
-			return generateMessageBodyGet(message_body);
+			return setMessageBodyGet(message_body);
 		case POST:
-			return generateMessageBodyPost(message_body, effective_request_uri);
+			return setMessageBodyPost(message_body, effective_request_uri);
 		case DELETE:
-			return generateMessageBodyDelete(message_body);
+			return setMessageBodyDelete(message_body);
 		default:
 			return ;
 	}
 }
 
-void	FileHandler::generateMessageBodyGet(std::string & message_body)
+void	FileHandler::setMessageBodyGet(std::string & message_body)
 {
 	message_body.append(_file->getContent());
 	_file->clearContent();
 }
 
-void	FileHandler::generateMessageBodyPost(std::string & message_body, std::string const & effective_request_uri)
+void	FileHandler::setMessageBodyPost(std::string & message_body, std::string const & effective_request_uri)
 {
 	if (_status_code == 201)
 	{
@@ -238,7 +238,7 @@ void	FileHandler::generateMessageBodyPost(std::string & message_body, std::strin
 	return ;
 }
 
-void	FileHandler::generateMessageBodyDelete(std::string & message_body)
+void	FileHandler::setMessageBodyDelete(std::string & message_body)
 {
 	return ;
 }
@@ -250,11 +250,6 @@ void	FileHandler::generateMessageBodyDelete(std::string & message_body)
 void    FileHandler::setAbsoluteFilePath(std::string const & path)
 {
 	_absolute_file_path = path;
-}
-
-std::string const &	FileHandler::getAbsoluteFilePath() const
-{
-	return _absolute_file_path;
 }
 
 int	FileHandler::getStatusCode() const

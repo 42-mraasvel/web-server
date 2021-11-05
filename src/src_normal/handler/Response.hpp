@@ -29,9 +29,9 @@ class Response
 		void	initiate(Request const & request);
 	private:
 		void		resolveConfig(Request const & request);
-		std::string const &	generateAuthority(Request const & request, std::string const & default_server);
-		void				generateEffectiveRequestURI(std::string const & authority);
-		void				generateAbsoluteFilePath(std::string const & root, std::string const & default_file);
+		std::string const &	setAuthority(Request const & request, std::string const & default_server);
+		void				setEffectiveRequestURI(std::string const & authority);
+		void				setAbsoluteFilePath(std::string const & root, std::string const & default_file);
 		void		evaluateConnectionFlag(Request const & request);
 		int			validateRequest(Request const & request);
 		void		processImmdiateResponse(Request const & request);
@@ -51,25 +51,27 @@ class Response
 		void	generateResponse();
 	private:
 		void		evaluateExecutionError();
-		void		generateMessageBody();
-		void			generateHandlerMessageBody();
-		void			generateErrorPage();
+		void		setMessageBody();
+		void			setHandlerMessageBody();
+		void			setErrorPage();
 		void		evaluateExecutionCompletion();
 		void		setStringToSend();
-		void			doChunked();
 		void			noChunked();
+		void			doChunked();
 		void			encodeMessageBody();
-		void			setHeader();
-		void				setDate();
-		void				setConnection();
-		void				setLocation();
-		void				setRetryAfter();
-		void				setAllow();
-		void				setTransferEncodingOrContentLength();
-		void					setContentLength();
-		void				setContentType();
+		void			setHeaderPart();
+		void				setStatusCode();
 		void				setStringStatusLine();
-		void				setStringHeader();
+		void				setHeaderField();
+		void					setDate();
+		void					setConnection();
+		void					setLocation();
+		void					setRetryAfter();
+		void					setAllow();
+		void					setTransferEncodingOrContentLength();
+		void						setContentLength();
+		void					setContentType();
+		void				setStringHeaderField();
 
 
 	/* utility */
@@ -102,14 +104,14 @@ class Response
 
 		/* flags */
 		Status				_status;
-		bool				_header_sent;
+		bool				_header_part_set;
 		bool				_chunked;
 		bool				_close_connection;
 
 		/* strings to send out */
 		std::string			_string_to_send;
 		std::string			_string_status_line;
-		std::string 		_string_header;
+		std::string 		_string_header_field;
 		std::string			_message_body;
 
 		/* handler */

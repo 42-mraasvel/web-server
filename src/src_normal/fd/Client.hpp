@@ -37,10 +37,9 @@ class Client : public AFdInfo
 		bool	retrieveResponse();
 		void	processResponse();
 		void		appendResponseString();
-		void	checkConnection();
+		void	evaluateConnection();
 		void		closeConnection();
 		void	resetResponse();
-		void		cleanQueue();
 		int		sendResponseString();
 
 	/* utility */

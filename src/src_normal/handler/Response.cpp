@@ -15,7 +15,7 @@
 Response::Response(Request const & request): _file_handler(request.method)
 {
 	_status = START;
-	_header_sent = false;
+	_header_part_set = false;
 	_chunked = false;
 	_close_connection = false;
 	_is_cgi = false;
@@ -77,12 +77,12 @@ void	Response::resolveConfig(Request const & request)
 	std::string	default_file = "index.html";
 	std::string	root = "./page_sample";
 	std::string	default_server = "localhost";
-	std::string	authority = generateAuthority(request, default_server);
-	generateEffectiveRequestURI(authority);
-	generateAbsoluteFilePath(root, default_file);
+	std::string	authority = setAuthority(request, default_server);
+	setEffectiveRequestURI(authority);
+	setAbsoluteFilePath(root, default_file);
 }
 
-std::string const &	Response::generateAuthority(Request const & request, std::string const & default_server)
+std::string const &	Response::setAuthority(Request const & request, std::string const & default_server)
 {
 	if (request.header_fields.contains("host"))
 	{
@@ -94,13 +94,13 @@ std::string const &	Response::generateAuthority(Request const & request, std::st
 	}
 }
 
-void	Response::generateEffectiveRequestURI(std::string const & authority)
+void	Response::setEffectiveRequestURI(std::string const & authority)
 {
 	std::string URI_scheme = "http://";
 	_effective_request_uri = URI_scheme + authority + _target_resource;
 }
 
-void	Response::generateAbsoluteFilePath(std::string const & root, std::string const & default_file)
+void	Response::setAbsoluteFilePath(std::string const & root, std::string const & default_file)
 {
 	_absolute_file_path = root + _target_resource;
 	if (_target_resource.back() == '/')
@@ -253,7 +253,7 @@ void	Response::defineEncoding()
 void	Response::generateResponse()
 {
 	evaluateExecutionError();
-	generateMessageBody();
+	setMessageBody();
 	evaluateExecutionCompletion();
 	setStringToSend();
 }
@@ -264,7 +264,7 @@ void	Response::evaluateExecutionError()
 	{
 		if (_is_cgi)
 		{
-			// TODO_CGI _cgi_handler.evaluateExecutionError() (clean cgi fd if error)
+			// TODO_CGI _cgi_handler.evaluateExecutionError() (1.give status code (should be 500), 2.clean cgi fd if error)
 		}
 		else
 		{
@@ -276,31 +276,31 @@ void	Response::evaluateExecutionError()
 	}
 }
 
-void	Response::generateMessageBody()
+void	Response::setMessageBody()
 {
 	if (_status != COMPLETE)
 	{
-		generateHandlerMessageBody();
+		setHandlerMessageBody();
 	}
 	else
 	{
-		generateErrorPage();
+		setErrorPage();
 	}
 }
 
-void	Response::generateHandlerMessageBody()
+void	Response::setHandlerMessageBody()
 {
 	if (_is_cgi)
 	{
-		// TODO_CGI _cgi_handler.generateMessageBody(_message_body, ...)
+		// TODO_CGI _cgi_handler.setMessageBody(_message_body, ...)
 	}
 	else
 	{
-		_file_handler.generateMessageBody(_message_body, _effective_request_uri);
+		_file_handler.setMessageBody(_message_body, _effective_request_uri);
 	}
 }
 
-void	Response::generateErrorPage()
+void	Response::setErrorPage()
 {
 	//TODO: to modify message
 	_message_body = WebservUtility::itoa(_status_code) + " "
@@ -341,14 +341,22 @@ void	Response::setStringToSend()
 	}
 }
 
+void	Response::noChunked()
+{
+	if (_status == COMPLETE)
+	{
+		setHeaderPart();
+		_string_to_send.append(_message_body);
+	}
+}
+
 void	Response::doChunked()
 {
-	if (!_header_sent)
+	if (!_header_part_set)
 	{		
-		setHeader();
-		_header_sent = true;
+		setHeaderPart();
 	}
-	if (_header_sent)
+	if (_header_part_set)
 	{
 		encodeMessageBody();
 		_string_to_send.append(_message_body);
@@ -370,20 +378,31 @@ void	Response::encodeMessageBody()
 	}
 }
 
-void	Response::setHeader()
+void	Response::setHeaderPart()
 {
+	setStatusCode();
 	setStringStatusLine();
-	setDate();
-	setConnection();
-	setLocation();
-	setRetryAfter();
-	setAllow();
-	setTransferEncodingOrContentLength();
-	setContentType();
-	setStringHeader();
+	setHeaderField();
+	setStringHeaderField();
 	_string_to_send = _string_status_line + NEWLINE
-					+ _string_header + NEWLINE;
+					+ _string_header_field + NEWLINE;
 
+	_header_part_set = true;
+}
+
+void	Response::setStatusCode()
+{
+	if (_status != COMPLETE)
+	{
+		if (_is_cgi)
+		{
+			// TODO_CGI _cgi_handler.getStatusCode();
+		}
+		else
+		{
+			_status_code = _file_handler.getStatusCode();
+		}
+	}
 }
 
 void	Response::setStringStatusLine()
@@ -391,6 +410,17 @@ void	Response::setStringStatusLine()
 	_string_status_line = _http_version + " "
 							+ WebservUtility::itoa(_status_code) + " "
 							+ WebservUtility::getStatusMessage(_status_code);
+}
+
+void	Response::setHeaderField()
+{
+	setDate();
+	setConnection();
+	setLocation();
+	setRetryAfter();
+	setAllow();
+	setTransferEncodingOrContentLength();
+	setContentType();
 }
 
 void	Response::setDate()
@@ -496,20 +526,11 @@ void	Response::setContentType()
 	}
 }
 
-void	Response::setStringHeader()
+void	Response::setStringHeaderField()
 {
 	for (header_iterator i = _header_fields.begin(); i !=_header_fields.end(); ++i)
 	{
-		_string_header += (i->first + ": " + i->second + NEWLINE);
-	}
-}
-
-void	Response::noChunked()
-{
-	if (_status == COMPLETE)
-	{
-		setHeader();
-		_string_to_send.append(_message_body);
+		_string_header_field += (i->first + ": " + i->second + NEWLINE);
 	}
 }
 

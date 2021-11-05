@@ -160,7 +160,7 @@ int	Client::writeEvent(FdTable & fd_table)
 		processResponse();
 		if (_response->isComplete())
 		{
-			checkConnection();
+			evaluateConnection();
 			resetResponse();
 		}
 	}
@@ -210,7 +210,7 @@ void	Client::appendResponseString()
 	_response->clearString();
 }
 
-void	Client::checkConnection()
+void	Client::evaluateConnection()
 {
 	if (_response->getCloseConnectionFlag())
 	{
@@ -232,19 +232,6 @@ void	Client::resetResponse()
 	delete _response;
 	_response_queue.pop();
 	_response = NULL;
-	if (flag == AFdInfo::TO_ERASE)
-	{
-		cleanQueue();
-	}
-}
-
-void	Client::cleanQueue()
-{
-	while (!_response_queue.empty())
-	{
-		delete _response_queue.front();
-		_response_queue.pop();
-	}
 }
 
 int	Client::sendResponseString()

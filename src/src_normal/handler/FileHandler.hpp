@@ -32,16 +32,15 @@ class FileHandler
 	public:
 		bool	evaluateExecutionError();
 		bool	evaluateExecutionCompletion();
-		void	generateMessageBody(std::string & message_body, std::string const & effective_request_uri);
+		void	setMessageBody(std::string & message_body, std::string const & effective_request_uri);
 	private:
-		void		generateMessageBodyGet(std::string & message_body);
-		void		generateMessageBodyPost(std::string & message_body, std::string const & effective_request_uri);
-		void		generateMessageBodyDelete(std::string & message_body);
+		void		setMessageBodyGet(std::string & message_body);
+		void		setMessageBodyPost(std::string & message_body, std::string const & effective_request_uri);
+		void		setMessageBodyDelete(std::string & message_body);
 
 	/* utility */
 	public:
 		void    setAbsoluteFilePath(std::string const & path);
-		std::string const &	getAbsoluteFilePath() const;
 		int		getStatusCode() const;
 		bool	isChunked(std::string const & http_version) const;
 		bool	isFileReadyForResponse() const;
