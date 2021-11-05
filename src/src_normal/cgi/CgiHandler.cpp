@@ -16,6 +16,8 @@
 
 #ifdef __linux__
 #define SERVER_ROOT "/home/mraasvel/work/codam/webserv-pyxis/page_sample"
+#else
+#define SERVER_ROOT "/Users/mraasvel/work/codam/webserv-pyxis/page_sample"
 #endif /* __linux__ */
 
 // Configuration syntax: CGI .py /usr/bin/python3
@@ -83,6 +85,8 @@ int CgiHandler::execute(Request* request, FdTable& fd_table)
 	{
 		return ERR;
 	}
+
+	_target = SERVER_ROOT + _target;
 	/* 3. Fork */
 	// executeCgi(fds);
 
@@ -193,23 +197,6 @@ int CgiHandler::initializeCgiConnection(int* cgi_fds, FdTable& fd_table, Request
 	return OK;
 }
 
-int CgiHandler::initializeCgiReader(int* cgi_fds, FdTable& fd_table)
-{
-	int fds[2];
-
-	if (pipe(fds) == ERR)
-	{
-		return syscallError(_FUNC_ERR("pipe"));
-	}
-
-	// Reader needs the READ end of the pipe, so it gives the WRITE end to the CGI
-	cgi_fds[1] = fds[1];
-
-	// Instantiate the CgiReader class and add it to the FdTable.
-	close(fds[0]);
-	return OK;
-}
-
 int CgiHandler::initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request* r)
 {
 	int fds[2];
@@ -222,9 +209,27 @@ int CgiHandler::initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request* r)
 	// Sender needs the WRITE end of the pipe, so it gives the READ end to the CGI
 	cgi_fds[0] = fds[0];
 
-	// Instantiate the CgiSender class and add it to the FdTable
-	_sender = new CgiSender(fds[0], r);
+	// Instantiate the CgiSender with the WRITE end of the pipe and add it to the FdTable
+	_sender = new CgiSender(fds[1], r);
 	fd_table.insertFd(_sender);
+	return OK;
+}
+
+int CgiHandler::initializeCgiReader(int* cgi_fds, FdTable& fd_table)
+{
+	int fds[2];
+
+	if (pipe(fds) == ERR)
+	{
+		return syscallError(_FUNC_ERR("pipe"));
+	}
+
+	// Reader needs the READ end of the pipe, so it gives the WRITE end to the CGI
+	cgi_fds[1] = fds[1];
+
+	// Instantiate the CgiReader with the READ end of the pipe and add it to the FdTable.
+	_reader = new CgiReader(fds[0]);
+	fd_table.insertFd(_reader);
 	return OK;
 }
 

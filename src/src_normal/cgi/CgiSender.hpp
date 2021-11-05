@@ -8,6 +8,7 @@ Main functionality of this class:
 
 	- FD to write to the CGI process
 	- Writes the request message-body to WRITE-end of pipe
+	- Set flags to remove this class when it is finished writing
 */
 
 class CgiSender : public AFdInfo

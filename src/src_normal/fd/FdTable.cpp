@@ -55,15 +55,13 @@ FdTable::pair_t	FdTable::operator[](size_type index)
 static std::string	get_event(short bits)
 {
 	std::string str("");
-	
+
 	if (bits & POLLIN)
 		str.append("POLLIN ");
 	if (bits & POLLOUT)
 		str.append("POLLOUT ");
 	if (bits & POLLHUP)
 		str.append("POLLHUP ");
-	if (bits & POLLRDHUP)
-		str.append("POLLRDHUP ");
 	if (bits & POLLERR)
 		str.append("POLLERR ");
 	if (bits & POLLNVAL)
