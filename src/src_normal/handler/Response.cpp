@@ -103,7 +103,7 @@ void	Response::setEffectiveRequestURI(std::string const & authority)
 void	Response::setAbsoluteFilePath(std::string const & root, std::string const & default_file)
 {
 	_absolute_file_path = root + _target_resource;
-	if (_target_resource.back() == '/')
+	if (_target_resource[_target_resource.size() - 1] == '/')
 	{
 		_absolute_file_path += default_file;
 	}

@@ -7,8 +7,9 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <fcntl.h>
+#include <arpa/inet.h>
 
-int		Server::setupServer(int port)
+int		Server::setupServer(std::pair<std::string, int> ip_port)
 {
 	this->_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->_fd == ERR)
@@ -18,8 +19,9 @@ int		Server::setupServer(int port)
 	}
 	sockaddr_in	address;
 	address.sin_family = AF_INET;
-	address.sin_port = htons(port);
-	address.sin_addr.s_addr = htonl(INADDR_ANY);
+	address.sin_port = htons(ip_port.second);
+	inet_pton(AF_INET, ip_port.first.c_str(), &(address.sin_addr));
+//	address.sin_addr.s_addr = htonl(INADDR_ANY);
 	if (bind(this->_fd, reinterpret_cast<sockaddr *>(&address), sizeof(address)) == ERR)
 	{
 		perror("Bind Error");

@@ -8,7 +8,7 @@
 class Server : public AFdInfo
 {
 	public:
-		int	setupServer(int port);
+		int	setupServer(std::pair<std::string, int> address);
 		int	readEvent(FdTable & fd_table);
 		int	writeEvent(FdTable & fd_table);
 		int closeEvent();

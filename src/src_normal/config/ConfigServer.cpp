@@ -74,12 +74,12 @@ int	ConfigServer::emptyAddress()
 
 ConfigServer::const_iterator ConfigServer::begin() const
 {
-	return (this->_add.begin());
+	return (this->_address.begin());
 }
 
 ConfigServer::const_iterator ConfigServer::end() const
 {
-	return (this->_ports.end());
+	return (this->_address.end());
 }
 
 /* Debugging */
