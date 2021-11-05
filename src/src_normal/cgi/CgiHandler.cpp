@@ -5,6 +5,7 @@
 #include "CgiSender.hpp"
 #include "CgiReader.hpp"
 #include <unistd.h>
+#include <cstdlib>
 
 #define CGI_EXTENSION ".py"
 
@@ -88,6 +89,7 @@ int CgiHandler::execute(Request* request, FdTable& fd_table)
 
 	_target = SERVER_ROOT + _target;
 	/* 3. Fork */
+	forkCgi(fds);
 	// executeCgi(fds);
 
 
@@ -99,6 +101,8 @@ int CgiHandler::execute(Request* request, FdTable& fd_table)
 	_meta_variables.clear();
 	return OK;
 }
+
+/* Setting up the meta-variables (environment) */
 
 /*
 Already known: PATH_INFO
@@ -178,21 +182,28 @@ void CgiHandler::metaVariableContent(const Request* request)
 	}
 }
 
+/* Setting up FDs, pipes and connections to the CGI */
+
 /*
 Initializes the CgiReader, CgiSender classes
 Stores the FDs used inside of the CGI in rfds
 */
 int CgiHandler::initializeCgiConnection(int* cgi_fds, FdTable& fd_table, Request* r)
 {
-	if (initializeCgiReader(cgi_fds, fd_table) == ERR)
-	{
-		return ERR;
-	}
-
 	if (initializeCgiSender(cgi_fds, fd_table, r) == ERR)
 	{
 		return ERR;
 	}
+
+	if (initializeCgiReader(cgi_fds, fd_table) == ERR)
+	{
+		if (close(cgi_fds[0]) == ERR)
+		{
+			syscallError(_FUNC_ERR("close"));
+		}
+		return ERR;
+	}
+
 
 	return OK;
 }
@@ -232,6 +243,49 @@ int CgiHandler::initializeCgiReader(int* cgi_fds, FdTable& fd_table)
 	fd_table.insertFd(_reader);
 	return OK;
 }
+
+/* Forking, Execve'ing */
+
+int CgiHandler::forkCgi(int* cgi_fds)
+{
+	_cgi_pid = fork();
+	if (_cgi_pid == ERR)
+	{
+		syscallError(_FUNC_ERR("fork"));
+		return ERR;
+	}
+	else if (_cgi_pid == 0)
+	{
+		if (prepareCgi(cgi_fds) == ERR)
+		{
+			exit(EXIT_FAILURE);
+		}
+		exit(executeChildProcess());
+	}
+	return OK;
+}
+
+/*
+1. Execve _target
+*/
+int CgiHandler::executeChildProcess() const
+{
+	return OK;
+}
+
+/*
+1. Close all file descriptors in FdTable that are not needed for the child process
+2. Initialize environment
+3. Initialize stdin, stdout through dup2
+*/
+int CgiHandler::prepareCgi(int* cgi_fds) const
+{
+	return OK;
+}
+
+
+
+/* Utilities */
 
 bool CgiHandler::isComplete() const
 {

@@ -49,6 +49,10 @@ class CgiHandler
 		int initializeCgiReader(int* cgi_fds, FdTable& fd_table);
 		int initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request* r);
 
+		int forkCgi(int* cgi_fds);
+		int prepareCgi(int* cgi_fds) const;
+		int executeChildProcess() const;
+
 	private:
 		Status		_status;
 		int			_status_code;
@@ -61,4 +65,6 @@ class CgiHandler
 		MetaVariableContainerType _meta_variables;
 		CgiSender* _sender;
 		CgiReader* _reader;
+
+		pid_t _cgi_pid;
 };
