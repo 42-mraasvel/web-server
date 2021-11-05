@@ -27,7 +27,7 @@ class ConfigServer
 
 
 
-		typedef std::vector<std::pair<std::string, int> >::const_iterator const_iterator;
+		typedef std::vector<int>::const_iterator const_iterator;
 		const_iterator begin() const;
 		const_iterator end() const;
 
