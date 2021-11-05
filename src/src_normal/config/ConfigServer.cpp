@@ -2,8 +2,12 @@
 #include "settings.hpp"
 #include <iomanip>
 // TODO: Remove port 80 somewhere when process is done
-ConfigServer::ConfigServer(): _client_body_size(ULONG_MAX)
-{}
+ConfigServer::ConfigServer(){}
+
+void	ConfigServer::addPort(int port)
+{
+	this->_ports.push_back(port);
+}
 
 void	ConfigServer::addServerName(std::string name)
 {
@@ -12,7 +16,7 @@ void	ConfigServer::addServerName(std::string name)
 
 void	ConfigServer::addClientBodySize(size_t client_body_size)
 {
-	this->_client_body_size = client_body_size;
+	this->_locations[_locations.size() - 1].addClientBodySize(client_body_size);
 }
 
 void	ConfigServer::addAllowedMethods(std::string method)
@@ -30,14 +34,14 @@ void	ConfigServer::addErrorPage(int page_number, std::string path)
 	_error_pages.push_back(std::pair<int, std::string>(page_number, path));
 }
 
+void	ConfigServer::addHostName(std::string name)
+{
+	this->_host = name;
+}
+
 void	ConfigServer::addLocation(ConfigLocation location)
 {
 	this->_locations.push_back(location);
-}
-
-void	ConfigServer::addCgi(std::string extention, std::string path)
-{
-	_locations[_locations.size() - 1].addCgi(extention, path);
 }
 
 void	ConfigServer::addRoot(std::string root)
@@ -50,31 +54,24 @@ void	ConfigServer::addIndex(std::string index)
 	_locations[_locations.size() - 1].addIndex(index);
 }
 
-void	ConfigServer::addAddress(std::string host, int port)
+int	ConfigServer::hostIsEmpty()
 {
-	_address.push_back(std::make_pair(host, port));
+	return _host.empty();
 }
 
-
-int	ConfigServer::emptyAddress()
+int	ConfigServer::portIsEmpty()
 {
-	return _address.empty();
+	return _ports.empty();
 }
 
-// Getters
-// std::string ConfigServer::getHostName()
-// {
-// 	return this->_host;
-// }
-
-// std::vector<int> ConfigServer::getPorts()
-// {
-// 	return _ports;
-// }
+std::string ConfigServer::getHostName()
+{
+	return this->_host;
+}
 
 ConfigServer::const_iterator ConfigServer::begin() const
 {
-	return (this->_add.begin());
+	return (this->_ports.begin());
 }
 
 ConfigServer::const_iterator ConfigServer::end() const
@@ -86,9 +83,9 @@ ConfigServer::const_iterator ConfigServer::end() const
 void ConfigServer::print() const
 {
 	printPorts();
+	printHostName();
 	printServerName();
 	printErrorPages();
-	printClientBodySize();
 	for (size_t i = 0; i < _locations.size(); i++)
 	{	
 		std::cout << YELLOW_BOLD "    Locations" RESET_COLOR " #" << (i + 1) << std::endl;
@@ -98,14 +95,14 @@ void ConfigServer::print() const
 
 void ConfigServer::printPorts() const
 {
-	std::cout << "  " CYAN_BOLD << "Ip:Ports:" RESET_COLOR " [";
-	for (size_t i = 0; i < _address.size(); i++)
+	std::cout << "  " CYAN_BOLD << "Ports:" RESET_COLOR " [";
+	for (const_iterator it = begin(); it != end(); ++it)
 	{
-		if (i > 0)
+		if (it != begin())
 		{
 			std::cout << ", ";
 		}
-		std::cout << _address[i].first << ":" << _address[i].second;
+		std::cout << *it;
 	}
 	std::cout << ']' << std::endl;
 }
@@ -138,9 +135,12 @@ void ConfigServer::printErrorPages() const
 	std::cout << ']' << std::endl;
 }
 
-void ConfigServer::printClientBodySize() const
+void ConfigServer::printHostName() const
 {
-	std::cout << "  " CYAN_BOLD << "Client Body Size:" RESET_COLOR " [";
-	std::cout << _client_body_size;
+		std::cout << "  " CYAN_BOLD << "Host name:" RESET_COLOR " [";
+	if(!_host.empty())
+	{
+		std::cout << _host;
+	}
 	std::cout << ']' << std::endl;
 }
