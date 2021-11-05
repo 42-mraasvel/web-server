@@ -1,6 +1,5 @@
 #include "RequestValidator.hpp"
 #include "utility/utility.hpp"
-#include <algorithm> 
 
 int RequestValidator::getStatusCode() const
 {
