@@ -4,15 +4,19 @@
 #include "utility/macros.hpp"
 #include "CgiSender.hpp"
 #include "CgiReader.hpp"
+#include "utility/status_codes.hpp"
 #include <unistd.h>
 #include <cstdlib>
+#include <cstring>
 
 #define CGI_EXTENSION ".py"
 
+#define SCRIPT_PATH_BASE "python3"
+
 #ifdef __linux__
-#define SCRIPT_PATH "/usr/bin/python3"
+#define SCRIPT_PATH "/usr/bin/" SCRIPT_PATH_BASE
 #else
-#define SCRIPT_PATH "/Users/mraasvel/.brew/bin/python3"
+#define SCRIPT_PATH "/Users/mraasvel/.brew/bin/" SCRIPT_PATH_BASE
 #endif
 
 #ifdef __linux__
@@ -76,9 +80,15 @@ int CgiHandler::execute(Request* request, FdTable& fd_table)
 {
 	printf("-- Executing CGI --\n");
 
-	// TODO: Check if TARGET exists: access file incase it's a BAD_GATEWAY
 	/* 1. Preparation */
 	_script = SCRIPT_PATH;
+	// TODO: Check if script (CGI executable) exists: access file incase it's a BAD_GATEWAY
+	if (!scriptCanBeExecuted())
+	{
+		finishResponse(COMPLETE, StatusCode::BAD_GATEWAY);
+		return OK; // Not an internal error: so we don't return an error code
+	}
+
 	_target = SERVER_ROOT + _target;
 	generateMetaVariables(request);
 
@@ -95,10 +105,15 @@ int CgiHandler::execute(Request* request, FdTable& fd_table)
 	/* 4. Close unused pipes */
 	WebservUtility::closePipe(fds);
 
+	// print();
 	_status = COMPLETE;
-	print();
 	_meta_variables.clear();
 	return OK;
+}
+
+bool CgiHandler::scriptCanBeExecuted()
+{
+	return access(_script.c_str(), X_OK) == 0;
 }
 
 /* Setting up the meta-variables (environment) */
@@ -220,6 +235,11 @@ int CgiHandler::initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request* r)
 	cgi_fds[0] = fds[0];
 
 	// Instantiate the CgiSender with the WRITE end of the pipe and add it to the FdTable
+	if (WebservUtility::makeNonBlocking(fds[0]) == ERR)
+	{
+		WebservUtility::closePipe(fds);
+		return syscallError(_FUNC_ERR("fcntl"));
+	}
 	_sender = new CgiSender(fds[1], r);
 	fd_table.insertFd(_sender);
 	return OK;
@@ -238,6 +258,11 @@ int CgiHandler::initializeCgiReader(int* cgi_fds, FdTable& fd_table)
 	cgi_fds[1] = fds[1];
 
 	// Instantiate the CgiReader with the READ end of the pipe and add it to the FdTable.
+	if (WebservUtility::makeNonBlocking(fds[0]) == ERR)
+	{
+		WebservUtility::closePipe(fds);
+		return syscallError(_FUNC_ERR("fcntl"));
+	}
 	_reader = new CgiReader(fds[0]);
 	fd_table.insertFd(_reader);
 	return OK;
@@ -266,9 +291,42 @@ int CgiHandler::forkCgi(int* cgi_fds, FdTable& fd_table)
 
 /*
 1. Execve _target
+
+Executable name: defined in the CGI
+First argument: executable basename
+Second argument: _target
 */
 int CgiHandler::executeChildProcess() const
 {
+	char* args[3];
+
+	if (prepareArguments(args) == ERR)
+	{
+		return ERR;
+	}
+	execve(SCRIPT_PATH, args, WebservUtility::getEnvp());
+	// Execve only returns on ERROR
+	return syscallError(_FUNC_ERR("execve"));
+}
+
+int CgiHandler::prepareArguments(char *args[3]) const
+{
+	/*
+	First argument: executable basename
+	Second argument: _target
+	*/
+	args[0] = strdup(SCRIPT_PATH_BASE);
+	if (args[0] == NULL)
+	{
+		return ERR;
+	}
+	args[1] = strdup(_target.c_str());
+	if (args[1] == NULL)
+	{
+		free(args[0]);
+		return ERR;
+	}
+	args[2] = NULL;
 	return OK;
 }
 
@@ -307,16 +365,6 @@ int CgiHandler::closeAll(FdTable& fd_table) const
 		}
 	}
 	return OK;
-}
-
-// TODO: REMOVE function
-static void printEnv() {
-	char** envp = WebservUtility::getEnvp();
-
-	for (std::size_t i = 0; envp[i] != NULL; ++i)
-	{
-		printf("E[%lu]: %s\n", i, envp[i]);
-	}
 }
 
 int CgiHandler::setEnvironment() const
@@ -360,6 +408,12 @@ bool CgiHandler::isComplete() const
 void CgiHandler::clearContent()
 {
 	_message_body.clear();
+}
+
+void CgiHandler::finishResponse(Status status, int code)
+{
+	_status = status;
+	_status_code = code;
 }
 
 /* Getters */

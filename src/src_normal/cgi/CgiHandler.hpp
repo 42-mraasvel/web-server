@@ -42,6 +42,7 @@ class CgiHandler
 	
 	private:
 
+		bool scriptCanBeExecuted();
 		void generateMetaVariables(const Request* request);
 		void metaVariableContent(const Request* request);
 
@@ -55,6 +56,9 @@ class CgiHandler
 		int setEnvironment() const;
 		int setRedirection(int* cgi_fds) const;
 		int executeChildProcess() const;
+		int prepareArguments(char *args[3]) const;
+
+		void finishResponse(Status status, int code);
 
 	private:
 		Status		_status;

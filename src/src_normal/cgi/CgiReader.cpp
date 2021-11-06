@@ -36,11 +36,20 @@ int	CgiReader::readEvent(FdTable & fd_table)
 	if (n == ERR)
 	{
 		syscallError(_FUNC_ERR("read"));
+		flag = AFdInfo::FILE_ERROR;
 		return ERR;
+	}
+	else if (n == 0)
+	{
+		flag = AFdInfo::FILE_COMPLETE;
+		updateEvents(AFdInfo::WAITING, fd_table);
+		buffer.clear();
+		return OK;
 	}
 
 	buffer.resize(n);
+	_message_body.append(buffer);
 	printf("CgiReader: Read [%ld] bytes\n", n);
-	std::cout << buffer << std::endl;
+	// std::cout << buffer << std::endl;
 	return OK;
 }

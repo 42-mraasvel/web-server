@@ -53,7 +53,7 @@ TEST_CASE("Cgi Generate Meta-variables") {
 
 	FdTable fd_table;
 
-	r.target_resource = "/x/y/z.py/path/info";
+	r.target_resource = "/cgi-bin/cgi.py/path/info";
 	r.query = "abcde=sa=d%20";
 	r.method = GET;
 	r.minor_version = 1;
