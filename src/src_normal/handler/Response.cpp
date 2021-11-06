@@ -105,11 +105,14 @@ void	Response::setAbsoluteFilePath(std::string const & root, std::string const &
 	_absolute_file_path = root + _target_resource;
 	if (_target_resource[_target_resource.size() - 1] == '/')
 	{
+		// TODO: the default file can be CGI extended files as well,
+		// in which case the target-resource should be updated earlier so that CgiHandler::isCgi() can resolve it
 		_absolute_file_path += default_file;
 	}
 	if (_is_cgi)
 	{
-		// TODO_CGI: _cgi_handler.setAbsoluteFilePath(_absolute_file_path);
+		// CGI: the target_resource might be split, so only the root is needed at this point
+		_cgi_handler.setRootDir(root);
 	}
 	else
 	{

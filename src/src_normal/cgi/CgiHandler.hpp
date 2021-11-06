@@ -36,6 +36,9 @@ class CgiHandler
 
 		void clearContent();
 
+	/* Interfacing Functions */
+		void setRootDir(std::string const & root);
+
 	/* Debugging */
 	public:
 		void print() const;
@@ -67,6 +70,7 @@ class CgiHandler
 		HeaderField _header;
 
 	private:
+		std::string _root_dir;
 		std::string _script;
 		std::string _target;
 		MetaVariableContainerType _meta_variables;

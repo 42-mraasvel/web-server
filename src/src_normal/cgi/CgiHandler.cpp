@@ -89,7 +89,7 @@ int CgiHandler::execute(Request* request, FdTable& fd_table)
 		return OK; // Not an internal error: so we don't return an error code
 	}
 
-	_target = SERVER_ROOT + _target;
+	_target = _root_dir + _target;
 	generateMetaVariables(request);
 
 	/* 2. Open pipes, create FdClasses */
@@ -396,6 +396,12 @@ int CgiHandler::setRedirection(int* cgi_fds) const
 	return OK;
 }
 
+/* Interfacing Functions */
+
+void CgiHandler::setRootDir(std::string const & root)
+{
+	_root_dir = root;
+}
 
 
 /* Utilities */

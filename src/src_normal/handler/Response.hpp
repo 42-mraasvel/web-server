@@ -6,6 +6,7 @@
 #include "FileHandler.hpp"
 #include "MediaType.hpp"
 #include "RequestValidator.hpp"
+#include "cgi/CgiHandler.hpp"
 
 class File;
 
@@ -118,6 +119,7 @@ class Response
 		bool				_is_cgi;
 		RequestValidator	_request_validator;
 		FileHandler			_file_handler;
+		CgiHandler			_cgi_handler;
 
 
 };
