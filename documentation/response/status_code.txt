@@ -41,6 +41,24 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 	>> 2xx (Successfull)
 		- Indicates that request was successfully received, understood, and accepted.
 	
+	>> 3xx (Redirection)
+		- The server SHOULD generate a Location header field in the response containing a preferred URI reference forthe new permanent URI.  The user agent MAY use the Location field value for automatic redirection.
+		- The server’s response payload usually contains a short hypertext note with a hyperlink to the new URI(s). 
+
+		- 301 MOVED PERMANENTLY
+			- Indicates that the target resource has been assigned a new permanent URI and any future references to this resource ought to use one of the enclosed URIs.
+			- For historical reasons, a user agent MAY change the request  method from POST to GET for the subsequent request.  If this  behavior is undesired, the 307 (Temporary Redirect) status code  can be used instead.
+		- 302 FOUND
+			- Indicates that the target resource resides temporarily under a different URI.  Since the redirection might be altered on occasion, the client ought to continue to use the effective request URI for future requests.
+		- 303 SEE OTHER
+			- Indicates that the server is redirecting the user agent to a different resource, as indicated by a URI in the Location header field, which is intended to provide an indirect response to the original request.
+			- Except for responses to a HEAD request, the representation of a 303 response ought to contain a short hypertext note with a hyperlink to the same URI reference provided in the Location header field.
+			- For POST: This status code is applicable to any HTTP method.  It is primarily used to allow the output of a POST action to redirect the user agent to a selected resource, since doing so provides the information corresponding to the POST response in a form that can be separately identified, bookmarked, and cached, independent of the original request. (so that refreshing the result page doesn't re-trigger the operation.)
+			- For GET:
+		- 307 TEMPORARY REDIRECT
+			- Indicates that the target resource resides temporarily under a different URI and the user agent MUST NOT change the request method if it performs an automatic redirection to that URI.  Since the redirection can change over time, the client ought to continue using the original effective request URI for future requests.
+			- Similar to 302 FOUND except it does not allow changing the request method from POST to GET.
+
 	>> 4xx (Client Error)
 		v/m 400 BAD REQUEST
 			- Indicates that the server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing)

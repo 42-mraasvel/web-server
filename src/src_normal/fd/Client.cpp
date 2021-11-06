@@ -42,11 +42,8 @@ int	Client::readEvent(FdTable & fd_table)
 	while (retrieveRequest())
 	{
 		_request->print();
-		if (!_request->executed)
-		{
-			processRequest(fd_table);
-		}
-		reset();
+		processRequest(fd_table);
+		resetRequest();
 	}
 	return OK;
 
@@ -84,65 +81,71 @@ int	Client::readRequest(std::string & buffer)
 
 bool	Client::retrieveRequest()
 {
-	if (_request)
+	if (!_request)
+	{
+		_request = _request_parser.getNextRequest();
+		if (!_request)
+		{
+			return false;
+		}
+		return true;
+	}
+	else
 	{
 		if (_request->status == Request::COMPLETE)
 		{
 			return true;
 		}
 		return false;
-	}	
-	_request = _request_parser.getNextRequest();
-	if (!_request)
-	{
-		return false;
 	}
-	return true;
 }
 
 void	Client::processRequest(FdTable & fd_table)
 {
 	if (!_new_response)
 	{
-		initResponse();
+		initResponse(*_request);
 	}
-	_new_response->scanRequest(*_request);
 	if (isRequestReadyToExecute())
 	{
 		_new_response->executeRequest(fd_table, *_request);
-		_request->executed = true;
 	}
 }
 
-void	Client::initResponse()
+void	Client::initResponse(Request const & request)
 {
-	_new_response = new Response();
+	_new_response = new Response(request);
 	_response_queue.push(_new_response);
+	_new_response->initiate(request);
 }
 
 bool	Client::isRequestReadyToExecute() const
 {
 	return _request->status == Request::COMPLETE
-			&& _new_response->getStatus() != Response::COMPLETE;
+			&& !isRequestExecuted();
 }
 
-void	Client::reset()
+bool	Client::isRequestExecuted() const
 {
-	if (_request->status == Request::COMPLETE)
-	{
-		resetRequest();
-	}
-	else if (_new_response->getStatus() == Response::COMPLETE)
-	{
-		_new_response = NULL;
-	}
+	return _new_response
+			&& _new_response->isComplete()
+			&& _new_response->getStatusCode() != 100;
 }
 
 void	Client::resetRequest()
 {
-	delete _request;
-	_request = NULL;
-	_new_response = NULL;
+	if (_request->status == Request::COMPLETE)
+	{
+		delete _request;
+		_request = NULL;
+		_new_response = NULL;
+	}
+	else if (_new_response
+			&& _new_response->isComplete()
+			&& _new_response->getStatusCode() == 100)
+	{
+		_new_response = NULL;
+	}
 }
 
 /************************/
@@ -154,10 +157,10 @@ int	Client::writeEvent(FdTable & fd_table)
 	while (_response_string.size() < BUFFER_SIZE
 			&& retrieveResponse())
 	{
-		_response->generateResponse();
-		appendResponseString();
-		if (_response->getStatus() == Response::COMPLETE)
+		processResponse();
+		if (_response->isComplete())
 		{
+			evaluateConnection();
 			resetResponse();
 		}
 	}
@@ -179,19 +182,56 @@ bool	Client::retrieveResponse()
 			return false;
 		}
 		_response = _response_queue.front();
-		_response->prepareToWrite();
+		_response->defineEncoding();
+		return true;
 	}
-	else if (!_response->isFileReady())
+	else 
 	{
-		return false;
+		if (!_response->isHandlerReadyToWrite())
+		{
+			return false;
+		}
+		return true;
 	}
-	return true;
+}
+
+void	Client::processResponse()
+{
+	_response->generateResponse();
+	if (flag != AFdInfo::TO_ERASE)
+	{
+		appendResponseString();
+	}
 }
 
 void	Client::appendResponseString()
 {
 	_response_string.append(_response->getString());
 	_response->clearString();
+}
+
+void	Client::evaluateConnection()
+{
+	if (_response->getCloseConnectionFlag())
+	{
+		closeConnection();
+	}
+}
+
+void	Client::closeConnection()
+{
+	if (flag != AFdInfo::TO_ERASE)
+	{
+		std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
+		flag = AFdInfo::TO_ERASE;
+	}
+}
+
+void	Client::resetResponse()
+{
+	delete _response;
+	_response_queue.pop();
+	_response = NULL;
 }
 
 int	Client::sendResponseString()
@@ -207,13 +247,6 @@ int	Client::sendResponseString()
 		_response_string.erase(0, size);
 	}
 	return OK;
-}
-
-void	Client::resetResponse()
-{
-	delete _response;
-	_response_queue.pop();
-	_response = NULL;
 }
 
 /*********************/
@@ -242,26 +275,19 @@ void	Client::update(FdTable & fd_table)
 {
 	if (flag == AFdInfo::TO_ERASE)
 	{
-		printf(BLUE_BOLD "Close File:" RESET_COLOR " [%d]\n", _fd);
+		printf(BLUE_BOLD "Close Connection:" RESET_COLOR " [%d]\n", _fd);
 		fd_table.eraseFd(_index);
 	}
-	/*
-	mark Client as ready for WRITING when:
-	1. _response_string is to be sent
-	2. the top response's is complete (Error)
-	3. File event starts reading (GET) or finishes writing (POST),
-	*/
-	if (!_response_string.empty()
-		|| (!_response_queue.empty()
-			&& (_response_queue.front()->getStatus() == Response::COMPLETE
-				|| _response_queue.front()->isFileReady())))
+	else if (!_response_string.empty()
+		|| isResponseReadyToWrite())
 	{
 		updateEvents(AFdInfo::WRITING, fd_table);
 	}
 }
 
-void	Client::closeConnection()
+bool	Client::isResponseReadyToWrite() const
 {
-	flag = AFdInfo::TO_ERASE;
-	std::cerr << RED_BOLD << "Socket error, close connect [" << _fd << "]." << RESET_COLOR << std::endl;
+	return !_response_queue.empty()
+			&& (_response_queue.front()->isComplete()
+				|| _response_queue.front()->isHandlerReadyToWrite());
 }

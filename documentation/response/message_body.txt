@@ -9,3 +9,28 @@
 --------------------
 	- All 1xx (Informational), 204 (No Content), and 304 (Not Modified) responses do not include a message body.
 	- All other responses do include a message body, although the body might be of zero length.
+
+-------------------------------
+--    Message Body Length    --
+-------------------------------
+
+The length is determined based on (in order of precedence):
+	1. No message body hence no length for response to:
+		- HEAD request
+		- status code with 1xx (informational), 204 (NO CONTENT) or 304 (NOT MODIFIED)
+	2. Status code with 2xx response to a CONNECT request.
+	3. Transfer-Encoding is present and 'chunked' is the final encoding.
+		- If 'chunked' is not the final encoding
+			- in a request:	the server MUST response with 400 (BAD REQUEST).
+			- in a response: the length is determined by reading the connection until it is closed by the server.
+		- Transfer-Encoding overrides Content-Length when both are present. A sender MUST remove Content-Length prior to forwarding.
+	4. If without Transfer-Encoding, but with multiple Content-Length header fields having differing values or  a single header field having an invalid value
+		- in a request, the server MUST response 400 (BAD REQUEST)
+		- in a response
+			- received by proxy, the proxy MUST close the connection to the server, discard the response, and send 502 (BAD GATEWAY). 
+			- received by user agent, it MUST close the connection and discard the received response.
+	5. When Content-Length is valid, message body length is determined by it.
+		- If the sender closes the connection or the recipient times out before complete message_body received, the recipient MUST consider the message to be incomplete andn close the connection.
+	6. For a request, if none of above are true, then the message body length is zero (no message body).
+	7. For a response without a declared message body length, the length is determined by the number of octets received prior to the server closing the connection.
+	
