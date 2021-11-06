@@ -219,7 +219,12 @@ void	Response::executeRequest(FdTable & fd_table, Request & request)
 {
 	if (_is_cgi)
 	{
-		// TODO_CGI: add _cgi_handler.executeRequest(): markComplete if there is error (clean cgi fd if error);
+		// CgiHandler fails either if there's either a syscallError
+		// (StatusCode::INTERNAL_SERVER_ERROR) or StatusCode::BAD_GATEWAY
+		if (_cgi_handler.executeRequest(fd_table, request) == ERR)
+		{
+			markComplete(_cgi_handler.getStatusCode());
+		}
 	}
 	else
 	{
@@ -238,9 +243,10 @@ void	Response::defineEncoding()
 {
 	if (_status != COMPLETE)
 	{
-		if (_is_cgi)
+		if (_is_cgi && _cgi_handler.isChunked(_http_version))
 		{
-			// TODO_CGI:: add cgi check chunekd (error proof)
+			// DISCUSS: (error_proof) ?
+			_chunked = true;
 		}
 		else if (_file_handler.isChunked(_http_version))
 		{
@@ -267,7 +273,11 @@ void	Response::evaluateExecutionError()
 	{
 		if (_is_cgi)
 		{
-			// TODO_CGI _cgi_handler.evaluateExecutionError() (1.give status code (should be 500), 2.clean cgi fd if error)
+			// Discuss: when will this function be called
+			if (_cgi_handler.evaluateExecutionError())
+			{
+				markComplete(_cgi_handler.getStatusCode());
+			}
 		}
 		else
 		{
@@ -295,7 +305,9 @@ void	Response::setHandlerMessageBody()
 {
 	if (_is_cgi)
 	{
-		// TODO_CGI _cgi_handler.setMessageBody(_message_body, ...)
+		// TODO_CGI Set HeaderFields
+		// Discuss: can I set headerFields inside this function too?
+		_cgi_handler.setMessageBody(_message_body);
 	}
 	else
 	{
@@ -316,7 +328,10 @@ void	Response::evaluateExecutionCompletion()
 	{
 		if (_is_cgi)
 		{
-			// TODO_CGI: _cgi_handler.evaluateExecutionCompletion() (clean cgi fd if complete)
+			if (_cgi_handler.evaluateExecutionCompletion())
+			{
+				markComplete(_cgi_handler.getStatusCode());
+			}
 		}
 		else
 		{
@@ -399,7 +414,7 @@ void	Response::setStatusCode()
 	{
 		if (_is_cgi)
 		{
-			// TODO_CGI _cgi_handler.getStatusCode();
+			_status_code = _cgi_handler.getStatusCode();
 		}
 		else
 		{

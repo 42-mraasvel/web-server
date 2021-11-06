@@ -35,6 +35,9 @@ class AFdInfo
 		std::size_t getIndex() const;
 		void 		setIndex(std::size_t index);
 
+		void		setToErase();
+		void		closeFd();
+
 	protected:
 		std::size_t	_index;
 		int			_fd;

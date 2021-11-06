@@ -22,9 +22,10 @@ class CgiHandler
 		};
 	public:
 		CgiHandler();
+		~CgiHandler();
 
-		bool isCgi(const Request* request);
-		int execute(Request* request, FdTable& fd_table);
+		bool isCgi(const Request& request);
+		int executeRequest(FdTable& fd_table, Request& request);
 		bool isComplete() const;
 
 		const std::string& getContent() const;
@@ -38,6 +39,10 @@ class CgiHandler
 
 	/* Interfacing Functions */
 		void setRootDir(std::string const & root);
+		bool isChunked(std::string const & http_version) const;
+		bool evaluateExecutionError();
+		bool evaluateExecutionCompletion();
+		void setMessageBody(std::string & response_body);
 
 	/* Debugging */
 	public:
@@ -46,12 +51,12 @@ class CgiHandler
 	private:
 
 		bool scriptCanBeExecuted();
-		void generateMetaVariables(const Request* request);
-		void metaVariableContent(const Request* request);
+		void generateMetaVariables(const Request& request);
+		void metaVariableContent(const Request& request);
 
-		int initializeCgiConnection(int* cgi_fds, FdTable& fd_table, Request* r);
+		int initializeCgiConnection(int* cgi_fds, FdTable& fd_table, Request& r);
 		int initializeCgiReader(int* cgi_fds, FdTable& fd_table);
-		int initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request* r);
+		int initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request& r);
 
 		int forkCgi(int* cgi_fds, FdTable& fd_table);
 		int prepareCgi(int* cgi_fds, FdTable& fd_table) const;
@@ -62,6 +67,10 @@ class CgiHandler
 		int prepareArguments(char *args[3]) const;
 
 		void finishResponse(Status status, int code);
+
+	/* Destruction */
+
+		void destroyFds();
 
 	private:
 		Status		_status;

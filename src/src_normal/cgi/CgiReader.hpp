@@ -19,6 +19,11 @@ class CgiReader : public AFdInfo
 		int	writeEvent(FdTable & fd_table);
 		int	readEvent(FdTable & fd_table);
 
+		bool isChunked() const;
+
+		std::string const & getBody() const;
+		void clearBody();
+
 	private:
 		std::string _message_body;
 		HeaderField _header;

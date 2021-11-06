@@ -1,5 +1,7 @@
 #include "AFdInfo.hpp"
 #include "settings.hpp"
+#include "utility/utility.hpp"
+#include "utility/macros.hpp"
 #include <unistd.h>
 #include <poll.h>
 
@@ -55,5 +57,25 @@ void	AFdInfo::update(FdTable & fd_table)
 	{
 		printf(BLUE_BOLD "Close File:" RESET_COLOR " [%d]\n", _fd);
 		fd_table.eraseFd(_index);
+	}
+}
+
+/* Destruction */
+
+void AFdInfo::setToErase()
+{
+	closeFd();
+	flag = AFdInfo::TO_ERASE;
+}
+
+void AFdInfo::closeFd()
+{
+	if (_fd != -1)
+	{
+		if (close(_fd) == ERR)
+		{
+			syscallError(_FUNC_ERR("close"));
+		}
+		_fd = -1;
 	}
 }

@@ -53,3 +53,21 @@ int	CgiReader::readEvent(FdTable & fd_table)
 	// std::cout << buffer << std::endl;
 	return OK;
 }
+
+/* Interfacing Functions */
+
+bool CgiReader::isChunked() const
+{
+	// TODO: implement check for when to send chunked request
+	return false;
+}
+
+std::string const & CgiReader::getBody() const
+{
+	return _message_body;
+}
+
+void CgiReader::clearBody()
+{
+	_message_body.clear();
+}

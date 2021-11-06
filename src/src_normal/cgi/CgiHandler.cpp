@@ -30,6 +30,11 @@
 CgiHandler::CgiHandler()
 : _status(CgiHandler::INCOMPLETE), _sender(NULL), _reader(NULL) {}
 
+CgiHandler::~CgiHandler()
+{
+	destroyFds();
+}
+
 /*
 Precondition: target always starts with '/'
 
@@ -38,9 +43,9 @@ Component analysis:
 	If component ends in EXTENSION: true
 */
 
-bool CgiHandler::isCgi(const Request* request) {
+bool CgiHandler::isCgi(const Request& request) {
 
-	const std::string& target = request->target_resource;
+	const std::string& target = request.target_resource;
 
 	std::size_t index = 0;
 	while (true) {
@@ -76,17 +81,16 @@ bool CgiHandler::isCgi(const Request* request) {
 3. Fork and execute the script, store the PID internally
 4. Close unused pipe ends
 */
-int CgiHandler::execute(Request* request, FdTable& fd_table)
+int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 {
 	printf("-- Executing CGI --\n");
 
 	/* 1. Preparation */
 	_script = SCRIPT_PATH;
-	// TODO: Check if script (CGI executable) exists: access file incase it's a BAD_GATEWAY
 	if (!scriptCanBeExecuted())
 	{
 		finishResponse(COMPLETE, StatusCode::BAD_GATEWAY);
-		return OK; // Not an internal error: so we don't return an error code
+		return ERR;
 	}
 
 	_target = _root_dir + _target;
@@ -96,17 +100,19 @@ int CgiHandler::execute(Request* request, FdTable& fd_table)
 	int fds[2];
 	if (initializeCgiConnection(fds, fd_table, request) == ERR)
 	{
+		finishResponse(COMPLETE, StatusCode::INTERNAL_SERVER_ERROR);
 		return ERR;
 	}
 
 	/* 3. Fork */
-	forkCgi(fds, fd_table);
+	if (forkCgi(fds, fd_table) == ERR)
+	{
+		finishResponse(COMPLETE, StatusCode::INTERNAL_SERVER_ERROR);
+		return ERR;
+	}
 
 	/* 4. Close unused pipes */
 	WebservUtility::closePipe(fds);
-
-	// print();
-	_status = COMPLETE;
 	_meta_variables.clear();
 	return OK;
 }
@@ -148,7 +154,7 @@ Hardcoded:
 	GATEWAY_INTERFACE = CGI/1.1
 	SERVER_SOFTWARE = custom server name ("Plebserv Reforged")
 */
-void CgiHandler::generateMetaVariables(const Request* request)
+void CgiHandler::generateMetaVariables(const Request& request)
 {
 	/* To Generate */
 	// TODO: REMOTE_HOST, SERVER_NAME, PATH_TRANSLATED
@@ -162,11 +168,11 @@ void CgiHandler::generateMetaVariables(const Request* request)
 	
 
 	/* Easy Copy */
-	_meta_variables.push_back(MetaVariableType("QUERY_STRING", request->query.c_str()));
+	_meta_variables.push_back(MetaVariableType("QUERY_STRING", request.query.c_str()));
 	_meta_variables.push_back(
-		MetaVariableType("REQUEST_METHOD", request->getMethodString().c_str()));
+		MetaVariableType("REQUEST_METHOD", request.getMethodString().c_str()));
 	_meta_variables.push_back(
-		MetaVariableType("SERVER_PROTOCOL", request->getProtocolString().c_str()));
+		MetaVariableType("SERVER_PROTOCOL", request.getProtocolString().c_str()));
 
 	// TODO: REMOTE_ADDR, SERVER_PORT from socket information, REMOTE_ADDR from accept information
 	_meta_variables.push_back(MetaVariableType("REMOTE_ADDR", "127.0.0.1"));
@@ -180,16 +186,16 @@ void CgiHandler::generateMetaVariables(const Request* request)
 	_meta_variables.push_back(MetaVariableType("GATEWAY_INTERFACE", "CGI/1.1"));
 }
 
-void CgiHandler::metaVariableContent(const Request* request)
+void CgiHandler::metaVariableContent(const Request& request)
 {
-	if (request->message_body.size() == 0)
+	if (request.message_body.size() == 0)
 	{
 		return;
 	}
 
 	_meta_variables.push_back(
-		MetaVariableType("CONTENT_LENGTH", WebservUtility::itoa(request->message_body.size())));
-	HeaderField::const_pair_type p = request->header_fields.get("content-type");
+		MetaVariableType("CONTENT_LENGTH", WebservUtility::itoa(request.message_body.size())));
+	HeaderField::const_pair_type p = request.header_fields.get("content-type");
 	if (p.second)
 	{
 		_meta_variables.push_back(MetaVariableType("CONTENT_TYPE", p.first->second));
@@ -202,7 +208,7 @@ void CgiHandler::metaVariableContent(const Request* request)
 Initializes the CgiReader, CgiSender classes
 Stores the FDs used inside of the CGI in rfds
 */
-int CgiHandler::initializeCgiConnection(int* cgi_fds, FdTable& fd_table, Request* r)
+int CgiHandler::initializeCgiConnection(int* cgi_fds, FdTable& fd_table, Request& r)
 {
 	if (initializeCgiSender(cgi_fds, fd_table, r) == ERR)
 	{
@@ -218,11 +224,10 @@ int CgiHandler::initializeCgiConnection(int* cgi_fds, FdTable& fd_table, Request
 		return ERR;
 	}
 
-
 	return OK;
 }
 
-int CgiHandler::initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request* r)
+int CgiHandler::initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request& r)
 {
 	int fds[2];
 
@@ -240,7 +245,7 @@ int CgiHandler::initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request* r)
 		WebservUtility::closePipe(fds);
 		return syscallError(_FUNC_ERR("fcntl"));
 	}
-	_sender = new CgiSender(fds[1], r);
+	_sender = new CgiSender(fds[1], &r);
 	fd_table.insertFd(_sender);
 	return OK;
 }
@@ -280,6 +285,7 @@ int CgiHandler::forkCgi(int* cgi_fds, FdTable& fd_table)
 	}
 	else if (_cgi_pid == 0)
 	{
+		// We can exit because it's the child process
 		if (prepareCgi(cgi_fds, fd_table) == ERR)
 		{
 			exit(EXIT_FAILURE);
@@ -403,6 +409,37 @@ void CgiHandler::setRootDir(std::string const & root)
 	_root_dir = root;
 }
 
+bool CgiHandler::isChunked(std::string const & http_version) const
+{
+	if (http_version != "HTTP/1.1")
+	{
+		return false;
+	}
+
+	return _reader->isChunked();
+}
+
+bool CgiHandler::evaluateExecutionError()
+{
+	//TODO: implement functionality
+	return false;
+}
+
+bool CgiHandler::evaluateExecutionCompletion()
+{
+	return isComplete();
+}
+
+void CgiHandler::setMessageBody(std::string & response_body)
+{
+	//TODO: append HeaderFields
+	if (_reader->getBody().size() > 0)
+	{
+		response_body.append(_reader->getBody());
+		_reader->clearBody();
+	}
+}
+
 
 /* Utilities */
 
@@ -418,8 +455,26 @@ void CgiHandler::clearContent()
 
 void CgiHandler::finishResponse(Status status, int code)
 {
+	destroyFds();
 	_status = status;
 	_status_code = code;
+}
+
+/* Clean up, destroying */
+
+void CgiHandler::destroyFds()
+{
+	if (_sender)
+	{
+		_sender->setToErase();
+		_sender = NULL;
+	}
+	
+	if (_reader)
+	{
+		_reader->setToErase();
+		_reader = NULL;
+	}
 }
 
 /* Getters */
