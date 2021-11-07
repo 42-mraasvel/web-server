@@ -31,7 +31,7 @@
 // Configuration syntax: CGI .py /usr/bin/python3
 
 CgiHandler::CgiHandler()
-: _status(CgiHandler::INACTIVE), _sender(NULL), _reader(NULL) {}
+: _status(CgiHandler::INACTIVE), _sender(NULL), _reader(NULL), _cgi_pid(-1) {}
 
 CgiHandler::~CgiHandler()
 {
