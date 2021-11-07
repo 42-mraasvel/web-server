@@ -28,7 +28,7 @@ class AFdInfo
 		virtual struct pollfd getPollFd() const = 0;
 		virtual	int		writeEvent(FdTable & fd_table) = 0;
 		virtual	int		readEvent(FdTable & fd_table) = 0;
-		virtual void	closeEvent(); // Make virtual later
+		virtual void	closeEvent(FdTable & fd_table); // Make virtual later
 		virtual	void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 		virtual	void	update(FdTable & fd_table);
 
@@ -40,6 +40,7 @@ class AFdInfo
 
 		void		setToErase();
 		void		closeFd();
+		void		closeFd(FdTable & fd_table);
 	
 	/* Debugging, dispatchFd output */
 		virtual std::string getName() const = 0;

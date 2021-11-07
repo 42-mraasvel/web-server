@@ -18,7 +18,7 @@ class CgiReader : public AFdInfo
 		struct pollfd getPollFd() const;
 		int	writeEvent(FdTable & fd_table);
 		int	readEvent(FdTable & fd_table);
-		void closeEvent();
+		void closeEvent(FdTable & fd_table);
 
 		bool isChunked() const;
 

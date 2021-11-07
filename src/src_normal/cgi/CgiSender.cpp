@@ -41,7 +41,7 @@ int CgiSender::writeEvent(FdTable & fd_table)
 			getName().c_str(), getFd());
 		updateEvents(WAITING, fd_table);
 		flag = AFdInfo::FILE_COMPLETE;
-		closeFd();
+		closeFd(fd_table);
 	}
 	return OK;
 }

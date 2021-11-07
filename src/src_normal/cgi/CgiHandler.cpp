@@ -12,21 +12,21 @@
 #include <cstring>
 #include <sys/wait.h>
 
-#define CGI_EXTENSION ".py"
+
+
+// Change the root directories if you want to test CGI
+#ifdef __linux__
+	#define WEBSERV_DIR "/home/mraasvel/work/codam/webserv-pyxis/"
+	#define BIN_DIR "/usr/bin/"
+#else /* __linux__ */
+	#define WEBSERV_DIR "/Users/mraasvel/work/codam/webserv-pyxis/"
+	#define BIN_DIR "/Users/mraasvel/.brew/bin/"
+#endif /* __linux__ */
 
 #define SCRIPT_PATH_BASE "python3"
-
-#ifdef __linux__
-#define SCRIPT_PATH "/usr/bin/" SCRIPT_PATH_BASE
-#else
-#define SCRIPT_PATH "/Users/mraasvel/.brew/bin/" SCRIPT_PATH_BASE
-#endif
-
-#ifdef __linux__
-#define SERVER_ROOT "/home/mraasvel/work/codam/webserv-pyxis/page_sample"
-#else
-#define SERVER_ROOT "/Users/mraasvel/work/codam/webserv-pyxis/page_sample"
-#endif /* __linux__ */
+#define CGI_EXTENSION ".py"
+#define SERVER_ROOT WEBSERV_DIR "page_sample"
+#define SCRIPT_PATH BIN_DIR SCRIPT_PATH_BASE
 
 // Configuration syntax: CGI .py /usr/bin/python3
 
@@ -38,7 +38,7 @@ CgiHandler::~CgiHandler()
 	if (_status != CgiHandler::INACTIVE)
 	{
 		destroyFds();
-		cleanCgi();
+		checkCgi();
 	}
 }
 
@@ -94,6 +94,7 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 	printf("-- Executing CGI --\n");
 
 	/* 1. Preparation */
+	//TODO: replace with configuration script (matched script)
 	_script = SCRIPT_PATH;
 	if (!scriptCanBeExecuted())
 	{
@@ -303,6 +304,7 @@ int CgiHandler::initializeCgiReader(int* cgi_fds, FdTable& fd_table)
 
 int CgiHandler::forkCgi(int* cgi_fds, FdTable& fd_table)
 {
+	print();
 	_cgi_pid = fork();
 	if (_cgi_pid == ERR)
 	{
@@ -335,6 +337,7 @@ int CgiHandler::executeChildProcess() const
 	{
 		return ERR;
 	}
+	sleep(1);
 	execve(SCRIPT_PATH, args, WebservUtility::getEnvp());
 	// Execve only returns on ERROR
 	return syscallError(_FUNC_ERR("execve"));
@@ -444,6 +447,12 @@ bool CgiHandler::isChunked(std::string const & http_version) const
 	return _reader->isChunked();
 }
 
+/*
+TODO: ERROR handling
+	- CGI program exits before it was expected (or crashes)
+	- CGI program times out
+	- CGI program returns an invalid CGI response
+*/
 bool CgiHandler::evaluateExecutionError()
 {
 	//TODO: implement functionality
@@ -462,6 +471,7 @@ bool CgiHandler::isReadyToWrite() const
 
 void CgiHandler::setMessageBody(std::string & response_body)
 {
+	update();
 	//TODO: append HeaderFields
 	if (_message_body.size() > 0)
 	{
@@ -478,11 +488,16 @@ Function's purpose:
 	- Set completion status if both are complete
 		DISCUSS: IF CGI is complete and CGI process is still active (running) : send SIGKILL?
 
-//TODO: Error Check (evaluateError), define all possible errors and status codes
-//TODO: Correct success status code
+TODO: ERROR checks and flag should be done here (evaluateExecutionError)
 */
 void CgiHandler::update()
 {
+	//return if already finished communicating with CGI
+	if (_status == CgiHandler::COMPLETE)
+	{
+		return;
+	}
+
 	if (_reader && _reader->flag == AFdInfo::FILE_COMPLETE)
 	{
 		_message_body = _reader->getBody();
@@ -497,56 +512,52 @@ void CgiHandler::update()
 		_sender = NULL;
 	}
 
-	checkCgi();
-
 	if (isComplete())
 	{
+		checkCgi();
 		finishResponse(CgiHandler::COMPLETE, StatusCode::STATUS_OK);
 	}
 }
 
-void CgiHandler::checkCgi()
+int CgiHandler::checkCgi()
 {
-	if (!cgiExists())
+	if (_cgi_pid == -1)
 	{
-		if (waitpid(_cgi_pid, NULL, 0) == -1)
-		{
-			syscallError(_FUNC_ERR("waitpid"));
-		}
+		return OK;
+	}
 
-		if (!isComplete())
-		{
-			printf("CGI doesn't exist and status is not yet COMPLETE\n");
-			finishResponse(CgiHandler::COMPLETE, StatusCode::BAD_GATEWAY);
-		}
-	}
-	else if (isComplete())
+	int status;
+	if (cleanCgi(&status) == ERR)
 	{
-		printf("CgiHandler: CGI exists but status is COMPLETE\n");
-		cleanCgi();
+		return ERR;
 	}
+	// TODO: Check exit status, crash, signal etc
+	_cgi_pid = -1;
+	return OK;
 }
 
-bool CgiHandler::cgiExists() const
+int CgiHandler::cleanCgi(int* status)
 {
-	return _cgi_pid != -1 && kill(_cgi_pid, 0) == 0;
-}
-
-void CgiHandler::cleanCgi()
-{
-	if (cgiExists())
+	printf(BLUE_BOLD "WaitEvent CGI:" RESET_COLOR " PID(%d)\n", _cgi_pid);
+	pid_t result = waitpid(_cgi_pid, status, WNOHANG);
+	if (result == ERR)
 	{
-		printf("Killing Cgi: %d\n", _cgi_pid);
+		return syscallError(_FUNC_ERR("waitpid"));
+	}
+	else if (result == 0)
+	{
+		printf("  CGI is still alive and has to be killed: [%d]\n", _cgi_pid);
 		if (kill(_cgi_pid, SIGKILL) == ERR)
 		{
-			syscallError(_FUNC_ERR("kill"));
+			return syscallError(_FUNC_ERR("kill"));
 		}
-		if (waitpid(_cgi_pid, NULL, 0) == ERR)
+
+		if (waitpid(_cgi_pid, status, 0) == ERR)
 		{
-			syscallError(_FUNC_ERR("waitpid"));
+			return syscallError(_FUNC_ERR("waitpid"));
 		}
-		_cgi_pid = -1;
 	}
+	return OK;
 }
 
 
@@ -614,6 +625,7 @@ CgiHandler::Status CgiHandler::getStatus() const
 void CgiHandler::print() const {
 
 	printf("TARGET: %s\n", _target.c_str());
+	printf("SCRIPT: %s\n", _script.c_str());
 	for (MetaVariableContainerType::const_iterator it = _meta_variables.begin();
 		it != _meta_variables.end(); ++it)
 	{

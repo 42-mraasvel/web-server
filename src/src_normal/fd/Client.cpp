@@ -185,14 +185,8 @@ bool	Client::retrieveResponse()
 		_response->defineEncoding();
 		return true;
 	}
-	else 
-	{
-		if (!_response->isHandlerReadyToWrite())
-		{
-			return false;
-		}
-		return true;
-	}
+
+	return _response->isHandlerReadyToWrite();
 }
 
 void	Client::processResponse()
@@ -275,6 +269,9 @@ void	Client::update(FdTable & fd_table)
 {
 	if (!_response_queue.empty())
 	{
+		//TODO: DISCUSS: Only the first response is called in the update,
+		//causing other responses to not be cleaned up, etc:
+		// it might be better to simply only execute the front request after all
 		_response_queue.front()->update();
 	}
 	if (!_response_string.empty()

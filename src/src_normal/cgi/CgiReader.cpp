@@ -43,8 +43,7 @@ int	CgiReader::readEvent(FdTable & fd_table)
 	}
 	else if (n == 0)
 	{
-		flag = AFdInfo::FILE_COMPLETE;
-		updateEvents(AFdInfo::WAITING, fd_table);
+		closeEvent(fd_table);
 		return OK;
 	}
 
@@ -56,10 +55,11 @@ int	CgiReader::readEvent(FdTable & fd_table)
 	return OK;
 }
 
-void CgiReader::closeEvent()
+void CgiReader::closeEvent(FdTable & fd_table)
 {
-	setToErase();
 	flag = AFdInfo::FILE_COMPLETE;
+	updateEvents(AFdInfo::WAITING, fd_table);
+	closeFd(fd_table);
 }
 
 /* Interfacing Functions */

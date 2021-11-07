@@ -48,14 +48,17 @@ int	Webserver::dispatchFd(int ready)
 	{
 		if (_fd_table[i].second->flag != AFdInfo::TO_ERASE)
 		{
-			if (_fd_table[i].first.revents & POLLHUP)
+
+			if (_fd_table[i].first.revents & POLLHUP && !(_fd_table[i].first.revents & POLLIN))
 			{
 				printf(BLUE_BOLD "Close Event:" RESET_COLOR " %s: [%d]\n",
 					_fd_table[i].second->getName().c_str(), _fd_table[i].first.fd);
-				_fd_table[i].second->closeEvent();
+				_fd_table[i].second->closeEvent(_fd_table);
 				++i;
 				continue;
 			}
+
+
 			if (_fd_table[i].first.revents & POLLIN)
 			{
 				printf(BLUE_BOLD "Read event:" RESET_COLOR " %s: [%d]\n",
@@ -63,7 +66,7 @@ int	Webserver::dispatchFd(int ready)
 				if (_fd_table[i].second->readEvent(_fd_table) == ERR)
 					return ERR;
 			}
-			if (_fd_table[i].first.revents & POLLOUT)
+			if (_fd_table[i].second->flag != AFdInfo::TO_ERASE && _fd_table[i].first.revents & POLLOUT)
 			{
 				printf(BLUE_BOLD "Write event:" RESET_COLOR " %s: [%d]\n",
 					_fd_table[i].second->getName().c_str(), _fd_table[i].first.fd);
@@ -104,7 +107,7 @@ structure and ordering of the FdTable, causing the loop invariant to be violated
 			printf("Erasing Fd: %s: [%d]\n",
 				_fd_table[i].second->getName().c_str(), _fd_table[i].second->getFd());
 			_fd_table.eraseFd(i);
-			// i shouldn't be incremented because there'll be a new FD at the same index
+			// i shouldn't be incremented because there is either nothing or a new FD at the same index
 			continue;
 		}
 		++i;
@@ -123,7 +126,7 @@ int	Webserver::run()
 		scanFdTable();
 		ready = poll(_fd_table.getPointer(), _fd_table.size(), TIMEOUT);
 		printf("Number of connections: %lu\n", _fd_table.size());
-		print();
+		// print();
 		if (ready < 0)
 		{
 			perror("Poll");

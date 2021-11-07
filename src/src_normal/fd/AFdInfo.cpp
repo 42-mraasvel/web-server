@@ -63,9 +63,10 @@ void	AFdInfo::update(FdTable & fd_table)
 	}
 }
 
-void	AFdInfo::closeEvent()
+void	AFdInfo::closeEvent(FdTable & fd_table)
 {
 	setToErase();
+	fd_table[_index].first.fd = -1;
 }
 
 /* Destruction */
@@ -86,4 +87,13 @@ void AFdInfo::closeFd()
 		}
 		_fd = -1;
 	}
+}
+
+// This function only exists because of FD's not being able to be removed from the FDTable
+// See: CGI not in front of the queue not being updated
+// Reason: settings the struct pollfd fd to -1 makes poll ignore it
+void AFdInfo::closeFd(FdTable & fd_table)
+{
+	closeFd();
+	fd_table[_index].first.fd = -1;
 }

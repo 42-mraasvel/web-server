@@ -1,6 +1,11 @@
 import sys
 import time
 
+BYTE = 1
+KILOBYTE = 1024 * BYTE
+MEGABYTE = 1024 * KILOBYTE
+GIGABYTE = 1024 * MEGABYTE
+
 def printHeader(header):
 	for key in header:
 		print(key, ": ", header[key], sep = '', end = "\r\n")
@@ -22,10 +27,18 @@ if __name__ == '__main__':
 
 	header = dict()
 
+	# Stress testing...
+
+	# content += KILOBYTE * "A"
+	# content += MEGABYTE * "A"
+	# content += GIGABYTE * "A"
+
 	header['Content-Type'] = content_type
 	header['Content-Length'] = str(len(content))
 
 	printHeader(header)
 	print(content, end = "")
 
-	print("ENDING CGI", file = sys.stderr)
+
+
+	print("Ending CGI", file = sys.stderr)

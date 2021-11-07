@@ -3,6 +3,7 @@
 #include "fd/File.hpp"
 #include "utility/utility.hpp"
 #include "parser/HeaderField.hpp"
+#include "utility/status_codes.hpp"
 #include <vector>
 #include <unistd.h>
 #include <cstdlib>
@@ -287,7 +288,7 @@ void	Response::evaluateExecutionError()
 		{
 			if (_file_handler.evaluateExecutionError())
 			{
-				markComplete(500); /* INTERNAL SERVER ERROR */
+				markComplete(StatusCode::INTERNAL_SERVER_ERROR); /* INTERNAL SERVER ERROR */
 			}
 		}
 	}
@@ -375,7 +376,7 @@ void	Response::noChunked()
 void	Response::doChunked()
 {
 	if (!_header_part_set)
-	{		
+	{
 		setHeaderPart();
 	}
 	if (_header_part_set)

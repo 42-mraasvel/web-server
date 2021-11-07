@@ -72,10 +72,8 @@ class CgiHandler
 		void finishResponse(Status status, int code);
 
 	/* Update Functionality */
-
-		void checkCgi();
-		bool cgiExists() const;
-		void cleanCgi();
+		int checkCgi();
+		int cleanCgi(int* status);
 
 	/* Destruction */
 
