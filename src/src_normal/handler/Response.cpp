@@ -217,10 +217,15 @@ void	Response::processContinueResponse()
 
 void	Response::executeRequest(FdTable & fd_table, Request & request)
 {
-	if (_is_cgi)
+
+	// This is the first time CGI is checked
+	// Note: if TARGET_RESOURCE is "/" OR a directory: the DEFAULT index needs to be checked
+	// which could also be CGI: 'index index.html index.php index.py ...'
+	if (_cgi_handler.isCgi(request))
 	{
 		// CgiHandler fails either if there's either a syscallError
 		// (StatusCode::INTERNAL_SERVER_ERROR) or StatusCode::BAD_GATEWAY
+		_is_cgi = true;
 		if (_cgi_handler.executeRequest(fd_table, request) == ERR)
 		{
 			markComplete(_cgi_handler.getStatusCode());
@@ -245,7 +250,7 @@ void	Response::defineEncoding()
 	{
 		if (_is_cgi && _cgi_handler.isChunked(_http_version))
 		{
-			// DISCUSS: (error_proof) ?
+			// DISCUSS: (error_proof) mentioned before in comment ?
 			_chunked = true;
 		}
 		else if (_file_handler.isChunked(_http_version))
@@ -273,7 +278,6 @@ void	Response::evaluateExecutionError()
 	{
 		if (_is_cgi)
 		{
-			// Discuss: when will this function be called
 			if (_cgi_handler.evaluateExecutionError())
 			{
 				markComplete(_cgi_handler.getStatusCode());
@@ -585,12 +589,20 @@ bool	Response::isHandlerReadyToWrite() const
 {
 	if (_is_cgi)
 	{
-		// TODO_CGI return CGI
-		return true;
+		return _cgi_handler.isReadyToWrite();
 	}
 	else
 	{
 		return _file_handler.isFileReadyForResponse();
+	}
+}
+
+/* Called before Fds are erased, from Client::update */
+void	Response::update()
+{
+	if (_is_cgi)
+	{
+		_cgi_handler.update();
 	}
 }
 

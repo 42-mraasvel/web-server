@@ -85,3 +85,8 @@ void	File::swapContent(std::string & content)
 {
 	_content.swap(content);
 }
+
+std::string File::getName() const
+{
+	return "File";
+}

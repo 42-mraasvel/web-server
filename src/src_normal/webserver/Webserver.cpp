@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <poll.h>
 #include <unistd.h>
+#include <cstdlib> // REMOVE, RM
 
 int Webserver::initServer(ConfigServer const & conf)
 {
@@ -49,19 +50,23 @@ int	Webserver::dispatchFd(int ready)
 		{
 			if (_fd_table[i].first.revents & POLLHUP)
 			{
-				printf(BLUE_BOLD "Close Event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
-				_fd_table.eraseFd(i);
+				printf(BLUE_BOLD "Close Event:" RESET_COLOR " %s: [%d]\n",
+					_fd_table[i].second->getName().c_str(), _fd_table[i].first.fd);
+				_fd_table[i].second->closeEvent();
+				++i;
 				continue;
 			}
 			if (_fd_table[i].first.revents & POLLIN)
 			{
-				printf(BLUE_BOLD "Read event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
+				printf(BLUE_BOLD "Read event:" RESET_COLOR " %s: [%d]\n",
+					_fd_table[i].second->getName().c_str(), _fd_table[i].first.fd);
 				if (_fd_table[i].second->readEvent(_fd_table) == ERR)
 					return ERR;
 			}
 			if (_fd_table[i].first.revents & POLLOUT)
 			{
-				printf(BLUE_BOLD "Write event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
+				printf(BLUE_BOLD "Write event:" RESET_COLOR " %s: [%d]\n",
+					_fd_table[i].second->getName().c_str(), _fd_table[i].first.fd);
 				if(_fd_table[i].second->writeEvent(_fd_table) == ERR)
 					return ERR;
 			}
@@ -75,9 +80,34 @@ int	Webserver::dispatchFd(int ready)
 //TODO: scan for Timeout
 void	Webserver::scanFdTable()
 {
+/*
+DISCUSS:
+
+First the update function is called: setting all the TO_ERASE flags if necessary
+Otherwise there could be some issues in terms of setting a FD to be deleted at a previous index
+The TO_ERASE function shouldn't be called inside of the update(), since it will modify the
+structure and ordering of the FdTable, causing the loop invariant to be violated
+*/
 	for (std::size_t i = 0; i < _fd_table.size(); ++i)
 	{
-		_fd_table[i].second->update(_fd_table);
+		//TODO: remove this if condition after the _fd_table.eraseFd() call inside update() is removed
+		if (_fd_table[i].second->flag != AFdInfo::TO_ERASE) {
+			_fd_table[i].second->update(_fd_table);
+		}
+	}
+
+	std::size_t i = 0;
+	while (i < _fd_table.size())
+	{
+		if (_fd_table[i].second->flag == AFdInfo::TO_ERASE)
+		{
+			printf("Erasing Fd: %s: [%d]\n",
+				_fd_table[i].second->getName().c_str(), _fd_table[i].second->getFd());
+			_fd_table.eraseFd(i);
+			// i shouldn't be incremented because there'll be a new FD at the same index
+			continue;
+		}
+		++i;
 	}
 }
 

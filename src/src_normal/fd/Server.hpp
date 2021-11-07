@@ -11,6 +11,9 @@ class Server : public AFdInfo
 		int	setupServer(int port);
 		int	readEvent(FdTable & fd_table);
 		int	writeEvent(FdTable & fd_table);
-		int closeEvent();
 		struct pollfd getPollFd() const;
+	
+	/* Debugging */
+	public:
+		std::string getName() const;
 };

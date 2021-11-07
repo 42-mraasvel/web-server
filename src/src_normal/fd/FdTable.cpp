@@ -74,9 +74,11 @@ void FdTable::print() const
 	std::cout << MAGENTA_BOLD "Fd-Table" RESET_COLOR << std::endl;
 	for (PollFdTable::const_iterator it = _pollfd_table.begin(); it != _pollfd_table.end(); ++it)
 	{
+		std::size_t index = (it - _pollfd_table.begin());
 		std::cout
 		<< "  index: "
-		<< (it - _pollfd_table.begin())
+		<< index
+		<< " | name: " << _fd_info_table[index]->getName()
 		<< " | fd: " << it->fd
 		<< " | events: "
 		<< get_event(it->events)

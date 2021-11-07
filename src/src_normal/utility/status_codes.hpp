@@ -17,7 +17,7 @@ namespace StatusCode
 
 		/* Successful: 2xx */
 
-		S_OK = 200,
+		STATUS_OK = 200,
 		CREATED = 201,
 		ACCEPTED = 202,
 		NON_AUTHORITATIVE_INFORMATION = 203,

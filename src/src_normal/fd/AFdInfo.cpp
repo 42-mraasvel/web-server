@@ -9,11 +9,14 @@ AFdInfo::AFdInfo(): _fd(-1) {}
 
 AFdInfo::AFdInfo(int fd): _fd(fd) {}
 
-AFdInfo::~AFdInfo()
-{
-	if (close(_fd) == ERR)
+AFdInfo::~AFdInfo() {
+	if (_fd != -1)
 	{
-		perror("close");
+		if (close(_fd) == ERR)
+		{
+			syscallError(_FUNC_ERR("close"));
+		}
+		_fd = -1;
 	}
 }
 
@@ -58,6 +61,11 @@ void	AFdInfo::update(FdTable & fd_table)
 		printf(BLUE_BOLD "Close File:" RESET_COLOR " [%d]\n", _fd);
 		fd_table.eraseFd(_index);
 	}
+}
+
+void	AFdInfo::closeEvent()
+{
+	setToErase();
 }
 
 /* Destruction */

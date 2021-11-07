@@ -5,9 +5,12 @@
 #include "CgiSender.hpp"
 #include "CgiReader.hpp"
 #include "utility/status_codes.hpp"
+#include <signal.h>
+#include <errno.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <cstring>
+#include <sys/wait.h>
 
 #define CGI_EXTENSION ".py"
 
@@ -28,11 +31,15 @@
 // Configuration syntax: CGI .py /usr/bin/python3
 
 CgiHandler::CgiHandler()
-: _status(CgiHandler::INCOMPLETE), _sender(NULL), _reader(NULL) {}
+: _status(CgiHandler::INACTIVE), _sender(NULL), _reader(NULL) {}
 
 CgiHandler::~CgiHandler()
 {
-	destroyFds();
+	if (_status != CgiHandler::INACTIVE)
+	{
+		destroyFds();
+		cleanCgi();
+	}
 }
 
 /*
@@ -62,6 +69,7 @@ bool CgiHandler::isCgi(const Request& request) {
 				_meta_variables.push_back(MetaVariableType("PATH_INFO", ""));
 			}
 
+			_status = CgiHandler::INCOMPLETE;
 			return true;
 		} else if (end == std::string::npos) {
 			break;
@@ -93,11 +101,13 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 		return ERR;
 	}
 
-	_target = _root_dir + _target;
+	printf("ROOT DIR: %s\n", _root_dir.c_str());
+	// TODO: replace with _root_dir
+	_target = SERVER_ROOT + _target;
 	generateMetaVariables(request);
 
 	/* 2. Open pipes, create FdClasses */
-	int fds[2];
+	int fds[2] = {-1, -1};
 	if (initializeCgiConnection(fds, fd_table, request) == ERR)
 	{
 		finishResponse(COMPLETE, StatusCode::INTERNAL_SERVER_ERROR);
@@ -108,6 +118,7 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 	if (forkCgi(fds, fd_table) == ERR)
 	{
 		finishResponse(COMPLETE, StatusCode::INTERNAL_SERVER_ERROR);
+		WebservUtility::closePipe(fds);
 		return ERR;
 	}
 
@@ -223,7 +234,6 @@ int CgiHandler::initializeCgiConnection(int* cgi_fds, FdTable& fd_table, Request
 		}
 		return ERR;
 	}
-
 	return OK;
 }
 
@@ -240,13 +250,22 @@ int CgiHandler::initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request& r)
 	cgi_fds[0] = fds[0];
 
 	// Instantiate the CgiSender with the WRITE end of the pipe and add it to the FdTable
-	if (WebservUtility::makeNonBlocking(fds[0]) == ERR)
+	if (WebservUtility::makeNonBlocking(fds[1]) == ERR)
 	{
 		WebservUtility::closePipe(fds);
 		return syscallError(_FUNC_ERR("fcntl"));
 	}
-	_sender = new CgiSender(fds[1], &r);
-	fd_table.insertFd(_sender);
+
+	/* Exception safe code */
+	try {
+		_sender = new CgiSender(fds[1], &r);
+		fd_table.insertFd(_sender);
+	} catch (...) {
+		WebservUtility::closePipe(fds);
+		delete _sender; // Will be NULL if allocation throw
+		_sender = NULL;
+		throw;
+	}
 	return OK;
 }
 
@@ -261,15 +280,22 @@ int CgiHandler::initializeCgiReader(int* cgi_fds, FdTable& fd_table)
 
 	// Reader needs the READ end of the pipe, so it gives the WRITE end to the CGI
 	cgi_fds[1] = fds[1];
-
 	// Instantiate the CgiReader with the READ end of the pipe and add it to the FdTable.
 	if (WebservUtility::makeNonBlocking(fds[0]) == ERR)
 	{
 		WebservUtility::closePipe(fds);
 		return syscallError(_FUNC_ERR("fcntl"));
 	}
-	_reader = new CgiReader(fds[0]);
-	fd_table.insertFd(_reader);
+
+	try {
+		_reader = new CgiReader(fds[0]);
+		fd_table.insertFd(_reader);
+	} catch (...) {
+		WebservUtility::closePipe(fds);
+		delete _reader;
+		_reader = NULL;
+		throw;
+	}
 	return OK;
 }
 
@@ -280,8 +306,7 @@ int CgiHandler::forkCgi(int* cgi_fds, FdTable& fd_table)
 	_cgi_pid = fork();
 	if (_cgi_pid == ERR)
 	{
-		syscallError(_FUNC_ERR("fork"));
-		return ERR;
+		return syscallError(_FUNC_ERR("fork"));
 	}
 	else if (_cgi_pid == 0)
 	{
@@ -430,13 +455,97 @@ bool CgiHandler::evaluateExecutionCompletion()
 	return isComplete();
 }
 
+bool CgiHandler::isReadyToWrite() const
+{
+	return isComplete();
+}
+
 void CgiHandler::setMessageBody(std::string & response_body)
 {
 	//TODO: append HeaderFields
-	if (_reader->getBody().size() > 0)
+	if (_message_body.size() > 0)
 	{
-		response_body.append(_reader->getBody());
+		response_body.swap(_message_body);
+	}
+}
+
+/*
+Function's purpose:
+	- Check if ERROR occured, CGI child process status (still alive etc)
+		IF exited: wait
+		IF exited AND sender is INCOMPLETE: BAD_GATEWAY
+	- Check if either Sender or Reader is complete: remove from table if so
+	- Set completion status if both are complete
+		DISCUSS: IF CGI is complete and CGI process is still active (running) : send SIGKILL?
+
+//TODO: Error Check (evaluateError), define all possible errors and status codes
+//TODO: Correct success status code
+*/
+void CgiHandler::update()
+{
+	if (_reader && _reader->flag == AFdInfo::FILE_COMPLETE)
+	{
+		_message_body = _reader->getBody();
 		_reader->clearBody();
+		_reader->setToErase();
+		_reader = NULL;
+	}
+
+	if (_sender && _sender->flag == AFdInfo::FILE_COMPLETE)
+	{
+		_sender->setToErase();
+		_sender = NULL;
+	}
+
+	checkCgi();
+
+	if (isComplete())
+	{
+		finishResponse(CgiHandler::COMPLETE, StatusCode::STATUS_OK);
+	}
+}
+
+void CgiHandler::checkCgi()
+{
+	if (!cgiExists())
+	{
+		if (waitpid(_cgi_pid, NULL, 0) == -1)
+		{
+			syscallError(_FUNC_ERR("waitpid"));
+		}
+
+		if (!isComplete())
+		{
+			printf("CGI doesn't exist and status is not yet COMPLETE\n");
+			finishResponse(CgiHandler::COMPLETE, StatusCode::BAD_GATEWAY);
+		}
+	}
+	else if (isComplete())
+	{
+		printf("CgiHandler: CGI exists but status is COMPLETE\n");
+		cleanCgi();
+	}
+}
+
+bool CgiHandler::cgiExists() const
+{
+	return _cgi_pid != -1 && kill(_cgi_pid, 0) == 0;
+}
+
+void CgiHandler::cleanCgi()
+{
+	if (cgiExists())
+	{
+		printf("Killing Cgi: %d\n", _cgi_pid);
+		if (kill(_cgi_pid, SIGKILL) == ERR)
+		{
+			syscallError(_FUNC_ERR("kill"));
+		}
+		if (waitpid(_cgi_pid, NULL, 0) == ERR)
+		{
+			syscallError(_FUNC_ERR("waitpid"));
+		}
+		_cgi_pid = -1;
 	}
 }
 
@@ -445,7 +554,9 @@ void CgiHandler::setMessageBody(std::string & response_body)
 
 bool CgiHandler::isComplete() const
 {
-	return _status == COMPLETE;
+	return
+		(_sender == NULL || _sender->flag == AFdInfo::FILE_COMPLETE) && 
+		(_reader == NULL || _reader->flag == AFdInfo::FILE_COMPLETE);
 }
 
 void CgiHandler::clearContent()

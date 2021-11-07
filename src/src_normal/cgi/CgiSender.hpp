@@ -21,6 +21,9 @@ class CgiSender : public AFdInfo
 		int writeEvent(FdTable & fd_table);
 		int readEvent(FdTable & fd_table);
 
+	public:
+		std::string getName() const;
+
 	private:
 		Request* _request;
 };

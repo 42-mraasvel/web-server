@@ -17,6 +17,7 @@ class CgiHandler
 
 	public:
 		enum Status {
+			INACTIVE,
 			INCOMPLETE,
 			COMPLETE
 		};
@@ -43,6 +44,8 @@ class CgiHandler
 		bool evaluateExecutionError();
 		bool evaluateExecutionCompletion();
 		void setMessageBody(std::string & response_body);
+		bool isReadyToWrite() const;
+		void update();
 
 	/* Debugging */
 	public:
@@ -67,6 +70,12 @@ class CgiHandler
 		int prepareArguments(char *args[3]) const;
 
 		void finishResponse(Status status, int code);
+
+	/* Update Functionality */
+
+		void checkCgi();
+		bool cgiExists() const;
+		void cleanCgi();
 
 	/* Destruction */
 

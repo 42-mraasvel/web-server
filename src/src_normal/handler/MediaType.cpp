@@ -394,7 +394,7 @@ void	initMap(Map & map)
 	map[".psd"] 		= "application/octet-stream";
 	map[".pvu"] 		= "paleovu/x-pv";
 	map[".pwz"] 		= "application/vnd.ms-powerpoint";
-	map[".py"] 			= "text/x-script.phyton";
+	map[".py"] 			= "text/x-script.python";
 	map[".pyc"] 		= "application/x-bytecode.python";
 	map[".qcp"] 		= "audio/vnd.qcelp";
 	map[".qd3"] 		= "x-world/x-3dmf";

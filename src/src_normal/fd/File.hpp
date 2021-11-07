@@ -18,6 +18,10 @@ class File : public AFdInfo
 		void				clearContent();
 		void				swapContent(std::string & content);
 
+	/* Debugging */
+	public:
+		std::string getName() const;
+
 	private:
 		std::string	_content;
 };

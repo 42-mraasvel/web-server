@@ -84,6 +84,9 @@ class Response
 		void				clearString();
 		bool				isComplete() const;
 		bool				isHandlerReadyToWrite() const;
+	
+	/* Added for the CgiHandler */
+		void				update();
 	private:
 		typedef	std::vector<std::string>::iterator				method_iterator;
 		void				markComplete(int code);

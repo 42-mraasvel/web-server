@@ -28,29 +28,32 @@ int CgiSender::writeEvent(FdTable & fd_table)
 		std::min<std::size_t>(_request->message_body.size(), BUFFER_SIZE));
 	if (n == ERR)
 	{
+		flag = AFdInfo::FILE_ERROR;
 		return syscallError(_FUNC_ERR("write"));
 	}
 
 	_request->message_body.erase(0, n);
-	printf("Wrote: %ld\n", n);
+	printf("%s: [%d]: Sent: %ld bytes\n",
+		getName().c_str(), getFd(), n);
 	if (_request->message_body.size() == 0)
 	{
-		printf("Finished writing to CGI!\n");
+		printf("%s: [%d]: Finished writing\n",
+			getName().c_str(), getFd());
 		updateEvents(WAITING, fd_table);
-		flag = FILE_COMPLETE;
-		if (close(_fd) == ERR) // I think we should close the connection here
-		{
-			syscallError(_FUNC_ERR("close"));
-		}
-		_fd = -1;
+		flag = AFdInfo::FILE_COMPLETE;
+		closeFd();
 	}
-	exit(0);
 	return OK;
 }
 
 int CgiSender::readEvent(FdTable & fd_table)
 {
-	std::cerr << "CGI SENDER READ EVENT CALLED" << std::endl;
-	assert(false);
+	std::cerr << "CGI SENDER READ EVENT CALLED: TERMINATING PROGRAM" << std::endl;
+	std::terminate();
 	return OK;
+}
+
+std::string CgiSender::getName() const
+{
+	return "CgiSender";
 }

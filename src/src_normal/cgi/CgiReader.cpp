@@ -23,8 +23,10 @@ struct pollfd CgiReader::getPollFd() const
 
 int	CgiReader::writeEvent(FdTable & fd_table)
 {
-	std::cerr << "Cgi Reader's write event called" << std::endl;
-	assert(false);
+	fprintf(stderr, "[" RED_BOLD "ERROR" RESET_COLOR "] "
+		"CgiReader::writeEvent() called: "
+		RED_BOLD "TERMINATING PROGRAM" RESET_COLOR "\n");
+	std::terminate();
 	return OK;
 }
 
@@ -43,15 +45,21 @@ int	CgiReader::readEvent(FdTable & fd_table)
 	{
 		flag = AFdInfo::FILE_COMPLETE;
 		updateEvents(AFdInfo::WAITING, fd_table);
-		buffer.clear();
 		return OK;
 	}
 
 	buffer.resize(n);
 	_message_body.append(buffer);
-	printf("CgiReader: Read [%ld] bytes\n", n);
+	printf("%s: [%d]: Read [%ld] bytes\n",
+		getName().c_str(), getFd(), n);
 	// std::cout << buffer << std::endl;
 	return OK;
+}
+
+void CgiReader::closeEvent()
+{
+	setToErase();
+	flag = AFdInfo::FILE_COMPLETE;
 }
 
 /* Interfacing Functions */
@@ -70,4 +78,9 @@ std::string const & CgiReader::getBody() const
 void CgiReader::clearBody()
 {
 	_message_body.clear();
+}
+
+std::string CgiReader::getName() const
+{
+	return "CgiReader";
 }

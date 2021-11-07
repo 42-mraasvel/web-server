@@ -18,11 +18,15 @@ class CgiReader : public AFdInfo
 		struct pollfd getPollFd() const;
 		int	writeEvent(FdTable & fd_table);
 		int	readEvent(FdTable & fd_table);
+		void closeEvent();
 
 		bool isChunked() const;
 
 		std::string const & getBody() const;
 		void clearBody();
+	
+	public:
+		std::string getName() const;
 
 	private:
 		std::string _message_body;

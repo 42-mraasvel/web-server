@@ -1,3 +1,6 @@
+import sys
+import time
+
 def printHeader(header):
 	for key in header:
 		print(key, ": ", header[key], sep = '', end = "\r\n")
@@ -16,6 +19,7 @@ content = '''<html>
 content_type = 'text/html'
 
 if __name__ == '__main__':
+
 	header = dict()
 
 	header['Content-Type'] = content_type
@@ -23,3 +27,5 @@ if __name__ == '__main__':
 
 	printHeader(header)
 	print(content, end = "")
+
+	print("ENDING CGI", file = sys.stderr)
