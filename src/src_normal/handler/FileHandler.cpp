@@ -296,6 +296,6 @@ bool	FileHandler::isFileReading() const
 
 void	FileHandler::deleteFile()
 {
-	_file->flag = AFdInfo::TO_ERASE;
+	_file->setToErase();
 	_file = NULL;		
 }

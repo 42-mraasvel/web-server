@@ -56,11 +56,12 @@ void	AFdInfo::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
 
 void	AFdInfo::update(FdTable & fd_table)
 {
-	if (flag == AFdInfo::TO_ERASE)
-	{
-		printf(BLUE_BOLD "Close File:" RESET_COLOR " [%d]\n", _fd);
-		fd_table.eraseFd(_index);
-	}
+	// TODO: to discuss with Maarten whether to delete this function or not
+//	if (flag == AFdInfo::TO_ERASE)
+//	{
+//		printf(BLUE_BOLD "Close File:" RESET_COLOR " [%d]\n", _fd);
+//		fd_table.eraseFd(_index);
+//	}
 }
 
 void	AFdInfo::closeEvent(FdTable & fd_table)
@@ -85,6 +86,7 @@ void AFdInfo::closeFd()
 		{
 			syscallError(_FUNC_ERR("close"));
 		}
+		printf(BLUE_BOLD "Close File:" RESET_COLOR " [%d]\n", _fd);
 		_fd = -1;
 	}
 }

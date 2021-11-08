@@ -48,7 +48,6 @@ int	Webserver::dispatchFd(int ready)
 	{
 		if (_fd_table[i].second->flag != AFdInfo::TO_ERASE)
 		{
-
 			if (_fd_table[i].first.revents & POLLHUP)
 			{
 				printf(BLUE_BOLD "Close Event:" RESET_COLOR " %s: [%d]\n",
@@ -57,8 +56,6 @@ int	Webserver::dispatchFd(int ready)
 				++i;
 				continue;
 			}
-
-
 			if (_fd_table[i].first.revents & POLLIN)
 			{
 				printf(BLUE_BOLD "Read event:" RESET_COLOR " %s: [%d]\n",
@@ -73,7 +70,6 @@ int	Webserver::dispatchFd(int ready)
 				if(_fd_table[i].second->writeEvent(_fd_table) == ERR)
 					return ERR;
 			}
-
 		}
 		++i;
 	}
@@ -94,7 +90,8 @@ structure and ordering of the FdTable, causing the loop invariant to be violated
 	for (std::size_t i = 0; i < _fd_table.size(); ++i)
 	{
 		//TODO: remove this if condition after the _fd_table.eraseFd() call inside update() is removed
-		if (_fd_table[i].second->flag != AFdInfo::TO_ERASE) {
+		if (_fd_table[i].second->flag != AFdInfo::TO_ERASE)
+		{
 			_fd_table[i].second->update(_fd_table);
 		}
 	}
@@ -107,7 +104,6 @@ structure and ordering of the FdTable, causing the loop invariant to be violated
 			printf("Erasing Fd: %s: [%d]\n",
 				_fd_table[i].second->getName().c_str(), _fd_table[i].second->getFd());
 			_fd_table.eraseFd(i);
-			// i shouldn't be incremented because there is either nothing or a new FD at the same index
 			continue;
 		}
 		++i;

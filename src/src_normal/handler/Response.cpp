@@ -288,7 +288,7 @@ void	Response::evaluateExecutionError()
 		{
 			if (_file_handler.evaluateExecutionError())
 			{
-				markComplete(StatusCode::INTERNAL_SERVER_ERROR); /* INTERNAL SERVER ERROR */
+				markComplete(StatusCode::INTERNAL_SERVER_ERROR);
 			}
 		}
 	}
