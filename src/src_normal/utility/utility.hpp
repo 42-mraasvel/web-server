@@ -36,8 +36,6 @@ void convertToLowercase(std::string & s);
 std::string strToLower(std::string const & s);
 bool caseInsensitiveEqual(const std::string& a, const std::string& b);
 
-std::string getStatusMessage(int status_code);
-
 bool stringEndsWith(const std::string &s, const std::string& to_find,
                 std::size_t begin = 0, std::size_t end = std::string::npos);
 

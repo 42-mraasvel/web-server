@@ -6,6 +6,7 @@ Namespaced representations of status codes enumeration
 
 namespace StatusCode
 {
+	std::string getStatusMessage(int status_code);
 
 	enum Codes
 	{

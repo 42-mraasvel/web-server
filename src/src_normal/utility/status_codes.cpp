@@ -1,137 +1,136 @@
 #include <string>
+#include "status_codes.hpp"
 
 /*
 https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 */
-namespace WebservUtility
+namespace StatusCode
 {
 
 std::string getStatusMessage(int status_code)
 {
 	switch (status_code) {
-		case 100:
+		case CONTINUE:
 			return "Continue";
-		case 101:
+		case SWITCHING_PROTOCOLS:
 			return "Switching Protocol";
-		case 102:
+		case PROCESSING:
 			return "Processing";
-		case 103:
+		case EARLY_HINTS:
 			return "Early Hints";
-		case 200:
+		case STATUS_OK:
 			return "OK";
-		case 201:
+		case CREATED:
 			return "Created";
-		case 202:
+		case ACCEPTED:
 			return "Accepted";
-		case 203:
+		case NON_AUTHORITATIVE_INFORMATION:
 			return "Non-Authoritative Information";
-		case 204:
+		case NO_CONTENT:
 			return "No Content";
-		case 205:
+		case RESET_CONTENT:
 			return "Reset Content";
-		case 206:
+		case PARTIAL_CONTENT:
 			return "Partial Content";
-		case 207:
+		case MULTI_STATUS:
 			return "Multi-Status";
-		case 208:
+		case ALREADY_REPORTED:
 			return "Already Reported";
-		case 226:
+		case IM_USED:
 			return "IM Used";
-		case 300:
+		case MULTIPLE_CHOICE:
 			return "Multiple Choice";
-		case 301:
+		case MOVED_PERMANENTLY:
 			return "Moved Permanently";
-		case 302:
+		case FOUND:
 			return "Found";
-		case 303:
+		case SEE_OTHER:
 			return "See Other";
-		case 305:
-			return "Use Proxy";
-		case 306:
-			return "Unused";
-		case 307:
+		case NOT_MODIFIED:
+			return "Not Modified";
+		case TEMPORARY_REDIRECT:
 			return "Temporary Redirect";
-		case 308:
+		case PERMANENT_REDIRECT:
 			return "Permanent Redirect";
-		case 400:
+		case BAD_REQUEST:
 			return "Bad Request";
-		case 401:
+		case UNAUTHORIZED:
 			return "Unauthorized";
-		case 402:
+		case PAYMENT_REQUIRED:
 			return "Payment Required";
-		case 403:
+		case FORBIDDEN:
 			return "Forbidden";
-		case 404:
+		case NOT_FOUND:
 			return "Not Found";
-		case 405:
+		case METHOD_NOT_ALLOWED:
 			return "Method Not Allowed";
-		case 406:
+		case NOT_ACCEPTABLE:
 			return "Not Acceptable";
-		case 407:
+		case PROXY_AUTHENTICATION_REQUIRED:
 			return "Proxy Authentication Required";
-		case 408:
+		case REQUEST_TIMEOUT:
 			return "Request Timeout";
-		case 409:
+		case CONFLICT:
 			return "Conflict";
-		case 410:
+		case GONE:
 			return "Gone";
-		case 411:
+		case LENGTH_REQUIRED:
 			return "Length Required";
-		case 412:
+		case PRECONDITION_FAILED:
 			return "Precondition Failed";
-		case 413:
+		case PAYLOAD_TOO_LARGE:
 			return "Payload Too Large";
-		case 414:
+		case URI_TOO_LONG:
 			return "URI Too Long";
-		case 415:
+		case UNSUPPORTED_MEDIA_TYPE:
 			return "Unsupported Media Type";
-		case 416:
+		case RANGE_NOT_SATISFIABLE:
 			return "Range Not Satisfiable";
-		case 417:
+		case EXPECTATION_FAILED:
 			return "Expectation Failed";
-		case 418:
+		case IM_A_TEAPOT:
 			return "I'm a teapot";
-		case 421:
+		case MISDIRECTED_REQUEST:
 			return "Misdirected Request";
-		case 422:
+		case UNPROCESSABLE_ENTITY:
 			return "Unprocessable Entity";
-		case 423:
+		case LOCKED:
 			return "Locked";
-		case 424:
+		case FAILED_DEPENDENCY:
 			return "Failed Dependency";
-		case 425:
+		case TOO_EARLY:
 			return "Too Early";
-		case 426:
+		case UPGRADE_REQUIRED:
 			return "Upgrade Required";
-		case 428:
+		case PRECONDITION_REQUIRED:
 			return "Precondition Required";
-		case 429:
+		case TOO_MANY_REQUESTS:
 			return "Too Many Requests";
-		case 431:
+		case REQUEST_HEADER_FIELDS_TOO_LARGE:
 			return "Request Header Fields Too Large";
-		case 451:
+		case UNAVAILABLE_FOR_LEGAL_REASONS:
 			return "Unavailable For Legal Reasons";
-		case 500:
+		case INTERNAL_SERVER_ERROR:
 			return "Internal Server Error";
-		case 501:
+		case NOT_IMPLEMENTED:
 			return "Not Implemented";
-		case 502:
+		case BAD_GATEWAY:
 			return "Bad Gateway";
-		case 503:
+		case SERVICE_UNAVAILABLE:
 			return "Service Unavailable";
-		case 504:
+		case GATEWAY_TIMEOUT:
 			return "Gateway Timeout";
-		case 505:
+		case HTTP_VERSION_NOT_SUPPORTED:
 			return "HTTP Version Not Supported";
-		case 506:
+		case VARIANT_ALSO_NEGOTIATES:
 			return "Variant Also Negotiates";
-		case 507:
+		case INSUFFICIENT_STORAGE:
 			return "Insufficient Storage";
-		case 508:
+		case LOOP_DETECTED:
 			return "Loop Detected";
-		case 510:
+		case NOT_EXTENDED:
 			return "Not Extended";
-		case 511:
+		case NETWORK_AUTHENTICATION_REQUIRED:
 			return "Network Authentication Required";
 
 		default:

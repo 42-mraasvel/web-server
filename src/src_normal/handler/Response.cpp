@@ -183,7 +183,7 @@ bool	Response::isRedirectResponse() const
 void	Response::processRedirectResponse()
 {
 	// TODO: to incorporate config
-	int			redirect_code = 301;
+	int			redirect_code = StatusCode::MOVED_PERMANENTLY;
 	std::string	redirect_text = "http://this_is_the_redirect_url.com";
 
 	markComplete(redirect_code);
@@ -209,7 +209,7 @@ bool	Response::isContinueResponse(Request const & request) const
 
 void	Response::processContinueResponse()
 {
-	markComplete(100);
+	markComplete(StatusCode::CONTINUE);
 }
 
 /*************************************************/
@@ -324,7 +324,7 @@ void	Response::setErrorPage()
 {
 	//TODO: to modify message
 	_message_body = WebservUtility::itoa(_status_code) + " "
-					+ WebservUtility::getStatusMessage(_status_code) + "\n";
+					+ StatusCode::getStatusMessage(_status_code) + "\n";
 }
 
 void	Response::evaluateExecutionCompletion()
@@ -432,7 +432,7 @@ void	Response::setStringStatusLine()
 {
 	_string_status_line = _http_version + " "
 							+ WebservUtility::itoa(_status_code) + " "
-							+ WebservUtility::getStatusMessage(_status_code);
+							+ StatusCode::getStatusMessage(_status_code);
 }
 
 void	Response::setHeaderField()
@@ -470,7 +470,7 @@ void	Response::setConnection()
 
 void	Response::setLocation()
 {
-	if (_status_code == 201)
+	if (_status_code == StatusCode::CREATED)
 	{
 		_header_fields["Location"] = _target_resource;
 	}

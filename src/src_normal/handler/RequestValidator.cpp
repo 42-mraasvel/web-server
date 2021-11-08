@@ -1,5 +1,6 @@
 #include "RequestValidator.hpp"
 #include "utility/utility.hpp"
+#include "utility/status_codes.hpp"
 #include <algorithm>
 
 int RequestValidator::getStatusCode() const
@@ -37,7 +38,7 @@ bool	RequestValidator::isConnectionValid(Request const & request)
         && !WebservUtility::caseInsensitiveEqual(request.header_fields.find("connection")->second, "close")
         && !WebservUtility::caseInsensitiveEqual(request.header_fields.find("connection")->second, "keep-alive"))
         {
-			_status_code = 400; /* BAD REQUEST */
+			_status_code = StatusCode::BAD_REQUEST;
             return false;
 		}
 	return true;
@@ -47,7 +48,7 @@ bool	RequestValidator::isHttpVersionValid(int http_major_version)
 {
 	if (http_major_version != 1)
 	{
-		_status_code = 505; /* HTTP VERSION NOT SUPPORTED */
+		_status_code = StatusCode::HTTP_VERSION_NOT_SUPPORTED;
 		return false;
 	}
 	return true;
@@ -57,12 +58,12 @@ bool	RequestValidator::isMethodValid(MethodType const method)
 {
 	if (method == OTHER)
 	{
-		_status_code = 501; /* NOT IMPLEMENTED */ 
+		_status_code = StatusCode::NOT_IMPLEMENTED;
 		return false;
 	}
 	if (!findMethod(method))
 	{
-		_status_code = 405; /* METHOD NOT ALLOWED */ 
+		_status_code = StatusCode::METHOD_NOT_ALLOWED;
 		return false;		
 	}
 	return true;
@@ -95,7 +96,7 @@ bool	RequestValidator::isExpectationValid(Request const & request)
 	if (request.header_fields.contains("expect") &&
 		!WebservUtility::caseInsensitiveEqual(request.header_fields.find("expect")->second, "100-continue"))
 	{
-		_status_code = 417; /* EXPECATION FAILED */ 
+		_status_code = StatusCode::EXPECTATION_FAILED;
 		return false;
 	}
 	return true;

@@ -1,6 +1,7 @@
 #include "settings.hpp"
 #include "FileHandler.hpp"
 #include "fd/File.hpp"
+#include "utility/status_codes.hpp"
 #include <unistd.h>
 #include <fcntl.h>
 #include <cstdlib>
@@ -56,19 +57,19 @@ void	FileHandler::setFileParameter()
 			_access_flag = R_OK;
 			_open_flag = O_RDONLY;
 			_file_event = AFdInfo::READING;
-			_status_code = 200;
+			_status_code = StatusCode::STATUS_OK;
 			return ;
 		case POST:
 			_access_flag = W_OK;
 			_open_flag = O_CREAT | O_WRONLY | O_APPEND;
 			_file_event = AFdInfo::WRITING;
-			_status_code = 201;
+			_status_code = StatusCode::CREATED;
 			return ;
 		case DELETE:
 			_access_flag = W_OK;
 			_open_flag = O_WRONLY;
 			_file_event = AFdInfo::WAITING;
-			_status_code = 204;
+			_status_code = StatusCode::NO_CONTENT;
 			return ;
 		case OTHER:
 		default:
@@ -86,7 +87,7 @@ bool	FileHandler::isFileAccessible()
 	{
 		if (access(_absolute_file_path.c_str(), F_OK) == OK)
 		{
-			_status_code = 204; /* NO CONTENT */
+			_status_code = StatusCode::NO_CONTENT;
 			return isFileAuthorized();
 		}
 	}
@@ -97,7 +98,7 @@ bool	FileHandler::isFileExist()
 {
 	if (access(_absolute_file_path.c_str(), F_OK) == ERR)
 	{
-		_status_code = 404; /* NOTFOUND */
+		_status_code = StatusCode::NOT_FOUND;
 		return false;
 	}
 	return true;
@@ -107,7 +108,7 @@ bool	FileHandler::isFileAuthorized()
 {
 	if (access(_absolute_file_path.c_str(), _access_flag) == ERR)
 	{
-		_status_code = 403; /* FORBIDDEN */
+		_status_code = StatusCode::FORBIDDEN;
 		return false;
 	}
 	return true;
@@ -119,7 +120,7 @@ bool	FileHandler::openFile(FdTable & fd_table)
 	if (file_fd == ERR)
 	{
 		perror("open");
-		_status_code = 500; /* INTERNAL SERVER ERROR */
+		_status_code = StatusCode::INTERNAL_SERVER_ERROR;
 		return false;
 	}
 	printf(BLUE_BOLD "Open File:" RESET_COLOR " [%d]\n", file_fd);
@@ -163,7 +164,7 @@ int	FileHandler::executeDelete()
 	if (remove(_absolute_file_path.c_str()) == ERR)
 	{
 		perror("remove");
-		_status_code = 500; /* INTERNAL SERVER ERROR */
+		_status_code = StatusCode::INTERNAL_SERVER_ERROR;
 		return ERR;
 	}
 	printf(BLUE_BOLD "Delete File:" RESET_COLOR " [%s]\n", _absolute_file_path.c_str());
@@ -231,7 +232,7 @@ void	FileHandler::setMessageBodyGet(std::string & message_body)
 
 void	FileHandler::setMessageBodyPost(std::string & message_body, std::string const & effective_request_uri)
 {
-	if (_status_code == 201)
+	if (_status_code == StatusCode::CREATED)
 	{
 		message_body = "New content created!\n" + effective_request_uri + "\n";
 	}
