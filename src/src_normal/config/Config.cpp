@@ -11,6 +11,8 @@
 Config::Config(std::string const & config_file): _file_name(config_file), _server_amount(0), _token_index(0)
 {
 	this->parser();
+	getAddressMap();
+	printAddressMap();
 	// ConfigServer dummy;
 	// dummy.addPort(8080);
 	// dummy.addPort(8081);
@@ -433,13 +435,46 @@ void	Config::configError(std::string str)
 }
 
 
+// Getters
+
+
+
 
 
 // Utility
+void	Config::initAddressMap()
+{
+	std::pair<std::map<ip_host_pair,server_block_vector>::iterator,bool> ret;
+	address_map tmp;
 
+	for (size_t i = 0; i < _servers.size(); i++)
+	{
+		tmp = _servers[i].getAddressMap();
+		for (const_iterator_map it = tmp.begin(); it != tmp.end(); ++it)
+		{
+			ret = _address_map.insert(std::make_pair(it->first, it->second));
+			if (ret.second == false)
+			{
 
+			}
+			else
+			{
+				std::cout << "insert succesful" << std::endl;
+			}
+		}
+		// ret = _address_map.insert(tmp.begin(), tmp.end());
+		// if (ret.second == 0)
+		// {
+		// 	printf("hi there!\n");
+		// }
+	}
+}
 
-
+std::map<std::pair<std::string, int>, std::vector<ServerBlock> >	Config::getAddressMap()
+{
+	initAddressMap();
+	return this->_address_map;
+}
 
 
 /* Debugging */
@@ -451,3 +486,77 @@ void Config::print() const
 		it->print();
 	}
 }
+
+
+void Config::printAddressMap() const
+{
+	std::cout << MAGENTA_BOLD "Address Map" RESET_COLOR << std::endl;
+	for (const_iterator_map it = _address_map.begin(); it != _address_map.end(); ++it)
+	{
+		printNode(it);
+	}
+}
+
+void Config::printNode(const_iterator_map node) const
+{
+	// print key
+		// print ip
+		// print port
+	printKey(node);
+	// print value
+	printServerBlock(node);
+		// for loop for vector
+		// print clientsize
+		// print loop server names
+		// print error pages loop
+		// print locaiton block loop
+}
+
+void	Config::printKey(const_iterator_map node) const
+{
+	printIp(node);
+	printPort(node);
+}
+
+void	Config::printIp(const_iterator_map node) const
+{
+	std::cout << "  Ip: " << node->first.first << std::endl;
+}
+
+void	Config::printPort(const_iterator_map node) const
+{
+	std::cout << "  Port: " << node->first.second << std::endl;
+	
+}
+
+void	Config::printServerBlock(const_iterator_map node) const
+{
+	for (size_t i = 0; i < node->second.size(); i++)
+	{
+		std::cout << "    ServerBlock #" << i+1 << std::endl;
+		std::cout << "\tClient size : " << node->second[i]._client_body_size << std::endl;
+		std::cout << "\tserver Names:" << std::endl;
+		for (size_t j = 0; j < node->second[i]._server_names.size(); j++)
+		{
+			std::cout << "\t  " << node->second[i]._server_names[j] << std::endl;
+		}
+		std::cout << "\terror pages:" << std::endl;
+		for (size_t j = 0; j < node->second[i]._error_pages.size(); j++)
+		{
+			std::cout << "\t  " << node->second[i]._error_pages[j].first << ", " << node->second[i]._error_pages[j].second << std::endl;
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

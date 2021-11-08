@@ -1,5 +1,6 @@
 #include "ConfigServer.hpp"
 #include "settings.hpp"
+#include <iostream>
 #include <iomanip>
 // TODO: Remove port 80 somewhere when process is done
 ConfigServer::ConfigServer(): _client_body_size(ULONG_MAX)
@@ -55,6 +56,11 @@ void	ConfigServer::addAddress(std::string host, int port)
 	_address.push_back(std::make_pair(host, port));
 }
 
+void	ConfigServer::addPort(int port)
+{
+	_ports.push_back(port);
+}
+
 
 int	ConfigServer::emptyAddress()
 {
@@ -62,25 +68,67 @@ int	ConfigServer::emptyAddress()
 }
 
 // Getters
-// std::string ConfigServer::getHostName()
-// {
-// 	return this->_host;
-// }
 
-// std::vector<int> ConfigServer::getPorts()
-// {
-// 	return _ports;
-// }
+
+std::vector<int> ConfigServer::getPorts()
+{
+	return _ports;
+}
 
 ConfigServer::const_iterator ConfigServer::begin() const
 {
-	return (this->_add.begin());
+	return (this->_ports.begin());
 }
 
 ConfigServer::const_iterator ConfigServer::end() const
 {
 	return (this->_ports.end());
 }
+
+
+std::vector<ServerBlock> ConfigServer::getServerBlock()
+{
+	initServerBlock();
+	return this->_server_block;
+}
+
+std::map<std::pair<std::string, int>, std::vector<ServerBlock> > ConfigServer::getAddressMap()
+{
+	initAddressMap();
+
+	return this->_address_map;
+}
+
+
+// Utility
+void	ConfigServer::initAddressMap()
+{
+	initServerBlock();
+	for (size_t i = 0; i < _address.size(); i++)
+	{
+		printAddress(i);
+		// printServerBlock();
+		_address_map.insert(std::make_pair(_address[i], _server_block));
+	}
+}
+
+
+void	ConfigServer::initServerBlock()
+{
+	ServerBlock tmp;
+	tmp._client_body_size = _client_body_size;
+	tmp._server_names = _server_name;
+	tmp._error_pages = _error_pages;
+	for (size_t i = 0; i < _locations.size(); i++)
+	{
+		tmp._locations.push_back(_locations[i].getLocationBlock());
+	}
+	_server_block.push_back(tmp);
+}
+
+
+
+
 
 /* Debugging */
 void ConfigServer::print() const
@@ -143,4 +191,34 @@ void ConfigServer::printClientBodySize() const
 	std::cout << "  " CYAN_BOLD << "Client Body Size:" RESET_COLOR " [";
 	std::cout << _client_body_size;
 	std::cout << ']' << std::endl;
+}
+
+void	ConfigServer::printAddress(int index) const
+{
+	std::cout << BLUE_BOLD << _address[index].first;
+	std::cout << ", ";
+	std::cout << BLUE_BOLD << _address[index].second;
+	std::cout << std::endl;
+}
+
+
+void	ConfigServer::printServerBlock(ServerBlock server) const
+{
+	std::cout << "Client Body Size: " << server._client_body_size << std::endl;
+	std::cout << "Server Names: " << std::endl;
+	for (size_t i = 0; i < server._server_names.size(); i++)
+	{
+		std::cout << "\t" << server._server_names[i] << std::endl;
+	}
+	std::cout << "Error Pages: " << std::endl;
+	for (size_t i = 0; i < server._error_pages.size(); i++)
+	{
+		std::cout << server._error_pages[i].first << ", " << server._error_pages[i].second << std::endl;
+	}
+	std::cout << "Server Blocks: " << std::endl;
+	// for (size_t i = 0; i < _locations.size(); i++)
+	// {
+	// 	_locations[i].printServerBlock();
+	// }
+
 }

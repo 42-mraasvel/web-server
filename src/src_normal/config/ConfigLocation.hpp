@@ -3,6 +3,16 @@
 #include <map>
 #include <string>
 
+typedef struct s_LocationBlock
+{
+	std::string											_path;
+	std::string											_root;
+	std::vector<std::string>							_index;
+	std::vector<std::string>							_allowed_methods;
+	std::vector<std::pair<std::string, std::string> >	_cgi;
+	int													_autoindex_status;
+
+}				LocationBlock;
 
 class ConfigLocation
 {
@@ -14,6 +24,10 @@ class ConfigLocation
 		void	addIndex(std::string index);
 		void	addCgi(std::string extention, std::string path);
 
+	// Utility
+		LocationBlock getLocationBlock();
+		void	initLocationBlock();
+
 	private:
 		std::string 				_path;
 		std::string					_root;
@@ -21,6 +35,7 @@ class ConfigLocation
 		std::vector<std::string>	_allowed_methods;
 		std::vector<std::pair<std::string, std::string > >	_cgi;
 		int							_autoindex_status;
+		LocationBlock				_location_block;
 
 	/* Debugging */
 	public:
@@ -33,4 +48,5 @@ class ConfigLocation
 		void printAutoIndex() const;
 		void printAllowedMethods() const;
 		void printCgi() const;
+		void printLocationBlock() const;
 };

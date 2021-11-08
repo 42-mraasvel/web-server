@@ -31,6 +31,25 @@ void	ConfigLocation::addCgi(std::string extention, std::string path)
 	this->_cgi.push_back(cgi);
 }
 
+
+LocationBlock ConfigLocation::getLocationBlock()
+{
+	initLocationBlock();
+	return this->_location_block;
+}
+
+void ConfigLocation::initLocationBlock()
+{
+	_location_block._path = _path;
+	_location_block._root = _root;
+	_location_block._index = _index;
+	_location_block._allowed_methods = _allowed_methods;
+	_location_block._cgi = _cgi;
+	_location_block._autoindex_status = _autoindex_status;
+}
+
+
+
 /* Debugging */
 void	ConfigLocation::print() const
 {
