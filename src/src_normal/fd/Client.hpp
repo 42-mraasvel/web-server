@@ -47,6 +47,10 @@ class Client : public AFdInfo
 		typedef RequestParser::header_field_t::iterator header_iterator;
 		void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 		void	update(FdTable & fd_table);
+	
+	/* Debugging */
+	public:
+		std::string getName() const;
 	private:
 		bool	isResponseReadyToWrite() const;
 

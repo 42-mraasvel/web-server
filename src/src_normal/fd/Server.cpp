@@ -61,11 +61,6 @@ int Server::writeEvent(FdTable & fd_table)
 	return ERR;
 }
 
-int Server::closeEvent()
-{
-	return close(this->_fd);
-}
-
 struct pollfd Server::getPollFd() const
 {
 	struct pollfd temp;
@@ -73,4 +68,9 @@ struct pollfd Server::getPollFd() const
 	temp.events = POLLIN;
 	temp.revents = 0;
 	return (temp);
+}
+
+std::string Server::getName() const
+{
+	return "Server";
 }

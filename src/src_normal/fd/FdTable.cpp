@@ -55,13 +55,17 @@ FdTable::pair_t	FdTable::operator[](size_type index)
 static std::string	get_event(short bits)
 {
 	std::string str("");
-	
+
 	if (bits & POLLIN)
 		str.append("POLLIN ");
 	if (bits & POLLOUT)
 		str.append("POLLOUT ");
 	if (bits & POLLHUP)
 		str.append("POLLHUP ");
+	if (bits & POLLERR)
+		str.append("POLLERR ");
+	if (bits & POLLNVAL)
+		str.append("POLLNVAL ");
 	return str;
 }
 
@@ -70,9 +74,11 @@ void FdTable::print() const
 	std::cout << MAGENTA_BOLD "Fd-Table" RESET_COLOR << std::endl;
 	for (PollFdTable::const_iterator it = _pollfd_table.begin(); it != _pollfd_table.end(); ++it)
 	{
+		std::size_t index = (it - _pollfd_table.begin());
 		std::cout
 		<< "  index: "
-		<< (it - _pollfd_table.begin())
+		<< index
+		<< " | name: " << _fd_info_table[index]->getName()
 		<< " | fd: " << it->fd
 		<< " | events: "
 		<< get_event(it->events)

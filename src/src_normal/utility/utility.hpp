@@ -38,7 +38,19 @@ bool caseInsensitiveEqual(const std::string& a, const std::string& b);
 
 std::string getStatusMessage(int status_code);
 
+bool stringEndsWith(const std::string &s, const std::string& to_find,
+                std::size_t begin = 0, std::size_t end = std::string::npos);
+
+void closePipe(int* fds);
+char** getEnvp();
+int makeNonBlocking(int fd);
+
+/* TODO: RM DEBUGGING */
+	void printStrings(char **strings, FILE* stream);
+
 }
+
+int syscallError(const std::string& str);
 
 bool isSeperator(char x);
 bool isControl(char x);

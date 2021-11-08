@@ -6,6 +6,7 @@
 #include "FileHandler.hpp"
 #include "MediaType.hpp"
 #include "RequestValidator.hpp"
+#include "cgi/CgiHandler.hpp"
 
 class File;
 
@@ -83,6 +84,9 @@ class Response
 		void				clearString();
 		bool				isComplete() const;
 		bool				isHandlerReadyToWrite() const;
+	
+	/* Added for the CgiHandler */
+		void				update();
 	private:
 		typedef	std::vector<std::string>::iterator				method_iterator;
 		void				markComplete(int code);
@@ -118,6 +122,7 @@ class Response
 		bool				_is_cgi;
 		RequestValidator	_request_validator;
 		FileHandler			_file_handler;
+		CgiHandler			_cgi_handler;
 
 
 };

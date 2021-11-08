@@ -168,3 +168,13 @@ TEST_CASE("strtol: overflow", "[utility]")
 		REQUIRE(WebservUtility::strtol(inputs_b10[i], n, 10) == -1);
 	}
 }
+
+TEST_CASE("stringEndsWith", "[utility]")
+{
+	REQUIRE(WebservUtility::stringEndsWith("1234", "4"));
+	REQUIRE(WebservUtility::stringEndsWith("1234", "2", 0, 2));
+	REQUIRE(WebservUtility::stringEndsWith("1234", "3", 0, 3));
+	REQUIRE(WebservUtility::stringEndsWith("/z.py", ".py", 0, std::string::npos));
+	REQUIRE(WebservUtility::stringEndsWith("/x/y.py/a/b/c", ".py", 2, 7));
+	REQUIRE(!WebservUtility::stringEndsWith("/x/y.pyz/a/b/c", ".py", 2, 8));
+}

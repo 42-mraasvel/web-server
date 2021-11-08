@@ -3,6 +3,7 @@
 #include "fd/File.hpp"
 #include "utility/utility.hpp"
 #include "parser/HeaderField.hpp"
+#include "utility/status_codes.hpp"
 #include <vector>
 #include <unistd.h>
 #include <cstdlib>
@@ -105,11 +106,14 @@ void	Response::setAbsoluteFilePath(std::string const & root, std::string const &
 	_absolute_file_path = root + _target_resource;
 	if (_target_resource[_target_resource.size() - 1] == '/')
 	{
+		// TODO: the default file can be CGI extended files as well,
+		// in which case the target-resource should be updated earlier so that CgiHandler::isCgi() can resolve it
 		_absolute_file_path += default_file;
 	}
 	if (_is_cgi)
 	{
-		// TODO_CGI: _cgi_handler.setAbsoluteFilePath(_absolute_file_path);
+		// CGI: the target_resource might be split, so only the root is needed at this point
+		_cgi_handler.setRootDir(root);
 	}
 	else
 	{
@@ -214,9 +218,19 @@ void	Response::processContinueResponse()
 
 void	Response::executeRequest(FdTable & fd_table, Request & request)
 {
-	if (_is_cgi)
+
+	// This is the first time CGI is checked
+	// Note: if TARGET_RESOURCE is "/" OR a directory: the DEFAULT index needs to be checked
+	// which could also be CGI: 'index index.html index.php index.py ...'
+	if (_cgi_handler.isCgi(request))
 	{
-		// TODO_CGI: add _cgi_handler.executeRequest(): markComplete if there is error (clean cgi fd if error);
+		// CgiHandler fails either if there's either a syscallError
+		// (StatusCode::INTERNAL_SERVER_ERROR) or StatusCode::BAD_GATEWAY
+		_is_cgi = true;
+		if (_cgi_handler.executeRequest(fd_table, request) == ERR)
+		{
+			markComplete(_cgi_handler.getStatusCode());
+		}
 	}
 	else
 	{
@@ -235,9 +249,10 @@ void	Response::defineEncoding()
 {
 	if (_status != COMPLETE)
 	{
-		if (_is_cgi)
+		if (_is_cgi && _cgi_handler.isChunked(_http_version))
 		{
-			// TODO_CGI:: add cgi check chunekd (error proof)
+			// DISCUSS: (error_proof) mentioned before in comment ?
+			_chunked = true;
 		}
 		else if (_file_handler.isChunked(_http_version))
 		{
@@ -264,13 +279,16 @@ void	Response::evaluateExecutionError()
 	{
 		if (_is_cgi)
 		{
-			// TODO_CGI _cgi_handler.evaluateExecutionError() (1.give status code (should be 500), 2.clean cgi fd if error)
+			if (_cgi_handler.evaluateExecutionError())
+			{
+				markComplete(_cgi_handler.getStatusCode());
+			}
 		}
 		else
 		{
 			if (_file_handler.evaluateExecutionError())
 			{
-				markComplete(500); /* INTERNAL SERVER ERROR */
+				markComplete(StatusCode::INTERNAL_SERVER_ERROR); /* INTERNAL SERVER ERROR */
 			}
 		}
 	}
@@ -292,7 +310,9 @@ void	Response::setHandlerMessageBody()
 {
 	if (_is_cgi)
 	{
-		// TODO_CGI _cgi_handler.setMessageBody(_message_body, ...)
+		// TODO_CGI Set HeaderFields
+		// Discuss: can I set headerFields inside this function too?
+		_cgi_handler.setMessageBody(_message_body);
 	}
 	else
 	{
@@ -313,7 +333,10 @@ void	Response::evaluateExecutionCompletion()
 	{
 		if (_is_cgi)
 		{
-			// TODO_CGI: _cgi_handler.evaluateExecutionCompletion() (clean cgi fd if complete)
+			if (_cgi_handler.evaluateExecutionCompletion())
+			{
+				markComplete(_cgi_handler.getStatusCode());
+			}
 		}
 		else
 		{
@@ -353,7 +376,7 @@ void	Response::noChunked()
 void	Response::doChunked()
 {
 	if (!_header_part_set)
-	{		
+	{
 		setHeaderPart();
 	}
 	if (_header_part_set)
@@ -396,7 +419,7 @@ void	Response::setStatusCode()
 	{
 		if (_is_cgi)
 		{
-			// TODO_CGI _cgi_handler.getStatusCode();
+			_status_code = _cgi_handler.getStatusCode();
 		}
 		else
 		{
@@ -567,12 +590,20 @@ bool	Response::isHandlerReadyToWrite() const
 {
 	if (_is_cgi)
 	{
-		// TODO_CGI return CGI
-		return true;
+		return _cgi_handler.isReadyToWrite();
 	}
 	else
 	{
 		return _file_handler.isFileReadyForResponse();
+	}
+}
+
+/* Called before Fds are erased, from Client::update */
+void	Response::update()
+{
+	if (_is_cgi)
+	{
+		_cgi_handler.update();
 	}
 }
 

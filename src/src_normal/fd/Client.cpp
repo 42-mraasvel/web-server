@@ -185,14 +185,8 @@ bool	Client::retrieveResponse()
 		_response->defineEncoding();
 		return true;
 	}
-	else 
-	{
-		if (!_response->isHandlerReadyToWrite())
-		{
-			return false;
-		}
-		return true;
-	}
+
+	return _response->isHandlerReadyToWrite();
 }
 
 void	Client::processResponse()
@@ -273,12 +267,14 @@ void	Client::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
 
 void	Client::update(FdTable & fd_table)
 {
-	if (flag == AFdInfo::TO_ERASE)
+	if (!_response_queue.empty())
 	{
-		printf(BLUE_BOLD "Close Connection:" RESET_COLOR " [%d]\n", _fd);
-		fd_table.eraseFd(_index);
+		//TODO: DISCUSS: Only the first response is called in the update,
+		//causing other responses to not be cleaned up, etc:
+		// it might be better to simply only execute the front request after all
+		_response_queue.front()->update();
 	}
-	else if (!_response_string.empty()
+	if (!_response_string.empty()
 		|| isResponseReadyToWrite())
 	{
 		updateEvents(AFdInfo::WRITING, fd_table);
@@ -290,4 +286,9 @@ bool	Client::isResponseReadyToWrite() const
 	return !_response_queue.empty()
 			&& (_response_queue.front()->isComplete()
 				|| _response_queue.front()->isHandlerReadyToWrite());
+}
+
+std::string Client::getName() const
+{
+	return "Client";
 }
