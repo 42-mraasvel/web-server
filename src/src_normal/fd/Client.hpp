@@ -4,7 +4,7 @@
 #include <queue>
 #include "FdTable.hpp"
 #include "AFdInfo.hpp"
-#include "Response.hpp"
+#include "handler/Response.hpp"
 #include "parser/Request.hpp"
 
 class File;
@@ -24,17 +24,21 @@ class Client : public AFdInfo
 		int			readRequest(std::string & buffer);
 		bool	retrieveRequest();
 		void	processRequest(FdTable & fd_table);
-		void		initResponse();
+		void		initResponse(Request const & request);
+		void		checkRequestStatus();
 		bool		isRequestReadyToExecute() const;
-		void	reset();
-		void		resetRequest();
+		bool		isRequestExecuted() const;
+		void	resetRequest();
 
 	/* write*/
 	public:
 		int	writeEvent(FdTable & fd_table);
 	private:
 		bool	retrieveResponse();
-		void	appendResponseString();
+		void	processResponse();
+		void		appendResponseString();
+		void	evaluateConnection();
+		void		closeConnection();
 		void	resetResponse();
 		int		sendResponseString();
 
@@ -44,7 +48,7 @@ class Client : public AFdInfo
 		void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 		void	update(FdTable & fd_table);
 	private:
-		void	closeConnection();
+		bool	isResponseReadyToWrite() const;
 
 	private:
 		RequestParser			_request_parser;

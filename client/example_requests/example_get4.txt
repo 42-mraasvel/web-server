@@ -1,4 +1,5 @@
-GET / HTTP/1.1
-Host: aaa
-Host: bbb
+GET /funny.html HTTP/1.1
+Host: 1
+Content-length: 22
 
+I shouldn't be here!

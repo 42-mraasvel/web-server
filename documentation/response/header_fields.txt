@@ -1,26 +1,141 @@
 
-------------------
---    [Host]    --
-------------------
++-------------------------------------------+
+| Representation Metadata Header Field:     |
++-------------------------------------------+
+|   Content-Type                            |
+|   Content-Encoding                        |
+|   Content-Language                        |
+|   Content-Location                        |
++-------------------------------------------+
+Representation header fields provide metadata about the representation.
+When a message includes a payload body, the representation header fields describe how to interpret the representation data enclosed in the payload body.
 
-    - A server MUST respond with a 400 (Bad Request) status code to any HTTP/1.1 request message that lacks a Host header field and to any request message that contains more than one Host header field or a Host header field with an invalid field-value. [RFC7230 page 45]
-    - A client MUST send a Host header field in an HTTP/1.1 request even if the request-target is in the absolute-form, since this allows the Host information to be forwarded through ancient HTTP/1.0 proxies that might not have implemented Host.
+    --------------------------------------
+    --    [Content-Type: media-type]    --
+    --------------------------------------
+        - media-type = type "/" subtype *( OWS ";" OWS parameter )
+        - Example:
+            text/plain;charset=UTF-8
+        - Case-insensitive | whitespace not allowed around the "="character.
+        - A sender that generates a message containing a payload body SHOULD generate a Content-Type header field in that message unless the intended media type of the enclosed representation is unknown to the sender.
+        - List of types: 
+        (tutorial)  https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+        (full list) https://www.iana.org/assignments/media-types/media-types.xhtml
+            >> Discrete (single file)
+                application 
+                audio
+                Examplefont
+                image
+                model
+                text
+                video
+            >> Multipart (a category of document broken into pieces, often with different MIME types)
+                message
+                multipart
+            >> Most web servers send unrecognized resources as the application/octet-stream MIME type. 
 
-------------------------------
---    [Content-length]      --
-------------------------------
-    - A sender MUST NOT send a Content-Length header field in any message that contains a Transfer-Encoding header field. 
-    - A server MUST NOT send a Content-Length header field in any response with a status code of 1xx (Informational) or 204 (No Content).
+    --------------------------------------
+    --    [Content-Encoding: token]    --
+    --------------------------------------
+        - The "Content-Encoding" header field indicates what content codings have been applied to the representation, beyond those inherent in the media type, and thus what decoding mechanisms have to be applied in order to obtain data in the media type referenced by the Content-Type header field. 
+        - Content-Encoding is primarily used to allow a representation’s data to be compressed without losing the identity of its underlying media type.
+        - An origin server MAY respond with a status code of 415 (Unsupported Media Type) if a representation in the request message has a content coding that is not acceptable.
 
------------------------------------------
---    [Location]: [URI-reference]      --
------------------------------------------
-    - The "Location" header field is used in some responses to refer to a specific resource in relation to the response.
-    - The field value consists of a single URI-reference. When it has the form of a relative reference ([RFC3986], Section 4.2), the final value is computed by resolving it against the effective request URI ([RFC3986], Section 5).
-    - For 201 (Created) responses, the Location value refers to the primary resource created by the request.
-    
-    - Note: The Content-Location header field (Section 3.1.4.2) differs from Location in that the Content-Location refers to the most specific resource corresponding to the enclosed representation. It is therefore possible for a response to contain both the Location and Content-Location header fields.
+    ----------------------------------------------------------
+    --    [Content-Location: absolute-URI / partial-URI]    --
+    ----------------------------------------------------------
+        - The "Content-Location" header field references a URI that can be used as an identifier for a specific resource corresponding to the representation in this message’s payload.
+        - In summary: not needed for this webserv project.
+        - [RFC 7231 3.1.4.2]
 
+
++-------------------------------------------+
+| Payload Header Field:                     |
++-------------------------------------------+
+|   Content-Length                          |
+|   Content-Range                           |
+|   Trailer                                 |
+|   Transfer-Encoding                       |
++-------------------------------------------+
+
+    ------------------------------
+    --    [Content-Length]      --
+    ------------------------------
+        - A sender MUST NOT send a Content-Length header field in any message that contains a Transfer-Encoding header field. 
+        - A server MUST NOT send a Content-Length header field in any response with a status code of 1xx (Informational) or 204 (No Content).
+
++-------------------------------------------+
+| Response Header Field:                    |
++-------------------------------------------+
+|-- Control Data ---------------------------|
+|       Age                                 |
+|       Cache-Control                       |
+|       Expires                             |
+|       Date                                |
+|       Location                            |
+|       Retry-After                         |
+|       Vary                                |
+|       Warning                             |
+|-- Validator ------------------------------|
+|       ETag                                |
+|       Last-Modified                       |
+|-- Authentication Challenges --------------|
+|       WWW-Authenticate                    |   
+|       Proxy-Authenticate                  | 
+|-- Response Context -----------------------|  
+|       Accept-Ranges                       |  
+|       Allow                               |  
+|       Server                              | 
++-------------------------------------------+
+
+    -----------------------------
+    --    [Date: IMF-fixdate]  --
+    -----------------------------
+        - IMF-fixdate  = day-name "," SP date1 SP time-of-day SP GMT
+            day-name (case-sensitive)
+            date1 = day SP month SP year
+            time-of-day  = hour ":" minute ":" second
+        - Example:
+            Sun, 06 Nov 1994 08:49:37 GMT
+        - In theory, the date ought to represent the moment just before the payload is generated.
+            In practice, the date can be generated at any time during message origination.
+        - An origin server MAY send a Date header field if the response is in the 1xx (Informational) or 5xx (Server Error) class of status codes.
+            An origin server MUST send a Date header field in all other cases.
+
+
+    -----------------------------------------
+    --    [Location]: [URI-reference]      --
+    -----------------------------------------
+        - The "Location" header field is used in some responses to refer to a specific resource in relation to the response.
+        - The field value consists of a single URI-reference. When it has the form of a relative reference ([RFC3986], Section 4.2), the final value is computed by resolving it against the effective request URI ([RFC3986], Section 5).
+        - For 201 (Created) responses, the Location value refers to the primary resource created by the request.
+        - If the Location value provided in a 3xx (Redirection) response does not have a fragment component, a user agent MUST process the redirection as if the value inherits the fragment component of the URI reference used to generate the request target (i.e., the redirection inherits the original reference’s fragment, if any).
+
+        - Note: The Content-Location header field (Section 3.1.4.2) differs from Location in that the Content-Location refers to the most specific resource corresponding to the enclosed representation. It is therefore possible for a response to contain both the Location and Content-Location header fields.
+
+    ----------------------------------------------------
+    --    [Retry-AFter: HTTP-date / delay-seconds]    --
+    ----------------------------------------------------
+        - Servers send the "Retry-After" header field to indicate how long the user agent ought to wait before making a follow-up request. 
+        - When sent with a 503 (Service Unavailable) response, Retry-After indicates how long the service is expected to be unavailable to the client.
+        - When sent with any 3xx (Redirection) response, Retry-After indicates the minimum time that the user agent is asked to wait before issuing the redirected request.
+
+    ------------------
+    --    [Allow]   --
+    ------------------
+        - Example:
+            Allow: GET, HEAD, PUT
+        - The actual set of allowed methods is defined by the origin server at the time of each request.
+        - An origin server MUST generate an Allow field in a 405 (Method Not Allowed) response and MAY do so in any other response. 
+        - An empty Allow field value indicates that the resource allows no methods, which might occur in a 405 response if the resource has been temporarily disabled by configuration.
+
+    ------------------------------------------------------------
+    --    [Server = product *( RWS ( product / comment ) )]   --
+    ------------------------------------------------------------
+        - An origin server MAY generate a Server field in its responses.
+        - Example:
+            Server: CERN/3.0 libwww/2.17
+        - An origin server SHOULD NOT generate a Server field containing needlessly fine-grained detail and SHOULD limit the addition of subproducts by third parties. Overly long and detailed Server field values increase response latency and potentially reveal internal implementation details that might make it (slightly) easier for attackers to find and exploit known security holes.
 
 ------------------------------------
 --    [Expect]: [100-continue]    --

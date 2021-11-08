@@ -45,23 +45,27 @@ int	Webserver::dispatchFd(int ready)
 	std::size_t i = 0;
 	while (i < _fd_table.size())
 	{
-		if (_fd_table[i].first.revents & POLLHUP)
+		if (_fd_table[i].second->flag != AFdInfo::TO_ERASE)
 		{
-			printf(BLUE_BOLD "Close Event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
-			_fd_table.eraseFd(i);
-			continue;
-		}
-		if (_fd_table[i].first.revents & POLLIN)
-		{
-			printf(BLUE_BOLD "Read event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
-			if (_fd_table[i].second->readEvent(_fd_table) == ERR)
-				return ERR;
-		}
-		if (_fd_table[i].first.revents & POLLOUT)
-		{
-			printf(BLUE_BOLD "Write event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
-			if(_fd_table[i].second->writeEvent(_fd_table) == ERR)
-				return ERR;
+			if (_fd_table[i].first.revents & POLLHUP)
+			{
+				printf(BLUE_BOLD "Close Event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
+				_fd_table.eraseFd(i);
+				continue;
+			}
+			if (_fd_table[i].first.revents & POLLIN)
+			{
+				printf(BLUE_BOLD "Read event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
+				if (_fd_table[i].second->readEvent(_fd_table) == ERR)
+					return ERR;
+			}
+			if (_fd_table[i].first.revents & POLLOUT)
+			{
+				printf(BLUE_BOLD "Write event:" RESET_COLOR " [%d]\n", _fd_table[i].first.fd);
+				if(_fd_table[i].second->writeEvent(_fd_table) == ERR)
+					return ERR;
+			}
+
 		}
 		++i;
 	}

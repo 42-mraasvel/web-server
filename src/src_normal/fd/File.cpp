@@ -7,10 +7,6 @@
 #include <string>
 #include <iostream>
 
-#ifdef __linux__
-#include <cstring> // for bzero
-#endif /* __linux */
-
 File::File(int fd): AFdInfo(fd)
 {
 	flag = AFdInfo::ACTIVE;
@@ -27,9 +23,9 @@ struct pollfd	File::getPollFd() const
 
 int File::readEvent(FdTable & fd_table)
 {
-	char	buffer[BUFFER_SIZE + 1];
-	bzero(buffer, BUFFER_SIZE + 1);
-	int	ret = read(_fd, buffer, BUFFER_SIZE);
+	std::string buffer;
+	buffer.resize(BUFFER_SIZE, '\0');
+	ssize_t	ret = read(_fd, &buffer[0], BUFFER_SIZE);
 	if (ret == ERR)
 	{
 		perror("read");
@@ -41,7 +37,8 @@ int File::readEvent(FdTable & fd_table)
 	{
 		flag = AFdInfo::FILE_START;
 	}
-	_content.append(std::string(buffer));
+	buffer.resize(ret);
+	_content.append(buffer);
 	if (ret < BUFFER_SIZE) // read EOF
 	{
 		this->updateEvents(AFdInfo::WAITING, fd_table);

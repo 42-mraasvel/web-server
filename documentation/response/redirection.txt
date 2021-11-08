@@ -1,0 +1,50 @@
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
+https://www.nginx.com/blog/creating-nginx-rewrite-rules/
+
+Redirect responses have 
+	- status codes that start with 3, 
+	- Location header holding the URL to redirect to.
+
+--------------------------------------
+--       Permanent Redirection      --
+--------------------------------------
+	- 301 Moved Permanently
+	- These redirections are meant to last forever. They imply that the original URL should no longer be used, and replaced with the new one. (Search engine robots, RSS readers, and other crawlers will update the original URL for the resource.)
+
+--------------------------------------
+--       Temporary Redirection      --
+--------------------------------------
+
+	- Search engine robots and other crawlers don't memorize the new, temporary URL. Temporary redirections are also used when creating, updating, or deleting resources, to show temporary progress pages.
+	- 302 FOUND: The Web page is temporarily unavailable for unforeseen reasons.
+	- 303 SEE OTHER: Used to redirect after a PUT or a POST, so that refreshing the result page doesn't re-trigger the operation.
+	- 307 TEMPORARY REDIRECT: The Web page is temporarily unavailable for unforeseen reasons. Better than 302 when non-GET operations are available on the site.
+
+	302 and 307 are similar only that 302 allow client to change METHOD but 307 does not.
+
+
+--------------------------------------
+--        Special Redirection       --
+--------------------------------------
+
+	- 300 MULTIPLE CHOICE: a manual redirection: the body, presented by the browser as a Web page, lists the possible redirections and the user clicks on one to select it.
+	- 304 NOT MODIFIED 304: redirects a page to the locally cached copy (that was stale)
+
+--------------------------------
+--        Configuration       --
+--------------------------------
+	- http://nginx.org/en/docs/http/ngx_http_rewrite_module.html#return
+	return code [text]; (for other codes)
+	return code URL; (for code 301 | 302 | 303 | 307)
+	return URL;
+
+	- In Nginx, you create a specific server block for the content you want to redirect:
+		server {
+		listen 80;
+		server_name example.com;
+		return 301 $scheme://www.example.com$request_uri;
+		}
+
+	- To apply a redirect to a directory or only certain pages, use the rewrite directive:
+		rewrite ^/images/(.*)$ https://images.example.com/$1 redirect;
+		rewrite ^/images/(.*)$ https://images.example.com/$1 permanent;
