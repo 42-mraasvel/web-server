@@ -21,7 +21,7 @@ bool checkNextRequest(RequestParser& x, Request::RequestStatus expected)
 	RequestStatus	status;
 
 	MethodType		method;
-	std::string		target_resource;
+	std::string		request_target;
 	int				major_version;
 	int				minor_version;
 	header_field_t	header_fields;
@@ -31,7 +31,7 @@ bool checkNextRequest(RequestParser& x, Request::RequestStatus expected)
 void printRequest(const std::string& name, const Request& y) {
 	std::cout << "-- REQUEST " << name << " -- " << std::endl;
 	std::cout << "Status: " << y.status << std::endl;
-	std::cout << y.getMethodString() << " " << y.target_resource << " HTTP/" << y.major_version << "." << y.minor_version << std::endl;
+	std::cout << y.getMethodString() << " " << y.request_target << " HTTP/" << y.major_version << "." << y.minor_version << std::endl;
 	for (auto it = y.header_fields.begin(); it != y.header_fields.end(); ++it) {
 		std::cout << it->first << ": " << it->second << std::endl;
 	}
@@ -52,7 +52,7 @@ bool checkNextRequest(RequestParser& x, const Request& y, bool print = false)
 
 	bool result = r != NULL &&
 		r->status == y.status &&
-		r->target_resource == y.target_resource &&
+		r->request_target == y.request_target &&
 		r->major_version == y.major_version &&
 		r->minor_version == y.minor_version &&
 		r->header_fields.size() == y.header_fields.size() &&
@@ -80,7 +80,7 @@ TEST_CASE("Parser: single buffer: many requests", "[request_parser]")
 	example.method = GET;
 	example.major_version = 1;
 	example.minor_version = 1;
-	example.target_resource = "/";
+	example.request_target = "/";
 	example.message_body = "HELLO THERE\r\n";
 	example.header_fields["Content-Length"] = "13";
 
@@ -118,7 +118,7 @@ TEST_CASE("Parser: partial requests", "[request_parser]")
 	example.method = GET;
 	example.major_version = 1;
 	example.minor_version = 1;
-	example.target_resource = "/";
+	example.request_target = "/";
 	example.message_body = "HELLO THERE\r\n";
 	example.header_fields["Content-Length"] = "13";
 
@@ -247,7 +247,7 @@ TEST_CASE("Parser: basic valid header-fields", "[request-parser]")
 	example.major_version = 1;
 	example.minor_version = 1;
 	example.method = GET;
-	example.target_resource = "/";
+	example.request_target = "/";
 
 
 	RequestParser parser;
@@ -281,7 +281,7 @@ TEST_CASE("Parser: multiple header-fields", "[request-parser]")
 
 	Request example;
 	example.method = GET;
-	example.target_resource = "/";
+	example.request_target = "/";
 	example.major_version = 1;
 	example.minor_version = 1;
 	example.status = Request::COMPLETE;
@@ -337,7 +337,7 @@ TEST_CASE("parser: chunked", "[request-parser]")
 	example.status = Request::COMPLETE;
 	example.major_version = 1;
 	example.method = GET;
-	example.target_resource = "/";
+	example.request_target = "/";
 	example.minor_version = 1;
 	example.header_fields["Host"] = "127.0.0.1:80";
 	example.header_fields["Content-Type"] = "text/plain";

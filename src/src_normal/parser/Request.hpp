@@ -46,7 +46,7 @@ struct Request
 		bool			executed;
 
 		MethodType		method;
-		std::string		target_resource;
+		std::string		request_target;
 		std::string		query;
 		int				major_version;
 		int				minor_version;

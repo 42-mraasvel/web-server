@@ -52,7 +52,7 @@ Component analysis:
 
 bool CgiHandler::isCgi(const Request& request) {
 
-	const std::string& target = request.target_resource;
+	const std::string& target = request.request_target;
 
 	std::size_t index = 0;
 	while (true) {

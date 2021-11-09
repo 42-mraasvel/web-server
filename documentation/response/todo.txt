@@ -2,6 +2,9 @@
 --     NOW      --
 ------------------
 
+>> Request target error checking:
+    - not start with "/"?
+
 >> Redirection (3xx)
     - is URL good for Location header?
 

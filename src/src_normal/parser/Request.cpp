@@ -6,7 +6,7 @@
 	RequestStatus	status;
 
 	MethodType		type;
-	std::string		target_resource;
+	std::string		request_target;
 	int				major_version;
 	int				minor_version;
 	header_field_t	header_fields;
@@ -86,7 +86,7 @@ void Request::print() const
 	printf("Status: %s\n", getStatusString().c_str());
 	printf("%s [%s][%s] HTTP/%d.%d\r\n",
 		getMethodString().c_str(),
-		target_resource.c_str(),
+		request_target.c_str(),
 		query.c_str(),
 		major_version, minor_version);
 	

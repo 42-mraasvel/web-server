@@ -11,39 +11,39 @@ TEST_CASE("IsCgi tests", "[cgi]")
 
 /* True Tests */
 	Request r;
-	r.target_resource = "/x.py";
+	r.request_target = "/x.py";
 	REQUIRE(cgi_handler.isCgi(r) == true);
-	r.target_resource = "/a/b/x.py";
+	r.request_target = "/a/b/x.py";
 	REQUIRE(cgi_handler.isCgi(r) == true);
-	r.target_resource = "/a/b/x.py/a/b/x";
+	r.request_target = "/a/b/x.py/a/b/x";
 	REQUIRE(cgi_handler.isCgi(r) == true);
-	r.target_resource = "/1234x.py";
+	r.request_target = "/1234x.py";
 	REQUIRE(cgi_handler.isCgi(r) == true);
-	r.target_resource = "/asdf/asdf/ads/fadsfx.py";
+	r.request_target = "/asdf/asdf/ads/fadsfx.py";
 	REQUIRE(cgi_handler.isCgi(r) == true);
-	r.target_resource = "/asdf/asdf/ads/.py";
+	r.request_target = "/asdf/asdf/ads/.py";
 	REQUIRE(cgi_handler.isCgi(r) == true);
-	r.target_resource = "/.py";
+	r.request_target = "/.py";
 	REQUIRE(cgi_handler.isCgi(r) == true);
-	r.target_resource = "/.py/";
+	r.request_target = "/.py/";
 	REQUIRE(cgi_handler.isCgi(r) == true);
-	r.target_resource = "/.py/a";
+	r.request_target = "/.py/a";
 	REQUIRE(cgi_handler.isCgi(r) == true);
 
 /* False Tests */
-	r.target_resource = "/";
+	r.request_target = "/";
 	REQUIRE(cgi_handler.isCgi(r) == false);
-	r.target_resource = "/x.pyz";
+	r.request_target = "/x.pyz";
 	REQUIRE(cgi_handler.isCgi(r) == false);
-	r.target_resource = "/x.pyz/asdf";
+	r.request_target = "/x.pyz/asdf";
 	REQUIRE(cgi_handler.isCgi(r) == false);
-	r.target_resource = "/x.pyz/py./py";
+	r.request_target = "/x.pyz/py./py";
 	REQUIRE(cgi_handler.isCgi(r) == false);
-	r.target_resource = "/x.pyz/asdf/.p/";
+	r.request_target = "/x.pyz/asdf/.p/";
 	REQUIRE(cgi_handler.isCgi(r) == false);
-	r.target_resource = "/x.p";
+	r.request_target = "/x.p";
 	REQUIRE(cgi_handler.isCgi(r) == false);
-	r.target_resource = "/x.pys/";
+	r.request_target = "/x.pys/";
 	REQUIRE(cgi_handler.isCgi(r) == false);
 }
 
@@ -53,7 +53,7 @@ TEST_CASE("Cgi Generate Meta-variables") {
 
 	// FdTable fd_table;
 
-	// r.target_resource = "/cgi-bin/cgi.py/path/info";
+	// r.request_target = "/cgi-bin/cgi.py/path/info";
 	// r.query = "abcde=sa=d%20";
 	// r.method = GET;
 	// r.minor_version = 1;

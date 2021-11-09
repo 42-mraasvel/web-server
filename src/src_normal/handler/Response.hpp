@@ -101,7 +101,7 @@ class Response
 
 		/* info */
 		MethodType			_method;
-		std::string			_target_resource;
+		std::string			_request_target;
 		RequestParser::header_field_t  _header_fields;
 		std::string 		_http_version;
 		int					_status_code;

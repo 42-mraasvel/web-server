@@ -365,7 +365,7 @@ int RequestParser::parseTargetResource()
 	if (skipAbsolutePath() == false) {
 		return ERR;
 	}
-	_request->target_resource = _buffer.substr(start, _index - start);
+	_request->request_target = _buffer.substr(start, _index - start);
 	start = _index;
 	skipQuery();
 	_request->query = _buffer.substr(start, _index - start);

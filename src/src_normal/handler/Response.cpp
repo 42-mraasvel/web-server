@@ -23,7 +23,7 @@ Response::Response(Request const & request): _file_handler(request.method)
 
 	_status_code = 0;
 	_method = request.method;
-	_target_resource = request.target_resource;
+	_request_target = request.request_target;
 	setHttpVersion(request.minor_version);
 
 	// TODO: to change it properly with configuration
@@ -98,13 +98,13 @@ std::string const &	Response::setAuthority(Request const & request, std::string 
 void	Response::setEffectiveRequestURI(std::string const & authority)
 {
 	std::string URI_scheme = "http://";
-	_effective_request_uri = URI_scheme + authority + _target_resource;
+	_effective_request_uri = URI_scheme + authority + _request_target;
 }
 
 void	Response::setAbsoluteFilePath(std::string const & root, std::string const & default_file)
 {
-	_absolute_file_path = root + _target_resource;
-	if (_target_resource[_target_resource.size() - 1] == '/')
+	_absolute_file_path = root + _request_target;
+	if (_request_target[_request_target.size() - 1] == '/')
 	{
 		// TODO: the default file can be CGI extended files as well,
 		// in which case the target-resource should be updated earlier so that CgiHandler::isCgi() can resolve it
@@ -112,7 +112,7 @@ void	Response::setAbsoluteFilePath(std::string const & root, std::string const &
 	}
 	if (_is_cgi)
 	{
-		// CGI: the target_resource might be split, so only the root is needed at this point
+		// CGI: the request_target might be split, so only the root is needed at this point
 		_cgi_handler.setRootDir(root);
 	}
 	else
@@ -220,7 +220,7 @@ void	Response::executeRequest(FdTable & fd_table, Request & request)
 {
 
 	// This is the first time CGI is checked
-	// Note: if TARGET_RESOURCE is "/" OR a directory: the DEFAULT index needs to be checked
+	// Note: if request_target is "/" OR a directory: the DEFAULT index needs to be checked
 	// which could also be CGI: 'index index.html index.php index.py ...'
 	if (_cgi_handler.isCgi(request))
 	{
@@ -472,7 +472,7 @@ void	Response::setLocation()
 {
 	if (_status_code == StatusCode::CREATED)
 	{
-		_header_fields["Location"] = _target_resource;
+		_header_fields["Location"] = _request_target;
 	}
 	else if (_status_code >= 300 && _status_code < 400)
 	{
