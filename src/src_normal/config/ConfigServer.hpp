@@ -27,6 +27,9 @@ class ConfigServer
 		const_iterator begin() const;
 		const_iterator end() const;
 
+		//TODO: only for ConfigResolver, to delete
+		std::vector<std::string> const &	getServerNames();
+
 	private:
 		int											_default_port;
 		std::string									_host;

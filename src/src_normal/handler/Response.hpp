@@ -1,14 +1,12 @@
 #pragma once
 #include <string>
 #include "parser/RequestParser.hpp"
-#include "parser/Request.hpp"
 #include "fd/AFdInfo.hpp"
-#include "FileHandler.hpp"
 #include "MediaType.hpp"
 #include "RequestValidator.hpp"
+#include "ConfigResolver.hpp"
+#include "FileHandler.hpp"
 #include "cgi/CgiHandler.hpp"
-
-class File;
 
 class Response
 {
@@ -121,6 +119,7 @@ class Response
 		/* handler */
 		bool				_is_cgi;
 		RequestValidator	_request_validator;
+		ConfigResolver		_config_resolver;
 		FileHandler			_file_handler;
 		CgiHandler			_cgi_handler;
 

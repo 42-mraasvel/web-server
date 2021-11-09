@@ -50,7 +50,6 @@ bool	RequestValidator::isHostValid(Request const & request)
 		}
 	}
 	return true;
-
 }
 
 bool	RequestValidator::isConnectionValid(Request const & request)

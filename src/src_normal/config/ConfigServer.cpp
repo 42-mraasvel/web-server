@@ -144,3 +144,9 @@ void ConfigServer::printHostName() const
 	}
 	std::cout << ']' << std::endl;
 }
+
+//TODO: only for ConfigResolver, to delete
+std::vector<std::string> const &	ConfigServer::getServerNames() 
+{
+	return _server_name;
+}

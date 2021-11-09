@@ -2,28 +2,26 @@
 #include <map>
 #include <utility>
 #include <string>
+#include "config/Config.hpp"
+#include "parser/Request.hpp"
 
-/*
-class ConfigServer;
-
-class ConfigLocation;
+struct Request;
 
 class ConfigResolver
 {
 	public:
-		typedef std::pair<std::string, int>	Address; // TODO_config: to take from config
-		typedef std::map< Address, std::vector<ConfigServer> >	ConfigMap;
+		//TODO: to evaluate typedef for config
+		typedef	std::vector< ConfigServer * >				ServerVector; 
+		typedef std::map< Request::Address, ServerVector >	ConfigMap;
+		typedef std::vector<std::string>					StringVector;
 		
-		void	setAddress(ConfigMap map, Address address);
-		void	resolveHost();
-		void	resolveServerBlock(ConfigMap map, Address address);
-		void	resolveLocationBlock(ConfigMap map, Address address);
-		
+		void	resolution(Request const & request);
+	
 	private:
-		Address						_address;
-		std::string					_host;
-		ConfigServer				_server_block;
-		ConfigLocation				_location_block;
-
+		ServerVector	resolveAddress(ConfigMap map, Request::Address client_address);
+		void				setAddress(ConfigMap const & map, Request::Address const & client_address, Request::Address & address);
+		ConfigServer*	resolveHost(Request const & request, ServerVector const & servers);
+		void				setHost(Request const & request, std::string & host);
+		bool				isHostMatched(std::string const & host, StringVector const & server_names);
+		
 };
-*/

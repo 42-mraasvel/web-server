@@ -1,31 +1,71 @@
 #include "ConfigResolver.hpp"
-#include "config/Config.hpp"
-/*
-void	ConfigResolver::setAddress(ConfigMap map, Address address)
+#include "settings.hpp"
+#include <iostream>
+
+void	ConfigResolver::resolution(Request const & request)
 {
-	if (map.count(address) == 1)
+	ConfigMap	map; //TODO
+
+	ServerVector	server_vector = resolveAddress(map, request.address);
+	ConfigServer*	server = resolveHost(request, server_vector);
+}
+
+ConfigResolver::ServerVector	ConfigResolver::resolveAddress(ConfigMap map, Request::Address client_address)
+{
+	Request::Address	address;
+	setAddress(map, client_address, address);
+	return map.find(address)->second;
+}
+
+void	ConfigResolver::setAddress(ConfigMap const & map, Request::Address const & client_address, Request::Address & address)
+{
+	if (map.count(client_address) == 1)
 	{
-		_address = address;
+		address = client_address;
 	}
 	else
 	{
-		_address.first = "0.0.0.0";
-		_address.second = address.second;
+		address.first = "0.0.0.0";
+		address.second = client_address.second;
 	}
 }
 
-void	ConfigResolver::setHost(std::String const & host)
+ConfigServer*	ConfigResolver::resolveHost(Request const & request, ServerVector const & servers)
 {
-	
+	bool		default_host = !request.header_fields.contains("host");;
+	std::string	host;
+	if (!default_host)
+	{
+		setHost(request, host);
+	}
+	for (ServerVector::const_iterator it = servers.begin(); it != servers.end(); ++it)
+	{
+		if (isHostMatched(host, (*it)->getServerNames()))
+		{
+			return *it;
+		}
+	}
+	return *servers.begin();
 }
 
-void	ConfigResolver::resolveHost(std::vector<ServerConfig> servers)
+void	ConfigResolver::setHost(Request const & request, std::string & host)
 {
-	_server_block = map.find(_address)->second;
-}	
-
-void	ConfigResolver::resolveLocationBlock(ConfigMap map, Address address)
-{
-
+	host = request.header_fields.find("host")->second;
+	std::size_t found = host.rfind(":");
+	if (found != std::string::npos)
+	{
+		host.resize(found);
+	}
 }
-*/
+
+bool	ConfigResolver::isHostMatched(std::string const & host, StringVector const & server_names)
+{
+	for (StringVector::const_iterator it = server_names.begin(); it != server_names.end(); ++it)
+	{
+		if (host == *it)
+		{
+			return true;
+		}
+	}
+	return false;
+}

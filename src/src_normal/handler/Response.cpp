@@ -1,9 +1,9 @@
 #include "Response.hpp"
 #include "settings.hpp"
-#include "fd/File.hpp"
 #include "utility/utility.hpp"
-#include "parser/HeaderField.hpp"
 #include "utility/status_codes.hpp"
+#include "parser/HeaderField.hpp"
+#include "parser/Request.hpp"
 #include <vector>
 #include <unistd.h>
 #include <cstdlib>
@@ -82,6 +82,9 @@ void	Response::resolveConfig(Request const & request)
 	std::string	authority = setAuthority(request, default_server);
 	setEffectiveRequestURI(authority);
 	setAbsoluteFilePath(root, default_file);
+
+
+	_config_resolver.resolution(request);
 }
 
 std::string const &	Response::setAuthority(Request const & request, std::string const & default_server)
