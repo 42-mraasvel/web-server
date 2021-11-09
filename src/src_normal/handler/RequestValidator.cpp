@@ -16,6 +16,7 @@ bool	RequestValidator::isRequestValid(Request const & request)
 	_allowed_methods.push_back("DELETE");
 
 	return !isBadRequest(request.status, request.status_code)
+			&& isHostValid(request)
 			&& isConnectionValid(request)
 			&& isHttpVersionValid(request.major_version)
 			&& isMethodValid(request.method)
@@ -30,6 +31,26 @@ bool	RequestValidator::isBadRequest(Request::RequestStatus status, int request_c
 		return true;
 	}
 	return false;
+}
+
+bool	RequestValidator::isHostValid(Request const & request)
+{
+	if (request.header_fields.contains("host"))
+	{
+		std::string host = request.header_fields.find("host")->second;
+		std::size_t found = host.rfind(":");
+		if (found != std::string::npos)
+        {
+			std::string	port_str = host.substr(found + 1);
+			if (!port_str.size() || WebservUtility::strtol(port_str) != request.address.second)
+			{
+				_status_code = StatusCode::BAD_REQUEST;
+				return false;
+			}
+		}
+	}
+	return true;
+
 }
 
 bool	RequestValidator::isConnectionValid(Request const & request)

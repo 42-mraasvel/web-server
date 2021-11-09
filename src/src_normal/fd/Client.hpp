@@ -1,5 +1,6 @@
 #pragma once
 #include <sys/socket.h>
+#include <utility>
 #include <string>
 #include <queue>
 #include "FdTable.hpp"
@@ -12,7 +13,9 @@ class File;
 class Client : public AFdInfo
 {
 	public:
-		Client(int fd);
+		typedef std::pair<std::string, int>	Address; // TODO_config: to take from config
+
+		Client(int fd, Address address);
 		~Client();
 		struct pollfd getPollFd() const;
 
@@ -55,6 +58,7 @@ class Client : public AFdInfo
 		bool	isResponseReadyToWrite() const;
 
 	private:
+		Address					_address;
 		RequestParser			_request_parser;
 		Request*				_request;
 		Response*				_new_response;

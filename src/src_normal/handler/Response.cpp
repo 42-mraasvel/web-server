@@ -13,17 +13,17 @@
 #include <time.h>
 #include <algorithm>
 
-Response::Response(Request const & request): _file_handler(request.method)
+Response::Response(Request const & request):
+_method(request.method),
+_request_target(request.request_target),
+_status_code(0),
+_status(START),
+_header_part_set(false),
+_chunked(false),
+_close_connection(false),
+_is_cgi(false),
+_file_handler(request.method)
 {
-	_status = START;
-	_header_part_set = false;
-	_chunked = false;
-	_close_connection = false;
-	_is_cgi = false;
-
-	_status_code = 0;
-	_method = request.method;
-	_request_target = request.request_target;
 	setHttpVersion(request.minor_version);
 
 	// TODO: to change it properly with configuration
@@ -52,12 +52,13 @@ void	Response::setHttpVersion(int minor_version)
 
 void	Response::initiate(Request const & request)
 {
-	resolveConfig(request);
+	//TODO_config: add config map parameter, pass it on to ...?
 	evaluateConnectionFlag(request);
 	if (validateRequest(request) == ERR)
 	{
 		return ;
 	}
+	resolveConfig(request);
 	processImmdiateResponse(request);
 }
 
@@ -127,7 +128,7 @@ void	Response::setAbsoluteFilePath(std::string const & root, std::string const &
 
 void	Response::evaluateConnectionFlag(Request const & request)
 {
-	if (false) // TODO_CGI: change to if (request.close_connection)
+	if (false) // TODO: change to if (request.close_connection)
 	{
 		_close_connection = true;
 	}

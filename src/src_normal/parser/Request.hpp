@@ -13,7 +13,7 @@ struct Request
 {
 	public:
 		typedef HeaderField header_field_t;
-
+		typedef std::pair< std::string, int > Address; //TODO_config: to incorporate with config class
 	public:
 
 		enum RequestStatus
@@ -41,9 +41,9 @@ struct Request
 	*/
 
 	public:
+		Address			address;
 		RequestStatus	status;
 		int				status_code;
-		bool			executed;
 
 		MethodType		method;
 		std::string		request_target;

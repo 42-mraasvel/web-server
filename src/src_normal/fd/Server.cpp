@@ -3,9 +3,7 @@
 #include "Client.hpp"
 #include <poll.h>
 #include <iostream>
-#include <netinet/in.h>
 #include <unistd.h>
-#include <sys/socket.h>
 #include <fcntl.h>
 
 int		Server::setupServer(int port)
@@ -34,13 +32,15 @@ int		Server::setupServer(int port)
 	{
 		perror("fcntl");
 	}
+	_port = port; //TODO: to evaluate later
 	return OK;
 }
 
 int Server::readEvent(FdTable & fd_table)
 {
-	//TODO: in accept() store client info and map the connection
-	int connection_fd = accept(_fd, NULL, NULL);
+	sockaddr_in	client_address;
+	socklen_t	address_len = sizeof(client_address);
+	int connection_fd = accept(_fd, reinterpret_cast<sockaddr *>(&client_address), &address_len);
 	if (connection_fd == ERR)
 	{
 		perror("Accept");
@@ -50,8 +50,36 @@ int Server::readEvent(FdTable & fd_table)
 	{
 		perror("fcntl");
 	}
-	Client*	client = new Client(connection_fd);
+	return initClient(client_address, connection_fd, fd_table);
+}
+
+int	Server::initClient(sockaddr_in address, int connection_fd, FdTable & fd_table)
+{
+	std::string ip;
+	if (convertIP(address, ip) == ERR)
+	{
+		return ERR;
+	}
+
+	Client::Address	address_output;
+	address_output.first = ip;
+	address_output.second = _port;
+
+	Client*	client = new Client(connection_fd, address_output);
 	fd_table.insertFd(client);
+	return OK;
+}
+
+int	Server::convertIP(sockaddr_in address, std::string & ip)
+{
+	std::string full_ip(INET_ADDRSTRLEN, '\0');
+	if (!inet_ntop(AF_INET, &(address.sin_addr), &full_ip[0], INET_ADDRSTRLEN))
+	{
+		perror("inet_ntop");
+		return ERR;
+	}
+	size_t found = full_ip.find_first_of('\0');
+	ip = full_ip.substr(0, found);
 	return OK;
 }
 

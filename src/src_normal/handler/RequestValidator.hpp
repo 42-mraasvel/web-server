@@ -9,6 +9,7 @@ class RequestValidator
 		bool	isRequestValid(Request const & request);
     private:
 		bool		isBadRequest(Request::RequestStatus status, int request_code);
+		bool		isHostValid(Request const & request);
 		bool		isConnectionValid(Request const & request);
 		bool		isHttpVersionValid(int http_major_version);
 		bool		isMethodValid(MethodType const method);

@@ -2,13 +2,14 @@
 #include "settings.hpp"
 #include "File.hpp"
 #include "utility/utility.hpp"
+#include "utility/status_codes.hpp"
 #include <poll.h>
 #include <fcntl.h>
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
 
-Client::Client(int fd): AFdInfo(fd), _request(NULL), _new_response(NULL), _response(NULL) {}
+Client::Client(int fd, Address address): AFdInfo(fd), _address(address), _request(NULL), _new_response(NULL), _response(NULL) {}
 
 Client::~Client()
 {
@@ -35,6 +36,7 @@ struct pollfd	Client::getPollFd() const
 
 int	Client::readEvent(FdTable & fd_table)
 {
+	//TODO_config: add config map parameter, pass it on to processRequest
 	if (parseRequest() == ERR)
 	{
 		return ERR;
@@ -88,6 +90,7 @@ bool	Client::retrieveRequest()
 		{
 			return false;
 		}
+		_request->address = _address; //TODO: to discuss where to put this
 		return true;
 	}
 	else
@@ -102,6 +105,7 @@ bool	Client::retrieveRequest()
 
 void	Client::processRequest(FdTable & fd_table)
 {
+	//TODO_config: add config map parameter, pass it on to initResponse
 	if (!_new_response)
 	{
 		initResponse(*_request);
@@ -114,6 +118,7 @@ void	Client::processRequest(FdTable & fd_table)
 
 void	Client::initResponse(Request const & request)
 {
+	//TODO_config: add config map parameter, pass it on to response->initative
 	_new_response = new Response(request);
 	_response_queue.push(_new_response);
 	_new_response->initiate(request);
@@ -129,7 +134,7 @@ bool	Client::isRequestExecuted() const
 {
 	return _new_response
 			&& _new_response->isComplete()
-			&& _new_response->getStatusCode() != 100;
+			&& _new_response->getStatusCode() != StatusCode::CONTINUE;
 }
 
 void	Client::resetRequest()
@@ -142,7 +147,7 @@ void	Client::resetRequest()
 	}
 	else if (_new_response
 			&& _new_response->isComplete()
-			&& _new_response->getStatusCode() == 100)
+			&& _new_response->getStatusCode() == StatusCode::CONTINUE)
 	{
 		_new_response = NULL;
 	}
