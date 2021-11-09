@@ -1,17 +1,16 @@
 #include <unistd.h>
 
+#ifndef __linux__
+extern char** environ;
+#endif
+
 namespace WebservUtility
 {
 
 /* Return the global environment variable */
 char** getEnvp()
 {
-	#ifdef __linux__
-		return environ;
-	#else
-		extern char** __environ;
-		return __environ;
-	#endif
+	return environ;
 }
 
 }
