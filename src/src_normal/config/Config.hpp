@@ -75,5 +75,5 @@ class Config
 		void printIp(const_iterator_map node) const;
 		void printPort(const_iterator_map node) const;
 		void printServerBlock(const_iterator_map node) const;
-
+		void printLocationBlock(LocationBlock location) const;
 };

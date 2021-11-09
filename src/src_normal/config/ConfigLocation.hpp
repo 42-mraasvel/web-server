@@ -48,5 +48,4 @@ class ConfigLocation
 		void printAutoIndex() const;
 		void printAllowedMethods() const;
 		void printCgi() const;
-		void printLocationBlock() const;
 };

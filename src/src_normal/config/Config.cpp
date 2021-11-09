@@ -445,6 +445,7 @@ void	Config::configError(std::string str)
 void	Config::initAddressMap()
 {
 	std::pair<std::map<ip_host_pair,server_block_vector>::iterator,bool> ret;
+	std::map<ip_host_pair,server_block_vector>::iterator map_it;
 	address_map tmp;
 
 	for (size_t i = 0; i < _servers.size(); i++)
@@ -455,18 +456,15 @@ void	Config::initAddressMap()
 			ret = _address_map.insert(std::make_pair(it->first, it->second));
 			if (ret.second == false)
 			{
-
+				std::cout << RED_BOLD "insert second serverblock in map" << std::endl;
+				map_it = _address_map.find(it->first);
+				map_it->second.push_back(it->second[0]);
 			}
 			else
 			{
-				std::cout << "insert succesful" << std::endl;
+				std::cout << GREEN_BOLD "insert succesful" << std::endl;
 			}
 		}
-		// ret = _address_map.insert(tmp.begin(), tmp.end());
-		// if (ret.second == 0)
-		// {
-		// 	printf("hi there!\n");
-		// }
 	}
 }
 
@@ -499,17 +497,8 @@ void Config::printAddressMap() const
 
 void Config::printNode(const_iterator_map node) const
 {
-	// print key
-		// print ip
-		// print port
 	printKey(node);
-	// print value
 	printServerBlock(node);
-		// for loop for vector
-		// print clientsize
-		// print loop server names
-		// print error pages loop
-		// print locaiton block loop
 }
 
 void	Config::printKey(const_iterator_map node) const
@@ -520,12 +509,12 @@ void	Config::printKey(const_iterator_map node) const
 
 void	Config::printIp(const_iterator_map node) const
 {
-	std::cout << "  Ip: " << node->first.first << std::endl;
+	std::cout << YELLOW_BOLD "  Ip: " RESET_COLOR << node->first.first << std::endl;
 }
 
 void	Config::printPort(const_iterator_map node) const
 {
-	std::cout << "  Port: " << node->first.second << std::endl;
+	std::cout << YELLOW_BOLD "  Port: " RESET_COLOR << node->first.second << std::endl;
 	
 }
 
@@ -533,7 +522,7 @@ void	Config::printServerBlock(const_iterator_map node) const
 {
 	for (size_t i = 0; i < node->second.size(); i++)
 	{
-		std::cout << "    ServerBlock #" << i+1 << std::endl;
+		std::cout << MAGENTA_BOLD "    ServerBlock #"  << i+1 << RESET_COLOR<< std::endl;
 		std::cout << "\tClient size : " << node->second[i]._client_body_size << std::endl;
 		std::cout << "\tserver Names:" << std::endl;
 		for (size_t j = 0; j < node->second[i]._server_names.size(); j++)
@@ -545,10 +534,59 @@ void	Config::printServerBlock(const_iterator_map node) const
 		{
 			std::cout << "\t  " << node->second[i]._error_pages[j].first << ", " << node->second[i]._error_pages[j].second << std::endl;
 		}
+		for (size_t j = 0; j < node->second[i]._locations.size(); j++)
+		{
+			std::cout << YELLOW_BOLD "    location #" << j+1 << RESET_COLOR << std::endl;
+			printLocationBlock(node->second[i]._locations[j]);
+		}
 	}
 }
 
-
+void	Config::printLocationBlock(LocationBlock location) const
+{
+	std::cout << "\t  path: " << location._path << std::endl;
+	std::cout << "\t  root: " << location._root << std::endl;
+	std::cout << "\t  index: " ;
+	for (size_t i = 0; i < location._index.size(); i++)
+	{
+		if (i != 0)
+		{
+			std::cout << ", ";
+		}
+		std::cout << location._index[i];
+	}
+	std::cout << std::endl;
+	std::cout << "\t  Allowed Methods: " ;
+	for (size_t i = 0; i < location._allowed_methods.size(); i++)
+	{
+		if (i != 0)
+		{
+			std::cout << ", ";
+		}
+		std::cout << location._allowed_methods[i];
+	}
+	std::cout << std::endl;
+	std::cout << "\t  CGI: " ;
+	for (size_t i = 0; i < location._cgi.size(); i++)
+	{
+		if (i != 0)
+		{
+			std::cout <<"; ";
+		}
+		std::cout << location._cgi[i].first << ", " << location._cgi[i].second;
+	}
+	std::cout << std::endl;
+	std::cout << "\t  Autoindex status: ";
+	if (location._autoindex_status)
+	{
+		std::cout << "ON";
+	}
+	else
+	{
+		std::cout << "OFF";
+	}
+	std::cout << std::endl;
+}
 
 
 

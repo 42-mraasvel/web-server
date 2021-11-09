@@ -61,15 +61,12 @@ void	ConfigServer::addPort(int port)
 	_ports.push_back(port);
 }
 
-
 int	ConfigServer::emptyAddress()
 {
 	return _address.empty();
 }
 
 // Getters
-
-
 std::vector<int> ConfigServer::getPorts()
 {
 	return _ports;
@@ -199,26 +196,4 @@ void	ConfigServer::printAddress(int index) const
 	std::cout << ", ";
 	std::cout << BLUE_BOLD << _address[index].second;
 	std::cout << std::endl;
-}
-
-
-void	ConfigServer::printServerBlock(ServerBlock server) const
-{
-	std::cout << "Client Body Size: " << server._client_body_size << std::endl;
-	std::cout << "Server Names: " << std::endl;
-	for (size_t i = 0; i < server._server_names.size(); i++)
-	{
-		std::cout << "\t" << server._server_names[i] << std::endl;
-	}
-	std::cout << "Error Pages: " << std::endl;
-	for (size_t i = 0; i < server._error_pages.size(); i++)
-	{
-		std::cout << server._error_pages[i].first << ", " << server._error_pages[i].second << std::endl;
-	}
-	std::cout << "Server Blocks: " << std::endl;
-	// for (size_t i = 0; i < _locations.size(); i++)
-	// {
-	// 	_locations[i].printServerBlock();
-	// }
-
 }

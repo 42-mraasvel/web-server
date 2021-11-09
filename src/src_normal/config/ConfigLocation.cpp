@@ -48,8 +48,6 @@ void ConfigLocation::initLocationBlock()
 	_location_block._autoindex_status = _autoindex_status;
 }
 
-
-
 /* Debugging */
 void	ConfigLocation::print() const
 {
@@ -126,7 +124,7 @@ void ConfigLocation::printIndex() const
 
 void ConfigLocation::printCgi() const
 {
-		std::cout << "  \t" WHITE_BOLD << "CGI:" RESET_COLOR " [";
+	std::cout << "  \t" WHITE_BOLD << "CGI:" RESET_COLOR " [";
 	for (size_t i = 0; i < _cgi.size(); i++)
 	{
 		if (i != 0)
@@ -137,3 +135,7 @@ void ConfigLocation::printCgi() const
 	}
 	std::cout << ']' << std::endl;
 }
+
+
+
+

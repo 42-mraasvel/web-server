@@ -74,5 +74,4 @@ class ConfigServer
 		void printClientBodySize() const;
 		void printErrorPages() const;
 		void printAddress(int index) const;
-		void printServerBlock(ServerBlock server) const;
 };
