@@ -124,3 +124,9 @@ void ConfigLocation::printCgi() const
 	}
 	std::cout << ']' << std::endl;
 }
+
+//TODO: only for ConfigResolver, to delete
+std::string const &	ConfigLocation::getPath() 
+{
+	return _path;
+}

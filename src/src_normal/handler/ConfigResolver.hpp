@@ -14,7 +14,8 @@ class ConfigResolver
 		typedef	std::vector< ConfigServer * >				ServerVector; 
 		typedef std::map< Request::Address, ServerVector >	ConfigMap;
 		typedef std::vector<std::string>					StringVector;
-		
+		typedef std::vector< ConfigLocation * >				LocationVector;
+
 		void	resolution(Request const & request);
 	
 	private:
@@ -35,8 +36,10 @@ class ConfigResolver
 		bool					isBackWildCard(std::string const & string);
 		bool					isHostMatchBackWildCard(std::string const & host, std::string const & wildcard);		
 		ConfigServer*		resolveDefaultHost(ServerVector const & servers);
-		ConfigLocation*	resolveLocation();
-
+		ConfigLocation*	resolveLocation(std::string const & request_target, LocationVector const & locations);
+		bool				isPrefixMatch(std::string const & request_target, std::string const & location);
+		bool				isMatchLocation(std::string const & request_target, LocationVector const & locations, LocationVector::const_iterator & it_matched);
+		bool				isTargetDirectory(std::string const & target);
 		//TODO: to delte:
 		void	createConfigMap(ConfigMap & map);
 

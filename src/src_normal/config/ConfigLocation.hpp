@@ -15,6 +15,9 @@ class ConfigLocation
 		void	addIndex(std::string index);
 		void	addCgi(std::string cgi);
 
+		//TODO: only for ConfigResolver, to delete
+		std::string const &	getPath();
+
 	private:
 		std::string 				_path;
 		std::string					_root;

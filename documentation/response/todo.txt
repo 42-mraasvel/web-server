@@ -13,6 +13,11 @@
     - default error page?
     - HTTP redirection?
     - auto index
+    - to delete extra in Config files
+    - to discuss with team whether do it or not:
+        - regular expression for server_name?
+        - modifier for location?
+
 
 >> To discuss:
     - how to improve the update() process? CgiHandler is not doing anything fot evaluateExecutionCompletion()...
@@ -51,3 +56,24 @@ std::cout << RED_BOLD << " " << RESET_COLOR << std::endl;
 --    NIELS  --
 ---------------
 >> "return" in the location block.
+
+
+REQUESTS {
+    '/'
+    '/index.py'
+    '/index.py/path/info'
+    '/index.py/path/info/'
+}
+
+/index.py
+
+location / {
+    index index.py index.html /dir/index.php
+    root /var/www
+    autoindex on;
+    cgi .py ...
+}
+
+location /dir {
+    cgi .php
+}

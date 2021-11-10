@@ -77,28 +77,23 @@ ConfigServer*	ConfigResolver::resolveHost(Request const & request, ServerVector 
 
 	if (isMatchEmpty(host, servers, it_matched))
 	{
-		std::cout << RED_BOLD << "Match Empty!" << RESET_COLOR << std::endl;
 		return *it_matched;
 	}
 	if (!host.empty())
 	{
 		if (isMatchExactName(host, servers, it_matched))
 		{
-			std::cout << RED_BOLD << "Match Exactly!" << RESET_COLOR << std::endl;
 			return *it_matched;
 		}
 		if (isMatchFrontWildcard(host, servers, it_matched))
 		{
-			std::cout << RED_BOLD << "Match Front!" << RESET_COLOR << std::endl;
 			return *it_matched;
 		}
 		if (isMatchBackWildcard(host, servers, it_matched))
 		{
-			std::cout << RED_BOLD << "Match Back!" << RESET_COLOR << std::endl;
 			return *it_matched;
 		}
 	}
-	std::cout << RED_BOLD << "Match Default!" << RESET_COLOR << std::endl;
 	return resolveDefaultHost(servers);
 }
 
@@ -261,7 +256,7 @@ bool	ConfigResolver::isHostMatchBackWildCard(std::string const & host, std::stri
 
 ConfigServer*	ConfigResolver::resolveDefaultHost(ServerVector const & servers)
 {
-	/* TODO: unhide
+	/* TODO: to confirm with team 'default' flag is not needed in config file. is so, delete below for loop.
 	for (ServerVector::const_iterator it = servers.begin(); it != servers.end(); ++it)
 	{
 		if (*it is the default server)
@@ -272,3 +267,53 @@ ConfigServer*	ConfigResolver::resolveDefaultHost(ServerVector const & servers)
 	*/
 	return *servers.begin();
 }
+
+//TODO: to continue:
+ConfigLocation*	ConfigResolver::resolveLocation(std::string const & request_target, LocationVector const & locations)
+{
+	LocationVector::const_iterator it_matched;
+
+	if (isMatchLocation(request_target, locations, it_matched))
+	{
+		if (isTargetDirectory(request_target))
+		{
+			return NULL;
+		}
+	}
+	return NULL;
+}
+
+bool	ConfigResolver::isPrefixMatch(std::string const & request_target, std::string const & location)
+{
+	if (request_target.size() >= location.size())
+	{
+		return request_target.compare(0, location.size(), location) == 0;
+	}
+	return false;
+}
+
+bool	ConfigResolver::isMatchLocation(std::string const & request_target, LocationVector const & locations, LocationVector::const_iterator & it_matched)
+{
+	std::string longest_match;
+
+	for (LocationVector::const_iterator it = locations.begin(); it != locations.end(); ++it)
+	{
+		std::string path = (*it)->getPath();
+		if (isPrefixMatch(request_target, path) && path.size() > longest_match.size())
+		{
+			longest_match = (*it)->getPath();
+			it_matched = it;
+		}
+	}
+	return !longest_match.empty();
+}
+
+bool	ConfigResolver::isTargetDirectory(std::string const & target)
+{
+	return target[target.size() - 1] == '/';
+}
+
+
+
+
+
