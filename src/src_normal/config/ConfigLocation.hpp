@@ -17,6 +17,9 @@ class ConfigLocation
 
 		//TODO: only for ConfigResolver, to delete
 		std::string const &	getPath();
+		std::vector<std::string> const &	getIndex();
+		int	const & getAutoIndexStatus();
+		std::string const & getRoot();
 
 	private:
 		std::string 				_path;

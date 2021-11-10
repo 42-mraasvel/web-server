@@ -29,6 +29,8 @@ class ConfigServer
 
 		//TODO: only for ConfigResolver, to delete
 		std::vector<std::string> const &	getServerNames();
+		std::vector<ConfigLocation * > const & getLocation();
+		std::vector<ConfigLocation * >			_locationptrs;
 
 	private:
 		int											_default_port;

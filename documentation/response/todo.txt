@@ -2,16 +2,11 @@
 --     NOW      --
 ------------------
 
->> Request target error checking:
-    - not start with "/"?
-
 >> Redirection (3xx)
     - is URL good for Location header?
 
 >> resolve with config file
-    - general
     - default error page?
-    - HTTP redirection?
     - auto index
     - to delete extra in Config files
     - to discuss with team whether do it or not:
@@ -56,6 +51,7 @@ std::cout << RED_BOLD << " " << RESET_COLOR << std::endl;
 --    NIELS  --
 ---------------
 >> "return" in the location block.
+>> Index in location block cannot be a directory.
 
 
 REQUESTS {

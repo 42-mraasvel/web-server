@@ -1,39 +1,7 @@
 #include "ConfigResolver.hpp"
 #include "settings.hpp"
 #include <iostream>
-
-//TODO: to delete
-void	ConfigResolver::createConfigMap(ConfigMap & map)
-{
-	std::vector<ConfigServer *> servers;
-
-	ConfigServer*	new_server;
-	new_server = new ConfigServer;
-	new_server->addServerName("localhost");
-	new_server->addServerName("localhost.com");
-	servers.push_back(new_server);
-	new_server = new ConfigServer;
-	new_server->addServerName("*.com");
-	servers.push_back(new_server);
-	new_server = new ConfigServer;
-	new_server->addServerName("*.com.cn");
-	servers.push_back(new_server);
-	new_server = new ConfigServer;
-	new_server->addServerName("*.cn");
-	servers.push_back(new_server);
-	new_server = new ConfigServer;
-	new_server->addServerName("www.*");
-	servers.push_back(new_server);
-	new_server = new ConfigServer;
-	new_server->addServerName("www.xxx.*");
-	new_server->addServerName("");
-	servers.push_back(new_server);
-	new_server = new ConfigServer;
-	servers.push_back(new_server);
-
-	std::pair< std::string, int > address("127.0.0.1", 8080);
-	map[address] = servers;
-}
+#include <unistd.h>
 
 void	ConfigResolver::resolution(Request const & request)
 {
@@ -41,11 +9,19 @@ void	ConfigResolver::resolution(Request const & request)
 	ConfigMap	map;
 	createConfigMap(map);
 
+	_new_target = request.request_target; //TODO: to move to constructor
 	ServerVector	server_vector = resolveAddress(map, request.address);
 	ConfigServer*	server = resolveHost(request, server_vector);
-
-	std::cout << RED_BOLD << "Resolved server:" << RESET_COLOR << std::endl;
-	server->print();
+	ConfigLocation*	location = resolveLocation(request.request_target, server->getLocation());
+	if (location)
+	{
+		_resolved_file_path = location->getRoot() + _new_target;
+		std::cout << RED_BOLD << "Resolved file is: " << _resolved_file_path << RESET_COLOR << std::endl;
+	}
+	else
+	{
+		std::cout << RED_BOLD << "ERROR 404!" << RESET_COLOR << std::endl;
+	}
 }
 
 ConfigResolver::ServerVector	ConfigResolver::resolveAddress(ConfigMap map, Request::Address client_address)
@@ -268,7 +244,6 @@ ConfigServer*	ConfigResolver::resolveDefaultHost(ServerVector const & servers)
 	return *servers.begin();
 }
 
-//TODO: to continue:
 ConfigLocation*	ConfigResolver::resolveLocation(std::string const & request_target, LocationVector const & locations)
 {
 	LocationVector::const_iterator it_matched;
@@ -277,19 +252,35 @@ ConfigLocation*	ConfigResolver::resolveLocation(std::string const & request_targ
 	{
 		if (isTargetDirectory(request_target))
 		{
-			return NULL;
+			return resolveIndex((*it_matched)->getIndex(), request_target, locations);
+		}
+		else
+		{
+			return *it_matched;
+		}
+	}
+	return NULL; // TODO: return 404 not found
+}
+
+ConfigLocation*	ConfigResolver::resolveIndex(StringVector indexes, std::string const & request_target, LocationVector const & locations)
+{
+	if(!indexes.empty())
+	{
+		for (StringVector::const_iterator it = indexes.begin(); it != indexes.end(); ++it)
+		{
+			_new_target = request_target + *it;
+			ConfigLocation*	location = resolveLocation(_new_target, locations);
+			if (location)
+			{
+				std::string file = location->getRoot() + _new_target;
+				if (access(file.c_str(), F_OK) == OK)
+				{
+					return location;
+				}
+			}
 		}
 	}
 	return NULL;
-}
-
-bool	ConfigResolver::isPrefixMatch(std::string const & request_target, std::string const & location)
-{
-	if (request_target.size() >= location.size())
-	{
-		return request_target.compare(0, location.size(), location) == 0;
-	}
-	return false;
 }
 
 bool	ConfigResolver::isMatchLocation(std::string const & request_target, LocationVector const & locations, LocationVector::const_iterator & it_matched)
@@ -308,6 +299,15 @@ bool	ConfigResolver::isMatchLocation(std::string const & request_target, Locatio
 	return !longest_match.empty();
 }
 
+bool	ConfigResolver::isPrefixMatch(std::string const & request_target, std::string const & location)
+{
+	if (request_target.size() >= location.size())
+	{
+		return request_target.compare(0, location.size(), location) == 0;
+	}
+	return false;
+}
+
 bool	ConfigResolver::isTargetDirectory(std::string const & target)
 {
 	return target[target.size() - 1] == '/';
@@ -316,4 +316,58 @@ bool	ConfigResolver::isTargetDirectory(std::string const & target)
 
 
 
+//TODO: to delete
+void	ConfigResolver::createConfigMap(ConfigMap & map)
+{
+	std::vector<ConfigLocation *> locations;
+	createLocation(locations);
 
+	std::vector<ConfigServer *> servers;
+	ConfigServer*	new_server;
+	new_server = new ConfigServer;
+	new_server->addServerName("localhost");
+	new_server->addServerName("localhost.com");
+	new_server->_locationptrs = locations;
+	servers.push_back(new_server);
+	new_server = new ConfigServer;
+	new_server->addServerName("*.com");
+	new_server->_locationptrs = locations;
+	servers.push_back(new_server);
+	new_server = new ConfigServer;
+	new_server->addServerName("*.com.cn");
+	new_server->_locationptrs = locations;
+	servers.push_back(new_server);
+	new_server = new ConfigServer;
+	new_server->addServerName("*.cn");
+	new_server->_locationptrs = locations;
+	servers.push_back(new_server);
+	new_server = new ConfigServer;
+	new_server->addServerName("www.*");
+	new_server->_locationptrs = locations;
+	servers.push_back(new_server);
+	new_server = new ConfigServer;
+	new_server->addServerName("www.xxx.*");
+	new_server->addServerName("");
+	new_server->_locationptrs = locations;
+	servers.push_back(new_server);
+	new_server = new ConfigServer;
+	new_server->_locationptrs = locations;
+	servers.push_back(new_server);
+
+	std::pair< std::string, int > address("127.0.0.1", 8080);
+	map[address] = servers;
+}
+
+void	ConfigResolver::createLocation(std::vector<ConfigLocation *> & locations)
+{
+	ConfigLocation*	new_location;
+	new_location = new ConfigLocation("/");
+	new_location->addIndex("nonexistingfile");
+	new_location->addIndex("test_index/index.html");
+	new_location->addIndex("index.html");
+	new_location->addRoot("./page_sample");
+	locations.push_back(new_location);
+	new_location = new ConfigLocation("/test_index/test_index.txt");
+	new_location->addRoot("./page_sample");
+	locations.push_back(new_location);
+}

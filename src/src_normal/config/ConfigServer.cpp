@@ -150,3 +150,8 @@ std::vector<std::string> const &	ConfigServer::getServerNames()
 {
 	return _server_name;
 }
+
+std::vector<ConfigLocation * > const &	ConfigServer::getLocation() 
+{
+	return _locationptrs;
+}

@@ -130,3 +130,18 @@ std::string const &	ConfigLocation::getPath()
 {
 	return _path;
 }
+
+std::vector<std::string> const &	ConfigLocation::getIndex()
+{
+	return _index;
+}
+
+int	const & ConfigLocation::getAutoIndexStatus()
+{
+	return _autoindex_status;
+}
+
+std::string const &	ConfigLocation::getRoot() 
+{
+	return _root;
+}

@@ -37,10 +37,17 @@ class ConfigResolver
 		bool					isHostMatchBackWildCard(std::string const & host, std::string const & wildcard);		
 		ConfigServer*		resolveDefaultHost(ServerVector const & servers);
 		ConfigLocation*	resolveLocation(std::string const & request_target, LocationVector const & locations);
-		bool				isPrefixMatch(std::string const & request_target, std::string const & location);
 		bool				isMatchLocation(std::string const & request_target, LocationVector const & locations, LocationVector::const_iterator & it_matched);
+		bool				isPrefixMatch(std::string const & request_target, std::string const & location);
 		bool				isTargetDirectory(std::string const & target);
+		ConfigLocation*		resolveIndex(StringVector indexes, std::string const & request_target, LocationVector const & locations);
 		//TODO: to delte:
 		void	createConfigMap(ConfigMap & map);
+		void	createLocation(std::vector<ConfigLocation *> & locations);
+
+	
+	private:
+		std::string		_new_target;
+		std::string		_resolved_file_path;
 
 };
