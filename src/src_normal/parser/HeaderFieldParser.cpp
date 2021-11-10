@@ -25,7 +25,7 @@ int HeaderFieldParser::parse(buffer_type const & buffer, std::size_t & index)
 	}
 
 	// Parse remaining headerFields
-	while (_index < buffer.size())
+	while (_index < buffer.size() && _state != HeaderFieldParser::COMPLETE)
 	{
 		std::size_t start = _index;
 		_index = findEndLine(buffer);
@@ -38,7 +38,7 @@ int HeaderFieldParser::parse(buffer_type const & buffer, std::size_t & index)
 		}
 		else
 		{
-			if (parseHeaderField(buffer, start) == ERR)
+			if (parseHeaderField(buffer, start, _index) == ERR)
 			{
 				return ERR;
 			}
@@ -47,7 +47,6 @@ int HeaderFieldParser::parse(buffer_type const & buffer, std::size_t & index)
 	}
 
 	index = _index;
-
 	return OK;
 }
 
@@ -91,7 +90,7 @@ int HeaderFieldParser::handleLeftover(buffer_type const & buffer)
 	// Set index beyond the ENDLINE in buffer
 	skipEndLine(buffer);
 	// Parse leftover's field into map
-	if (parseHeaderField(_leftover, 0) == ERR)
+	if (parseHeaderField(_leftover, 0, _leftover.size()) == ERR)
 	{
 		return ERR;
 	}
@@ -111,8 +110,7 @@ int HeaderFieldParser::appendLeftover(buffer_type const & buffer, std::size_t st
 
 	if (end - start + _leftover.size() > _max_size)
 	{
-		_error_type = HeaderFieldParser::HEADER_FIELD_SIZE;
-		return ERR;
+		return setError(HeaderFieldParser::HEADER_FIELD_SIZE);
 	}
 
 	_leftover.append(buffer, start, end - start);
@@ -148,7 +146,39 @@ void HeaderFieldParser::skipEndLine(buffer_type const & buffer)
 	}
 }
 
-int HeaderFieldParser::parseHeaderField(std::string const & s, std::size_t index)
+/*
+Precondition: the entire header-field is present in the string s.
+Index meaning the start of the header-field, and end the start of the 'CRLF' or other Newline
+representation signalling the end of the header-field.
+If the size of the string (end - start) equals 0: that is the end of the header-field section
+*/
+int HeaderFieldParser::parseHeaderField(std::string const & s, std::size_t start, std::size_t end)
 {
+	if (end - start > _max_size)
+	{
+		return setError(HeaderFieldParser::HEADER_FIELD_SIZE);
+	}
+	else if (end - start == 0)
+	{
+		return setState(HeaderFieldParser::COMPLETE);
+	}
+	printf("Headerfield: [%s]\n", s.substr(start, end - start).c_str());
+	return OK;
+}
+
+/*
+Private utilities
+*/
+
+int HeaderFieldParser::setError(ErrorType type)
+{
+	_error_type = type;
+	setState(ERROR);
+	return ERR;
+}
+
+int HeaderFieldParser::setState(State type)
+{
+	_state = type;
 	return OK;
 }

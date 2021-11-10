@@ -5,7 +5,7 @@
 namespace TestingDetail
 {
 
-static const std::size_t MAX_HEADER_FIELD_SIZE = 4096;
+static const std::size_t MAX_HEADER_FIELD_SIZE = 10;
 
 bool validFieldFunction(const std::string& key, const std::string& value, const HeaderField& fields)
 {
@@ -20,11 +20,16 @@ TEST_CASE("Basic HeaderField", "[header-field]") {
 			TestingDetail::MAX_HEADER_FIELD_SIZE);
 		
 	static const std::string input =
-		"FieldName: FieldValue" CRLF;
+		"FieldName: FieldValue" CRLF
+		"F2: FV2" CRLF
+		"F3: FV3" CRLF
+		CRLF;
 
-	for (std::size_t i = 0; i < input.size(); ++i) {
-		std::size_t index = 0;
-		REQUIRE(parser.parse(input.substr(i, 1), index) != ERR);
-	}
-	REQUIRE(true);
+	std::size_t index = 0;
+	REQUIRE(parser.parse(input, index) != ERR);
+
+	// for (std::size_t i = 0; i < input.size(); ++i) {
+	// 	std::size_t index = 0;
+	// 	REQUIRE(parser.parse(input.substr(i, 1), index) != ERR);
+	// }
 }

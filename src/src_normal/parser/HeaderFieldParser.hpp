@@ -66,8 +66,10 @@ class HeaderFieldParser
 		int appendLeftover(buffer_type const & buffer, std::size_t start, std::size_t end);
 		std::size_t findEndLine(buffer_type const & buffer);
 		void skipEndLine(buffer_type const & buffer);
-		int parseHeaderField(std::string const & s, std::size_t index);
+		int parseHeaderField(std::string const & s, std::size_t start, std::size_t end);
 
+		int setError(ErrorType type);
+		int setState(State type);
 
 	private:
 		header_field_type _header;
