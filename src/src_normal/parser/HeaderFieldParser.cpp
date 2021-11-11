@@ -1,9 +1,11 @@
 #include "HeaderFieldParser.hpp"
 #include "settings.hpp"
+#include "utility/utility.hpp"
 
 HeaderFieldParser::HeaderFieldParser(ValidFieldFunction valid_field_function,
 									std::size_t max_header_field_size)
-: _state(HeaderFieldParser::PARSING),
+:
+_state(HeaderFieldParser::PARSING),
 _valid_field(valid_field_function),
 _max_size(max_header_field_size) {
 	_leftover.reserve(max_header_field_size);
@@ -17,8 +19,9 @@ _max_size(max_header_field_size) {
 */
 int HeaderFieldParser::parse(buffer_type const & buffer, std::size_t & index)
 {
-	_index = index;
+	assert(_state == HeaderFieldParser::PARSING && "HeaderFieldParser: STATE SHOULD BE PARSING");
 
+	_index = index;
 	if (handleLeftover(buffer) == ERR)
 	{
 		return ERR;
@@ -160,10 +163,107 @@ int HeaderFieldParser::parseHeaderField(std::string const & s, std::size_t start
 	}
 	else if (end - start == 0)
 	{
+		// Empty field-name means there is an EOHEADER (CRLF) at this point
 		return setState(HeaderFieldParser::COMPLETE);
 	}
-	printf("Headerfield: [%s]\n", s.substr(start, end - start).c_str());
+
+	std::string key, value;
+
+	if (parseFieldName(s, key, start) == ERR)
+	{
+		return setError(HeaderFieldParser::INVALID_FIELD);
+	}
+	if (skipColon(s, start) == ERR)
+	{
+		return setError(HeaderFieldParser::INVALID_FIELD);
+	}
+	// Whitespace is optional so we don't have to error-check it
+	skip(s, start, isWhiteSpace);
+	parseFieldValue(s, value, start, end);
+	// Custom field validator
+	if (!_valid_field(key, value, _header))
+	{
+		return setError(HeaderFieldParser::INVALID_FIELD);
+	}
+	_header[key] = value;
 	return OK;
+}
+
+int HeaderFieldParser::parseFieldName(const std::string& s,
+									std::string& key, std::size_t& index) const
+{
+	if (!isTokenChar(s[index]))
+	{
+		return ERR;
+	}
+	std::size_t start = index;
+	skip(s, index, isTokenChar);
+	key = s.substr(start, index - start);
+	return OK;
+}
+
+int HeaderFieldParser::skipColon(const std::string& s, std::size_t& index) const
+{
+	if (index >= s.size() || s[index] != ':')
+	{
+		return ERR;
+	}
+
+	++index;
+	return OK;
+}
+
+int HeaderFieldParser::skip(const std::string& s, std::size_t& index, IsFunctionType f) const
+{
+	while (index < s.size() && f(s[index]))
+	{
+		++index;
+	}
+	return OK;
+}
+
+int HeaderFieldParser::parseFieldValue(const std::string& s, std::string& value,
+									std::size_t& index, std::size_t end) const
+{
+	// Meaning there was only whitespace between colon and CRLF
+	if (index == end)
+	{
+		return OK;
+	}
+	std::size_t end_value = end - 1;
+	while (isWhiteSpace(s[end_value]))
+	{
+		--end_value;
+	}
+	value = s.substr(index, end_value - index + 1);
+	index = end;
+	return OK;
+}
+
+/*
+Public interfaces
+*/
+
+HeaderFieldParser::State HeaderFieldParser::getState() const
+{
+	return _state;
+}
+
+HeaderFieldParser::ErrorType HeaderFieldParser::getErrorType() const
+{
+	return _error_type;
+}
+
+void HeaderFieldParser::reset()
+{
+	_state = HeaderFieldParser::PARSING;
+	_header.clear();
+	_leftover.clear();
+}
+
+HeaderFieldParser::HeaderFieldType& HeaderFieldParser::getHeaderField()
+{
+	return _header;
 }
 
 /*

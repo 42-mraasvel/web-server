@@ -39,7 +39,7 @@ class HeaderFieldParser
 		typedef std::string buffer_type;
 		typedef bool (*ValidFieldFunction)(
 			std::string const & key, std::string const & value, HeaderField const & header);
-		typedef HeaderField header_field_type;
+		typedef HeaderField HeaderFieldType;
 	
 	enum State
 	{
@@ -59,6 +59,12 @@ class HeaderFieldParser
 
 		int parse(buffer_type const & buffer, std::size_t & index);
 
+		ErrorType getErrorType() const;
+		State getState() const;
+		// Should be used when the parsing is finished, use header.swap(x) for constant copy
+		HeaderFieldType& getHeaderField();
+		void reset();
+
 	private:
 
 		int handleLeftover(buffer_type const & buffer);
@@ -72,7 +78,15 @@ class HeaderFieldParser
 		int setState(State type);
 
 	private:
-		header_field_type _header;
+		typedef bool (*IsFunctionType)(char);
+		int skip(const std::string& s, std::size_t& index, IsFunctionType f) const;
+		int skipColon(const std::string& s, std::size_t& index) const;
+		int parseFieldName(const std::string& s, std::string& key, std::size_t& index) const;
+		int parseFieldValue(const std::string& s, std::string& value, std::size_t& index, std::size_t end) const;
+	
+
+	private:
+		HeaderFieldType _header;
 		ErrorType _error_type;
 		State _state;
 

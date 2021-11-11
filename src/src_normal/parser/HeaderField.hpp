@@ -55,6 +55,7 @@ public:
 
 	size_type size() const;
 	void clear();
+	void swap(HeaderField& x);
 
 private:
 	map_t _map;
