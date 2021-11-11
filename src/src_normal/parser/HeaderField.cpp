@@ -84,3 +84,8 @@ void HeaderField::clear()
 {
 	_map.clear();
 }
+
+void HeaderField::swap(HeaderField& x)
+{
+	_map.swap(x._map);
+}
