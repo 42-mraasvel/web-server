@@ -33,8 +33,8 @@ class ConfigServer
 		void	addCgi(std::string extention, std::string path);
 		void	addAddress(std::string host, int port);
 		void	addPort(int port);
-
 		int		emptyAddress();
+
 	// getters
 		std::string getHostName();
 		std::vector<int> getPorts();

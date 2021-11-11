@@ -11,19 +11,8 @@
 Config::Config(std::string const & config_file): _file_name(config_file), _server_amount(0), _token_index(0)
 {
 	this->parser();
-	getAddressMap();
+	initAddressMap();
 	printAddressMap();
-	// ConfigServer dummy;
-	// dummy.addPort(8080);
-	// dummy.addPort(8081);
-	// dummy.addPort(8082);
-	// dummy.addPort(8083);
-	// ConfigServer dummy2;
-	// dummy2.addPort(18000);
-	// dummy2.addPort(18001);
-	// dummy2.addPort(18002);
-	// _servers.push_back(dummy);
-	// _servers.push_back(dummy2);
 }
 
 Config::const_iterator Config::begin() const
@@ -470,7 +459,6 @@ void	Config::initAddressMap()
 
 std::map<std::pair<std::string, int>, std::vector<ServerBlock> >	Config::getAddressMap()
 {
-	initAddressMap();
 	return this->_address_map;
 }
 
