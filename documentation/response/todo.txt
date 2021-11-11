@@ -6,8 +6,9 @@
     - is URL good for Location header?
 
 >> resolve with config file
-    - default error page?
     - auto index
+    - default error page?
+    - add "=" into location resolution
     - to delete extra in Config files
     - to discuss with team whether do it or not:
         - regular expression for server_name?
@@ -42,6 +43,8 @@ std::cout << RED_BOLD << " " << RESET_COLOR << std::endl;
 ---------------------------
 >> to check for Host (400 Bad Request):
     - A server MUST respond with a 400 (Bad Request) status code to any HTTP/1.1 request message that lacks a Host header field and to any request message that contains more than one Host hea
+    - return 400 if invalid port number in Host
+    - eliminate valid port number (so the host )
 >> to mark close connection flag:
     - transfer encoding (see note on request part)
     - When Content-Length is valid, but the sender closes the connection or the recipient times out before complete message_body received, the recipient MUST consider the message to be incomplete and close the connection.

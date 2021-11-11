@@ -8,7 +8,11 @@ int RequestValidator::getStatusCode() const
     return _status_code;
 }
 
-bool	RequestValidator::isRequestValid(Request const & request)
+/************************************/
+/******       pre config       ******/
+/************************************/
+
+bool	RequestValidator::isRequestValidPreConfig(Request const & request)
 {
 	// TODO: to change it properly with configuration
 	_allowed_methods.push_back("GET");
@@ -81,6 +85,36 @@ bool	RequestValidator::isMethodValid(MethodType const method)
 		_status_code = StatusCode::NOT_IMPLEMENTED;
 		return false;
 	}
+	return true;
+}
+
+bool	RequestValidator::isExpectationValid(Request const & request)
+{
+	if (request.header_fields.contains("expect") &&
+		!WebservUtility::caseInsensitiveEqual(request.header_fields.find("expect")->second, "100-continue"))
+	{
+		_status_code = StatusCode::EXPECTATION_FAILED;
+		return false;
+	}
+	return true;
+}
+
+/************************************/
+/******      post config       ******/
+/************************************/
+
+bool	RequestValidator::isRequestValidPostConfig(Request const & request)
+{
+	// TODO: to change it properly with configuration
+	_allowed_methods.push_back("GET");
+	_allowed_methods.push_back("POST");
+	_allowed_methods.push_back("DELETE");
+
+	return isMethodAllowed(request.method);
+}
+
+bool	RequestValidator::isMethodAllowed(MethodType const method)
+{
 	if (!findMethod(method))
 	{
 		_status_code = StatusCode::METHOD_NOT_ALLOWED;
@@ -88,6 +122,7 @@ bool	RequestValidator::isMethodValid(MethodType const method)
 	}
 	return true;
 }
+
 
 bool	RequestValidator::findMethod(MethodType const method) const
 {
@@ -109,15 +144,4 @@ bool	RequestValidator::findMethod(MethodType const method) const
 	std::vector<std::string>::const_iterator    it;
     it = std::find(_allowed_methods.begin(), _allowed_methods.end(), method_string);
 	return it != _allowed_methods.end();
-}
-
-bool	RequestValidator::isExpectationValid(Request const & request)
-{
-	if (request.header_fields.contains("expect") &&
-		!WebservUtility::caseInsensitiveEqual(request.header_fields.find("expect")->second, "100-continue"))
-	{
-		_status_code = StatusCode::EXPECTATION_FAILED;
-		return false;
-	}
-	return true;
 }

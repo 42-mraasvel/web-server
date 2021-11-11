@@ -32,7 +32,7 @@ class Response
 		void				setEffectiveRequestURI(std::string const & authority);
 		void				setAbsoluteFilePath(std::string const & root, std::string const & default_file);
 		void		evaluateConnectionFlag(Request const & request);
-		int			validateRequest(Request const & request);
+		int			validateRequest(Request const & request, bool is_config_completed);
 		void		processImmdiateResponse(Request const & request);
 		bool			isRedirectResponse() const;
 		void			processRedirectResponse();

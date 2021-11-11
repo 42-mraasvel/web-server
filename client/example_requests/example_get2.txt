@@ -1,3 +1,3 @@
-GET / HTTP/1.1
+GET /autoindex/ HTTP/1.1
 host: localhost
 

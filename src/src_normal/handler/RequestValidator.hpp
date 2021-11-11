@@ -6,15 +6,18 @@
 class RequestValidator
 {
     public:
-		bool	isRequestValid(Request const & request);
+		bool	isRequestValidPreConfig(Request const & request);
     private:
 		bool		isBadRequest(Request::RequestStatus status, int request_code);
 		bool		isHostValid(Request const & request);
 		bool		isConnectionValid(Request const & request);
 		bool		isHttpVersionValid(int http_major_version);
 		bool		isMethodValid(MethodType const method);
-		bool			findMethod(MethodType const method) const;
 		bool		isExpectationValid(Request const & request);
+    public:
+		bool	isRequestValidPostConfig(Request const & request);
+		bool		isMethodAllowed(MethodType const method);
+		bool			findMethod(MethodType const method) const;
 
     public:
         int getStatusCode() const;

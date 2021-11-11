@@ -20,6 +20,7 @@ class ConfigLocation
 		std::vector<std::string> const &	getIndex();
 		int	const & getAutoIndexStatus();
 		std::string const & getRoot();
+		bool				auto_index_status;
 
 	private:
 		std::string 				_path;

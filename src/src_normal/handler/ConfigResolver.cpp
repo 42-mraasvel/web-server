@@ -3,25 +3,20 @@
 #include <iostream>
 #include <unistd.h>
 
+ConfigResolver::ConfigResolver(std::string const & request_target): _auto_index(false), _new_target(request_target) {}
+
 void	ConfigResolver::resolution(Request const & request)
 {
 	// TODO: to delete
 	ConfigMap	map;
 	createConfigMap(map);
 
-	_new_target = request.request_target; //TODO: to move to constructor
 	ServerVector	server_vector = resolveAddress(map, request.address);
 	ConfigServer*	server = resolveHost(request, server_vector);
 	ConfigLocation*	location = resolveLocation(request.request_target, server->getLocation());
-	if (location)
-	{
-		_resolved_file_path = location->getRoot() + _new_target;
-		std::cout << RED_BOLD << "Resolved file is: " << _resolved_file_path << RESET_COLOR << std::endl;
-	}
-	else
-	{
-		std::cout << RED_BOLD << "ERROR 404!" << RESET_COLOR << std::endl;
-	}
+	
+	printSolutionServer(server);
+	printSolutionLocation(location);
 }
 
 ConfigResolver::ServerVector	ConfigResolver::resolveAddress(ConfigMap map, Request::Address client_address)
@@ -252,7 +247,7 @@ ConfigLocation*	ConfigResolver::resolveLocation(std::string const & request_targ
 	{
 		if (isTargetDirectory(request_target))
 		{
-			return resolveIndex((*it_matched)->getIndex(), request_target, locations);
+			return resolveIndex(it_matched, request_target, locations);
 		}
 		else
 		{
@@ -260,27 +255,6 @@ ConfigLocation*	ConfigResolver::resolveLocation(std::string const & request_targ
 		}
 	}
 	return NULL; // TODO: return 404 not found
-}
-
-ConfigLocation*	ConfigResolver::resolveIndex(StringVector indexes, std::string const & request_target, LocationVector const & locations)
-{
-	if(!indexes.empty())
-	{
-		for (StringVector::const_iterator it = indexes.begin(); it != indexes.end(); ++it)
-		{
-			_new_target = request_target + *it;
-			ConfigLocation*	location = resolveLocation(_new_target, locations);
-			if (location)
-			{
-				std::string file = location->getRoot() + _new_target;
-				if (access(file.c_str(), F_OK) == OK)
-				{
-					return location;
-				}
-			}
-		}
-	}
-	return NULL;
 }
 
 bool	ConfigResolver::isMatchLocation(std::string const & request_target, LocationVector const & locations, LocationVector::const_iterator & it_matched)
@@ -313,16 +287,60 @@ bool	ConfigResolver::isTargetDirectory(std::string const & target)
 	return target[target.size() - 1] == '/';
 }
 
+ConfigLocation*	ConfigResolver::resolveIndex(LocationVector::const_iterator it_matched, std::string const & request_target, LocationVector const & locations)
+{
+	ConfigLocation*	final_location = resolveIndexFile((*it_matched)->getIndex(), request_target, locations);
+	if (final_location)
+	{
+		return final_location;
+	}
+	return resolveAutoIndex(it_matched);
+}
 
+ConfigLocation*	ConfigResolver::resolveIndexFile(StringVector indexes, std::string const & request_target, LocationVector const & locations)
+{
+	for (StringVector::const_iterator it = indexes.begin(); it != indexes.end(); ++it)
+	{
+		std::string temp_target = request_target + *it;
+		ConfigLocation*	final_location = resolveLocation(temp_target, locations);
+		if (final_location)
+		{
+			std::string file = final_location->getRoot() + temp_target;
+			if (access(file.c_str(), F_OK) == OK)
+			{
+				_new_target = temp_target;
+				return final_location;
+			}
+		}
+	}
+	return NULL;
+}
 
+ConfigLocation*	ConfigResolver::resolveAutoIndex(LocationVector::const_iterator it_matched)
+{
+	if ((*it_matched)->auto_index_status)
+	{
+		_auto_index = true;
+		return *it_matched;
+	}
+	return NULL;
+}
 
 //TODO: to delete
 void	ConfigResolver::createConfigMap(ConfigMap & map)
 {
-	std::vector<ConfigLocation *> locations;
-	createLocation(locations);
+	LocationVector locations;
+	createLocations(locations);
 
-	std::vector<ConfigServer *> servers;
+	ServerVector servers;
+	createServers(servers, locations);
+
+	std::pair< std::string, int > address("127.0.0.1", 8080);
+	map[address] = servers;
+}
+
+void	ConfigResolver::createServers(ServerVector & servers, LocationVector const & locations)
+{
 	ConfigServer*	new_server;
 	new_server = new ConfigServer;
 	new_server->addServerName("localhost");
@@ -353,12 +371,20 @@ void	ConfigResolver::createConfigMap(ConfigMap & map)
 	new_server = new ConfigServer;
 	new_server->_locationptrs = locations;
 	servers.push_back(new_server);
-
-	std::pair< std::string, int > address("127.0.0.1", 8080);
-	map[address] = servers;
 }
 
-void	ConfigResolver::createLocation(std::vector<ConfigLocation *> & locations)
+void	ConfigResolver::printSolutionServer(ConfigServer * server)
+{
+	std::cout << RED_BOLD << "Resolved server is [server_name]: ";
+	StringVector names = server->getServerNames();
+	for (StringVector::const_iterator it = names.begin(); it != names.end(); ++it)
+	{
+		std::cout << *it << " ";
+	}
+	std::cout << RESET_COLOR << std::endl;
+}
+
+void	ConfigResolver::createLocations(LocationVector & locations)
 {
 	ConfigLocation*	new_location;
 	new_location = new ConfigLocation("/");
@@ -370,4 +396,29 @@ void	ConfigResolver::createLocation(std::vector<ConfigLocation *> & locations)
 	new_location = new ConfigLocation("/test_index/test_index.txt");
 	new_location->addRoot("./page_sample");
 	locations.push_back(new_location);
+	new_location = new ConfigLocation("/test_index/");
+	new_location->addIndex("index.html");
+	new_location->addRoot("./page_sample");
+	locations.push_back(new_location);
+	new_location = new ConfigLocation("/autoindex/");
+	new_location->addIndex("nonexistingfile1");
+	new_location->addIndex("nonexistingfile2");
+	new_location->auto_index_status = true;
+	new_location->addRoot("./page_sample");
+	locations.push_back(new_location);
+}
+
+void	ConfigResolver::printSolutionLocation(ConfigLocation * location)
+{
+	if (location)
+	{
+		_resolved_file_path = location->getRoot() + _new_target;
+		std::cout << RED_BOLD << "Resolved location is [path]: " << location->getPath() << std::endl;
+		std::cout << RED_BOLD << "Resolved file is: " << _resolved_file_path 
+				 << RESET_COLOR << std::endl;
+	}
+	else
+	{
+		std::cout << RED_BOLD << "ERROR 404!" << RESET_COLOR << std::endl;
+	}
 }

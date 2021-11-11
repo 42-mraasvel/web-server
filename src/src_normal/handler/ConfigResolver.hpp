@@ -10,6 +10,9 @@ struct Request;
 class ConfigResolver
 {
 	public:
+		ConfigResolver(std::string const & request_target);
+
+	public:
 		//TODO: to evaluate typedef for config
 		typedef	std::vector< ConfigServer * >				ServerVector; 
 		typedef std::map< Request::Address, ServerVector >	ConfigMap;
@@ -40,13 +43,20 @@ class ConfigResolver
 		bool				isMatchLocation(std::string const & request_target, LocationVector const & locations, LocationVector::const_iterator & it_matched);
 		bool				isPrefixMatch(std::string const & request_target, std::string const & location);
 		bool				isTargetDirectory(std::string const & target);
-		ConfigLocation*		resolveIndex(StringVector indexes, std::string const & request_target, LocationVector const & locations);
+		ConfigLocation*		resolveIndex(LocationVector::const_iterator it_matched, std::string const & request_target, LocationVector const & locations);
+		ConfigLocation*			resolveIndexFile(StringVector indexes, std::string const & request_target, LocationVector const & locations);
+		ConfigLocation*			resolveAutoIndex(LocationVector::const_iterator it_matched);
+		
 		//TODO: to delte:
 		void	createConfigMap(ConfigMap & map);
-		void	createLocation(std::vector<ConfigLocation *> & locations);
+		void	createServers(ServerVector & servers, LocationVector const & locations);
+		void	printSolutionServer(ConfigServer * server);
+		void	createLocations(LocationVector & locations);
+		void	printSolutionLocation(ConfigLocation * location);
 
 	
 	private:
+		bool			_auto_index;
 		std::string		_new_target;
 		std::string		_resolved_file_path;
 

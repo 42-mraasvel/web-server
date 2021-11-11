@@ -22,6 +22,7 @@ _header_part_set(false),
 _chunked(false),
 _close_connection(false),
 _is_cgi(false),
+_config_resolver(request.request_target),
 _file_handler(request.method)
 {
 	setHttpVersion(request.minor_version);
@@ -54,11 +55,15 @@ void	Response::initiate(Request const & request)
 {
 	//TODO_config: add config map parameter, pass it on to ...?
 	evaluateConnectionFlag(request);
-	if (validateRequest(request) == ERR)
+	if (validateRequest(request, false) == ERR)
 	{
 		return ;
 	}
 	resolveConfig(request);
+	if (validateRequest(request, true) == ERR)
+	{
+		return ;
+	}
 	processImmdiateResponse(request);
 }
 
@@ -85,6 +90,7 @@ void	Response::resolveConfig(Request const & request)
 
 
 	_config_resolver.resolution(request);
+	// TODO: process 1) error_page 2) auto-index
 }
 
 std::string const &	Response::setAuthority(Request const & request, std::string const & default_server)
@@ -152,12 +158,23 @@ void	Response::evaluateConnectionFlag(Request const & request)
 /****** init response - validate request  *******/
 /************************************************/
 
-int	Response::validateRequest(Request const & request)
+int	Response::validateRequest(Request const & request, bool is_config_completed)
 {
-	if (!_request_validator.isRequestValid(request))
+	if (!is_config_completed)
 	{
-		markComplete(_request_validator.getStatusCode());
-		return ERR;
+		if (!_request_validator.isRequestValidPreConfig(request))
+		{
+			markComplete(_request_validator.getStatusCode());
+			return ERR;
+		}
+	}
+	else
+	{
+		if (!_request_validator.isRequestValidPostConfig(request))
+		{
+			markComplete(_request_validator.getStatusCode());
+			return ERR;
+		}
 	}
 	return OK;
 }
