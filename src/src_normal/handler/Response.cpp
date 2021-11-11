@@ -59,7 +59,10 @@ void	Response::initiate(Request const & request)
 	{
 		return ;
 	}
-	resolveConfig(request);
+	if (resolveConfig(request) == ERR)
+	{
+		return ;
+	}
 	if (validateRequest(request, true) == ERR)
 	{
 		return ;
@@ -71,63 +74,43 @@ void	Response::initiate(Request const & request)
 /****** init response - resolve config ******/
 /********************************************/
 
-void	Response::resolveConfig(Request const & request)
+int	Response::resolveConfig(Request const & request)
 {
-	/*
-	TODO: to retrieve from config class
-	1. find server blocks that matches IP + Port
-	2. find server blocks that match server_name with "Host" header
-		- if no host or no match, choose default server
-	3. inside chosen server block, find location block that match with target resource.
-	4. inside the location block, take root
-	*/
-	std::string	default_file = "index.html";
-	std::string	root = "./page_sample";
-	std::string	default_server = "localhost";
-	std::string	authority = setAuthority(request, default_server);
-	setEffectiveRequestURI(authority);
-	setAbsoluteFilePath(root, default_file);
-
-
 	_config_resolver.resolution(request);
-	// TODO: process 1) error_page 2) auto-index
+	if (_config_resolver.result == ConfigResolver::NOT_FOUND)
+	{
+		// TODO: process 404 not found
+		return ERR;
+	}
+	if (_config_resolver.result == ConfigResolver::AUTO_INDEX_ON)
+	{
+		// TODO: process auto index
+	}
+	setEffectiveRequestURI(_config_resolver.resolved_host, request.address.second, _config_resolver.resolved_target);
+	setAbsoluteFilePath(_config_resolver.resolved_location->getRoot(), _config_resolver.resolved_file_path);
+	return OK;
 }
 
-std::string const &	Response::setAuthority(Request const & request, std::string const & default_server)
-{
-	if (request.header_fields.contains("host"))
-	{
-		return request.header_fields.find("host")->second;
-	}
-	else
-	{
-		return default_server;
-	}
-}
-
-void	Response::setEffectiveRequestURI(std::string const & authority)
+void	Response::setEffectiveRequestURI(std::string const & resolved_host, int port, std::string const & resolved_target)
 {
 	std::string URI_scheme = "http://";
-	_effective_request_uri = URI_scheme + authority + _request_target;
+	std::string authority = resolved_host;
+	if (port != DEFAULT_PORT)
+	{
+		authority += ":" + WebservUtility::itoa(port);
+	}
+	_effective_request_uri = URI_scheme + authority + resolved_target;
 }
 
-void	Response::setAbsoluteFilePath(std::string const & root, std::string const & default_file)
+void	Response::setAbsoluteFilePath(std::string const & root, std::string const & resolved_file_path)
 {
-	_absolute_file_path = root + _request_target;
-	if (_request_target[_request_target.size() - 1] == '/')
-	{
-		// TODO: the default file can be CGI extended files as well,
-		// in which case the target-resource should be updated earlier so that CgiHandler::isCgi() can resolve it
-		_absolute_file_path += default_file;
-	}
 	if (_is_cgi)
 	{
-		// CGI: the request_target might be split, so only the root is needed at this point
 		_cgi_handler.setRootDir(root);
 	}
 	else
 	{
-		_file_handler.setAbsoluteFilePath(_absolute_file_path);
+		_file_handler.setAbsoluteFilePath(resolved_file_path);
 	}
 }
 
@@ -551,22 +534,26 @@ void	Response::setContentLength()
 
 void	Response::setContentType()
 {
-	if (_method == GET && _status_code == 200)
+	//TODO: to confirm with maarten if this only applies to non-CGI
+	if (!_is_cgi)
 	{
-		size_t	find = _absolute_file_path.find_last_of(".");
-		std::string extensin = _absolute_file_path.substr(find);
-		if (_media_type_map.contains(extensin))
+		if (_method == GET && _status_code == 200)
 		{
-			_header_fields["Content-Type"] = _media_type_map.get();
+			size_t	find = _config_resolver.resolved_file_path.find_last_of(".");
+			std::string extensin = _config_resolver.resolved_file_path.substr(find);
+			if (_media_type_map.contains(extensin))
+			{
+				_header_fields["Content-Type"] = _media_type_map.get();
+			}
+			else
+			{
+				_header_fields["Content-Type"] = "application/octet-stream";
+			}
 		}
-		else
+		else if (!_message_body.empty())
 		{
-			_header_fields["Content-Type"] = "application/octet-stream";
+			_header_fields["Content-Type"] = "text/plain;charset=UTF-8";
 		}
-	}
-	else if (!_message_body.empty())
-	{
-		_header_fields["Content-Type"] = "text/plain;charset=UTF-8";
 	}
 }
 

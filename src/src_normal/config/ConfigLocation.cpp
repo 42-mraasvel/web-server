@@ -126,22 +126,27 @@ void ConfigLocation::printCgi() const
 }
 
 //TODO: only for ConfigResolver, to delete
-std::string const &	ConfigLocation::getPath() 
+std::string const &	ConfigLocation::getPath() const
 {
 	return _path;
 }
 
-std::vector<std::string> const &	ConfigLocation::getIndex()
+std::vector<std::string> const &	ConfigLocation::getIndex() const
 {
 	return _index;
 }
 
-int	const & ConfigLocation::getAutoIndexStatus()
+std::vector<std::string> const &	ConfigLocation::getAllowedMethod() const
+{
+	return _allowed_methods;
+}
+
+int	const & ConfigLocation::getAutoIndexStatus() const
 {
 	return _autoindex_status;
 }
 
-std::string const &	ConfigLocation::getRoot() 
+std::string const &	ConfigLocation::getRoot() const
 {
 	return _root;
 }

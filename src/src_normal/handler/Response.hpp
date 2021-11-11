@@ -27,10 +27,9 @@ class Response
 	public:
 		void	initiate(Request const & request);
 	private:
-		void		resolveConfig(Request const & request);
-		std::string const &	setAuthority(Request const & request, std::string const & default_server);
-		void				setEffectiveRequestURI(std::string const & authority);
-		void				setAbsoluteFilePath(std::string const & root, std::string const & default_file);
+		int			resolveConfig(Request const & request);
+		void			setEffectiveRequestURI(std::string const & resolved_host, int port, std::string const & resolved_target);
+		void			setAbsoluteFilePath(std::string const & root, std::string const & resolved_file_path);
 		void		evaluateConnectionFlag(Request const & request);
 		int			validateRequest(Request const & request, bool is_config_completed);
 		void		processImmdiateResponse(Request const & request);
@@ -94,7 +93,6 @@ class Response
 		MediaType::Map				_media_type_map;
 		std::string					_authority;
 		std::string					_effective_request_uri;
-		std::string					_absolute_file_path;
 		std::vector<std::string>	_allowed_methods; //TODO: to incorporate from Config
 
 		/* info */

@@ -3,7 +3,13 @@
 #include <iostream>
 #include <unistd.h>
 
-ConfigResolver::ConfigResolver(std::string const & request_target): _auto_index(false), _new_target(request_target) {}
+ConfigResolver::ConfigResolver(std::string const & request_target):
+result(START),
+auto_index(false),
+resolved_target(request_target),
+resolved_server(NULL),
+resolved_location(NULL)
+{}
 
 void	ConfigResolver::resolution(Request const & request)
 {
@@ -12,12 +18,21 @@ void	ConfigResolver::resolution(Request const & request)
 	createConfigMap(map);
 
 	ServerVector	server_vector = resolveAddress(map, request.address);
-	ConfigServer*	server = resolveHost(request, server_vector);
-	ConfigLocation*	location = resolveLocation(request.request_target, server->getLocation());
-	
-	printSolutionServer(server);
-	printSolutionLocation(location);
+	resolved_server = resolveHost(request, server_vector);
+	resolved_location = resolveLocation(request.request_target, resolved_server->getLocation());
+	setResolvedFilePath();
+	setResult();
+
+	std::cout << RED_BOLD << "----------------------" << RESET_COLOR << std::endl;
+	std::cout << RED_BOLD << "Config result based on hard-coded config\n(only for ConfigResolver testing):" << RESET_COLOR << std::endl;
+	printSolutionServer(resolved_server);
+	printSolutionLocation(resolved_location);
+	std::cout << RED_BOLD << "----------------------" << RESET_COLOR << std::endl << std::endl;
 }
+
+/*****************************/
+/****** resolve address ******/
+/*****************************/
 
 ConfigResolver::ServerVector	ConfigResolver::resolveAddress(ConfigMap map, Request::Address client_address)
 {
@@ -39,28 +54,31 @@ void	ConfigResolver::setAddress(ConfigMap const & map, Request::Address const & 
 	}
 }
 
+/**************************/
+/****** resolve host ******/
+/**************************/
+
 ConfigServer*	ConfigResolver::resolveHost(Request const & request, ServerVector const & servers)
 {
-	std::string	host;
-	setHost(request, host);
+	setHost(request);
 
 	ServerVector::const_iterator it_matched;
 
-	if (isMatchEmpty(host, servers, it_matched))
+	if (isMatchEmpty(servers, it_matched))
 	{
 		return *it_matched;
 	}
-	if (!host.empty())
+	if (!resolved_host.empty())
 	{
-		if (isMatchExactName(host, servers, it_matched))
+		if (isMatchExactName(servers, it_matched))
 		{
 			return *it_matched;
 		}
-		if (isMatchFrontWildcard(host, servers, it_matched))
+		if (isMatchFrontWildcard(servers, it_matched))
 		{
 			return *it_matched;
 		}
-		if (isMatchBackWildcard(host, servers, it_matched))
+		if (isMatchBackWildcard(servers, it_matched))
 		{
 			return *it_matched;
 		}
@@ -68,22 +86,26 @@ ConfigServer*	ConfigResolver::resolveHost(Request const & request, ServerVector 
 	return resolveDefaultHost(servers);
 }
 
-void	ConfigResolver::setHost(Request const & request, std::string & host)
+void	ConfigResolver::setHost(Request const & request)
 {
 	if (request.header_fields.contains("host"))
 	{
-		host = request.header_fields.find("host")->second;
-		std::size_t found = host.rfind(":");
+		resolved_host = request.header_fields.find("host")->second;
+		std::size_t found = resolved_host.rfind(":");
 		if (found != std::string::npos)
 		{
-			host.resize(found);
+			resolved_host.resize(found);
 		}
+	}
+	if (resolved_host.empty())
+	{
+		resolved_host = DEFAULT_SERVER_NAME;
 	}
 }
 
-bool	ConfigResolver::isMatchEmpty(std::string const & host, ServerVector const & servers, ServerVector::const_iterator & it_matched)
+bool	ConfigResolver::isMatchEmpty(ServerVector const & servers, ServerVector::const_iterator & it_matched)
 {
-	if (host.empty())
+	if (resolved_host.empty())
 	{
 		for (it_matched = servers.begin(); it_matched != servers.end(); ++it_matched)
 		{
@@ -113,11 +135,11 @@ bool	ConfigResolver::isServerNameEmpty(StringVector const & server_names)
 	return false;
 }
 
-bool	ConfigResolver::isMatchExactName(std::string const & host, ServerVector const & servers, ServerVector::const_iterator & it_matched)
+bool	ConfigResolver::isMatchExactName(ServerVector const & servers, ServerVector::const_iterator & it_matched)
 {
 	for (it_matched = servers.begin(); it_matched != servers.end(); ++it_matched)
 	{
-		if (isServerNameExactMatch(host, (*it_matched)->getServerNames()))
+		if (isServerNameExactMatch((*it_matched)->getServerNames()))
 		{
 			return true;
 		}
@@ -125,11 +147,11 @@ bool	ConfigResolver::isMatchExactName(std::string const & host, ServerVector con
 	return false;
 }
 
-bool	ConfigResolver::isServerNameExactMatch(std::string const & host, StringVector const & server_names)
+bool	ConfigResolver::isServerNameExactMatch(StringVector const & server_names)
 {
 	for (StringVector::const_iterator it = server_names.begin(); it != server_names.end(); ++it)
 	{
-		if (host == *it)
+		if (resolved_host == *it)
 		{
 			return true;
 		}
@@ -137,12 +159,12 @@ bool	ConfigResolver::isServerNameExactMatch(std::string const & host, StringVect
 	return false;
 }
 
-bool	ConfigResolver::isMatchFrontWildcard(std::string const & host, ServerVector const & servers, ServerVector::const_iterator & it_matched)
+bool	ConfigResolver::isMatchFrontWildcard(ServerVector const & servers, ServerVector::const_iterator & it_matched)
 {
 	std::string	longest_match;
 	for (ServerVector::const_iterator it = servers.begin(); it != servers.end(); ++it)
 	{
-		if (isServerNameFrontWildcardMatch(host, (*it)->getServerNames(), longest_match))
+		if (isServerNameFrontWildcardMatch((*it)->getServerNames(), longest_match))
 		{
 			it_matched = it;
 		}
@@ -150,12 +172,12 @@ bool	ConfigResolver::isMatchFrontWildcard(std::string const & host, ServerVector
 	return !longest_match.empty();
 }
 
-bool	ConfigResolver::isServerNameFrontWildcardMatch(std::string const & host, StringVector const & server_names, std::string & longest_match)
+bool	ConfigResolver::isServerNameFrontWildcardMatch(StringVector const & server_names, std::string & longest_match)
 {
 	bool	is_matched = false;
 	for (StringVector::const_iterator it = server_names.begin(); it != server_names.end(); ++it)
 	{
-		if ((*it).size() > longest_match.size() && isFrontWildCard(*it) && isHostMatchFrontWildCard(host, *it))
+		if ((*it).size() > longest_match.size() && isFrontWildCard(*it) && isHostMatchFrontWildCard(*it))
 		{
 			longest_match = *it;
 			is_matched = true;
@@ -169,24 +191,24 @@ bool	ConfigResolver::isFrontWildCard(std::string const & string)
 	return string.size() >= 2 && string[0] == '*';
 }
 
-bool	ConfigResolver::isHostMatchFrontWildCard(std::string const & host, std::string const & wildcard)
+bool	ConfigResolver::isHostMatchFrontWildCard(std::string const & wildcard)
 {
 	std::string	to_find_string = wildcard.substr(1);
 	std::size_t	to_find_size = to_find_string.size();
-	std::size_t	size = host.size();
+	std::size_t	size = resolved_host.size();
 	if (size < to_find_size)
 	{
 		return false;
 	}
-	return host.compare(size - to_find_size, to_find_size, to_find_string) == 0;
+	return resolved_host.compare(size - to_find_size, to_find_size, to_find_string) == 0;
 }
 
-bool	ConfigResolver::isMatchBackWildcard(std::string const & host, ServerVector const & servers, ServerVector::const_iterator & it_matched)
+bool	ConfigResolver::isMatchBackWildcard(ServerVector const & servers, ServerVector::const_iterator & it_matched)
 {
 	std::string	longest_match;
 	for (ServerVector::const_iterator it = servers.begin(); it != servers.end(); ++it)
 	{
-		if (isServerNameBackWildcardMatch(host, (*it)->getServerNames(), longest_match))
+		if (isServerNameBackWildcardMatch((*it)->getServerNames(), longest_match))
 		{
 			it_matched = it;
 		}
@@ -194,12 +216,12 @@ bool	ConfigResolver::isMatchBackWildcard(std::string const & host, ServerVector 
 	return !longest_match.empty();
 }
 
-bool	ConfigResolver::isServerNameBackWildcardMatch(std::string const & host, StringVector const & server_names, std::string & longest_match)
+bool	ConfigResolver::isServerNameBackWildcardMatch(StringVector const & server_names, std::string & longest_match)
 {
 	bool	is_matched = false;
 	for (StringVector::const_iterator it = server_names.begin(); it != server_names.end(); ++it)
 	{
-		if ((*it).size() > longest_match.size() && isBackWildCard(*it) && isHostMatchBackWildCard(host, *it))
+		if ((*it).size() > longest_match.size() && isBackWildCard(*it) && isHostMatchBackWildCard(*it))
 		{
 			longest_match = *it;
 			is_matched = true;
@@ -213,31 +235,26 @@ bool	ConfigResolver::isBackWildCard(std::string const & string)
 	return string.size() >= 2 && string[string.size() - 1] == '*';
 }
 
-bool	ConfigResolver::isHostMatchBackWildCard(std::string const & host, std::string const & wildcard)
+bool	ConfigResolver::isHostMatchBackWildCard(std::string const & wildcard)
 {
 	std::string	to_find_string = wildcard.substr(0, wildcard.size() - 1);
 	std::size_t	to_find_size = to_find_string.size();
-	std::size_t	size = host.size();
+	std::size_t	size = resolved_host.size();
 	if (size < to_find_size)
 	{
 		return false;
 	}
-	return host.compare(0, to_find_size, to_find_string) == 0;
+	return resolved_host.compare(0, to_find_size, to_find_string) == 0;
 }
 
 ConfigServer*	ConfigResolver::resolveDefaultHost(ServerVector const & servers)
 {
-	/* TODO: to confirm with team 'default' flag is not needed in config file. is so, delete below for loop.
-	for (ServerVector::const_iterator it = servers.begin(); it != servers.end(); ++it)
-	{
-		if (*it is the default server)
-		{
-			return *it;
-		}
-	}
-	*/
 	return *servers.begin();
 }
+
+/******************************/
+/****** resolve location ******/
+/******************************/
 
 ConfigLocation*	ConfigResolver::resolveLocation(std::string const & request_target, LocationVector const & locations)
 {
@@ -308,7 +325,7 @@ ConfigLocation*	ConfigResolver::resolveIndexFile(StringVector indexes, std::stri
 			std::string file = final_location->getRoot() + temp_target;
 			if (access(file.c_str(), F_OK) == OK)
 			{
-				_new_target = temp_target;
+				resolved_target = temp_target;
 				return final_location;
 			}
 		}
@@ -320,13 +337,44 @@ ConfigLocation*	ConfigResolver::resolveAutoIndex(LocationVector::const_iterator 
 {
 	if ((*it_matched)->auto_index_status)
 	{
-		_auto_index = true;
+		auto_index = true;
 		return *it_matched;
 	}
 	return NULL;
 }
 
-//TODO: to delete
+/*********************/
+/****** utility ******/
+/*********************/
+
+void	ConfigResolver::setResolvedFilePath()
+{
+	if (resolved_location)
+	{
+		resolved_file_path = resolved_location->getRoot() + resolved_target;
+	}
+}
+
+void	ConfigResolver::setResult()
+{
+	if (auto_index)
+	{
+		result = AUTO_INDEX_ON;
+	}
+	else if (!resolved_location)
+	{
+		result = NOT_FOUND;
+	}
+	else
+	{
+		result = LOCATION_RESOLVED;
+	}
+}
+
+/*******************/
+/****** debug ******/
+/*******************/
+
 void	ConfigResolver::createConfigMap(ConfigMap & map)
 {
 	LocationVector locations;
@@ -382,29 +430,42 @@ void	ConfigResolver::printSolutionServer(ConfigServer * server)
 		std::cout << *it << " ";
 	}
 	std::cout << RESET_COLOR << std::endl;
+	std::cout << RED_BOLD << "Resolved host is: " << resolved_host << RESET_COLOR << std::endl;
 }
 
 void	ConfigResolver::createLocations(LocationVector & locations)
 {
 	ConfigLocation*	new_location;
 	new_location = new ConfigLocation("/");
+	new_location->addRoot("./page_sample");
 	new_location->addIndex("nonexistingfile");
 	new_location->addIndex("test_index/index.html");
 	new_location->addIndex("index.html");
-	new_location->addRoot("./page_sample");
+	new_location->addAllowedMethods("GET");
+	new_location->addAllowedMethods("POST");
+	new_location->addAllowedMethods("DELETE");
 	locations.push_back(new_location);
 	new_location = new ConfigLocation("/test_index/test_index.txt");
 	new_location->addRoot("./page_sample");
+	new_location->addAllowedMethods("GET");
+	new_location->addAllowedMethods("POST");
+	new_location->addAllowedMethods("DELETE");
 	locations.push_back(new_location);
 	new_location = new ConfigLocation("/test_index/");
-	new_location->addIndex("index.html");
 	new_location->addRoot("./page_sample");
+	new_location->addIndex("index.html");
+	new_location->addAllowedMethods("GET");
+	new_location->addAllowedMethods("POST");
+	new_location->addAllowedMethods("DELETE");
 	locations.push_back(new_location);
 	new_location = new ConfigLocation("/autoindex/");
+	new_location->addRoot("./page_sample");
 	new_location->addIndex("nonexistingfile1");
 	new_location->addIndex("nonexistingfile2");
 	new_location->auto_index_status = true;
-	new_location->addRoot("./page_sample");
+	new_location->addAllowedMethods("GET");
+	new_location->addAllowedMethods("POST");
+	new_location->addAllowedMethods("DELETE");
 	locations.push_back(new_location);
 }
 
@@ -412,9 +473,8 @@ void	ConfigResolver::printSolutionLocation(ConfigLocation * location)
 {
 	if (location)
 	{
-		_resolved_file_path = location->getRoot() + _new_target;
 		std::cout << RED_BOLD << "Resolved location is [path]: " << location->getPath() << std::endl;
-		std::cout << RED_BOLD << "Resolved file is: " << _resolved_file_path 
+		std::cout << RED_BOLD << "Resolved file is: " << resolved_file_path 
 				 << RESET_COLOR << std::endl;
 	}
 	else

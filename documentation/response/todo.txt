@@ -6,14 +6,13 @@
     - is URL good for Location header?
 
 >> resolve with config file
-    - auto index
-    - default error page?
+    - auto index page
+    - default error page
     - add "=" into location resolution
     - to delete extra in Config files
     - to discuss with team whether do it or not:
         - regular expression for server_name?
         - modifier for location?
-
 
 >> To discuss:
     - how to improve the update() process? CgiHandler is not doing anything fot evaluateExecutionCompletion()...
@@ -22,7 +21,9 @@
     - tear-down process go through
         - should implement close in stage or not?
     - redirection: do we config rewrite? try-files?
-    
+    - default server name as "localhost"?
+    - content-type: cgi?
+
 ------------------
 --    LATER     --
 ------------------

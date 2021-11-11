@@ -10,6 +10,12 @@
 #define EOHEADER CRLF CRLF
 
 /*
+Config Specific Defines
+*/
+#define DEFAULT_PORT 80
+#define DEFAULT_SERVER_NAME "localhost"
+
+/*
 Parsing Specific Defines
 */
 

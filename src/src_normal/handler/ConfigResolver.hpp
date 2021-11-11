@@ -18,26 +18,35 @@ class ConfigResolver
 		typedef std::map< Request::Address, ServerVector >	ConfigMap;
 		typedef std::vector<std::string>					StringVector;
 		typedef std::vector< ConfigLocation * >				LocationVector;
+		enum ConfigResult
+		{
+			START,
+			LOCATION_RESOLVED,
+			AUTO_INDEX_ON,
+			NOT_FOUND
+		};
+		ConfigResult	result;
 
+
+	public:
 		void	resolution(Request const & request);
-	
 	private:
 		ServerVector	resolveAddress(ConfigMap map, Request::Address client_address);
 		void				setAddress(ConfigMap const & map, Request::Address const & client_address, Request::Address & address);
 		ConfigServer*	resolveHost(Request const & request, ServerVector const & servers);
-		void				setHost(Request const & request, std::string & host);
-		bool				isMatchEmpty(std::string const & host, ServerVector const & servers, ServerVector::const_iterator & it_matched);
+		void				setHost(Request const & request);
+		bool				isMatchEmpty(ServerVector const & servers, ServerVector::const_iterator & it_matched);
 		bool					isServerNameEmpty(StringVector const & server_names);
-		bool				isMatchExactName(std::string const & host, ServerVector const & servers, ServerVector::const_iterator & it_matched);
-		bool					isServerNameExactMatch(std::string const & host, StringVector const & server_names);
-		bool				isMatchFrontWildcard(std::string const & host, ServerVector const & servers, ServerVector::const_iterator & it_matched);
-		bool					isServerNameFrontWildcardMatch(std::string const & host, StringVector const & server_names, std::string & longest_match);
+		bool				isMatchExactName(ServerVector const & servers, ServerVector::const_iterator & it_matched);
+		bool					isServerNameExactMatch(StringVector const & server_names);
+		bool				isMatchFrontWildcard(ServerVector const & servers, ServerVector::const_iterator & it_matched);
+		bool					isServerNameFrontWildcardMatch(StringVector const & server_names, std::string & longest_match);
 		bool					isFrontWildCard(std::string const & string);
-		bool					isHostMatchFrontWildCard(std::string const & host, std::string const & wildcard);
-		bool				isMatchBackWildcard(std::string const & host, ServerVector const & servers, ServerVector::const_iterator & it_matched);
-		bool					isServerNameBackWildcardMatch(std::string const & host, StringVector const & server_names, std::string & longest_match);
+		bool					isHostMatchFrontWildCard(std::string const & wildcard);
+		bool				isMatchBackWildcard(ServerVector const & servers, ServerVector::const_iterator & it_matched);
+		bool					isServerNameBackWildcardMatch(StringVector const & server_names, std::string & longest_match);
 		bool					isBackWildCard(std::string const & string);
-		bool					isHostMatchBackWildCard(std::string const & host, std::string const & wildcard);		
+		bool					isHostMatchBackWildCard(std::string const & wildcard);		
 		ConfigServer*		resolveDefaultHost(ServerVector const & servers);
 		ConfigLocation*	resolveLocation(std::string const & request_target, LocationVector const & locations);
 		bool				isMatchLocation(std::string const & request_target, LocationVector const & locations, LocationVector::const_iterator & it_matched);
@@ -46,18 +55,25 @@ class ConfigResolver
 		ConfigLocation*		resolveIndex(LocationVector::const_iterator it_matched, std::string const & request_target, LocationVector const & locations);
 		ConfigLocation*			resolveIndexFile(StringVector indexes, std::string const & request_target, LocationVector const & locations);
 		ConfigLocation*			resolveAutoIndex(LocationVector::const_iterator it_matched);
-		
-		//TODO: to delte:
+
+	/* utility */
+	private:
+		void	setResult();
+		void	setResolvedFilePath();
+
+	public:
+		bool			auto_index;
+		std::string		resolved_target;
+		std::string		resolved_host;
+		std::string		resolved_file_path;
+		ConfigServer*	resolved_server;
+		ConfigLocation*	resolved_location;
+
+	/* debug */
+	private:
 		void	createConfigMap(ConfigMap & map);
 		void	createServers(ServerVector & servers, LocationVector const & locations);
 		void	printSolutionServer(ConfigServer * server);
 		void	createLocations(LocationVector & locations);
 		void	printSolutionLocation(ConfigLocation * location);
-
-	
-	private:
-		bool			_auto_index;
-		std::string		_new_target;
-		std::string		_resolved_file_path;
-
 };

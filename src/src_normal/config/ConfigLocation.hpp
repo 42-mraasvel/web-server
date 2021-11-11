@@ -16,10 +16,11 @@ class ConfigLocation
 		void	addCgi(std::string cgi);
 
 		//TODO: only for ConfigResolver, to delete
-		std::string const &	getPath();
-		std::vector<std::string> const &	getIndex();
-		int	const & getAutoIndexStatus();
-		std::string const & getRoot();
+		std::string const &					getPath() const;
+		std::vector<std::string> const &	getIndex() const;
+		std::vector<std::string> const &	getAllowedMethod() const;
+		int	const & 						getAutoIndexStatus() const;
+		std::string const & 				getRoot() const;
 		bool				auto_index_status;
 
 	private:
