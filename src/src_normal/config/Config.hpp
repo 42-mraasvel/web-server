@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <map>
+
 class Config
 {
 	public:
@@ -22,7 +23,7 @@ class Config
 
 		// parsing
 		int parser();
-	// Parsing
+	
 	private:
 		std::string const & tokenPreper(std::string str);
 		int	splitToken(std::string const & string);
@@ -32,12 +33,12 @@ class Config
 		int	parseServer();
 		int	parseListen();
 		int	parseServerName();
+		int	checkServerName(std::string name);
 		int parseClientBodySize();
 		int parseAllowedMethods();
 		int	parseLocation();
 		int	parseAutoindex();
 		int	parseErrorPage();
-		int	parseCgi();
 		int	parseIndex();
 		int	parseRoot();
 		
@@ -47,12 +48,14 @@ class Config
 		void	configError(std::string str);
 
 
+
 	// Getters
 	public:
 		std::map<std::pair<std::string, int>, std::vector<ServerBlock> >	getAddressMap();
 	// Utility
 	void	initAddressMap();
 	
+
 
 	private:
 		const std::string			_file_name;
@@ -62,7 +65,7 @@ class Config
 		size_t						_token_index;
 		address_map 				_address_map;
 
-				
+
 		
 	/* Debugging */
 	public:

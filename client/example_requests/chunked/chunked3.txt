@@ -1,0 +1,13 @@
+GET / HTTP/1.1
+Host: 127.0.0.1:80
+Content-Type: text/plain
+Transfer-Encoding: Chunked
+
+7
+Mozilla
+9
+Developer
+7
+Network
+0
+

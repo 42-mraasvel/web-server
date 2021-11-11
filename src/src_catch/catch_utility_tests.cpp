@@ -114,3 +114,67 @@ TEST_CASE("convertToLowercase utility", "[utility]")
 		REQUIRE(inputs[i].first == inputs[i].second);
 	}
 }
+
+TEST_CASE("strtol: hex base", "[utility]")
+{
+	std::pair<std::string, long> inputs[] = {
+		{"0x1234", 4660},
+		{"-0x1234", -4660},
+		{"-0x8000000000000000", INT64_MIN},
+		{"0x0", 0},
+		{"-0x0", 0},
+		{"+0x0", 0},
+		{"+0x1", 1},
+		{"-0x1", -1},
+		{"0x7FFFFFFFFFFFFFFF", INT64_MAX},
+	};
+
+	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i)
+	{
+		long answer;
+		WebservUtility::strtol(inputs[i].first, answer, 16);
+		REQUIRE(answer == inputs[i].second);
+	}
+}
+
+TEST_CASE("strtoul: hex base", "[utility]")
+{
+	std::pair<std::string, unsigned long> inputs[] = {
+		{"0x1234", 4660},
+		{"0xFFFFFFFFFFFFFFFF", UINT64_MAX},
+		{"0x1", 1},
+		{"0x0", 0},
+		{"+0x0", 0},
+	};
+
+	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i)
+	{
+		unsigned long answer;
+		// answer = std::strtoul(inputs[i].first.c_str(), NULL, 16);
+		REQUIRE(WebservUtility::strtoul(inputs[i].first, answer, 16) == 0);
+		REQUIRE(answer == inputs[i].second);
+	}
+}
+
+TEST_CASE("strtol: overflow", "[utility]")
+{
+	const std::string inputs_b10[] = {
+		"12983719273981273981729381729837"
+	};
+
+	for (std::size_t i = 0; i < ARRAY_SIZE(inputs_b10); ++i)
+	{
+		long n;
+		REQUIRE(WebservUtility::strtol(inputs_b10[i], n, 10) == -1);
+	}
+}
+
+TEST_CASE("stringEndsWith", "[utility]")
+{
+	REQUIRE(WebservUtility::stringEndsWith("1234", "4"));
+	REQUIRE(WebservUtility::stringEndsWith("1234", "2", 0, 2));
+	REQUIRE(WebservUtility::stringEndsWith("1234", "3", 0, 3));
+	REQUIRE(WebservUtility::stringEndsWith("/z.py", ".py", 0, std::string::npos));
+	REQUIRE(WebservUtility::stringEndsWith("/x/y.py/a/b/c", ".py", 2, 7));
+	REQUIRE(!WebservUtility::stringEndsWith("/x/y.pyz/a/b/c", ".py", 2, 8));
+}

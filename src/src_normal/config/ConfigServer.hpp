@@ -22,14 +22,15 @@ class ConfigServer
 		typedef std::map<ip_host_pair, server_block_vector>	address_map;
 
 		ConfigServer();
+		void	addPort(int port);
 		void	addServerName(std::string name);
 		void	addClientBodySize(size_t client_body_size);
 		void	addAllowedMethods(std::string method);
 		void	addAutoIndex(int status);
 		void	addIndex(std::string index);
 		void	addErrorPage(int page_number, std::string path);
+		void	addHostName(std::string host);
 		void	addLocation(ConfigLocation location);
-		void	addRoot(std::string root);
 		void	addCgi(std::string extention, std::string path);
 		void	addAddress(std::string host, int port);
 		void	addPort(int port);
@@ -55,6 +56,7 @@ class ConfigServer
 		size_t										_client_body_size;
 		std::vector<int>							_ports;
 		std::vector<std::pair<std::string, int> >	_address;
+
 		std::vector<std::string>					_server_name;
 		std::vector<std::pair<int, std::string> >	_error_pages;
 		std::vector<ConfigLocation>					_locations;
@@ -68,10 +70,13 @@ class ConfigServer
 	public:
 		void print() const;
 	
-	// private:
+	private:
 		void printPorts() const;
 		void printServerName() const;
+		void printHostName() const;
 		void printClientBodySize() const;
+		void printAllowedMethods() const;
+		void printAutoIndex() const;
 		void printErrorPages() const;
 		void printAddress(int index) const;
 };

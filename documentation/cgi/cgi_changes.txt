@@ -1,0 +1,35 @@
+-- CGI INTEGRATION CHANGES --
+
+Enumeration of status codes: src/src_normal/utility/status_codes.hpp
+
+Webserver::scanFdTable
+
+	- Modified the way update() is called, so that erasing and updating is seperate
+	- EraseFd should be called from Webserver only due to loop invariant violation
+
+Response
+
+	- Added update() function to update CgiHandler (removing FDs, killing/waiting for CGI)
+
+AFdInfo + Fds:
+
+	- getName function for printing
+	- setToErase function for having a uniform deletion
+
+CgiHandler:
+
+	- CGI resolution based on request
+	- Environment settings
+	- Pipe setup with sending/reading from/to CGI respectively
+	- Executes CGI, sends message-body and reads output, currently the output is simply the response message-body
+	- Cleaning up the FDs and CGI process (killing and waiting)
+	- Integration with Client/Response mostly finished: you can now send a CGI request and it will be processed
+
+-- STILL LEFT TODO --
+
+	- Set default index (if target-resource is a directory) before checking CGI:
+		- Discuss CGI resolution and default index resolution
+	- CGI response parsing
+	- ERROR checking for CGI timeout, Read/Write error, executionError
+	- Script to generate functions/enumerations with status codes from basic text file
+	- Sending a response when the CGI is not finished yet (like a chunked response)

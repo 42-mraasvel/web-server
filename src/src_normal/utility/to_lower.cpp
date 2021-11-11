@@ -14,4 +14,15 @@ void convertToLowercase(std::string & s)
 	}
 }
 
+std::string strToLower(std::string const & s)
+{
+	std::string x(s);
+
+	for (std::string::iterator it = x.begin(); it != x.end(); ++it)
+	{
+		*it = tolower(*it);
+	}
+	return x;
+}
+
 }
