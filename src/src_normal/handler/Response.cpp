@@ -27,10 +27,6 @@ _file_handler(request.method)
 {
 	setHttpVersion(request.minor_version);
 
-	// TODO: to change it properly with configuration
-	_allowed_methods.push_back("GET");
-	_allowed_methods.push_back("POST");
-	_allowed_methods.push_back("DELETE");
 	//TODO: to discuss with team
 	MediaType::initMap(_media_type_map);
 }
@@ -153,7 +149,7 @@ int	Response::validateRequest(Request const & request, bool is_config_completed)
 	}
 	else
 	{
-		if (!_request_validator.isRequestValidPostConfig(request))
+		if (!_request_validator.isRequestValidPostConfig(request, _config_resolver))
 		{
 			markComplete(_request_validator.getStatusCode());
 			return ERR;
@@ -497,7 +493,7 @@ void	Response::setAllow()
 	if (_status_code == 405)
 	{
 		std::string	value;
-		for (method_iterator it = _allowed_methods.begin(); it != _allowed_methods.end(); ++it)
+		for (method_iterator it = _config_resolver.resolved_location->getAllowedMethods().begin(); it != _config_resolver.resolved_location->getAllowedMethods().end(); ++it)
 		{
 			value.append(*it + ", ");
 		}

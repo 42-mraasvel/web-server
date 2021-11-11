@@ -136,7 +136,7 @@ std::vector<std::string> const &	ConfigLocation::getIndex() const
 	return _index;
 }
 
-std::vector<std::string> const &	ConfigLocation::getAllowedMethod() const
+std::vector<std::string> const &	ConfigLocation::getAllowedMethods() const
 {
 	return _allowed_methods;
 }

@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+class ConfigResolver;
+
 class RequestValidator
 {
     public:
@@ -14,15 +16,16 @@ class RequestValidator
 		bool		isHttpVersionValid(int http_major_version);
 		bool		isMethodValid(MethodType const method);
 		bool		isExpectationValid(Request const & request);
+
     public:
-		bool	isRequestValidPostConfig(Request const & request);
-		bool		isMethodAllowed(MethodType const method);
-		bool			findMethod(MethodType const method) const;
+		bool	isRequestValidPostConfig(Request const & request, ConfigResolver const & config_resolver);
+    private:
+		bool		isMethodAllowed(MethodType const method, std::vector<std::string> const & allowed_methods);
+		bool			findMethod(MethodType const method, std::vector<std::string> const & allowed_methods) const;
 
     public:
         int getStatusCode() const;
 
     private:
         int                         _status_code;
-		std::vector<std::string>	_allowed_methods; //TODO: to incorporate from Config
 };

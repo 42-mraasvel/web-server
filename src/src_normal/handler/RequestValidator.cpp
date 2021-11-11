@@ -1,6 +1,7 @@
 #include "RequestValidator.hpp"
 #include "utility/utility.hpp"
 #include "utility/status_codes.hpp"
+#include "ConfigResolver.hpp"
 #include <algorithm>
 
 int RequestValidator::getStatusCode() const
@@ -14,11 +15,6 @@ int RequestValidator::getStatusCode() const
 
 bool	RequestValidator::isRequestValidPreConfig(Request const & request)
 {
-	// TODO: to change it properly with configuration
-	_allowed_methods.push_back("GET");
-	_allowed_methods.push_back("POST");
-	_allowed_methods.push_back("DELETE");
-
 	return !isBadRequest(request.status, request.status_code)
 			&& isHostValid(request)
 			&& isConnectionValid(request)
@@ -103,19 +99,14 @@ bool	RequestValidator::isExpectationValid(Request const & request)
 /******      post config       ******/
 /************************************/
 
-bool	RequestValidator::isRequestValidPostConfig(Request const & request)
+bool	RequestValidator::isRequestValidPostConfig(Request const & request, ConfigResolver const & config_resolver)
 {
-	// TODO: to change it properly with configuration
-	_allowed_methods.push_back("GET");
-	_allowed_methods.push_back("POST");
-	_allowed_methods.push_back("DELETE");
-
-	return isMethodAllowed(request.method);
+	return isMethodAllowed(request.method, config_resolver.resolved_location->getAllowedMethods());
 }
 
-bool	RequestValidator::isMethodAllowed(MethodType const method)
+bool	RequestValidator::isMethodAllowed(MethodType const method, std::vector<std::string> const & allowed_methods)
 {
-	if (!findMethod(method))
+	if (!findMethod(method, allowed_methods))
 	{
 		_status_code = StatusCode::METHOD_NOT_ALLOWED;
 		return false;		
@@ -124,7 +115,7 @@ bool	RequestValidator::isMethodAllowed(MethodType const method)
 }
 
 
-bool	RequestValidator::findMethod(MethodType const method) const
+bool	RequestValidator::findMethod(MethodType const method, std::vector<std::string> const & allowed_methods) const
 {
 	std::string	method_string;
 	switch (method)
@@ -142,6 +133,6 @@ bool	RequestValidator::findMethod(MethodType const method) const
 			method_string = "OTHER";
 	}
 	std::vector<std::string>::const_iterator    it;
-    it = std::find(_allowed_methods.begin(), _allowed_methods.end(), method_string);
-	return it != _allowed_methods.end();
+    it = std::find(allowed_methods.begin(), allowed_methods.end(), method_string);
+	return it != allowed_methods.end();
 }

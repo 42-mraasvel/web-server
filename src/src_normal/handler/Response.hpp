@@ -85,15 +85,13 @@ class Response
 	/* Added for the CgiHandler */
 		void				update();
 	private:
-		typedef	std::vector<std::string>::iterator				method_iterator;
+		typedef	std::vector<std::string>::const_iterator		method_iterator;
 		void				markComplete(int code);
 
 	private:
 		/* config related */
 		MediaType::Map				_media_type_map;
-		std::string					_authority;
 		std::string					_effective_request_uri;
-		std::vector<std::string>	_allowed_methods; //TODO: to incorporate from Config
 
 		/* info */
 		MethodType			_method;
