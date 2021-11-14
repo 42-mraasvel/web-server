@@ -30,10 +30,7 @@ class ConfigServer
 		void	addIndex(std::string index);
 		void	addErrorPage(int page_number, std::string path);
 		void	addLocation(ConfigLocation location);
-<<<<<<< HEAD
 		void	addRoot(std::string root);
-=======
->>>>>>> 2177d6842eafcf6d497847ac385c1050264de437
 		void	addCgi(std::string extention, std::string path);
 		void	addAddress(std::string host, int port);
 		void	addReturn(int code, std::string path);
@@ -59,10 +56,6 @@ class ConfigServer
 		size_t										_client_body_size;
 		std::vector<int>							_ports;
 		std::vector<std::pair<std::string, int> >	_address;
-<<<<<<< HEAD
-=======
-
->>>>>>> 2177d6842eafcf6d497847ac385c1050264de437
 		std::vector<std::string>					_server_name;
 		std::vector<std::pair<int, std::string> >	_error_pages;
 		std::vector<ConfigLocation>					_locations;

@@ -450,10 +450,6 @@ void	Config::configError(std::string str)
 	exit(1);
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 2177d6842eafcf6d497847ac385c1050264de437
 // Getters
 
 
