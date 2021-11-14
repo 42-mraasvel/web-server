@@ -55,7 +55,12 @@ void	ConfigServer::addRoot(std::string root)
 	_locations[_locations.size() - 1].addRoot(root);
 }
 
+<<<<<<< HEAD
 void	ConfigServer::addIndex(std::string index)
+=======
+
+void	ConfigServer::addPort(int port)
+>>>>>>> 2177d6842eafcf6d497847ac385c1050264de437
 {
 	_locations[_locations.size() - 1].addIndex(index);
 }
@@ -69,6 +74,10 @@ int	ConfigServer::emptyAddress()
 std::vector<int> ConfigServer::getPorts()
 {
 	return _ports;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2177d6842eafcf6d497847ac385c1050264de437
 }
 
 ConfigServer::const_iterator ConfigServer::begin() const
@@ -121,10 +130,6 @@ void	ConfigServer::initServerBlock()
 	}
 	_server_block.push_back(tmp);
 }
-
-
-
-
 
 /* Debugging */
 void ConfigServer::print() const

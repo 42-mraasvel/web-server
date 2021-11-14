@@ -58,6 +58,10 @@ void ConfigLocation::initLocationBlock()
 	_location_block._return = _return;
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2177d6842eafcf6d497847ac385c1050264de437
 /* Debugging */
 void	ConfigLocation::print() const
 {

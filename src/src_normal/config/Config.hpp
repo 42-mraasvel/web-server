@@ -3,6 +3,10 @@
 #include <vector>
 #include <string>
 #include <map>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2177d6842eafcf6d497847ac385c1050264de437
 class Config
 {
 	public:
