@@ -22,7 +22,7 @@ class Config
 
 		// parsing
 		int parser();
-	// Parsing
+	
 	private:
 		std::string const & tokenPreper(std::string str);
 		int	splitToken(std::string const & string);
@@ -40,6 +40,7 @@ class Config
 		int	parseCgi();
 		int	parseIndex();
 		int	parseRoot();
+		int parseReturn();
 		
 		int	checkExpectedSyntax(std::string str);
 		int	checkExpectedSyntax(std::string str1, std::string str2);

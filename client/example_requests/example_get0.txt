@@ -1,2 +1,3 @@
-GET / HTTP/1.0
+GET /check/ HTTP/1.0
+Host: localhost
 

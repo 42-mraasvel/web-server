@@ -1,10 +1,10 @@
 #include "Config.hpp"
 #include "settings.hpp"
+#include <iostream>
 #include <fcntl.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <string>
-#include <iostream>
 #include "utility/utility.hpp"
 #include <map>
 
@@ -146,10 +146,6 @@ int	Config::parseServer()
 		{
 			parseListen();
 		}
-		else if (_tokens[_token_index].compare("client_body_size") == 0)
-		{
-			parseClientBodySize();
-		}
 		else if (_tokens[_token_index].compare("server_name") == 0)
 		{
 			parseServerName();
@@ -157,6 +153,10 @@ int	Config::parseServer()
 		else if (_tokens[_token_index].compare("error_page") == 0)
 		{
 			parseErrorPage();
+		}
+		else if (_tokens[_token_index].compare("client_body_size") == 0)
+		{
+			parseClientBodySize();
 		}
 		else if (_tokens[_token_index].compare("location") == 0)
 		{
@@ -208,6 +208,10 @@ int	Config::parseLocation()
 		else if (_tokens[_token_index].compare("cgi") == 0)
 		{
 			parseCgi();
+		}
+		else if (_tokens[_token_index].compare("return") == 0)
+		{
+			parseReturn();
 		}
 		checkExpectedSyntax(";");
 		_token_index++;
@@ -278,9 +282,12 @@ int	Config::parseClientBodySize()
 	std::string client_body_size = _tokens[_token_index];
 	for (size_t i = 0; i < client_body_size.size(); i++)
 	{
+
 		if (std::isdigit(client_body_size[i]) == 0)
 		{
+
 			client_body_size[i] =toupper(client_body_size[i]);
+
 			if (client_body_size.find_first_of("KGM") == client_body_size.size() - 1)
 			{
 				if (client_body_size[i] == 'K')
@@ -305,7 +312,7 @@ int	Config::parseClientBodySize()
 	size_t size = WebservUtility::strtoul(client_body_size);
 	if (size == 0)
 	{
-		size = ULONG_MAX;
+		size - ULONG_MAX;
 	}
 	_servers[_server_amount].addClientBodySize(size);
 	_token_index++;
@@ -354,7 +361,7 @@ int	Config::parseErrorPage()
 	return (_token_index);
 }
 
-int	Config::parseCgi()
+int Config::parseCgi()
 {
 	_token_index++;
 	std::string extention;
@@ -381,6 +388,26 @@ int	Config::parseIndex()
 		_servers[_server_amount].addIndex(_tokens[_token_index]);
 		_token_index++;
 	}
+	return (_token_index);
+}
+
+int Config::parseReturn()
+{
+	_token_index++;
+	std::string ret;
+	std::string path;
+	if (_tokens[_token_index].compare(";") != 0)
+	{
+		ret = _tokens[_token_index];
+		_token_index++;
+	}
+	if (_tokens[_token_index].compare(";") != 0)
+	{
+		path = _tokens[_token_index];
+		_token_index++;
+	}
+	int code = WebservUtility::strtoul(ret);
+	_servers[_server_amount].addReturn(code, path);
 	return (_token_index);
 }
 
@@ -574,15 +601,7 @@ void	Config::printLocationBlock(LocationBlock location) const
 		std::cout << "OFF";
 	}
 	std::cout << std::endl;
+	std::cout << "\t  Return: " ;
+	std::cout << location._return.first << ", " << location._return.second;
+	std::cout << std::endl;
 }
-
-
-
-
-
-
-
-
-
-
-

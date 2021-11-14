@@ -22,6 +22,7 @@ class ConfigServer
 		typedef std::map<ip_host_pair, server_block_vector>	address_map;
 
 		ConfigServer();
+		void	addPort(int port);
 		void	addServerName(std::string name);
 		void	addClientBodySize(size_t client_body_size);
 		void	addAllowedMethods(std::string method);
@@ -32,7 +33,7 @@ class ConfigServer
 		void	addRoot(std::string root);
 		void	addCgi(std::string extention, std::string path);
 		void	addAddress(std::string host, int port);
-		void	addPort(int port);
+		void	addReturn(int code, std::string path);
 		int		emptyAddress();
 
 	// getters
@@ -68,7 +69,7 @@ class ConfigServer
 	public:
 		void print() const;
 	
-	// private:
+	private:
 		void printPorts() const;
 		void printServerName() const;
 		void printClientBodySize() const;

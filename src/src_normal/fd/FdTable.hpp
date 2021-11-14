@@ -14,8 +14,8 @@ class FdTable
 	
 	public:
 		~FdTable();
-		int insertFd(AFdInfo * info);
-		int eraseFd(size_type index);
+		void	insertFd(AFdInfo * info);
+		void	eraseFd(size_type index);
 		size_type	size();
 		struct pollfd* getPointer();
 		pair_t operator[](size_type index);

@@ -2,10 +2,15 @@
 #include "settings.hpp"
 #include "Client.hpp"
 #include <unistd.h>
+#include <algorithm>
 #include <poll.h>
 #include <string>
+#include <iostream>
 
-File::File(Client* client, int fd): AFdInfo(fd), _client(client) {}
+File::File(int fd): AFdInfo(fd)
+{
+	flag = AFdInfo::ACTIVE;
+}
 
 struct pollfd	File::getPollFd() const
 {
@@ -18,42 +23,47 @@ struct pollfd	File::getPollFd() const
 
 int File::readEvent(FdTable & fd_table)
 {
-	//TODO: to discuss with team how to read directly into _content;
-	//TODO: to combine with Client::readEvent().
-
-	char	buf[BUFFER_SIZE];
-	int	ret = read(_fd, buf, BUFFER_SIZE);
+	std::string buffer;
+	buffer.resize(BUFFER_SIZE, '\0');
+	ssize_t	ret = read(_fd, &buffer[0], BUFFER_SIZE);
 	if (ret == ERR)
 	{
 		perror("read");
+		this->updateEvents(AFdInfo::WAITING, fd_table);
+		flag = AFdInfo::FILE_ERROR;
 		return ERR;
 	}
-	_content = std::string(buf);
-
-	_client->updateEvents(AFdInfo::WRITING, fd_table);
-	this->updateEvents(AFdInfo::WAITING, fd_table);
-
+	if (flag == AFdInfo::ACTIVE)
+	{
+		flag = AFdInfo::FILE_START;
+	}
+	buffer.resize(ret);
+	_content.append(buffer);
+	if (ret < BUFFER_SIZE) // read EOF
+	{
+		this->updateEvents(AFdInfo::WAITING, fd_table);
+		flag = AFdInfo::FILE_COMPLETE;
+	}
 	return OK;
 }
 
 int File::writeEvent(FdTable & fd_table)
 {
-	int	ret = write(_fd, _content.c_str(), _content.size());
-	if (ret == ERR)
+	size_t	size = std::min((size_t)BUFFER_SIZE, _content.size());
+	if (write(_fd, _content.c_str(), size) == ERR)
 	{
 		perror("write");
+		this->updateEvents(AFdInfo::WAITING, fd_table);
+		flag = AFdInfo::FILE_ERROR;
 		return ERR;
 	}
-
-	_client->updateEvents(AFdInfo::WRITING, fd_table);
-	this->updateEvents(AFdInfo::WAITING, fd_table);
-
+	_content.erase(0, size);
+	if (_content.empty())
+	{
+		this->updateEvents(AFdInfo::WAITING, fd_table);
+		flag = AFdInfo::FILE_COMPLETE;
+	}
 	return OK;
-}
-
-int	File::closeEvent()
-{
-	return close(_fd);
 }
 
 std::string const &	File::getContent() const
@@ -64,4 +74,19 @@ std::string const &	File::getContent() const
 void	File::setContent(std::string const & content)
 {
 	_content = content;
+}
+
+void	File::clearContent()
+{
+	_content.clear();
+}
+
+void	File::swapContent(std::string & content)
+{
+	_content.swap(content);
+}
+
+std::string File::getName() const
+{
+	return "File";
 }

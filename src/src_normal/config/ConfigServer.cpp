@@ -3,7 +3,7 @@
 #include <iostream>
 #include <iomanip>
 // TODO: Remove port 80 somewhere when process is done
-ConfigServer::ConfigServer(): _client_body_size(ULONG_MAX)
+ConfigServer::ConfigServer()
 {}
 
 void	ConfigServer::addServerName(std::string name)
@@ -36,9 +36,18 @@ void	ConfigServer::addLocation(ConfigLocation location)
 	this->_locations.push_back(location);
 }
 
-void	ConfigServer::addCgi(std::string extention, std::string path)
+void ConfigServer::addCgi(std::string extention, std::string path)
 {
 	_locations[_locations.size() - 1].addCgi(extention, path);
+}
+void	ConfigServer::addAddress(std::string host, int port)
+{
+	_address.push_back(std::make_pair(host, port));
+}
+
+void	ConfigServer::addReturn(int code, std::string path)
+{
+	_locations[_locations.size() - 1].addReturn(code, path);
 }
 
 void	ConfigServer::addRoot(std::string root)
@@ -51,19 +60,9 @@ void	ConfigServer::addIndex(std::string index)
 	_locations[_locations.size() - 1].addIndex(index);
 }
 
-void	ConfigServer::addAddress(std::string host, int port)
-{
-	_address.push_back(std::make_pair(host, port));
-}
-
-void	ConfigServer::addPort(int port)
-{
-	_ports.push_back(port);
-}
-
 int	ConfigServer::emptyAddress()
 {
-	return _address.empty();
+	return _ports.empty();
 }
 
 // Getters
@@ -133,7 +132,6 @@ void ConfigServer::print() const
 	printPorts();
 	printServerName();
 	printErrorPages();
-	printClientBodySize();
 	for (size_t i = 0; i < _locations.size(); i++)
 	{	
 		std::cout << YELLOW_BOLD "    Locations" RESET_COLOR " #" << (i + 1) << std::endl;
@@ -143,14 +141,14 @@ void ConfigServer::print() const
 
 void ConfigServer::printPorts() const
 {
-	std::cout << "  " CYAN_BOLD << "Ip:Ports:" RESET_COLOR " [";
-	for (size_t i = 0; i < _address.size(); i++)
+	std::cout << "  " CYAN_BOLD << "Ports:" RESET_COLOR " [";
+	for (const_iterator it = begin(); it != end(); ++it)
 	{
-		if (i > 0)
+		if (it != begin())
 		{
 			std::cout << ", ";
 		}
-		std::cout << _address[i].first << ":" << _address[i].second;
+		std::cout << *it;
 	}
 	std::cout << ']' << std::endl;
 }
@@ -183,12 +181,11 @@ void ConfigServer::printErrorPages() const
 	std::cout << ']' << std::endl;
 }
 
-void ConfigServer::printClientBodySize() const
-{
-	std::cout << "  " CYAN_BOLD << "Client Body Size:" RESET_COLOR " [";
-	std::cout << _client_body_size;
-	std::cout << ']' << std::endl;
-}
+// void ConfigServer::printHostName() const
+// {
+// 		std::cout << "  " CYAN_BOLD << "Host name:" RESET_COLOR " [";
+// 	std::cout << ']' << std::endl;
+// }
 
 void	ConfigServer::printAddress(int index) const
 {

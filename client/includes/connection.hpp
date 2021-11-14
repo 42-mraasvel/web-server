@@ -2,8 +2,6 @@
 
 #include <string>
 
-#define BUFFER_SIZE 4096
-
 class Connection {
 public:
 	int initConnection(const std::string& server_ip, int port, bool blocking);
