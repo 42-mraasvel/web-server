@@ -44,6 +44,7 @@ bool stringEndsWith(const std::string &s, const std::string& to_find,
 void closePipe(int* fds);
 char** getEnvp();
 int makeNonBlocking(int fd);
+const char*	basename(const char* x);
 
 /* TODO: RM DEBUGGING */
 	void printStrings(char **strings, FILE* stream);

@@ -38,19 +38,29 @@ int	CgiReader::readEvent(FdTable & fd_table)
 	if (n == ERR)
 	{
 		syscallError(_FUNC_ERR("read"));
-		flag = AFdInfo::FILE_ERROR;
+		closeEvent(fd_table, AFdInfo::FILE_ERROR);
 		return ERR;
 	}
 	else if (n == 0)
 	{
-		closeEvent(fd_table);
+		closeEvent(fd_table, AFdInfo::FILE_COMPLETE);
 		return OK;
 	}
 
 	buffer.resize(n);
-	_message_body.append(buffer);
-	printf("%s: [%d]: Read [%ld] bytes\n",
-		getName().c_str(), getFd(), n);
+	_parser.parse(buffer);
+
+	if (_parser.getState() == CgiResponseParser::COMPLETE)
+	{
+		closeEvent(fd_table, AFdInfo::FILE_COMPLETE);
+	} else if (_parser.getState() == CgiResponseParser::ERROR)
+	{
+		closeEvent(fd_table, AFdInfo::FILE_ERROR);
+	}
+
+	// _message_body.append(buffer);
+	// printf("%s: [%d]: Read [%ld] bytes\n",
+	// 	getName().c_str(), getFd(), n);
 	// std::cout << buffer << std::endl;
 	return OK;
 }
@@ -59,6 +69,15 @@ void CgiReader::closeEvent(FdTable & fd_table)
 {
 	flag = AFdInfo::FILE_COMPLETE;
 	updateEvents(AFdInfo::WAITING, fd_table);
+	closeFd(fd_table);
+}
+
+void CgiReader::closeEvent(FdTable & fd_table, AFdInfo::Flags flag)
+{
+	this->flag = flag;
+	updateEvents(AFdInfo::WAITING, fd_table);
+	_header.swap(_parser.getHeader());
+	_message_body.swap(_parser.getContent());
 	closeFd(fd_table);
 }
 

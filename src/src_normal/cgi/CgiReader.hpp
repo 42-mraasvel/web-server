@@ -2,6 +2,7 @@
 
 #include "fd/AFdInfo.hpp"
 #include "parser/HeaderField.hpp"
+#include "CgiResponseParser.hpp"
 
 /*
 Purpose of the class:
@@ -29,6 +30,10 @@ class CgiReader : public AFdInfo
 		std::string getName() const;
 
 	private:
+		void closeEvent(FdTable & fd_table, AFdInfo::Flags flag);
+
+	private:
+		CgiResponseParser _parser;
 		std::string _message_body;
 		HeaderField _header;
 };

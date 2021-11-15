@@ -5,14 +5,13 @@
 #include "CgiSender.hpp"
 #include "CgiReader.hpp"
 #include "utility/status_codes.hpp"
+#include <libgen.h>
 #include <signal.h>
 #include <errno.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <cstring>
 #include <sys/wait.h>
-
-
 
 // Change the root directories if you want to test CGI
 #ifdef __linux__
@@ -349,7 +348,7 @@ int CgiHandler::prepareArguments(char *args[3]) const
 	First argument: executable basename
 	Second argument: _target
 	*/
-	args[0] = strdup(basename(_script.c_str()));
+	args[0] = strdup(WebservUtility::basename(_script.c_str()));
 	if (args[0] == NULL)
 	{
 		return ERR;
