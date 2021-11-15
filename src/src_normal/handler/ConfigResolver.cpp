@@ -3,12 +3,12 @@
 #include <iostream>
 #include <unistd.h>
 
-ConfigResolver::ConfigResolver(std::string const & request_target):
+ConfigResolver::ConfigResolver():
 result(START),
-auto_index(false),
-resolved_target(request_target),
 resolved_server(NULL),
-resolved_location(NULL)
+resolved_location(NULL),
+auto_index(false),
+redirect(false)
 {}
 
 void	ConfigResolver::resolution(Request const & request)
@@ -17,17 +17,14 @@ void	ConfigResolver::resolution(Request const & request)
 	ConfigMap	map;
 	createConfigMap(map);
 
+	resolved_target = request.request_target;
 	ServerVector	server_vector = resolveAddress(map, request.address);
 	resolved_server = resolveHost(request, server_vector);
 	resolved_location = resolveLocation(request.request_target, resolved_server->getLocation());
-	setResolvedFilePath();
 	setResult();
-
-	std::cout << RED_BOLD << "----------------------" << RESET_COLOR << std::endl;
-	std::cout << RED_BOLD << "Config result based on hard-coded config\n(only for ConfigResolver testing):" << RESET_COLOR << std::endl;
-	printSolutionServer(resolved_server);
-	printSolutionLocation(resolved_location);
-	std::cout << RED_BOLD << "----------------------" << RESET_COLOR << std::endl << std::endl;
+	
+	// Debug:
+	print();
 }
 
 /*****************************/
@@ -343,32 +340,87 @@ ConfigLocation*	ConfigResolver::resolveAutoIndex(LocationVector::const_iterator 
 	return NULL;
 }
 
-/*********************/
-/****** utility ******/
-/*********************/
-
-void	ConfigResolver::setResolvedFilePath()
-{
-	if (resolved_location)
-	{
-		resolved_file_path = resolved_location->getRoot() + resolved_target;
-	}
-}
+/************************/
+/****** set result ******/
+/************************/
 
 void	ConfigResolver::setResult()
 {
-	if (auto_index)
-	{
-		result = AUTO_INDEX_ON;
-	}
-	else if (!resolved_location)
+	if (!resolved_location)
 	{
 		result = NOT_FOUND;
 	}
 	else
 	{
+		scanLocation();
+	}
+}
+
+void	ConfigResolver::scanLocation()
+{
+	setResolvedFilePath();
+	if (auto_index)
+	{
+		setAutoIndexPage();
+		result = AUTO_INDEX_ON;
+	}
+	else if (resolved_location->redirect)
+	{
+		setRedirect();
+		result = REDIRECT;
+	}
+	else
+	{
 		result = LOCATION_RESOLVED;
 	}
+}
+
+void	ConfigResolver::setResolvedFilePath()
+{
+	resolved_file_path = resolved_location->getRoot() + resolved_target;
+}
+
+void	ConfigResolver::setAutoIndexPage()
+{
+	// TODO: to add file listing content
+	auto_index_page = 
+	"<html>\n<head><title>Index of /no-index/</title></head>\n<body>\n<h1>Index of /no-index/</h1><hr><pre>\n<a href=\"../\">../</a>\n<a href=\"test.html\">test.html</a>	28-Oct-2021 10:05 0\n</pre><hr></body>\n</html>\n";
+}
+
+void	ConfigResolver::setRedirect()
+{
+	redirect = true;
+	// TODO_config: to incorporate config
+	redirect_info.first = 301;
+	redirect_info.second = "This is the return text from config file.";
+}
+
+/********************************/
+/****** resolve error page ******/
+/********************************/
+
+void	ConfigResolver::resolveErrorPage(int error_code)
+{
+	std::string	error_uri;
+	if (getErrorPageUri(error_code, error_uri) == OK)
+	{
+		ConfigLocation*	location = resolveLocation(error_uri, resolved_server->getLocation());
+	}
+}
+
+int	ConfigResolver::getErrorPageUri(int error_code, std::string & error_uri) const
+{
+
+	ErrorPageInfo::const_iterator it;
+	for (it = resolved_server->getErrorPages().begin(); it !=  resolved_server->getErrorPages().end(); ++it)
+	{
+		if (it->first == error_code)
+		{
+			error_uri = it->second;
+			return OK;
+		}
+	}
+	return ERR;
 }
 
 /*******************/
@@ -421,7 +473,19 @@ void	ConfigResolver::createServers(ServerVector & servers, LocationVector const 
 	servers.push_back(new_server);
 }
 
-void	ConfigResolver::printSolutionServer(ConfigServer * server)
+void	ConfigResolver::print() const
+{
+	std::cout << RED_BOLD << "----------------------" << RESET_COLOR << std::endl;
+	std::cout << "Config result based on hard-coded config\n(only for ConfigResolver testing):" << RESET_COLOR << std::endl;
+
+	printSolutionServer(resolved_server);
+	printSolutionLocation(resolved_location);
+	printAutoIndexPage();
+
+	std::cout << RED_BOLD << "----------------------" << RESET_COLOR << std::endl << std::endl;
+}
+
+void	ConfigResolver::printSolutionServer(ConfigServer * server) const
 {
 	std::cout << RED_BOLD << "Resolved server is [server_name]: ";
 	StringVector names = server->getServerNames();
@@ -457,6 +521,7 @@ void	ConfigResolver::createLocations(LocationVector & locations)
 	new_location->addAllowedMethods("GET");
 	new_location->addAllowedMethods("POST");
 	new_location->addAllowedMethods("DELETE");
+	new_location->redirect = true;
 	locations.push_back(new_location);
 	new_location = new ConfigLocation("/autoindex/");
 	new_location->addRoot("./page_sample");
@@ -469,7 +534,7 @@ void	ConfigResolver::createLocations(LocationVector & locations)
 	locations.push_back(new_location);
 }
 
-void	ConfigResolver::printSolutionLocation(ConfigLocation * location)
+void	ConfigResolver::printSolutionLocation(ConfigLocation * location) const
 {
 	if (location)
 	{
@@ -480,5 +545,14 @@ void	ConfigResolver::printSolutionLocation(ConfigLocation * location)
 	else
 	{
 		std::cout << RED_BOLD << "ERROR 404!" << RESET_COLOR << std::endl;
+	}
+}
+
+void	ConfigResolver::printAutoIndexPage() const
+{
+	if (auto_index)
+	{
+		std::cout << RED_BOLD << "The auto index page content is:\n" << RESET_COLOR 
+				<< auto_index_page << std::endl;
 	}
 }

@@ -10,7 +10,7 @@ struct Request;
 class ConfigResolver
 {
 	public:
-		ConfigResolver(std::string const & request_target);
+		ConfigResolver();
 
 	public:
 		//TODO: to evaluate typedef for config
@@ -18,10 +18,13 @@ class ConfigResolver
 		typedef std::map< Request::Address, ServerVector >	ConfigMap;
 		typedef std::vector<std::string>					StringVector;
 		typedef std::vector< ConfigLocation * >				LocationVector;
+		typedef std::pair< int, std::string>				RedirectInfo;
+		typedef	std::vector<std::pair<int, std::string> >	ErrorPageInfo;
 		enum ConfigResult
 		{
 			START,
 			LOCATION_RESOLVED,
+			REDIRECT,
 			AUTO_INDEX_ON,
 			NOT_FOUND
 		};
@@ -55,25 +58,36 @@ class ConfigResolver
 		ConfigLocation*		resolveIndex(LocationVector::const_iterator it_matched, std::string const & request_target, LocationVector const & locations);
 		ConfigLocation*			resolveIndexFile(StringVector indexes, std::string const & request_target, LocationVector const & locations);
 		ConfigLocation*			resolveAutoIndex(LocationVector::const_iterator it_matched);
-
-	/* utility */
-	private:
-		void	setResult();
-		void	setResolvedFilePath();
+		void			setResult();
+		void				scanLocation();
+		void					setResolvedFilePath();
+		void					setAutoIndexPage();
+		void					setRedirect();
 
 	public:
-		bool			auto_index;
+		void	resolveErrorPage(int error_code);
+		int			getErrorPageUri(int error_code, std::string & error_uri) const;
+
+	public:
+		std::string		auto_index_page;
+		RedirectInfo	redirect_info;
 		std::string		resolved_target;
 		std::string		resolved_host;
 		std::string		resolved_file_path;
 		ConfigServer*	resolved_server;
 		ConfigLocation*	resolved_location;
 
+	private:
+		bool			auto_index;
+		bool			redirect;
+
 	/* debug */
 	private:
 		void	createConfigMap(ConfigMap & map);
 		void	createServers(ServerVector & servers, LocationVector const & locations);
-		void	printSolutionServer(ConfigServer * server);
 		void	createLocations(LocationVector & locations);
-		void	printSolutionLocation(ConfigLocation * location);
+		void	print() const;
+		void		printSolutionServer(ConfigServer * server) const;
+		void		printSolutionLocation(ConfigLocation * location) const;
+		void		printAutoIndexPage() const;
 };

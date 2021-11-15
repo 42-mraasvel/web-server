@@ -22,6 +22,7 @@ class ConfigLocation
 		int	const & 						getAutoIndexStatus() const;
 		std::string const & 				getRoot() const;
 		bool				auto_index_status;
+		bool				redirect;
 
 	private:
 		std::string 				_path;

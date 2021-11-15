@@ -22,7 +22,7 @@ _header_part_set(false),
 _chunked(false),
 _close_connection(false),
 _is_cgi(false),
-_config_resolver(request.request_target),
+_config_resolver(),
 _file_handler(request.method)
 {
 	setHttpVersion(request.minor_version);
@@ -163,7 +163,11 @@ int	Response::validateRequest(Request const & request, bool is_config_completed)
 
 void	Response::processImmdiateResponse(Request const & request)
 {
-	if (isRedirectResponse())
+	if (isAudoIndexResponse())
+	{
+		processAudoIndexResponse();
+	}
+	else if (isRedirectResponse())
 	{
 		processRedirectResponse();
 	}
@@ -173,22 +177,31 @@ void	Response::processImmdiateResponse(Request const & request)
 	}
 }
 
+bool	Response::isAudoIndexResponse() const
+{
+	return _config_resolver.result == ConfigResolver::AUTO_INDEX_ON;
+}
+
+void	Response::processAudoIndexResponse()
+{
+	markComplete(StatusCode::STATUS_OK);
+	_message_body = _config_resolver.auto_index_page;
+}
+
 bool	Response::isRedirectResponse() const
 {
-	// TODO: to incorporate config
-	bool	redirect_flag = false;
-	return redirect_flag;
+	return _config_resolver.result == ConfigResolver::REDIRECT;
 }
 
 void	Response::processRedirectResponse()
 {
-	// TODO: to incorporate config
-	int			redirect_code = StatusCode::MOVED_PERMANENTLY;
-	std::string	redirect_text = "http://this_is_the_redirect_url.com";
+	int			redirect_code = _config_resolver.redirect_info.first;
+	std::string	redirect_text = _config_resolver.redirect_info.second;
 
 	markComplete(redirect_code);
 	if (_status_code >= 300 && _status_code < 400)
 	{
+		// TODO: to check if the redirect_text needs to be absolute form??
 		_effective_request_uri = redirect_text;
 		_message_body = "Redirect to " + redirect_text + "\n";
 	}
@@ -300,7 +313,7 @@ void	Response::setMessageBody()
 	{
 		setHandlerMessageBody();
 	}
-	else
+	else if (_message_body.empty())
 	{
 		setErrorPage();
 	}
@@ -533,7 +546,11 @@ void	Response::setContentType()
 	//TODO: to confirm with maarten if this only applies to non-CGI
 	if (!_is_cgi)
 	{
-		if (_method == GET && _status_code == 200)
+		if ( _config_resolver.result == ConfigResolver::AUTO_INDEX_ON)
+		{
+			_header_fields["Content-Type"] = "text/html";
+		}
+		else if (_method == GET && _status_code == 200)
 		{
 			size_t	find = _config_resolver.resolved_file_path.find_last_of(".");
 			std::string extensin = _config_resolver.resolved_file_path.substr(find);

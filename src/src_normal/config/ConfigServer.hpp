@@ -31,6 +31,7 @@ class ConfigServer
 		std::vector<std::string> const &	getServerNames();
 		std::vector<ConfigLocation * > const & getLocation();
 		std::vector<ConfigLocation * >			_locationptrs;
+		std::vector<std::pair<int, std::string> > const & getErrorPages();
 
 	private:
 		int											_default_port;

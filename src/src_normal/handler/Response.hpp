@@ -33,6 +33,8 @@ class Response
 		void		evaluateConnectionFlag(Request const & request);
 		int			validateRequest(Request const & request, bool is_config_completed);
 		void		processImmdiateResponse(Request const & request);
+		bool			isAudoIndexResponse() const;
+		void			processAudoIndexResponse();
 		bool			isRedirectResponse() const;
 		void			processRedirectResponse();
 		bool			isContinueResponse(Request const & request) const;

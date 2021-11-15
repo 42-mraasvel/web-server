@@ -155,3 +155,8 @@ std::vector<ConfigLocation * > const &	ConfigServer::getLocation()
 {
 	return _locationptrs;
 }
+
+std::vector<std::pair<int, std::string> > const &	ConfigServer::getErrorPages()
+{
+	return _error_pages;
+}
