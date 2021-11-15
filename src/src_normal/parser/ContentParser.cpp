@@ -26,6 +26,9 @@ void ContentParser::reset()
 	_status_code = StatusCode::STATUS_OK;
 }
 
+/*
+if std::numeric_limits<std::size_t>::max(): always parse everything
+*/
 void ContentParser::setContentLength(std::size_t length)
 {
 	_content_length = length;
