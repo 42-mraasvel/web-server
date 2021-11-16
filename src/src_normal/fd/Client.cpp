@@ -16,7 +16,7 @@ Client::~Client()
 	while (!_response_queue.empty())
 	{
 		Response*	temp = _response_queue.front();
-		_response_queue.pop();
+		_response_queue.pop_front();
 		delete temp;
 	}
 }
@@ -120,7 +120,7 @@ void	Client::initResponse(Request const & request)
 {
 	//TODO_config: add config map parameter, pass it on to response->initative
 	_new_response = new Response(request);
-	_response_queue.push(_new_response);
+	_response_queue.push_back(_new_response);
 	_new_response->initiate(request);
 }
 
@@ -229,7 +229,7 @@ void	Client::closeConnection()
 void	Client::resetResponse()
 {
 	delete _response;
-	_response_queue.pop();
+	_response_queue.pop_front();
 	_response = NULL;
 }
 

@@ -65,8 +65,10 @@ class ConfigResolver
 		void					setRedirect();
 
 	public:
+		bool	isDefaultErrorPage(int error_code) const;
 		void	resolveErrorPage(int error_code);
-		int			getErrorPageUri(int error_code, std::string & error_uri) const;
+		std::string	getErrorPageUri(int error_code) const;
+		int			resolveErrorPage(int error_code, std::string & file_path);
 
 	public:
 		std::string		auto_index_page;

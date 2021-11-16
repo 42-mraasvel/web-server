@@ -2,7 +2,7 @@
 #include <sys/socket.h>
 #include <utility>
 #include <string>
-#include <queue>
+#include <deque>
 #include "FdTable.hpp"
 #include "AFdInfo.hpp"
 #include "handler/Response.hpp"
@@ -62,7 +62,7 @@ class Client : public AFdInfo
 		RequestParser			_request_parser;
 		Request*				_request;
 		Response*				_new_response;
-		std::queue<Response *>	_response_queue;
+		std::deque<Response *>	_response_queue;
 		Response*				_response;
 		std::string				_response_string;
 };

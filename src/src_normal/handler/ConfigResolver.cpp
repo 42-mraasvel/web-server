@@ -399,28 +399,44 @@ void	ConfigResolver::setRedirect()
 /****** resolve error page ******/
 /********************************/
 
-void	ConfigResolver::resolveErrorPage(int error_code)
+bool	ConfigResolver::isDefaultErrorPage(int error_code) const
 {
-	std::string	error_uri;
-	if (getErrorPageUri(error_code, error_uri) == OK)
-	{
-		ConfigLocation*	location = resolveLocation(error_uri, resolved_server->getLocation());
-	}
-}
-
-int	ConfigResolver::getErrorPageUri(int error_code, std::string & error_uri) const
-{
-
 	ErrorPageInfo::const_iterator it;
 	for (it = resolved_server->getErrorPages().begin(); it !=  resolved_server->getErrorPages().end(); ++it)
 	{
 		if (it->first == error_code)
 		{
-			error_uri = it->second;
-			return OK;
+			return true;
 		}
 	}
-	return ERR;
+	return false;
+}
+
+int	ConfigResolver::resolveErrorPage(int error_code, std::string & file_path)
+{
+	std::string	error_uri = getErrorPageUri(error_code);
+	ConfigLocation*	location = resolveLocation(error_uri, resolved_server->getLocation());
+	if (!location)
+	{
+		return ERR;
+	}
+	file_path = location->getRoot() + error_uri;
+	return OK;
+}
+
+std::string	ConfigResolver::getErrorPageUri(int error_code) const
+{
+
+	std::string	empty;
+	ErrorPageInfo::const_iterator it;
+	for (it = resolved_server->getErrorPages().begin(); it !=  resolved_server->getErrorPages().end(); ++it)
+	{
+		if (it->first == error_code)
+		{
+			return it->second;
+		}
+	}
+	return empty;
 }
 
 /*******************/
