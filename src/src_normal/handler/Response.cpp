@@ -72,7 +72,11 @@ void	Response::initiate(Request const & request)
 
 int	Response::resolveConfig(Request const & request)
 {
-	_config_resolver.resolution(request);
+	if (_config_resolver.resolution(request) == ERR)
+	{
+		markComplete(StatusCode::INTERNAL_SERVER_ERROR);
+		return ERR;
+	}
 	if (_config_resolver.result == ConfigResolver::NOT_FOUND)
 	{
 		markComplete(StatusCode::NOT_FOUND);

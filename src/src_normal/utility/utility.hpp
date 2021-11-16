@@ -43,6 +43,8 @@ void closePipe(int* fds);
 char** getEnvp();
 int makeNonBlocking(int fd);
 
+int list_directory(std::string const & directory, std::string const & path, std::string & content);
+
 /* TODO: RM DEBUGGING */
 	void printStrings(char **strings, FILE* stream);
 

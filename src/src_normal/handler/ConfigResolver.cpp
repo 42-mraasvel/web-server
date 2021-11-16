@@ -1,5 +1,6 @@
 #include "ConfigResolver.hpp"
 #include "settings.hpp"
+#include "utility/utility.hpp"
 #include <iostream>
 #include <unistd.h>
 
@@ -11,7 +12,7 @@ auto_index(false),
 redirect(false)
 {}
 
-void	ConfigResolver::resolution(Request const & request)
+int	ConfigResolver::resolution(Request const & request)
 {
 	// TODO: to delete
 	ConfigMap	map;
@@ -21,10 +22,10 @@ void	ConfigResolver::resolution(Request const & request)
 	ServerVector	server_vector = resolveAddress(map, request.address);
 	resolved_server = resolveHost(request, server_vector);
 	resolved_location = resolveLocation(request.request_target, resolved_server->getLocation());
-	setResult();
-	
 	// Debug:
 	print();
+
+	return setResult();
 }
 
 /*****************************/
@@ -344,35 +345,29 @@ ConfigLocation*	ConfigResolver::resolveAutoIndex(LocationVector::const_iterator 
 /****** set result ******/
 /************************/
 
-void	ConfigResolver::setResult()
+int	ConfigResolver::setResult()
 {
 	if (!resolved_location)
 	{
 		result = NOT_FOUND;
+		return OK;
 	}
-	else
-	{
-		scanLocation();
-	}
+	return scanLocation();
 }
 
-void	ConfigResolver::scanLocation()
+int	ConfigResolver::scanLocation()
 {
 	setResolvedFilePath();
 	if (auto_index)
 	{
-		setAutoIndexPage();
-		result = AUTO_INDEX_ON;
+		return setAutoIndexPage();
 	}
 	else if (resolved_location->redirect)
 	{
-		setRedirect();
-		result = REDIRECT;
+		return setRedirect();
 	}
-	else
-	{
-		result = LOCATION_RESOLVED;
-	}
+	result = LOCATION_RESOLVED;
+	return OK;
 }
 
 void	ConfigResolver::setResolvedFilePath()
@@ -380,19 +375,24 @@ void	ConfigResolver::setResolvedFilePath()
 	resolved_file_path = resolved_location->getRoot() + resolved_target;
 }
 
-void	ConfigResolver::setAutoIndexPage()
+int	ConfigResolver::setAutoIndexPage()
 {
-	// TODO: to add file listing content
-	auto_index_page = 
-	"<html>\n<head><title>Index of /no-index/</title></head>\n<body>\n<h1>Index of /no-index/</h1><hr><pre>\n<a href=\"../\">../</a>\n<a href=\"test.html\">test.html</a>	28-Oct-2021 10:05 0\n</pre><hr></body>\n</html>\n";
+	if (WebservUtility::list_directory(resolved_target, resolved_file_path, auto_index_page) == ERR)
+	{
+		return ERR;
+	}
+	result = AUTO_INDEX_ON;
+	return OK;
 }
 
-void	ConfigResolver::setRedirect()
+int	ConfigResolver::setRedirect()
 {
 	redirect = true;
 	// TODO_config: to incorporate config
 	redirect_info.first = 301;
 	redirect_info.second = "This is the return text from config file.";
+	result = REDIRECT;
+	return OK;
 }
 
 /********************************/
@@ -524,7 +524,7 @@ void	ConfigResolver::createLocations(LocationVector & locations)
 	new_location->addAllowedMethods("DELETE");
 	new_location->redirect = true;
 	locations.push_back(new_location);
-	new_location = new ConfigLocation("/autoindex/");
+	new_location = new ConfigLocation("/auto_index/");
 	new_location->addRoot("./page_sample");
 	new_location->addIndex("nonexistingfile1");
 	new_location->addIndex("nonexistingfile2");

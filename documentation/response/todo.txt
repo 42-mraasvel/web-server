@@ -6,7 +6,6 @@
     - is URL good for Location header?
 
 >> resolve with config file
-    - auto index page to generate content
     - parse resource target %xxx
     - add "=" into location resolution
     - to delete extra in Config files

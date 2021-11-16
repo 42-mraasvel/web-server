@@ -33,7 +33,7 @@ class ConfigResolver
 
 	/* general resolve */
 	public:
-		void	resolution(Request const & request);
+		int	resolution(Request const & request);
 	private:
 		ServerVector	resolveAddress(ConfigMap map, Request::Address client_address);
 		void				setAddress(ConfigMap const & map, Request::Address const & client_address, Request::Address & address);
@@ -59,11 +59,11 @@ class ConfigResolver
 		ConfigLocation*		resolveIndex(LocationVector::const_iterator it_matched, std::string const & request_target, LocationVector const & locations);
 		ConfigLocation*			resolveIndexFile(StringVector indexes, std::string const & request_target, LocationVector const & locations);
 		ConfigLocation*			resolveAutoIndex(LocationVector::const_iterator it_matched);
-		void			setResult();
-		void				scanLocation();
-		void					setResolvedFilePath();
-		void					setAutoIndexPage();
-		void					setRedirect();
+		int			setResult();
+		int				scanLocation();
+		void				setResolvedFilePath();
+		int					setAutoIndexPage();
+		int					setRedirect();
 
 	/* resolve error page */
 	public:
