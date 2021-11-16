@@ -34,7 +34,7 @@ class ContentParser
 
 		bool isError() const;
 		bool isComplete() const;
-		int getStatus() const;
+		int getStatusCode() const;
 
 		void setContentLength(std::size_t length);
 		void setMaxSize(std::size_t max);

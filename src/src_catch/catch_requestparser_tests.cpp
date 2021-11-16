@@ -319,8 +319,9 @@ TEST_CASE("parser: chunked", "[request-parser]")
 		"Network" CRLF
 		"0" CRLF
 		"Trailer: Value" CRLF
-		"Trailer: Value"
-		EOHEADER;
+		"Trailer1: Value1" CRLF
+		"Trailer2: Value2" CRLF
+		CRLF;
 
 	RequestParser parser;
 
@@ -342,6 +343,9 @@ TEST_CASE("parser: chunked", "[request-parser]")
 	example.header_fields["Host"] = "127.0.0.1:80";
 	example.header_fields["Content-Type"] = "text/plain";
 	example.header_fields["Transfer-Encoding"] = "Chunked";
+	example.header_fields["Trailer"] = "Value";
+	example.header_fields["Trailer1"] = "Value1";
+	example.header_fields["Trailer2"] = "Value2";
 	example.message_body = "MozillaDeveloperNetwork";
 
 	REQUIRE(checkNextRequest(parser, example));
@@ -359,7 +363,6 @@ TEST_CASE("parser: chunked invalid", "[request-parser]")
 
 	RequestParser parser;
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i) {
-		
 		parser.parse(prefix + inputs[i]);
 		Request* r = parser.getNextRequest();
 		REQUIRE(r != NULL);

@@ -31,5 +31,5 @@ TEST_CASE("ContentParser Error", "[parser]")
 	}
 
 	REQUIRE(parser.isError());
-	REQUIRE(parser.getStatus() == StatusCode::PAYLOAD_TOO_LARGE);
+	REQUIRE(parser.getStatusCode() == StatusCode::PAYLOAD_TOO_LARGE);
 }

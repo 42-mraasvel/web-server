@@ -230,11 +230,11 @@ If chunked has a parsing error, then there is a bad request
 */
 int RequestParser::parseChunked()
 {
-	if (_chunked_parser.parse(_buffer, _index, _request->message_body) == ERR)
+	if (_chunked_parser.parse(_buffer, _index, *_request) == ERR)
 	{
 		delimitRequest(Request::BAD_REQUEST);
 	}
-	else if (_chunked_parser.finished())
+	else if (_chunked_parser.isComplete())
 	{
 		delimitRequest(Request::COMPLETE);
 	}
@@ -603,6 +603,7 @@ void RequestParser::clearToIndex()
 
 void RequestParser::resetBuffer()
 {
+	_chunked_parser.reset();
 	_buffer.clear();
 	_index = 0;
 }

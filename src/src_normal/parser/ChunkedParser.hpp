@@ -6,6 +6,8 @@
 # include <sys/types.h> // ssize_t
 # include <vector>
 
+struct Request;
+
 class ChunkedParser
 {
 	private:
@@ -21,9 +23,8 @@ class ChunkedParser
 			TRAILER,
 			ENDLINE,
 			DISCARD_LINE,
-			ERROR,
 			COMPLETE,
-			FINISHED
+			ERROR
 		};
 
 	public:
@@ -33,8 +34,7 @@ class ChunkedParser
 	/*
 	Parses the next buffer and appends it to body
 	*/
-		int parse(std::string const & buffer, std::size_t & index, std::string & body);
-		bool finished() const;
+		int parse(std::string const & buffer, std::size_t & index, Request & request);
 
 		void setMaxSize(std::size_t max);
 		bool isParsing() const;
@@ -46,25 +46,21 @@ class ChunkedParser
 
 		int setComplete();
 		int setError();
+		int setError(int code);
+		int addHeaderFields(Request & request);
 
-		int parseSize(std::string const & buffer, std::size_t & index, std::string & body);
-		int parseData(std::string const & buffer, std::size_t & index, std::string & body);
-		int parseTrailer(std::string const & buffer, std::size_t & index, std::string & body);
-		int parseEndLine(std::string const & buffer, std::size_t & index, std::string & body);
-		int parseDiscardLine(std::string const & buffer, std::size_t & index, std::string & body);
-
-		bool hasCRLF(std::string const & buffer, std::size_t index);
+		int parseSize(std::string const & buffer, std::size_t & index, Request & request);
+		int parseData(std::string const & buffer, std::size_t & index, Request & request);
+		int parseTrailer(std::string const & buffer, std::size_t & index, Request & request);
+		int parseEndLine(std::string const & buffer, std::size_t & index, Request & request);
+		int parseDiscardLine(std::string const & buffer, std::size_t & index, Request & request);
 
 		typedef int (ChunkedParser::*StateParserType)(std::string const & buffer,
 														std::size_t & index,
-														std::string & body);
+														Request & request);
 		typedef std::vector<StateParserType> StateDispatchTableType;
 
 		static StateDispatchTableType createStateDispatch();
-
-		typedef bool (*IsFunctionType)(char x);
-		void skip(std::string const & buffer, std::size_t & index, IsFunctionType callback);
-
 
 	/* Debugging */
 
@@ -78,6 +74,7 @@ class ChunkedParser
 		std::size_t _max_size;
 		std::size_t _chunk_size;
 		std::string _leftover;
+		int _status_code;
 
 		ContentParser _content_parser;
 		HeaderFieldParser _header_parser;

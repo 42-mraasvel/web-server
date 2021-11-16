@@ -49,7 +49,7 @@ bool ContentParser::isComplete() const
 	return _state == ContentParser::COMPLETE;
 }
 
-int ContentParser::getStatus() const
+int ContentParser::getStatusCode() const
 {
 	return _status_code;
 }

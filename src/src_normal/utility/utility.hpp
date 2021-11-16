@@ -45,6 +45,7 @@ void closePipe(int* fds);
 char** getEnvp();
 int makeNonBlocking(int fd);
 const char*	ft_basename(const char* x);
+bool additionOverflow(std::size_t x, std::size_t y);
 
 /* TODO: RM DEBUGGING */
 	void printStrings(char **strings, FILE* stream);
