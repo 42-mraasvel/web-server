@@ -4,20 +4,19 @@
 #include <string>
 #include "ConfigLocation.hpp"
 
-
 typedef struct s_ServerBlock
 {
 	size_t 						_client_body_size;
 	std::vector<std::string>	_server_names;
 	std::vector<std::pair<int, std::string> >	_error_pages;
-	std::vector<LocationBlock> _locations;
+	std::vector<LocationBlock*> _locations;
 }				ServerBlock;
 
 
 class ConfigServer
 {
 	public:
-		typedef std::vector<ServerBlock> 					server_block_vector;
+		typedef std::vector<ServerBlock*> 					server_block_vector;
 		typedef std::pair<std::string, int>					ip_host_pair;
 		typedef std::map<ip_host_pair, server_block_vector>	address_map;
 
@@ -39,7 +38,7 @@ class ConfigServer
 	// getters
 		std::string getHostName();
 		std::vector<int> getPorts();
-		std::vector<ServerBlock> getServerBlock();
+		std::vector<ServerBlock*> getServerBlock();
 		address_map getAddressMap();
 
 	// Utility 
@@ -59,7 +58,7 @@ class ConfigServer
 		std::vector<std::string>					_server_name;
 		std::vector<std::pair<int, std::string> >	_error_pages;
 		std::vector<ConfigLocation>					_locations;
-		std::vector<ServerBlock>					_server_block;
+		std::vector<ServerBlock*>					_server_block;
 		address_map									_address_map;
 
 

@@ -41,7 +41,7 @@ void ConfigLocation::addReturn(int code, std::string path)
 	this->_return = std::make_pair(code, path);
 }
 
-LocationBlock ConfigLocation::getLocationBlock()
+LocationBlock* ConfigLocation::getLocationBlock()
 {
 	initLocationBlock();
 	return this->_location_block;
@@ -49,13 +49,14 @@ LocationBlock ConfigLocation::getLocationBlock()
 
 void ConfigLocation::initLocationBlock()
 {
-	_location_block._path = _path;
-	_location_block._root = _root;
-	_location_block._index = _index;
-	_location_block._allowed_methods = _allowed_methods;
-	_location_block._cgi = _cgi;
-	_location_block._autoindex_status = _autoindex_status;
-	_location_block._return = _return;
+	_location_block = new LocationBlock;
+	_location_block->_path = _path;
+	_location_block->_root = _root;
+	_location_block->_index = _index;
+	_location_block->_allowed_methods = _allowed_methods;
+	_location_block->_cgi = _cgi;
+	_location_block->_autoindex_status = _autoindex_status;
+	_location_block->_return = _return;
 }
 
 /* Debugging */

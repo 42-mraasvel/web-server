@@ -82,13 +82,13 @@ ConfigServer::const_iterator ConfigServer::end() const
 }
 
 
-std::vector<ServerBlock> ConfigServer::getServerBlock()
+std::vector<ServerBlock*> ConfigServer::getServerBlock()
 {
 	initServerBlock();
 	return this->_server_block;
 }
 
-std::map<std::pair<std::string, int>, std::vector<ServerBlock> > ConfigServer::getAddressMap()
+std::map<std::pair<std::string, int>, std::vector<ServerBlock*> > ConfigServer::getAddressMap()
 {
 	initAddressMap();
 
@@ -102,8 +102,6 @@ void	ConfigServer::initAddressMap()
 	initServerBlock();
 	for (size_t i = 0; i < _address.size(); i++)
 	{
-		printAddress(i);
-		// printServerBlock();
 		_address_map.insert(std::make_pair(_address[i], _server_block));
 	}
 }
@@ -111,13 +109,13 @@ void	ConfigServer::initAddressMap()
 
 void	ConfigServer::initServerBlock()
 {
-	ServerBlock tmp;
-	tmp._client_body_size = _client_body_size;
-	tmp._server_names = _server_name;
-	tmp._error_pages = _error_pages;
+	ServerBlock *tmp = new ServerBlock;
+	tmp->_client_body_size = _client_body_size;
+	tmp->_server_names = _server_name;
+	tmp->_error_pages = _error_pages;
 	for (size_t i = 0; i < _locations.size(); i++)
 	{
-		tmp._locations.push_back(_locations[i].getLocationBlock());
+		tmp->_locations.push_back(_locations[i].getLocationBlock());
 	}
 	_server_block.push_back(tmp);
 }
@@ -176,12 +174,6 @@ void ConfigServer::printErrorPages() const
 	}
 	std::cout << ']' << std::endl;
 }
-
-// void ConfigServer::printHostName() const
-// {
-// 		std::cout << "  " CYAN_BOLD << "Host name:" RESET_COLOR " [";
-// 	std::cout << ']' << std::endl;
-// }
 
 void	ConfigServer::printAddress(int index) const
 {

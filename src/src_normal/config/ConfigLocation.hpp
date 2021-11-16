@@ -3,6 +3,8 @@
 #include <map>
 #include <string>
 
+enum location_flag {NONE, EQUAL};
+
 typedef struct s_LocationBlock
 {
 	std::string											_path;
@@ -28,7 +30,7 @@ class ConfigLocation
 		void	addReturn(int code, std::string path);
 
 	// Utility
-		LocationBlock getLocationBlock();
+		LocationBlock* getLocationBlock();
 		void	initLocationBlock();
 
 	private:
@@ -40,7 +42,8 @@ class ConfigLocation
 		size_t						_client_body_size;
 		bool						_autoindex_status;
 		std::pair<int, std::string>	_return;
-		LocationBlock				_location_block;
+		location_flag				_location_flag;
+		LocationBlock				*_location_block;
 
 	/* Debugging */
 	public:

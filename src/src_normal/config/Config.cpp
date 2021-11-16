@@ -469,19 +469,14 @@ void	Config::initAddressMap()
 			ret = _address_map.insert(std::make_pair(it->first, it->second));
 			if (ret.second == false)
 			{
-				std::cout << RED_BOLD "insert second serverblock in map" << std::endl;
 				map_it = _address_map.find(it->first);
 				map_it->second.push_back(it->second[0]);
-			}
-			else
-			{
-				std::cout << GREEN_BOLD "insert succesful" << std::endl;
 			}
 		}
 	}
 }
 
-std::map<std::pair<std::string, int>, std::vector<ServerBlock> >	Config::getAddressMap()
+std::map<std::pair<std::string, int>, std::vector<ServerBlock*> >	Config::getAddressMap()
 {
 	return this->_address_map;
 }
@@ -535,61 +530,61 @@ void	Config::printServerBlock(const_iterator_map node) const
 	for (size_t i = 0; i < node->second.size(); i++)
 	{
 		std::cout << MAGENTA_BOLD "    ServerBlock #"  << i+1 << RESET_COLOR<< std::endl;
-		std::cout << "\tClient size : " << node->second[i]._client_body_size << std::endl;
+		std::cout << "\tClient size : " << node->second[i]->_client_body_size << std::endl;
 		std::cout << "\tserver Names:" << std::endl;
-		for (size_t j = 0; j < node->second[i]._server_names.size(); j++)
+		for (size_t j = 0; j < node->second[i]->_server_names.size(); j++)
 		{
-			std::cout << "\t  " << node->second[i]._server_names[j] << std::endl;
+			std::cout << "\t  " << node->second[i]->_server_names[j] << std::endl;
 		}
 		std::cout << "\terror pages:" << std::endl;
-		for (size_t j = 0; j < node->second[i]._error_pages.size(); j++)
+		for (size_t j = 0; j < node->second[i]->_error_pages.size(); j++)
 		{
-			std::cout << "\t  " << node->second[i]._error_pages[j].first << ", " << node->second[i]._error_pages[j].second << std::endl;
+			std::cout << "\t  " << node->second[i]->_error_pages[j].first << ", " << node->second[i]->_error_pages[j].second << std::endl;
 		}
-		for (size_t j = 0; j < node->second[i]._locations.size(); j++)
+		for (size_t j = 0; j < node->second[i]->_locations.size(); j++)
 		{
 			std::cout << YELLOW_BOLD "    location #" << j+1 << RESET_COLOR << std::endl;
-			printLocationBlock(node->second[i]._locations[j]);
+			printLocationBlock(node->second[i]->_locations[j]);
 		}
 	}
 }
 
-void	Config::printLocationBlock(LocationBlock location) const
+void	Config::printLocationBlock(LocationBlock *location) const
 {
-	std::cout << "\t  path: " << location._path << std::endl;
-	std::cout << "\t  root: " << location._root << std::endl;
+	std::cout << "\t  path: " << location->_path << std::endl;
+	std::cout << "\t  root: " << location->_root << std::endl;
 	std::cout << "\t  index: " ;
-	for (size_t i = 0; i < location._index.size(); i++)
+	for (size_t i = 0; i < location->_index.size(); i++)
 	{
 		if (i != 0)
 		{
 			std::cout << ", ";
 		}
-		std::cout << location._index[i];
+		std::cout << location->_index[i];
 	}
 	std::cout << std::endl;
 	std::cout << "\t  Allowed Methods: " ;
-	for (size_t i = 0; i < location._allowed_methods.size(); i++)
+	for (size_t i = 0; i < location->_allowed_methods.size(); i++)
 	{
 		if (i != 0)
 		{
 			std::cout << ", ";
 		}
-		std::cout << location._allowed_methods[i];
+		std::cout << location->_allowed_methods[i];
 	}
 	std::cout << std::endl;
 	std::cout << "\t  CGI: " ;
-	for (size_t i = 0; i < location._cgi.size(); i++)
+	for (size_t i = 0; i < location->_cgi.size(); i++)
 	{
 		if (i != 0)
 		{
 			std::cout <<"; ";
 		}
-		std::cout << location._cgi[i].first << ", " << location._cgi[i].second;
+		std::cout << location->_cgi[i].first << ", " << location->_cgi[i].second;
 	}
 	std::cout << std::endl;
 	std::cout << "\t  Autoindex status: ";
-	if (location._autoindex_status)
+	if (location->_autoindex_status)
 	{
 		std::cout << "ON";
 	}
@@ -599,6 +594,6 @@ void	Config::printLocationBlock(LocationBlock location) const
 	}
 	std::cout << std::endl;
 	std::cout << "\t  Return: " ;
-	std::cout << location._return.first << ", " << location._return.second;
+	std::cout << location->_return.first << ", " << location->_return.second;
 	std::cout << std::endl;
 }
