@@ -33,8 +33,6 @@ class Response
 		void		evaluateConnectionFlag(Request const & request);
 		int			validateRequest(Request const & request, bool is_config_completed);
 		void		processImmdiateResponse(Request const & request);
-		bool			isAudoIndexResponse() const;
-		void			processAudoIndexResponse();
 		bool			isRedirectResponse() const;
 		void			processRedirectResponse();
 		bool			isContinueResponse(Request const & request) const;
@@ -50,11 +48,6 @@ class Response
 	public:
 		void	generateResponse();
 	private:
-		void		evaluateExecutionError();
-		void		setMessageBody();
-		void			setHandlerMessageBody();
-		void			setErrorPage();
-		void		evaluateExecutionCompletion();
 		void		setStringToSend();
 		void			noChunked();
 		void			doChunked();
@@ -74,6 +67,17 @@ class Response
 		void				setStringHeaderField();
 
 
+	/* Client::update() */
+	public:
+		void	update(FdTable & fd_table);
+	private:
+		void		evaluateExecutionError();
+		void		setMessageBody(FdTable & fd_table);
+		void			setHandlerMessageBody();
+		bool			isErrorPageRedirected(FdTable & fd_table);
+		void			setOtherErrorPage();
+		void		evaluateExecutionCompletion();
+
 	/* utility */
 	public:
 		typedef RequestParser::header_field_t::const_iterator	header_iterator;
@@ -83,9 +87,6 @@ class Response
 		void				clearString();
 		bool				isComplete() const;
 		bool				isHandlerReadyToWrite() const;
-	
-	/* Added for the CgiHandler */
-		void				update();
 	private:
 		typedef	std::vector<std::string>::const_iterator		method_iterator;
 		void				markComplete(int code);

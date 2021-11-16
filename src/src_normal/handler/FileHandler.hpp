@@ -32,6 +32,7 @@ class FileHandler
 	public:
 		bool	evaluateExecutionError();
 		bool	evaluateExecutionCompletion();
+		int		redirectErrorPage(FdTable & fd_table, std::string const & file_path, int status_code);
 		void	setMessageBody(std::string & message_body, std::string const & effective_request_uri);
 	private:
 		void		setMessageBodyGet(std::string & message_body);
@@ -41,6 +42,7 @@ class FileHandler
 	/* utility */
 	public:
 		void    setAbsoluteFilePath(std::string const & path);
+		std::string    getAbsoluteFilePath() const;
 		int		getStatusCode() const;
 		bool	isChunked(std::string const & http_version) const;
 		bool	isFileReadyForResponse() const;
@@ -60,5 +62,4 @@ class FileHandler
 		File*           _file;
 		int             _status_code;
 	   
-
 };

@@ -7,7 +7,6 @@
 
 >> resolve with config file
     - auto index page to generate content
-    - set default error page
     - parse resource target %xxx
     - add "=" into location resolution
     - to delete extra in Config files
@@ -16,7 +15,7 @@
         - modifier for location?
 
 >> To discuss:
-    - how to improve the update() process? CgiHandler is not doing anything fot evaluateExecutionCompletion()...
+    - how to improve the update() process? CgiHandler is not doing anything fot evaluateExecutionCompletion()...evaluateExecutionError()
     - implementation of MediaType + how to define charset?
     - if only send a string, no response for bad-request?
     - tear-down process go through

@@ -6,7 +6,11 @@
 #include <fcntl.h>
 #include <cstdlib>
 
-FileHandler::FileHandler(MethodType method): _method(method), _file(NULL) {}
+FileHandler::FileHandler(MethodType method):
+_method(method),
+_file(NULL),
+_status_code(0)
+{}
 
 FileHandler::~FileHandler()
 {
@@ -57,19 +61,28 @@ void	FileHandler::setFileParameter()
 			_access_flag = R_OK;
 			_open_flag = O_RDONLY;
 			_file_event = AFdInfo::READING;
-			_status_code = StatusCode::STATUS_OK;
+			if (_status_code == 0)
+			{
+				_status_code = StatusCode::STATUS_OK;
+			}
 			return ;
 		case POST:
 			_access_flag = W_OK;
 			_open_flag = O_CREAT | O_WRONLY | O_APPEND;
 			_file_event = AFdInfo::WRITING;
-			_status_code = StatusCode::CREATED;
+			if (_status_code == 0)
+			{
+				_status_code = StatusCode::CREATED;
+			}
 			return ;
 		case DELETE:
 			_access_flag = W_OK;
 			_open_flag = O_WRONLY;
 			_file_event = AFdInfo::WAITING;
-			_status_code = StatusCode::NO_CONTENT;
+			if (_status_code == 0)
+			{
+				_status_code = StatusCode::NO_CONTENT;
+			}
 			return ;
 		case OTHER:
 		default:
@@ -181,15 +194,16 @@ void	FileHandler::updateFileEvent(FdTable & fd_table)
 	_file->updateEvents(_file_event, fd_table);
 }
 
-/********************************************/
-/****** generate response - evaluateion *****/
-/********************************************/
+/*******************/
+/****** update *****/
+/*******************/
 
 bool	FileHandler::evaluateExecutionError()
 {
 	if (isFileError())
 	{
 		deleteFile();
+		_status_code = StatusCode::INTERNAL_SERVER_ERROR;
 		return true;
 	}
 	return false;
@@ -205,9 +219,18 @@ bool	FileHandler::evaluateExecutionCompletion()
 	return false;
 }
 
-/*********************************************/
-/****** generate response - message body *****/
-/*********************************************/
+int	FileHandler::redirectErrorPage(FdTable & fd_table, std::string const & file_path, int status_code)
+{
+	_method = GET;
+	_absolute_file_path = file_path;
+	_status_code = status_code;
+	Request	empty_request;
+	return executeRequest(fd_table, empty_request);
+}
+
+/**************************************/
+/****** update - set message body *****/
+/**************************************/
 
 void	FileHandler::setMessageBody(std::string & message_body, std::string const & effective_request_uri)
 {
@@ -251,6 +274,11 @@ void	FileHandler::setMessageBodyDelete(std::string & message_body)
 void    FileHandler::setAbsoluteFilePath(std::string const & path)
 {
 	_absolute_file_path = path;
+}
+
+std::string    FileHandler::getAbsoluteFilePath() const
+{
+	return _absolute_file_path;
 }
 
 int	FileHandler::getStatusCode() const

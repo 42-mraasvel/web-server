@@ -272,12 +272,9 @@ void	Client::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
 
 void	Client::update(FdTable & fd_table)
 {
-	if (!_response_queue.empty())
+	for (ResponseQueue::const_iterator it = _response_queue.begin(); it != _response_queue.end(); ++it)
 	{
-		//TODO: DISCUSS: Only the first response is called in the update,
-		//causing other responses to not be cleaned up, etc:
-		// it might be better to simply only execute the front request after all
-		_response_queue.front()->update();
+		(*it)->update(fd_table);
 	}
 	if (!_response_string.empty()
 		|| isResponseReadyToWrite())

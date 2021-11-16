@@ -268,7 +268,7 @@ ConfigLocation*	ConfigResolver::resolveLocation(std::string const & request_targ
 			return *it_matched;
 		}
 	}
-	return NULL; // TODO: return 404 not found
+	return NULL;
 }
 
 bool	ConfigResolver::isMatchLocation(std::string const & request_target, LocationVector const & locations, LocationVector::const_iterator & it_matched)
@@ -399,22 +399,21 @@ void	ConfigResolver::setRedirect()
 /****** resolve error page ******/
 /********************************/
 
-bool	ConfigResolver::isDefaultErrorPage(int error_code) const
+int	ConfigResolver::resolveErrorPage(int error_code, std::string & file_path)
 {
 	ErrorPageInfo::const_iterator it;
 	for (it = resolved_server->getErrorPages().begin(); it !=  resolved_server->getErrorPages().end(); ++it)
 	{
 		if (it->first == error_code)
 		{
-			return true;
+			return findErrorFilePath(it->second, file_path);
 		}
 	}
-	return false;
+	return ERR;
 }
 
-int	ConfigResolver::resolveErrorPage(int error_code, std::string & file_path)
+int	ConfigResolver::findErrorFilePath(std::string const & error_uri, std::string & file_path)
 {
-	std::string	error_uri = getErrorPageUri(error_code);
 	ConfigLocation*	location = resolveLocation(error_uri, resolved_server->getLocation());
 	if (!location)
 	{
@@ -422,21 +421,6 @@ int	ConfigResolver::resolveErrorPage(int error_code, std::string & file_path)
 	}
 	file_path = location->getRoot() + error_uri;
 	return OK;
-}
-
-std::string	ConfigResolver::getErrorPageUri(int error_code) const
-{
-
-	std::string	empty;
-	ErrorPageInfo::const_iterator it;
-	for (it = resolved_server->getErrorPages().begin(); it !=  resolved_server->getErrorPages().end(); ++it)
-	{
-		if (it->first == error_code)
-		{
-			return it->second;
-		}
-	}
-	return empty;
 }
 
 /*******************/
@@ -461,6 +445,7 @@ void	ConfigResolver::createServers(ServerVector & servers, LocationVector const 
 	new_server = new ConfigServer;
 	new_server->addServerName("localhost");
 	new_server->addServerName("localhost.com");
+	new_server->addErrorPage(404, "/error/404.html");
 	new_server->_locationptrs = locations;
 	servers.push_back(new_server);
 	new_server = new ConfigServer;
@@ -547,6 +532,10 @@ void	ConfigResolver::createLocations(LocationVector & locations)
 	new_location->addAllowedMethods("GET");
 	new_location->addAllowedMethods("POST");
 	new_location->addAllowedMethods("DELETE");
+	locations.push_back(new_location);
+	new_location = new ConfigLocation("/error/");
+	new_location->addRoot("./page_sample");
+	new_location->addAllowedMethods("GET");
 	locations.push_back(new_location);
 }
 

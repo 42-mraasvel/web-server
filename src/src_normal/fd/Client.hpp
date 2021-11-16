@@ -48,6 +48,7 @@ class Client : public AFdInfo
 	/* utility */
 	public:
 		typedef RequestParser::header_field_t::iterator header_iterator;
+		typedef std::deque< Response * >	ResponseQueue;
 		void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 		void	update(FdTable & fd_table);
 	
@@ -62,7 +63,7 @@ class Client : public AFdInfo
 		RequestParser			_request_parser;
 		Request*				_request;
 		Response*				_new_response;
-		std::deque<Response *>	_response_queue;
+		ResponseQueue			_response_queue;
 		Response*				_response;
 		std::string				_response_string;
 };

@@ -31,6 +31,7 @@ class ConfigResolver
 		ConfigResult	result;
 
 
+	/* general resolve */
 	public:
 		void	resolution(Request const & request);
 	private:
@@ -64,11 +65,11 @@ class ConfigResolver
 		void					setAutoIndexPage();
 		void					setRedirect();
 
+	/* resolve error page */
 	public:
-		bool	isDefaultErrorPage(int error_code) const;
-		void	resolveErrorPage(int error_code);
-		std::string	getErrorPageUri(int error_code) const;
-		int			resolveErrorPage(int error_code, std::string & file_path);
+		int	resolveErrorPage(int error_code, std::string & file_path);
+	private:
+		int		findErrorFilePath(std::string const & error_uri, std::string & file_path);
 
 	public:
 		std::string		auto_index_page;

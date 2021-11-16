@@ -75,12 +75,14 @@ int	Response::resolveConfig(Request const & request)
 	_config_resolver.resolution(request);
 	if (_config_resolver.result == ConfigResolver::NOT_FOUND)
 	{
-		// TODO: process 404 not found
+		markComplete(StatusCode::NOT_FOUND);
 		return ERR;
 	}
 	if (_config_resolver.result == ConfigResolver::AUTO_INDEX_ON)
 	{
-		// TODO: process auto index
+		markComplete(StatusCode::STATUS_OK);
+		_message_body = _config_resolver.auto_index_page;
+		return ERR;
 	}
 	setEffectiveRequestURI(_config_resolver.resolved_host, request.address.second, _config_resolver.resolved_target);
 	setAbsoluteFilePath(_config_resolver.resolved_location->getRoot(), _config_resolver.resolved_file_path);
@@ -163,11 +165,7 @@ int	Response::validateRequest(Request const & request, bool is_config_completed)
 
 void	Response::processImmdiateResponse(Request const & request)
 {
-	if (isAudoIndexResponse())
-	{
-		processAudoIndexResponse();
-	}
-	else if (isRedirectResponse())
+	if (isRedirectResponse())
 	{
 		processRedirectResponse();
 	}
@@ -175,17 +173,6 @@ void	Response::processImmdiateResponse(Request const & request)
 	{
 		processContinueResponse();
 	}
-}
-
-bool	Response::isAudoIndexResponse() const
-{
-	return _config_resolver.result == ConfigResolver::AUTO_INDEX_ON;
-}
-
-void	Response::processAudoIndexResponse()
-{
-	markComplete(StatusCode::STATUS_OK);
-	_message_body = _config_resolver.auto_index_page;
 }
 
 bool	Response::isRedirectResponse() const
@@ -280,85 +267,7 @@ void	Response::defineEncoding()
 
 void	Response::generateResponse()
 {
-	evaluateExecutionError();
-	setMessageBody();
-	evaluateExecutionCompletion();
 	setStringToSend();
-}
-
-void	Response::evaluateExecutionError()
-{
-	if (_status != COMPLETE)
-	{
-		if (_is_cgi)
-		{
-			if (_cgi_handler.evaluateExecutionError())
-			{
-				markComplete(_cgi_handler.getStatusCode());
-			}
-		}
-		else
-		{
-			if (_file_handler.evaluateExecutionError())
-			{
-				markComplete(StatusCode::INTERNAL_SERVER_ERROR);
-			}
-		}
-	}
-}
-
-void	Response::setMessageBody()
-{
-	if (_status != COMPLETE)
-	{
-		setHandlerMessageBody();
-	}
-	else if (_message_body.empty())
-	{
-		setErrorPage();
-	}
-}
-
-void	Response::setHandlerMessageBody()
-{
-	if (_is_cgi)
-	{
-		// TODO_CGI Set HeaderFields
-		// Discuss: can I set headerFields inside this function too?
-		_cgi_handler.setMessageBody(_message_body);
-	}
-	else
-	{
-		_file_handler.setMessageBody(_message_body, _effective_request_uri);
-	}
-}
-
-void	Response::setErrorPage()
-{
-	//TODO: to modify message
-	_message_body = WebservUtility::itoa(_status_code) + " "
-					+ StatusCode::getStatusMessage(_status_code) + "\n";
-}
-
-void	Response::evaluateExecutionCompletion()
-{
-	if (_status != COMPLETE)
-	{
-		if (_is_cgi)
-		{
-			if (_cgi_handler.evaluateExecutionCompletion())
-			{
-				markComplete(_cgi_handler.getStatusCode());
-			}
-		}
-		else
-		{
-			if (_file_handler.evaluateExecutionCompletion())
-			{
-				markComplete(_file_handler.getStatusCode());
-			}
-		}
-	}
 }
 
 /****************************************************/
@@ -549,21 +458,22 @@ void	Response::setContentType()
 		if ( _config_resolver.result == ConfigResolver::AUTO_INDEX_ON)
 		{
 			_header_fields["Content-Type"] = "text/html";
+			return ;
 		}
-		else if (_method == GET && _status_code == 200)
+		std::string file = _file_handler.getAbsoluteFilePath();
+		if (_method == GET && !file.empty())
 		{
-			size_t	find = _config_resolver.resolved_file_path.find_last_of(".");
-			std::string extensin = _config_resolver.resolved_file_path.substr(find);
+			size_t	find = file.find_last_of(".");
+			std::string extensin = file.substr(find);
 			if (_media_type_map.contains(extensin))
 			{
 				_header_fields["Content-Type"] = _media_type_map.get();
+				return ;
 			}
-			else
-			{
-				_header_fields["Content-Type"] = "application/octet-stream";
-			}
+			_header_fields["Content-Type"] = "application/octet-stream";
+			return ;
 		}
-		else if (!_message_body.empty())
+		if (!_message_body.empty())
 		{
 			_header_fields["Content-Type"] = "text/plain;charset=UTF-8";
 		}
@@ -576,6 +486,108 @@ void	Response::setStringHeaderField()
 	{
 		_string_header_field += (i->first + ": " + i->second + NEWLINE);
 	}
+}
+
+/******************************/
+/****** Client::update() ******/
+/******************************/
+
+void	Response::update(FdTable & fd_table)
+{
+	evaluateExecutionError();
+	setMessageBody(fd_table);
+	evaluateExecutionCompletion();
+}
+
+// TODO_cgi: to discuss where to put this function
+void	Response::evaluateExecutionError()
+{
+	if (_status != COMPLETE)
+	{
+		if (_is_cgi)
+		{
+			if (_cgi_handler.evaluateExecutionError())
+			{
+				markComplete(_cgi_handler.getStatusCode());
+			}
+		}
+		else
+		{
+			if (_file_handler.evaluateExecutionError())
+			{
+				markComplete(_file_handler.getStatusCode());
+			}
+		}
+	}
+}
+
+void	Response::evaluateExecutionCompletion()
+{
+	if (_status != COMPLETE)
+	{
+		if (_is_cgi)
+		{
+			if (_cgi_handler.evaluateExecutionCompletion())
+			{
+				markComplete(_cgi_handler.getStatusCode());
+			}
+		}
+		else
+		{
+			if (_file_handler.evaluateExecutionCompletion())
+			{
+				markComplete(_file_handler.getStatusCode());
+			}
+		}
+	}
+}
+
+/*************************************************/
+/****** Client::update() - set message body ******/
+/*************************************************/
+
+void	Response::setMessageBody(FdTable & fd_table)
+{
+	if (_status != COMPLETE)
+	{
+		setHandlerMessageBody();
+	}
+	else if (_message_body.empty())
+	{
+		if (isErrorPageRedirected(fd_table))
+		{
+			_status = START;
+			return ;
+		}
+		setOtherErrorPage();
+	}
+}
+
+void	Response::setHandlerMessageBody()
+{
+	if (_is_cgi)
+	{
+		// TODO_CGI Set HeaderFields
+		// Discuss: can I set headerFields inside this function too?
+		_cgi_handler.setMessageBody(_message_body);
+	}
+	else
+	{
+		_file_handler.setMessageBody(_message_body, _effective_request_uri);
+	}
+}
+
+bool	Response::isErrorPageRedirected(FdTable & fd_table)
+{
+	std::string file_path;
+	return _config_resolver.resolveErrorPage(_status_code, file_path) == OK
+		&& _file_handler.redirectErrorPage(fd_table, file_path, _status_code) == OK;
+}
+
+void	Response::setOtherErrorPage()
+{
+	_message_body = WebservUtility::itoa(_status_code) + " "
+					+ StatusCode::getStatusMessage(_status_code) + "\n";
 }
 
 /******************************/
@@ -616,15 +628,6 @@ bool	Response::isHandlerReadyToWrite() const
 	else
 	{
 		return _file_handler.isFileReadyForResponse();
-	}
-}
-
-/* Called before Fds are erased, from Client::update */
-void	Response::update()
-{
-	if (_is_cgi)
-	{
-		_cgi_handler.update();
 	}
 }
 
