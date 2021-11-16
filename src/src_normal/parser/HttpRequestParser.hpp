@@ -22,7 +22,7 @@ class HttpRequestParser
 			PARSE_CONTENT,
 			ERROR,
 			COMPLETE
-		}
+		};
 
 	public:
 

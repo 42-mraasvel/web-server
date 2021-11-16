@@ -564,7 +564,7 @@ int RequestParser::parseEndLine()
 
 void RequestParser::skip(IsFunctionT condition)
 {
-	while (condition(_buffer[_index]) && _index < _buffer.size())
+	while (_index < _buffer.size() && condition(_buffer[_index]))
 	{
 		++_index;
 	}

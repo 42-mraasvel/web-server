@@ -25,6 +25,24 @@ Debugging
 Move to become part of REQUEST
 */
 
+MethodType Request::getMethodType(std::string const & s)
+{
+	static const std::string types[] = {
+		"GET",
+		"POST",
+		"DELETE"
+	};
+
+	for (int i = GET; i < OTHER; ++i)
+	{
+		if (types[i] == s)
+		{
+			return static_cast<MethodType>(i);
+		}
+	}
+	return OTHER;
+}
+
 std::string Request::getMethodString() const
 {
 	switch (method)

@@ -2,7 +2,7 @@
 
 # include <string>
 
-class Request;
+struct Request;
 
 class RequestLineParser
 {
@@ -25,14 +25,30 @@ class RequestLineParser
 		bool isError() const;
 	
 	private:
-
 		bool hasEndLine(std::string const & buffer, std::size_t index);
-		int appendLeftover(std::string const & buffer, std::size_t & index);
+		int appendLeftover(std::string const & buffer, std::size_t & index,
+						std::size_t len);
 		int setError(int code);
+		int setComplete();
+
+	/* Actual Parsing */
+	
+		int		parseRequestLine(Request & request);
+		int		parseSpace();
+		int		parseMethod(Request & request);
+		int		parseTargetResource(Request & request);
+		int		skipAbsolutePath();
+		int		skipQuery();
+		int		parseVersion(Request & request);
+		int		parseMajorVersion(Request & request);
+		int		parseMinorVersion(Request & request);
+		int		parseEndLine() const;
+
 
 	private:
 
 		State _state;
 		std::string _leftover;
+		std::size_t _index;
 		int _status_code;
 };

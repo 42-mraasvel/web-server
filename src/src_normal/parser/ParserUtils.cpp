@@ -34,4 +34,12 @@ void skipEndLine(std::string const & buffer, std::size_t & index)
 	}
 }
 
+void skip(std::string const & buffer, std::size_t & index, IsFunctionType pred)
+{
+	while (index < buffer.size() && pred(buffer[index]))
+	{
+		++index;
+	}
+}
+
 }
