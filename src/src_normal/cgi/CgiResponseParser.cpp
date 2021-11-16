@@ -63,7 +63,7 @@ void CgiResponseParser::parseHeader(std::string const & buffer,
 			setError(StatusCode::BAD_GATEWAY);
 		}
 	}
-	else if (_header_parser.getState() == HeaderFieldParser::COMPLETE)
+	else if (_header_parser.isComplete())
 	{
 		setContentParsing();
 	}
@@ -92,7 +92,7 @@ void CgiResponseParser::parseContent(std::string const & buffer,
 		//TODO: BAD_GATEWAY or PAYLOAD_TOO_LARGE?
 		setError(StatusCode::BAD_GATEWAY);
 	}
-	else if (_content_parser.getState() == ContentParser::COMPLETE)
+	else if (_content_parser.isComplete())
 	{
 		setState(CgiResponseParser::COMPLETE);
 	}
@@ -120,11 +120,6 @@ void CgiResponseParser::reset()
 	_content_parser.reset();
 }
 
-CgiResponseParser::State CgiResponseParser::getState() const
-{
-	return _state;
-}
-
 int CgiResponseParser::getStatusCode() const
 {
 	return _status_code;
@@ -140,4 +135,14 @@ int CgiResponseParser::setError(int status)
 void CgiResponseParser::setState(State state)
 {
 	_state = state;
+}
+
+bool CgiResponseParser::isError() const
+{
+	return _state == CgiResponseParser::ERROR;
+}
+
+bool CgiResponseParser::isComplete() const
+{
+	return _state == CgiResponseParser::COMPLETE;
 }

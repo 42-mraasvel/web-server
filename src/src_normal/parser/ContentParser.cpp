@@ -39,9 +39,14 @@ void ContentParser::setMaxSize(std::size_t max)
 	_max_size = max;
 }
 
-ContentParser::State ContentParser::getState() const
+bool ContentParser::isError() const
 {
-	return _state;
+	return _state == ContentParser::ERROR;
+}
+
+bool ContentParser::isComplete() const
+{
+	return _state == ContentParser::COMPLETE;
 }
 
 int ContentParser::getStatus() const

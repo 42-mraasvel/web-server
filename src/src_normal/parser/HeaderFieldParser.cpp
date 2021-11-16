@@ -1,6 +1,7 @@
 #include "HeaderFieldParser.hpp"
 #include "settings.hpp"
 #include "utility/utility.hpp"
+#include "ParserUtils.hpp"
 
 HeaderFieldParser::HeaderFieldParser(ValidFieldFunction valid_field_function,
 									std::size_t max_header_field_size)
@@ -31,7 +32,7 @@ int HeaderFieldParser::parse(buffer_type const & buffer, std::size_t & index)
 	while (_index < buffer.size() && _state != HeaderFieldParser::COMPLETE)
 	{
 		std::size_t start = _index;
-		_index = findEndLine(buffer);
+		_index = WebservUtility::findEndLine(_leftover, buffer, _index);
 		if (_index == std::string::npos)
 		{
 			if (appendLeftover(buffer, start, _index - start) == ERR)
@@ -45,7 +46,7 @@ int HeaderFieldParser::parse(buffer_type const & buffer, std::size_t & index)
 			{
 				return ERR;
 			}
-			skipEndLine(buffer);
+			WebservUtility::skipEndLine(buffer, _index);
 		}
 	}
 
@@ -75,7 +76,7 @@ int HeaderFieldParser::handleLeftover(buffer_type const & buffer)
 	std::size_t start = _index;
 	// Returns the index of the start of the ENDLINE in buffer
 	// Will destroy "\r" from END OF leftover IF edgecase is encountered
-	_index = findEndLine(buffer);
+	_index = WebservUtility::findEndLine(_leftover, buffer, _index);
 
 	// Append buffer[start:end] to leftover
 	// Returns ERR if it exceeds MAX_SIZE
@@ -91,7 +92,7 @@ int HeaderFieldParser::handleLeftover(buffer_type const & buffer)
 	}
 
 	// Set index beyond the ENDLINE in buffer
-	skipEndLine(buffer);
+	WebservUtility::skipEndLine(buffer, _index);
 	// Parse leftover's field into map
 	if (parseHeaderField(_leftover, 0, _leftover.size()) == ERR)
 	{
@@ -118,35 +119,6 @@ int HeaderFieldParser::appendLeftover(buffer_type const & buffer, std::size_t st
 
 	_leftover.append(buffer, start, end - start);
 	return OK;
-}
-
-/*
-Return index inside the buffer, to the start of the next endline
-TODO: newline should be a custom string, i.e. it can be any representation of a string (INPUT)
-So we can match a string at the end of leftover to the end of the buffer
-*/
-std::size_t HeaderFieldParser::findEndLine(buffer_type const & buffer)
-{
-	// Edgecase: back of leftover has '\r', front of buffer has '\n'
-	if (_leftover.size() > 0 && _leftover[_leftover.size() - 1] == '\r' && buffer[0] == '\n')
-	{
-		_leftover.resize(_leftover.size() - 1);
-		return 0;
-	}
-
-	return buffer.find(CRLF, _index);
-}
-
-void HeaderFieldParser::skipEndLine(buffer_type const & buffer)
-{
-	if (buffer[_index] == '\n')
-	{
-		_index += 1;
-	}
-	else if (buffer[_index] == '\r')
-	{
-		_index += 2;
-	}
 }
 
 /*
@@ -244,9 +216,14 @@ int HeaderFieldParser::parseFieldValue(const std::string& s, std::string& value,
 Public interfaces
 */
 
-HeaderFieldParser::State HeaderFieldParser::getState() const
+bool HeaderFieldParser::isError() const
 {
-	return _state;
+	return _state == HeaderFieldParser::ERROR;
+}
+
+bool HeaderFieldParser::isComplete() const
+{
+	return _state == HeaderFieldParser::COMPLETE;
 }
 
 HeaderFieldParser::ErrorType HeaderFieldParser::getErrorType() const

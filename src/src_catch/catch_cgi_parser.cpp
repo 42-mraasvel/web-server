@@ -20,6 +20,6 @@ TEST_CASE("Cgi Response Parser", "[cgi]") {
 	CgiResponseParser p;
 
 	p.parse(header + content);
-	REQUIRE(p.getState() == CgiResponseParser::COMPLETE);
+	REQUIRE(p.isComplete());
 	REQUIRE(p.getContent() == content);
 }

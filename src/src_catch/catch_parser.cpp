@@ -8,15 +8,14 @@ TEST_CASE("Basic Content Parsing", "[parser]")
 
 	std::string input = "12345";
 
-
 	parser.setContentLength(100);
-	while (parser.getState() == ContentParser::PARSING) {
+	while (!parser.isError() && !parser.isComplete()) {
 		std::size_t index = 0;
 		parser.parse(input, index);
 	}
 
 	REQUIRE(parser.getContent().length() == 100);
-	REQUIRE(parser.getState() == ContentParser::COMPLETE);
+	REQUIRE(parser.isComplete());
 }
 
 TEST_CASE("ContentParser Error", "[parser]")
@@ -26,11 +25,11 @@ TEST_CASE("ContentParser Error", "[parser]")
 
 	parser.setMaxSize(1000);
 	parser.setContentLength(std::numeric_limits<std::size_t>::max());
-	while (parser.getState() == ContentParser::PARSING) {
+	while (!parser.isError() && !parser.isComplete()) {
 		std::size_t index = 0;
 		parser.parse(input, index);
 	}
 
-	REQUIRE(parser.getState() == ContentParser::ERROR);
+	REQUIRE(parser.isError());
 	REQUIRE(parser.getStatus() == StatusCode::PAYLOAD_TOO_LARGE);
 }

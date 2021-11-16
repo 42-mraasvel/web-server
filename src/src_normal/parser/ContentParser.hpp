@@ -16,11 +16,11 @@ Errors:
 */
 class ContentParser
 {
-	public:
+	private:
 		enum State
 		{
-			COMPLETE,
 			PARSING,
+			COMPLETE,
 			ERROR
 		};
 
@@ -31,7 +31,9 @@ class ContentParser
 
 		std::string& getContent();
 		void reset();
-		State getState() const;
+
+		bool isError() const;
+		bool isComplete() const;
 		int getStatus() const;
 
 		void setContentLength(std::size_t length);

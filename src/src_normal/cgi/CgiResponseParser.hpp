@@ -5,7 +5,7 @@
 
 class CgiResponseParser
 {
-	public:
+	private:
 		enum State
 		{
 			PARSE_HEADER,
@@ -23,7 +23,8 @@ class CgiResponseParser
 		std::string& getContent();
 		void reset();
 
-		State getState() const;
+		bool isError() const;
+		bool isComplete() const;
 		int getStatusCode() const;
 
 	private:

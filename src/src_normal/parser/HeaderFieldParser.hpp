@@ -41,18 +41,20 @@ class HeaderFieldParser
 			std::string const & key, std::string const & value, HeaderField const & header);
 		typedef HeaderField HeaderFieldType;
 	
-	enum State
-	{
-		PARSING,
-		COMPLETE,
-		ERROR
-	};
 
-	enum ErrorType
-	{
-		HEADER_FIELD_SIZE,
-		INVALID_FIELD
-	};
+		enum ErrorType
+		{
+			HEADER_FIELD_SIZE,
+			INVALID_FIELD
+		};
+
+	private:
+		enum State
+		{
+			PARSING,
+			COMPLETE,
+			ERROR
+		};
 
 	public:
 		HeaderFieldParser(ValidFieldFunction valid_field_function, std::size_t max_header_field_size);
@@ -60,7 +62,9 @@ class HeaderFieldParser
 		int parse(buffer_type const & buffer, std::size_t & index);
 
 		ErrorType getErrorType() const;
-		State getState() const;
+
+		bool isError() const;
+		bool isComplete() const;
 		// Should be used when the parsing is finished, use header.swap(x) for constant copy
 		HeaderFieldType& getHeaderField();
 		void reset();
@@ -70,8 +74,6 @@ class HeaderFieldParser
 		int handleLeftover(buffer_type const & buffer);
 
 		int appendLeftover(buffer_type const & buffer, std::size_t start, std::size_t end);
-		std::size_t findEndLine(buffer_type const & buffer);
-		void skipEndLine(buffer_type const & buffer);
 		int parseHeaderField(std::string const & s, std::size_t start, std::size_t end);
 
 		int setError(ErrorType type);

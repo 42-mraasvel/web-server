@@ -56,11 +56,11 @@ void CgiReader::parseBuffer(FdTable & fd_table, std::string const & buffer)
 {
 	_parser.parse(buffer);
 
-	if (_parser.getState() == CgiResponseParser::ERROR)
+	if (_parser.isError())
 	{
 		closeEvent(fd_table, AFdInfo::FILE_ERROR);
 	}
-	else if (_parser.getState() == CgiResponseParser::COMPLETE)
+	else if (_parser.isComplete())
 	{
 		closeEvent(fd_table, AFdInfo::FILE_COMPLETE);
 	}
