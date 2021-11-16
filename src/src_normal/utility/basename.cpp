@@ -4,7 +4,7 @@
 namespace WebservUtility
 {
 
-const char*	basename(const char* x)
+const char*	ft_basename(const char* x)
 {
 	const char* y = strrchr(x, '/');
 

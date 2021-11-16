@@ -31,9 +31,11 @@ class CgiReader : public AFdInfo
 
 	private:
 		void closeEvent(FdTable & fd_table, AFdInfo::Flags flag);
+		void parseBuffer(FdTable & fd_table, std::string const & buffer);
 
 	private:
 		CgiResponseParser _parser;
 		std::string _message_body;
 		HeaderField _header;
+		int _status_code;
 };

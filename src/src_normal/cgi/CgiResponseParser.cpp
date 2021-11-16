@@ -54,11 +54,13 @@ void CgiResponseParser::parseHeader(std::string const & buffer,
 	{
 		if (_header_parser.getErrorType() == HeaderFieldParser::HEADER_FIELD_SIZE)
 		{
-			setError(StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE);
+			// I think this is the response code for when CGI gives bad response
+			// No matter the type
+			setError(StatusCode::BAD_GATEWAY);
 		}
 		else
 		{
-			setError(StatusCode::BAD_REQUEST);
+			setError(StatusCode::BAD_GATEWAY);
 		}
 	}
 	else if (_header_parser.getState() == HeaderFieldParser::COMPLETE)
@@ -87,7 +89,8 @@ void CgiResponseParser::parseContent(std::string const & buffer,
 {
 	if (_content_parser.parse(buffer, index) == ERR)
 	{
-		setError(_content_parser.getStatus());
+		//TODO: BAD_GATEWAY or PAYLOAD_TOO_LARGE?
+		setError(StatusCode::BAD_GATEWAY);
 	}
 	else if (_content_parser.getState() == ContentParser::COMPLETE)
 	{

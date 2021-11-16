@@ -57,6 +57,11 @@ public:
 	void clear();
 	void swap(HeaderField& x);
 
+/* Debugging */
+	public:
+
+		void print() const;
+
 private:
 	map_t _map;
 	iterator _cached_iterator;

@@ -348,7 +348,7 @@ int CgiHandler::prepareArguments(char *args[3]) const
 	First argument: executable basename
 	Second argument: _target
 	*/
-	args[0] = strdup(WebservUtility::basename(_script.c_str()));
+	args[0] = strdup(WebservUtility::ft_basename(_script.c_str()));
 	if (args[0] == NULL)
 	{
 		return ERR;
