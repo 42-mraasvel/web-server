@@ -359,7 +359,7 @@ TEST_CASE("parser: chunked invalid", "[request-parser]")
 
 	RequestParser parser;
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i) {
-		// std::cout << "REQUEST" << std::endl << prefix + inputs[i] << std::endl;
+		
 		parser.parse(prefix + inputs[i]);
 		Request* r = parser.getNextRequest();
 		REQUIRE(r != NULL);

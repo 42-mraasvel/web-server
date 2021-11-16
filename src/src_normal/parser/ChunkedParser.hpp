@@ -1,5 +1,7 @@
 #pragma once
 
+# include "HeaderFieldParser.hpp"
+# include "ContentParser.hpp"
 # include <string>
 # include <sys/types.h> // ssize_t
 # include <vector>
@@ -19,6 +21,8 @@ class ChunkedParser
 			TRAILER,
 			ENDLINE,
 			DISCARD_LINE,
+			ERROR,
+			COMPLETE,
 			FINISHED
 		};
 
@@ -32,13 +36,16 @@ class ChunkedParser
 		int parse(std::string const & buffer, std::size_t & index, std::string & body);
 		bool finished() const;
 
-	/*
-	Sends body as a chunked message
-	Returns the total characters that extracted from body and sent
-	*/
-		static ssize_t send(int fd, std::string const & body);
+		void setMaxSize(std::size_t max);
+		bool isParsing() const;
+		bool isComplete() const;
+		bool isError() const;
+		void reset();
 
 	private:
+
+		int setComplete();
+		int setError();
 
 		int parseSize(std::string const & buffer, std::size_t & index, std::string & body);
 		int parseData(std::string const & buffer, std::size_t & index, std::string & body);
@@ -58,7 +65,6 @@ class ChunkedParser
 		typedef bool (*IsFunctionType)(char x);
 		void skip(std::string const & buffer, std::size_t & index, IsFunctionType callback);
 
-		void reset();
 
 	/* Debugging */
 
@@ -69,6 +75,10 @@ class ChunkedParser
 
 		State _state;
 		State _next_state;
+		std::size_t _max_size;
 		std::size_t _chunk_size;
 		std::string _leftover;
+
+		ContentParser _content_parser;
+		HeaderFieldParser _header_parser;
 };

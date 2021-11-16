@@ -23,6 +23,7 @@ class RequestLineParser
 		int getStatusCode() const;
 		bool isComplete() const;
 		bool isError() const;
+		void reset();
 	
 	private:
 		bool hasEndLine(std::string const & buffer, std::size_t index);

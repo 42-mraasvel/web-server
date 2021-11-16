@@ -2,10 +2,24 @@
 #include "settings.hpp"
 #include "color.hpp"
 #include "utility/utility.hpp"
+#include "ParserUtils.hpp"
 #include <vector>
+#include <limits>
+
+/*
+TODO: implement for HeaderFieldParser
+*/
+static bool IsValidChunkedField(std::string const & key,
+		std::string const & value, HeaderField const & header)
+{
+	return true;
+}
 
 ChunkedParser::ChunkedParser()
-: _state(ChunkedParser::SIZE), _chunk_size(0) {}
+: _state(ChunkedParser::SIZE),
+_max_size(std::numeric_limits<std::size_t>::max()),
+_chunk_size(0),
+_header_parser(IsValidChunkedField, MAX_HEADER_SIZE) {}
 
 ChunkedParser::StateDispatchTableType ChunkedParser::createStateDispatch()
 {
@@ -38,25 +52,53 @@ int ChunkedParser::parse(std::string const & buffer, std::size_t & index, std::s
 {
 	static const StateDispatchTableType state_dispatch = createStateDispatch();
 
-	if (_state == FINISHED)
+	if (!isParsing())
 	{
-		_state = SIZE;
+		fprintf(stderr, "ChunkedParser::parse called with invalid state\n");
+		return ERR;
 	}
 
-	while (index < buffer.size() && _state != FINISHED)
+	while (index < buffer.size() && isParsing())
 	{
 		if ((this->*state_dispatch[_state])(buffer, index, body) == ERR)
 		{
-			reset();
-			return ERR;
+			return setError();
 		}
 	}
-
-	if (_state == FINISHED)
-	{
-		reset();
-	}
 	return OK;
+}
+
+
+bool ChunkedParser::isParsing() const
+{
+	return !isComplete() && !isError();
+}
+
+bool ChunkedParser::isComplete() const
+{
+	return _state == ChunkedParser::COMPLETE;
+}
+
+bool ChunkedParser::isError() const
+{
+	return _state == ChunkedParser::ERROR;
+}
+
+void ChunkedParser::setMaxSize(std::size_t max)
+{
+	_max_size = max;
+}
+
+int ChunkedParser::setComplete()
+{
+	_state = COMPLETE;
+	return OK;
+}
+
+int ChunkedParser::setError()
+{
+	_state = ERROR;
+	return ERR;
 }
 
 /*
@@ -67,40 +109,28 @@ int ChunkedParser::parse(std::string const & buffer, std::size_t & index, std::s
 int ChunkedParser::parseSize(std::string const & buffer, std::size_t & index, std::string & body)
 {
 	std::size_t start = index;
-	skip(buffer, index, isHex);
+	WebservUtility::skip(buffer, index, isHex);
 	_leftover.append(buffer, start, index - start);
 
-	// all possible hexdigits have been read
 	if (index == buffer.size())
 	{
-		// printf("Chunksize line is not complete, continue reading\r\n");
 		return OK;
 	}
 
-	// Min of 1 hexdigit
 	if (_leftover.size() == 0)
 	{
-		// printf("No HEXDIGITS were found\r\n");
 		return ERR;
 	}
-	// printf("Chunksize is complete\r\n");
 
-	// Overflow check
 	if (WebservUtility::strtoul(_leftover, _chunk_size, 16) == ERR)
 	{
-		// printf("Chunksize Overflowed\r\n");
 		return ERR;
 	}
 
-	// printf("Chunk size: %lu\n", _chunk_size);
-
-	// printf("internal buffer before clearing: [\"%s\"]\n", _leftover.c_str());
 	_leftover.clear();
-
-	// Decide next state (end of chunked is a chunksize of 0)
-	// printf("Next: %d %c\n", buffer[index], buffer[index]);
 	if (_chunk_size == 0)
 	{
+		// End of chunked
 		_next_state = TRAILER;
 	}
 	else
@@ -113,10 +143,8 @@ int ChunkedParser::parseSize(std::string const & buffer, std::size_t & index, st
 
 int ChunkedParser::parseData(std::string const & buffer, std::size_t & index, std::string & body)
 {
-	// printf("parseChunkData: %lu\n", _chunk_size);
 	if (buffer.size() - index >= _chunk_size)
 	{
-		// printf("Buffer contains at least the entire chunk\n");
 		body.append(buffer, index, _chunk_size);
 		_next_state = SIZE;
 		_state = ENDLINE;
@@ -124,7 +152,6 @@ int ChunkedParser::parseData(std::string const & buffer, std::size_t & index, st
 	}
 	else
 	{
-		// printf("Buffer contains a partial chunk\n");
 		body.append(buffer, index);
 		_chunk_size -= buffer.size() - index;
 		index = buffer.size();
@@ -261,23 +288,16 @@ void ChunkedParser::reset()
 {
 	_chunk_size = 0;
 	_leftover.clear();
+	_state = ChunkedParser::SIZE;
+	_max_size = std::numeric_limits<std::size_t>::max();
+	_header_parser.reset();
+	_content_parser.reset();
 }
 
 bool ChunkedParser::finished() const
 {
 	return _state == FINISHED;
 }
-
-
-/*
-Static (non-member) Functions
-*/
-
-ssize_t ChunkedParser::send(int fd, std::string const & body)
-{
-	return 0;
-}
-
 
 /* Debugging */
 
@@ -295,6 +315,10 @@ std::string ChunkedParser::getStateString(State state) const
 			return "ENDLINE";
 		case DISCARD_LINE:
 			return "DISCARD_LINE";
+		case ERROR:
+			return "ERROR";
+		case COMPLETE:
+			return "COMPLETE";
 		case FINISHED:
 			return "FINISHED";
 	}

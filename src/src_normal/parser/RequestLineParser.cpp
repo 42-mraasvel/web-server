@@ -56,12 +56,17 @@ int RequestLineParser::getStatusCode() const
 	return _status_code;
 }
 
+void RequestLineParser::reset()
+{
+	_leftover.clear();
+	_index = 0;
+	_state = RequestLineParser::PARSE;
+}
+
 /* Actual Parsing */
 
 int RequestLineParser::parseRequestLine(Request & request)
 {
-	_index = 0;
-
 	if (parseMethod(request) != OK)
 	{
 		return ERR;
