@@ -1,6 +1,7 @@
 #include "HeaderFieldParser.hpp"
 #include "settings.hpp"
 #include "utility/utility.hpp"
+#include "utility/status_codes.hpp"
 #include "ParserUtils.hpp"
 
 HeaderFieldParser::HeaderFieldParser(ValidFieldFunction valid_field_function,
@@ -114,7 +115,7 @@ int HeaderFieldParser::appendLeftover(buffer_type const & buffer, std::size_t st
 
 	if (end - start + _leftover.size() > _max_size)
 	{
-		return setError(HeaderFieldParser::HEADER_FIELD_SIZE);
+		return setError(StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE);
 	}
 
 	_leftover.append(buffer, start, end - start);
@@ -131,7 +132,7 @@ int HeaderFieldParser::parseHeaderField(std::string const & s, std::size_t start
 {
 	if (end - start > _max_size)
 	{
-		return setError(HeaderFieldParser::HEADER_FIELD_SIZE);
+		return setError(StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE);
 	}
 	else if (end - start == 0)
 	{
@@ -143,11 +144,11 @@ int HeaderFieldParser::parseHeaderField(std::string const & s, std::size_t start
 
 	if (parseFieldName(s, key, start) == ERR)
 	{
-		return setError(HeaderFieldParser::INVALID_FIELD);
+		return setError(StatusCode::BAD_REQUEST);
 	}
 	if (skipColon(s, start) == ERR)
 	{
-		return setError(HeaderFieldParser::INVALID_FIELD);
+		return setError(StatusCode::BAD_REQUEST);
 	}
 	// Whitespace is optional so we don't have to error-check it
 	skip(s, start, isWhiteSpace);
@@ -155,7 +156,7 @@ int HeaderFieldParser::parseHeaderField(std::string const & s, std::size_t start
 	// Custom field validator
 	if (!_valid_field(key, value, _header))
 	{
-		return setError(HeaderFieldParser::INVALID_FIELD);
+		return setError(StatusCode::BAD_REQUEST);
 	}
 	_header[key] = value;
 	return OK;
@@ -226,9 +227,9 @@ bool HeaderFieldParser::isComplete() const
 	return _state == HeaderFieldParser::COMPLETE;
 }
 
-HeaderFieldParser::ErrorType HeaderFieldParser::getErrorType() const
+int HeaderFieldParser::getStatusCode() const
 {
-	return _error_type;
+	return _status_code;
 }
 
 void HeaderFieldParser::reset()
@@ -247,9 +248,9 @@ HeaderFieldParser::HeaderFieldType& HeaderFieldParser::getHeaderField()
 Private utilities
 */
 
-int HeaderFieldParser::setError(ErrorType type)
+int HeaderFieldParser::setError(int code)
 {
-	_error_type = type;
+	_status_code = code;
 	setState(ERROR);
 	return ERR;
 }

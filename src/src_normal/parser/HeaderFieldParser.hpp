@@ -61,10 +61,9 @@ class HeaderFieldParser
 
 		int parse(buffer_type const & buffer, std::size_t & index);
 
-		ErrorType getErrorType() const;
-
 		bool isError() const;
 		bool isComplete() const;
+		int getStatusCode() const;
 		// Should be used when the parsing is finished, use header.swap(x) for constant copy
 		HeaderFieldType& getHeaderField();
 		void reset();
@@ -76,7 +75,7 @@ class HeaderFieldParser
 		int appendLeftover(buffer_type const & buffer, std::size_t start, std::size_t end);
 		int parseHeaderField(std::string const & s, std::size_t start, std::size_t end);
 
-		int setError(ErrorType type);
+		int setError(int code);
 		int setState(State type);
 
 	private:
@@ -89,11 +88,11 @@ class HeaderFieldParser
 
 	private:
 		HeaderFieldType _header;
-		ErrorType _error_type;
 		State _state;
 
 		ValidFieldFunction _valid_field;
 		std::size_t _max_size;
 		std::string _leftover;
 		std::size_t _index;
+		int _status_code;
 };

@@ -40,6 +40,7 @@ class ChunkedParser
 		bool isParsing() const;
 		bool isComplete() const;
 		bool isError() const;
+		int getStatusCode() const;
 		void reset();
 
 	private:

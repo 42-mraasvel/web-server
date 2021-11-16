@@ -42,6 +42,8 @@ class HttpRequestParser
 
 		int setComplete();
 		int setError(int code);
+		void setState(State new_state);
+		int checkHeaderFields(HeaderField const & request);
 
 		void parseRequestLine(std::string const & buffer,
 			std::size_t & index, Request & request);

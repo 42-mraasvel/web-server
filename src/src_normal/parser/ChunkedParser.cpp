@@ -20,6 +20,7 @@ ChunkedParser::ChunkedParser()
 : _state(ChunkedParser::SIZE),
 _max_size(std::numeric_limits<std::size_t>::max()),
 _chunk_size(0),
+_status_code(StatusCode::BAD_REQUEST),
 _header_parser(IsValidChunkedField, MAX_HEADER_SIZE) {}
 
 ChunkedParser::StateDispatchTableType ChunkedParser::createStateDispatch()
@@ -96,6 +97,11 @@ int ChunkedParser::setError(int code)
 {
 	_status_code = code;
 	return setError();
+}
+
+int ChunkedParser::getStatusCode() const
+{
+	return _status_code;
 }
 
 /*
@@ -247,6 +253,9 @@ void ChunkedParser::reset()
 	_chunk_size = 0;
 	_leftover.clear();
 	_state = ChunkedParser::SIZE;
+	//TODO: check later, maybe change this
+	//since it seems kind of bad practice to have the default value be an error code
+	_status_code = StatusCode::BAD_REQUEST;
 	_max_size = std::numeric_limits<std::size_t>::max();
 	_header_parser.reset();
 	_content_parser.reset();

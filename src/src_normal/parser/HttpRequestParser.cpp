@@ -1,5 +1,6 @@
 #include "HttpRequestParser.hpp"
 #include "settings.hpp"
+#include "Request.hpp"
 
 /*
 1. Parse RequestLine
@@ -52,25 +53,72 @@ int HttpRequestParser::parse(std::string const & buffer, Request& request)
 void HttpRequestParser::parseRequestLine(std::string const & buffer,
 	std::size_t & index, Request & request)
 {
-
+	if (_request_line_parser.parse(buffer, index, request) == ERR)
+	{
+		setError(_request_line_parser.getStatusCode());
+	}
+	else if (_request_line_parser.isComplete())
+	{
+		setState(HttpRequestParser::PARSE_HEADER);
+	}
 }
 
 void HttpRequestParser::parseHeader(std::string const & buffer,
 	std::size_t & index, Request & request)
 {
-
+	if (_header_parser.parse(buffer, index) == ERR)
+	{
+		setError(_header_parser.getStatusCode());
+	}
+	else if (_header_parser.isComplete())
+	{
+		request.header_fields.swap(_header_parser.getHeaderField());
+		if (checkHeaderFields(request.header_fields) == ERR)
+		{
+			setError(StatusCode::BAD_REQUEST);
+		}
+	}
 }
 
 void HttpRequestParser::parseContent(std::string const & buffer,
 	std::size_t & index, Request & request)
 {
+	if (_content_parser.parse(buffer, index) == ERR)
+	{
+		setError(_content_parser.getStatusCode());
+	}
+	else if (_content_parser.isComplete())
+	{
+		setComplete();
+	}
+}
 
+/*
+TODO:
+	- Check headerFields if contentParsing is necessary
+	- Update contentLength in contentParser
+	- Set to Chunked if chunked
+	- Error check HeaderFields
+	- Potential request appending for 100 continue
+	- Configuration resolution
+*/
+int HttpRequestParser::checkHeaderFields(HeaderField const & request)
+{
+	setState(HttpRequestParser::PARSE_CONTENT);
+	return OK;
 }
 
 void HttpRequestParser::parseChunked(std::string const & buffer,
 	std::size_t & index, Request & request)
 {
-
+	if (_chunked_content_parser.parse(buffer, index, request) == ERR)
+	{
+		setError(_chunked_content_parser.getStatusCode());
+	}
+	else if (_chunked_content_parser.isComplete())
+	{
+		setComplete();
+	}
 }
 
 /* Other functions, general interface */
@@ -111,4 +159,9 @@ int HttpRequestParser::setError(int code)
 	_state = HttpRequestParser::ERROR;
 	_status_code = code;
 	return ERR;
+}
+
+void HttpRequestParser::setState(State new_state)
+{
+	_state = new_state;
 }

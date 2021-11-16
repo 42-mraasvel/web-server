@@ -52,16 +52,8 @@ void CgiResponseParser::parseHeader(std::string const & buffer,
 {
 	if (_header_parser.parse(buffer, index) == ERR)
 	{
-		if (_header_parser.getErrorType() == HeaderFieldParser::HEADER_FIELD_SIZE)
-		{
-			// I think this is the response code for when CGI gives bad response
-			// No matter the type
-			setError(StatusCode::BAD_GATEWAY);
-		}
-		else
-		{
-			setError(StatusCode::BAD_GATEWAY);
-		}
+		// TODO: determine if this should always be BAD_GATEWAY, or HEADER_TOO_LARGE for example?
+		setError(StatusCode::BAD_GATEWAY);
 	}
 	else if (_header_parser.isComplete())
 	{
