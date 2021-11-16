@@ -36,7 +36,8 @@ int HeaderFieldParser::parse(buffer_type const & buffer, std::size_t & index)
 		_index = WebservUtility::findEndLine(_leftover, buffer, _index);
 		if (_index == std::string::npos)
 		{
-			if (appendLeftover(buffer, start, _index - start) == ERR)
+			_index = buffer.size();
+			if (appendLeftover(buffer, start, _index) == ERR)
 			{
 				return ERR;
 			}
@@ -108,10 +109,6 @@ Size check the leftover (header-field-max-size)
 */
 int HeaderFieldParser::appendLeftover(buffer_type const & buffer, std::size_t start, std::size_t end)
 {
-	if (end == std::string::npos)
-	{
-		end = buffer.size();
-	}
 
 	if (end - start + _leftover.size() > _max_size)
 	{
@@ -152,7 +149,10 @@ int HeaderFieldParser::parseHeaderField(std::string const & s, std::size_t start
 	}
 	// Whitespace is optional so we don't have to error-check it
 	skip(s, start, isWhiteSpace);
-	parseFieldValue(s, value, start, end);
+	if (parseFieldValue(s, value, start, end) == ERR)
+	{
+		return setError(StatusCode::BAD_REQUEST);
+	}
 	// Custom field validator
 	if (!_valid_field(key, value, _header))
 	{
@@ -210,6 +210,13 @@ int HeaderFieldParser::parseFieldValue(const std::string& s, std::string& value,
 	}
 	value = s.substr(index, end_value - index + 1);
 	index = end;
+	for (std::size_t i = 0; i < value.size(); ++i)
+	{
+		if (!isWhiteSpace(value[i]) && !isVchar(value[i]))
+		{
+			return ERR;
+		}
+	}
 	return OK;
 }
 

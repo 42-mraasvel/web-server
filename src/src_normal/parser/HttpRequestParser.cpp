@@ -1,6 +1,23 @@
 #include "HttpRequestParser.hpp"
 #include "settings.hpp"
+#include "utility/utility.hpp"
 #include "Request.hpp"
+
+
+/*
+TODO:
+	- Check duplicate header fields (multiple content-length, multiple transfer-encoding, etc)
+	- Check header fields that aren't allowed (both content-length and chunked for example)
+*/
+static bool isValidRequestHeader(std::string const & key,
+					std::string const & value, HeaderField const & header)
+{
+	return true;
+}
+
+HttpRequestParser::HttpRequestParser()
+: _state(PARSE_REQUEST_LINE),
+_header_parser(isValidRequestHeader, MAX_HEADER_SIZE) {}
 
 /*
 1. Parse RequestLine
@@ -9,20 +26,8 @@
 4. Set state to complete
 */
 
-static bool isValidRequestHeader(std::string const & key,
-					std::string const & value, HeaderField const & header)
+int HttpRequestParser::parse(std::string const & buffer, std::size_t & index, Request& request)
 {
-	// TODO: implement
-	return true;
-}
-
-HttpRequestParser::HttpRequestParser()
-: _state(PARSE_REQUEST_LINE),
-_header_parser(isValidRequestHeader, MAX_HEADER_SIZE) {}
-
-int HttpRequestParser::parse(std::string const & buffer, Request& request)
-{
-	std::size_t index = 0;
 	while (index < buffer.size())
 	{
 		switch (_state)
@@ -73,10 +78,7 @@ void HttpRequestParser::parseHeader(std::string const & buffer,
 	else if (_header_parser.isComplete())
 	{
 		request.header_fields.swap(_header_parser.getHeaderField());
-		if (checkHeaderFields(request.header_fields) == ERR)
-		{
-			setError(StatusCode::BAD_REQUEST);
-		}
+		checkHeaderFields(request.header_fields);
 	}
 }
 
@@ -89,23 +91,9 @@ void HttpRequestParser::parseContent(std::string const & buffer,
 	}
 	else if (_content_parser.isComplete())
 	{
+		request.message_body.swap(_content_parser.getContent());
 		setComplete();
 	}
-}
-
-/*
-TODO:
-	- Check headerFields if contentParsing is necessary
-	- Update contentLength in contentParser
-	- Set to Chunked if chunked
-	- Error check HeaderFields
-	- Potential request appending for 100 continue
-	- Configuration resolution
-*/
-int HttpRequestParser::checkHeaderFields(HeaderField const & request)
-{
-	setState(HttpRequestParser::PARSE_CONTENT);
-	return OK;
 }
 
 void HttpRequestParser::parseChunked(std::string const & buffer,
@@ -119,6 +107,71 @@ void HttpRequestParser::parseChunked(std::string const & buffer,
 	{
 		setComplete();
 	}
+}
+
+/* Header Field Checking */
+
+/*
+TODO:
+	- Error check HeaderFields
+	- Potential request appending for 100 continue
+	- Configuration resolution
+*/
+int HttpRequestParser::checkHeaderFields(HeaderField const & header)
+{
+	return checkContentType(header);
+}
+
+int HttpRequestParser::checkContentType(HeaderField const & header)
+{
+	HeaderField::const_pair_type content_length = header.get("Content-Length");
+	HeaderField::const_pair_type encoding = header.get("Transfer-Encoding");
+
+	if (content_length.second && encoding.second)
+	{
+		return ERR;
+	}
+
+	if (content_length.second)
+	{
+		return parseContentLength(content_length.first->second);
+	}
+	else if (encoding.second)
+	{
+		return parseTransferEncoding(encoding.first->second);
+	}
+	setState(HttpRequestParser::COMPLETE);
+	return OK;
+}
+
+int HttpRequestParser::parseContentLength(std::string const & value)
+{
+	for (std::size_t i = 0; i < value.size(); ++i)
+	{
+		if (!isDigit(value[i]))
+		{
+			return setError(StatusCode::BAD_REQUEST);
+		}
+	}
+
+	std::size_t content_length;
+	if (WebservUtility::strtoul(value, content_length) == -1)
+	{
+		return setError(StatusCode::BAD_REQUEST);
+	}
+	_content_parser.setContentLength(content_length);
+	setState(HttpRequestParser::PARSE_CONTENT);
+	return OK;
+}
+
+int HttpRequestParser::parseTransferEncoding(std::string const & value)
+{
+	if (!WebservUtility::caseInsensitiveEqual(value, "chunked"))
+	{
+		return setError(StatusCode::NOT_IMPLEMENTED);
+	}
+	setState(HttpRequestParser::PARSE_CHUNKED);
+	return OK;
 }
 
 /* Other functions, general interface */
@@ -144,8 +197,7 @@ void HttpRequestParser::reset()
 	_request_line_parser.reset();
 	_header_parser.reset();
 	_content_parser.reset();
-	// TODO: set chunked
-	// _chunked_content_parser.reset();
+	_chunked_content_parser.reset();
 }
 
 int HttpRequestParser::setComplete()

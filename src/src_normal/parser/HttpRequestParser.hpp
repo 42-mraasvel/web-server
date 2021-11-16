@@ -31,7 +31,7 @@ class HttpRequestParser
 
 		HttpRequestParser();
 
-		int parse(std::string const & buffer, Request& request);
+		int parse(std::string const & buffer, std::size_t & index, Request& request);
 
 		int getStatusCode() const;
 		bool isError() const;
@@ -43,8 +43,8 @@ class HttpRequestParser
 		int setComplete();
 		int setError(int code);
 		void setState(State new_state);
-		int checkHeaderFields(HeaderField const & request);
 
+	/* Main Parsing */
 		void parseRequestLine(std::string const & buffer,
 			std::size_t & index, Request & request);
 		void parseHeader(std::string const & buffer,
@@ -54,6 +54,11 @@ class HttpRequestParser
 		void parseChunked(std::string const & buffer,
 			std::size_t & index, Request & request);
 
+	/* HeaderFields */
+		int checkHeaderFields(HeaderField const & request);
+		int checkContentType(HeaderField const & header);
+		int parseContentLength(std::string const & value);
+		int parseTransferEncoding(std::string const & value);
 
 	private:
 

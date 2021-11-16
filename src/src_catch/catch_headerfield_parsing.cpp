@@ -1,6 +1,7 @@
 #include "catch.hpp"
 #include "parser/HeaderFieldParser.hpp"
 #include "settings.hpp"
+#include "utility/status_codes.hpp"
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
@@ -75,7 +76,7 @@ TEST_CASE("InvalidFieldFunction HeaderField", "[header-field-parser]") {
 	std::size_t index = 0;
 	REQUIRE(parser.parse(input, index) == ERR);
 	REQUIRE(parser.isError());
-	REQUIRE(parser.getErrorType() == HeaderFieldParser::INVALID_FIELD);
+	REQUIRE(parser.getStatusCode() == StatusCode::BAD_REQUEST);
 	parser.reset();
 
 	for (std::size_t i = 0; i < input.size(); ++i) {
@@ -87,7 +88,7 @@ TEST_CASE("InvalidFieldFunction HeaderField", "[header-field-parser]") {
 	}
 
 	REQUIRE(parser.isError());
-	REQUIRE(parser.getErrorType() == HeaderFieldParser::INVALID_FIELD);
+	REQUIRE(parser.getStatusCode() == StatusCode::BAD_REQUEST);
 }
 
 TEST_CASE("Small MAX_SIZE HeaderField", "[header-field-parser]") {
@@ -104,7 +105,7 @@ TEST_CASE("Small MAX_SIZE HeaderField", "[header-field-parser]") {
 	std::size_t index = 0;
 	REQUIRE(parser.parse(input, index) == ERR);
 	REQUIRE(parser.isError());
-	REQUIRE(parser.getErrorType() == HeaderFieldParser::HEADER_FIELD_SIZE);
+	REQUIRE(parser.getStatusCode() == StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE);
 	parser.reset();
 	for (std::size_t i = 0; i < input.size(); ++i) {
 		index = 0;
@@ -113,7 +114,7 @@ TEST_CASE("Small MAX_SIZE HeaderField", "[header-field-parser]") {
 		}
 	}
 	REQUIRE(parser.isError());
-	REQUIRE(parser.getErrorType() == HeaderFieldParser::HEADER_FIELD_SIZE);
+	REQUIRE(parser.getStatusCode() == StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE);
 }
 
 TEST_CASE("Name/Value checks", "[header-field-parser]") {

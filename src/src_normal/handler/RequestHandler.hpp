@@ -4,7 +4,7 @@
 # include <queue>
 # include <string>
 
-class Request;
+struct Request;
 
 /*
 Uses the HttpRequestParser to parse the buffer
@@ -23,9 +23,17 @@ class RequestHandler
 		typedef std::queue<Request*> RequestQueueType;
 
 	public:
+		RequestHandler();
+		~RequestHandler();
 
 		int parse(std::string const & buffer);
 		Request* getNextRequest();
+
+	private:
+
+		void newRequest();
+		void setErrorRequest();
+		void completeRequest();
 
 	private:
 

@@ -32,7 +32,8 @@ int RequestLineParser::parse(std::string const & buffer, std::size_t & index, Re
 		return appendLeftover(buffer, index, buffer.size() - index);
 	}
 
-	appendLeftover(buffer, index, pos);
+
+	appendLeftover(buffer, index, pos - index);
 	WebservUtility::skipEndLine(buffer, index);
 	if (parseRequestLine(request) == ERR)
 	{
@@ -216,7 +217,7 @@ int RequestLineParser::parseMinorVersion(Request & request)
 	WebservUtility::skip(_leftover, _index, isDigit);
 	if (_index - start > 3 || _index - start == 0)
 	{
-		return false;
+		return ERR;
 	}
 	request.minor_version = WebservUtility::strtol(_leftover.data() + start);
 	return OK;
