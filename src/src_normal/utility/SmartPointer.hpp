@@ -1,5 +1,7 @@
 #pragma once
 
+# include <map>
+
 template <typename T>
 class SmartPointer
 {
@@ -7,13 +9,39 @@ class SmartPointer
 		typedef T value_type;
 		typedef T* pointer;
 		typedef T& reference;
+		typedef std::size_t size_type;
 
 	public:
-		explicit SmartPointer(pointer p = NULL)
-		: p(p) {}
+		SmartPointer()
+		: p(NULL) {}
+		SmartPointer(pointer p)
+		: p(p) {
+			incrementReference();
+		}
+
+		SmartPointer(const SmartPointer& rhs)
+		: p(rhs.p) {
+			incrementReference();
+		}
+
+		SmartPointer& operator=(const SmartPointer& rhs) {
+			if (this == &rhs) {
+				return *this;
+			}
+			decrementReference();
+			p = rhs.p;
+			incrementReference();
+			return *this;
+		}
 
 		~SmartPointer() {
-			delete p;
+			if (p == NULL) {
+				return;
+			}
+			decrementReference();
+			if (reference_tracker[p] == 0) {
+				delete p;
+			}
 		}
 
 		reference operator*() {
@@ -29,5 +57,27 @@ class SmartPointer
 		}
 
 	private:
+
+		void incrementReference() const {
+			if (p == NULL) {
+				return;
+			}
+			reference_tracker[p] += 1;
+		}
+
+		void decrementReference() const {
+			if (p == NULL) {
+				return;
+			}
+			reference_tracker[p] -= 1;
+		}
+
+	private:
+		typedef std::map<pointer, unsigned int> MapType;
+		static MapType reference_tracker;
+
 		pointer p;
 };
+
+template <typename T>
+typename SmartPointer<T>::MapType SmartPointer<T>::reference_tracker;
