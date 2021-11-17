@@ -1,7 +1,7 @@
 ifndef SRC_FILES_MK
 SRC_FILES_MK = 1
 
-NAME = a.out
+NAME = IGotUBroA.outIsForNoobs
 CATCH_NAME = catch.out
 DEBUG_NAME = debug_build.out
 EXECS = $(NAME) $(CATCH_NAME) $(DEBUG_NAME)

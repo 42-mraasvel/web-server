@@ -7,5 +7,5 @@ elif [ "$1" == "debug" ]; then
 	make debug && ./debug_build.out $OTHER_ARGS
 else
 	# ./run.sh
-	make > /dev/null && ./a.out $@
+	make > /dev/null && ./IGotUBroA.outIsForNoobs $@
 fi
