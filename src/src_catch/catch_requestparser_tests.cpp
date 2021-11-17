@@ -159,6 +159,12 @@ TEST_CASE("Parser: Invalid Request-Lines", "[request-handler]")
 		": / HTTP/1.1",
 		"POST /\t HTTP/1.1",
 		"POST / HTTP/.1",
+				"POSTERS /11111/1/1/1/1/2/3/4/5/6/7198274981273 HTTP/1.123",
+		"AOISDJOIASJDOIAJSDIOJASD / HTTP/1.1",
+		"11Gabd3 / HTTP/1.1",
+		"GET / HTTP/10.1",
+		"GET / HTTP/11234123412341234123412341234.1",
+
 	};
 
 	RequestHandler parser;
@@ -183,13 +189,8 @@ TEST_CASE("Parser: valid request-lines", "[request-handler]")
 {
 	const std::string inputs[] = {
 		"GET / HTTP/1.1",
-		"GET / HTTP/11234123412341234123412341234.1",
 		"GET / HTTP/1.999",
-		"GET / HTTP/10.1",
-		"11Gabd3 / HTTP/1.1",
 		"GET /1234/1234/?a%ad HTTP/1.1",
-		"AOISDJOIASJDOIAJSDIOJASD / HTTP/1.1",
-		"POSTERS /11111/1/1/1/1/2/3/4/5/6/7198274981273 HTTP/1.123",
 	};
 
 	RequestHandler parser;
@@ -313,7 +314,7 @@ TEST_CASE("parser: chunked", "[request-handler]")
 {
 	std::string input = 
 		"GET / HTTP/1.1" CRLF
-		"Host: 127.0.0.1:80" CRLF
+		"Host: 127.0.0.1" CRLF
 		"Content-Type: text/plain" CRLF
 		"Transfer-Encoding: Chunked"
 		EOHEADER
@@ -346,7 +347,7 @@ TEST_CASE("parser: chunked", "[request-handler]")
 	example.method = GET;
 	example.request_target = "/";
 	example.minor_version = 1;
-	example.header_fields["Host"] = "127.0.0.1:80";
+	example.header_fields["Host"] = "127.0.0.1";
 	example.header_fields["Content-Type"] = "text/plain";
 	example.header_fields["Transfer-Encoding"] = "Chunked";
 	example.header_fields["Trailer"] = "Value";

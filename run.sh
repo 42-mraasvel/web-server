@@ -1,11 +1,14 @@
 OTHER_ARGS=${@:2}
 
-if [ "$1" == "catch" ]; then
+if [ "$#" -eq 0 ]; then
+	make && ./a.out $@
+elif [ "$1" == "catch" ]; then
 	# ./run.sh catch
-	make > /dev/null catch && ./catch.out $OTHER_ARGS
+	make catch && ./catch.out $OTHER_ARGS
 elif [ "$1" == "debug" ]; then
-	make debug && ./debug_build.out $OTHER_ARGS
+	make debug && ./debug.out $OTHER_ARGS
+elif [ "$1" == "fsanitize" ]; then
+	make fsanitize && ./fsanitize.out $OTHER_ARGS
 else
-	# ./run.sh
-	make > /dev/null && ./a.out $@
+	echo "run.sh: error: unknown argument: \"$1\""
 fi

@@ -23,11 +23,11 @@ int RequestHandler::parse(std::string const & buffer)
 		{
 			newRequest();
 		}
-		if (_parser.parse(buffer, index, *_request) == ERR)
+		_parser.parse(buffer, index, *_request);
+		if (_parser.isError())
 		{
 			setErrorRequest();
 			return ERR;
-			break;
 		}
 		else if (_parser.isComplete())
 		{

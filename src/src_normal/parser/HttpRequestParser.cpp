@@ -50,6 +50,10 @@ int HttpRequestParser::parse(std::string const & buffer, std::size_t & index, Re
 				return OK;
 		}
 	}
+	if (_state == ERROR)
+	{
+		return ERR;
+	}
 	return OK;
 }
 
@@ -122,6 +126,10 @@ Flow:
 */
 int HttpRequestParser::processRequestHeader(Request & request)
 {
+	if (!_request_validator.isRequestValidPreConfig(request))
+	{
+		return setError(_request_validator.getStatusCode());
+	}
 	return checkContentType(request.header_fields);
 }
 
