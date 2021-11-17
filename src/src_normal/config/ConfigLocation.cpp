@@ -2,7 +2,10 @@
 #include <iostream>
 #include "settings.hpp"
 
-ConfigLocation::ConfigLocation(std::string path): _path(path), _autoindex_status(true), _location_flag(NONE)
+ConfigLocation::ConfigLocation(std::string path):
+//TODO: REMOVE initialization
+auto_index_status(false), redirect(false),
+_path(path), _autoindex_status(true), _location_flag(NONE)
 {}
 
 void ConfigLocation::addRoot(std::string root)

@@ -28,14 +28,15 @@ TODO: close FD after failure
 */
 int	Webserver::init(Config const & config)
 {
-	Config::const_iterator server_it;
-	for (server_it = config.begin(); server_it != config.end(); ++server_it)
+
+	printf("Hardcoding: 8080\n");
+	Server* new_server = new Server();
+	if (new_server->setupServer(8080) == ERR)
 	{
-		if (initServer(*server_it) == ERR)
-		{
-			return ERR;
-		}
+		delete new_server;
+		return ERR;
 	}
+	_fd_table.insertFd(new_server);
 	return OK;
 }
 

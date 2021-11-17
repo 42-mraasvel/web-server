@@ -25,6 +25,7 @@ endif # Darwin
 ifdef DEBUG
 	CXXFLAGS += $(DFLAGS)
 	LFLAGS += $(DFLAGS)
+	# CXXFLAGS += -g3
 else
 	CXXFLAGS += -g3 -O0
 endif # DEBUG
