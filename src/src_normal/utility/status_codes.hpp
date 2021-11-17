@@ -8,7 +8,7 @@ namespace StatusCode
 {
 	std::string getStatusMessage(int status_code);
 
-	enum Codes
+	enum Code
 	{
 		/* Informational: 1xx */
 		CONTINUE = 100,

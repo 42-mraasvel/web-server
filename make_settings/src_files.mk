@@ -2,8 +2,8 @@ ifndef SRC_FILES_MK
 SRC_FILES_MK = 1
 
 NAME = a.out
-CATCH_NAME = catch.exe
-DEBUG_NAME = debug_build.exe
+CATCH_NAME = catch.out
+DEBUG_NAME = debug_build.out
 EXECS = $(NAME) $(CATCH_NAME) $(DEBUG_NAME)
 
 SDIR = src

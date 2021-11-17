@@ -1,13 +1,10 @@
 #include "ConfigServer.hpp"
 #include "settings.hpp"
+#include <iostream>
 #include <iomanip>
 // TODO: Remove port 80 somewhere when process is done
-ConfigServer::ConfigServer(){}
-
-void	ConfigServer::addPort(int port)
-{
-	this->_ports.push_back(port);
-}
+ConfigServer::ConfigServer()
+{}
 
 void	ConfigServer::addServerName(std::string name)
 {
@@ -16,7 +13,7 @@ void	ConfigServer::addServerName(std::string name)
 
 void	ConfigServer::addClientBodySize(size_t client_body_size)
 {
-	this->_locations[_locations.size() - 1].addClientBodySize(client_body_size);
+	this->_client_body_size = client_body_size;
 }
 
 void	ConfigServer::addAllowedMethods(std::string method)
@@ -34,14 +31,23 @@ void	ConfigServer::addErrorPage(int page_number, std::string path)
 	_error_pages.push_back(std::pair<int, std::string>(page_number, path));
 }
 
-void	ConfigServer::addHostName(std::string name)
-{
-	this->_host = name;
-}
-
 void	ConfigServer::addLocation(ConfigLocation location)
 {
 	this->_locations.push_back(location);
+}
+
+void ConfigServer::addCgi(std::string extention, std::string path)
+{
+	_locations[_locations.size() - 1].addCgi(extention, path);
+}
+void	ConfigServer::addAddress(std::string host, int port)
+{
+	_address.push_back(std::make_pair(host, port));
+}
+
+void	ConfigServer::addReturn(int code, std::string path)
+{
+	_locations[_locations.size() - 1].addReturn(code, path);
 }
 
 void	ConfigServer::addRoot(std::string root)
@@ -54,19 +60,20 @@ void	ConfigServer::addIndex(std::string index)
 	_locations[_locations.size() - 1].addIndex(index);
 }
 
-int	ConfigServer::hostIsEmpty()
+void	ConfigServer::addLocationFlag(location_flag flag)
 {
-	return _host.empty();
+	_locations[_locations.size() - 1].addLocationFlag(flag);
 }
 
-int	ConfigServer::portIsEmpty()
+int	ConfigServer::emptyAddress()
 {
 	return _ports.empty();
 }
 
-std::string ConfigServer::getHostName()
+// Getters
+std::vector<int> ConfigServer::getPorts()
 {
-	return this->_host;
+	return _ports;
 }
 
 ConfigServer::const_iterator ConfigServer::begin() const
@@ -79,11 +86,49 @@ ConfigServer::const_iterator ConfigServer::end() const
 	return (this->_ports.end());
 }
 
+
+std::vector<ServerBlock*> ConfigServer::getServerBlock()
+{
+	initServerBlock();
+	return this->_server_block;
+}
+
+std::map<std::pair<std::string, int>, std::vector<ServerBlock*> > ConfigServer::getAddressMap()
+{
+	initAddressMap();
+
+	return this->_address_map;
+}
+
+
+// Utility
+void	ConfigServer::initAddressMap()
+{
+	initServerBlock();
+	for (size_t i = 0; i < _address.size(); i++)
+	{
+		_address_map.insert(std::make_pair(_address[i], _server_block));
+	}
+}
+
+
+void	ConfigServer::initServerBlock()
+{
+	ServerBlock *tmp = new ServerBlock;
+	tmp->_client_body_size = _client_body_size;
+	tmp->_server_names = _server_name;
+	tmp->_error_pages = _error_pages;
+	for (size_t i = 0; i < _locations.size(); i++)
+	{
+		tmp->_locations.push_back(_locations[i].getLocationBlock());
+	}
+	_server_block.push_back(tmp);
+}
+
 /* Debugging */
 void ConfigServer::print() const
 {
 	printPorts();
-	printHostName();
 	printServerName();
 	printErrorPages();
 	for (size_t i = 0; i < _locations.size(); i++)
@@ -135,14 +180,12 @@ void ConfigServer::printErrorPages() const
 	std::cout << ']' << std::endl;
 }
 
-void ConfigServer::printHostName() const
+void	ConfigServer::printAddress(int index) const
 {
-		std::cout << "  " CYAN_BOLD << "Host name:" RESET_COLOR " [";
-	if(!_host.empty())
-	{
-		std::cout << _host;
-	}
-	std::cout << ']' << std::endl;
+	std::cout << BLUE_BOLD << _address[index].first;
+	std::cout << ", ";
+	std::cout << BLUE_BOLD << _address[index].second;
+	std::cout << std::endl;
 }
 
 //TODO: only for ConfigResolver, to delete

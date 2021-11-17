@@ -1,0 +1,81 @@
+Other:
+
+	- Client:
+		Initialize RequesHandler with address
+
+Flow:
+
+	1. Read
+	2. RequestHandler
+
+		- new Request(address)
+
+		- Parse RequestLine
+		- Parse HeaderFields
+		- Check HeaderFields
+			- RequestValidator();
+				- Content-Coding: BAD_REQUEST or always reject (415)
+				- Close Connection On:
+					- Multiple host
+					- HTTP/1.1 + missing host
+					- Transfer-encoding invalid value
+			- DetermineCloseConnection();
+				request.close_conncetion = true;
+				- Valid Requests, but close connection:
+					- HTTP/1.0 without connection field
+					- Connection: close
+			- ConfigResolution(ip+port, basename(host), request_target);
+				- Prioritize redirection over Autoindex
+				- index resolution for request_target
+			- Check AllowedMethods();
+			- Check payload-body
+				- Content-Length exceeds max-size
+				- Set MaxSize from Configuration
+			- CONTINUE: create new request with CONTINUE flag
+		- Parse Content (if present)
+		- Return Error or Complete Request
+
+	3. Request Execution
+		- Immediate response (CONTINUE flag, REDIRECT)
+		- Cgi Check
+		- Handler.execute(); CheckError
+			3.1. CgiHandler
+				- Swap request.message-body with CgiSender
+			3.2. FileHandler
+				- Dispatch Method
+					- GET: check AutoIndex for directory
+					- POST: ERROR: has to go through CGI
+					- DELETE: delete request_target IF file
+
+	4. Reset request
+
+	-- Handler Interface --
+
+		- Change Flags to private + remove FILE_ prefix
+		void update();
+		bool isComplete();
+		bool isError();
+		setResponseData(message_body, header);
+
+	5. Update Client
+
+		For Each Response:
+			- Remove READING from event if CloseConnectionFlag is active
+			- Update Response:
+
+				- Update Handlers
+				- Check Completion or Error
+				- IF COMPLETE: markComplete();
+				- IF ERROR: markError(): check ErrorPage
+				- Set response data: body/header from the handler
+
+		- Check if first response isReadyToWrite();
+			- IF ready: Set event to writing
+
+	6. Write Response
+
+		- Set response string and write to client
+		- Check if response is finished writing
+		- Evaluate if connection should be closed
+		- Delete response and get next response
+		- Remove event for writing

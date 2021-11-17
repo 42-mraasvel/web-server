@@ -91,16 +91,8 @@ bool	Client::retrieveRequest()
 			return false;
 		}
 		_request->address = _address; //TODO: to discuss where to put this
-		return true;
 	}
-	else
-	{
-		if (_request->status == Request::COMPLETE)
-		{
-			return true;
-		}
-		return false;
-	}
+	return true;
 }
 
 void	Client::processRequest(FdTable & fd_table)
@@ -174,6 +166,7 @@ int	Client::writeEvent(FdTable & fd_table)
 		closeConnection();
 		return ERR;
 	}
+	//TODO: change naming
 	updateEvents(AFdInfo::READING, fd_table);
 	return OK;
 }

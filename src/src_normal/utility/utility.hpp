@@ -42,6 +42,8 @@ bool stringEndsWith(const std::string &s, const std::string& to_find,
 void closePipe(int* fds);
 char** getEnvp();
 int makeNonBlocking(int fd);
+const char*	ft_basename(const char* x);
+bool additionOverflow(std::size_t x, std::size_t y);
 
 int list_directory(std::string const & directory, std::string const & path, std::string & content);
 

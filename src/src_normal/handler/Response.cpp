@@ -228,8 +228,6 @@ void	Response::executeRequest(FdTable & fd_table, Request & request)
 	// which could also be CGI: 'index index.html index.php index.py ...'
 	if (_cgi_handler.isCgi(request))
 	{
-		// CgiHandler fails either if there's either a syscallError
-		// (StatusCode::INTERNAL_SERVER_ERROR) or StatusCode::BAD_GATEWAY
 		_is_cgi = true;
 		if (_cgi_handler.executeRequest(fd_table, request) == ERR)
 		{
@@ -369,7 +367,10 @@ void	Response::setHeaderField()
 	setRetryAfter();
 	setAllow();
 	setTransferEncodingOrContentLength();
-	setContentType();
+	if (!_is_cgi)
+	{
+		setContentType();
+	}
 }
 
 void	Response::setDate()
@@ -456,31 +457,27 @@ void	Response::setContentLength()
 
 void	Response::setContentType()
 {
-	//TODO: to confirm with maarten if this only applies to non-CGI
-	if (!_is_cgi)
+	if ( _config_resolver.result == ConfigResolver::AUTO_INDEX_ON)
 	{
-		if ( _config_resolver.result == ConfigResolver::AUTO_INDEX_ON)
+		_header_fields["Content-Type"] = "text/html";
+		return ;
+	}
+	std::string file = _file_handler.getAbsoluteFilePath();
+	if (_method == GET && !file.empty())
+	{
+		size_t	find = file.find_last_of(".");
+		std::string extensin = file.substr(find);
+		if (_media_type_map.contains(extensin))
 		{
-			_header_fields["Content-Type"] = "text/html";
+			_header_fields["Content-Type"] = _media_type_map.get();
 			return ;
 		}
-		std::string file = _file_handler.getAbsoluteFilePath();
-		if (_method == GET && !file.empty())
-		{
-			size_t	find = file.find_last_of(".");
-			std::string extensin = file.substr(find);
-			if (_media_type_map.contains(extensin))
-			{
-				_header_fields["Content-Type"] = _media_type_map.get();
-				return ;
-			}
-			_header_fields["Content-Type"] = "application/octet-stream";
-			return ;
-		}
-		if (!_message_body.empty())
-		{
-			_header_fields["Content-Type"] = "text/plain;charset=UTF-8";
-		}
+		_header_fields["Content-Type"] = "application/octet-stream";
+		return ;
+	}
+	if (!_message_body.empty())
+	{
+		_header_fields["Content-Type"] = "text/plain;charset=UTF-8";
 	}
 }
 
@@ -498,6 +495,14 @@ void	Response::setStringHeaderField()
 
 void	Response::update(FdTable & fd_table)
 {
+	// handler->update(message_body, header_fields);
+
+	// if handler->isComplete() {
+	// 	// set to COMPLETE
+	// } else if handler->isError() {
+	// 	// errorPageCheck(fd_table);
+	// }
+
 	evaluateExecutionError();
 	setMessageBody(fd_table);
 	evaluateExecutionCompletion();

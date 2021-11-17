@@ -1,15 +1,18 @@
-#include "parser/RequestParser.hpp"
 #include "settings.hpp"
 #include "utility/utility.hpp"
 #include "parser/ChunkedParser.hpp"
 #include <sstream>
 #include "catch.hpp"
+#include "parser/Request.hpp"
+#include "handler/RequestHandler.hpp"
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) sizeof(x) / sizeof(x[0])
 #endif
 
-bool checkNextRequest(RequestParser& x, Request::RequestStatus expected)
+// #define RequestHandler RequestHandler
+
+bool checkNextRequest(RequestHandler& x, Request::RequestStatus expected)
 {
 	Request* r = x.getNextRequest();
 	bool result = r != NULL && r->status == expected;
@@ -38,7 +41,7 @@ void printRequest(const std::string& name, const Request& y) {
 	std::cout << y.message_body << std::endl;
 }
 
-bool checkNextRequest(RequestParser& x, const Request& y, bool print = false)
+bool checkNextRequest(RequestHandler& x, const Request& y, bool print = false)
 {
 	Request* r = x.getNextRequest();
 	if (r == NULL) {
@@ -62,7 +65,7 @@ bool checkNextRequest(RequestParser& x, const Request& y, bool print = false)
 	return result;
 }
 
-TEST_CASE("Parser: single buffer: many requests", "[request_parser]")
+TEST_CASE("Parser: single buffer: many requests", "[request-handler]")
 {
 	const int TOTAL = 20;
 	std::string req =
@@ -84,7 +87,7 @@ TEST_CASE("Parser: single buffer: many requests", "[request_parser]")
 	example.message_body = "HELLO THERE\r\n";
 	example.header_fields["Content-Length"] = "13";
 
-	RequestParser parser;
+	RequestHandler parser;
 	parser.parse(buffer);
 	for (int i = 0; i < TOTAL; ++i)
 	{
@@ -93,7 +96,7 @@ TEST_CASE("Parser: single buffer: many requests", "[request_parser]")
 	REQUIRE(parser.getNextRequest() == nullptr);
 }
 
-TEST_CASE("Parser: partial requests", "[request_parser]")
+TEST_CASE("Parser: partial requests", "[request-handler]")
 {
 	const int TOTAL = 20;
 	std::string req =
@@ -107,10 +110,13 @@ TEST_CASE("Parser: partial requests", "[request_parser]")
 	}
 
 	const std::size_t SEGMENT_SIZE = 10;
-	RequestParser parser;
+	RequestHandler parser;
 	for (std::size_t i = 0; i < buffer.size(); i += SEGMENT_SIZE)
 	{
-		parser.parse(buffer.substr(i, SEGMENT_SIZE));
+		if (parser.parse(buffer.substr(i, SEGMENT_SIZE)) == ERR)
+		{
+			break;
+		}
 	}
 
 	Request example;
@@ -129,7 +135,7 @@ TEST_CASE("Parser: partial requests", "[request_parser]")
 	REQUIRE(parser.getNextRequest() == nullptr);
 }
 
-TEST_CASE("Parser: Invalid Request-Lines", "[request_parser]")
+TEST_CASE("Parser: Invalid Request-Lines", "[request-handler]")
 {
 	// Append CRLF CRLF for header field checking
 	// Only testing the request-line parsing
@@ -155,7 +161,7 @@ TEST_CASE("Parser: Invalid Request-Lines", "[request_parser]")
 		"POST / HTTP/.1",
 	};
 
-	RequestParser parser;
+	RequestHandler parser;
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i)
 	{
 		parser.parse(inputs[i] + EOHEADER);
@@ -166,14 +172,14 @@ TEST_CASE("Parser: Invalid Request-Lines", "[request_parser]")
 
 // TEST_CASE("Parser: stress testing no header end", "[request-parser]")
 // {
-// 	RequestParser parser;
+// 	RequestHandler parser;
 // 	for (std::size_t i = 0; i < 1000000; ++i)
 // 	{
 // 		parser.parse("a");
 // 	}
 // }
 
-TEST_CASE("Parser: valid request-lines", "[request-parser]")
+TEST_CASE("Parser: valid request-lines", "[request-handler]")
 {
 	const std::string inputs[] = {
 		"GET / HTTP/1.1",
@@ -186,7 +192,7 @@ TEST_CASE("Parser: valid request-lines", "[request-parser]")
 		"POSTERS /11111/1/1/1/1/2/3/4/5/6/7198274981273 HTTP/1.123",
 	};
 
-	RequestParser parser;
+	RequestHandler parser;
 
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i)
 	{
@@ -195,7 +201,7 @@ TEST_CASE("Parser: valid request-lines", "[request-parser]")
 	}
 }
 
-TEST_CASE("Parser: invalid header-fields", "[request-parser]")
+TEST_CASE("Parser: invalid header-fields", "[request-handler]")
 {
 	const std::string inputs[] = {
 		" header-field: header-value",
@@ -210,7 +216,7 @@ TEST_CASE("Parser: invalid header-fields", "[request-parser]")
 
 	const std::string prefix = "GET / HTTP/1.1" CRLF;
 
-	RequestParser parser;
+	RequestHandler parser;
 
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i)
 	{
@@ -219,7 +225,7 @@ TEST_CASE("Parser: invalid header-fields", "[request-parser]")
 	}
 }
 
-TEST_CASE("Parser: basic valid header-fields", "[request-parser]")
+TEST_CASE("Parser: basic valid header-fields", "[request-handler]")
 {
 	/*
 	Input format: a, b, c
@@ -250,7 +256,7 @@ TEST_CASE("Parser: basic valid header-fields", "[request-parser]")
 	example.request_target = "/";
 
 
-	RequestParser parser;
+	RequestHandler parser;
 
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i)
 	{
@@ -266,7 +272,7 @@ TEST_CASE("Parser: basic valid header-fields", "[request-parser]")
 	REQUIRE(parser.getNextRequest() == NULL);
 }
 
-TEST_CASE("Parser: multiple header-fields", "[request-parser]")
+TEST_CASE("Parser: multiple header-fields", "[request-handler]")
 {
 	std::string input_fields[] = {
 		"0:    0   ",
@@ -296,14 +302,14 @@ TEST_CASE("Parser: multiple header-fields", "[request-parser]")
 		example.header_fields[ss.str()] = ss.str();
 	}
 	request += CRLF;
-	RequestParser parser;
+	RequestHandler parser;
 	parser.parse(request);
 
 	REQUIRE(checkNextRequest(parser, example));
 	REQUIRE(parser.getNextRequest() == NULL);
 }
 
-TEST_CASE("parser: chunked", "[request-parser]")
+TEST_CASE("parser: chunked", "[request-handler]")
 {
 	std::string input = 
 		"GET / HTTP/1.1" CRLF
@@ -319,10 +325,11 @@ TEST_CASE("parser: chunked", "[request-parser]")
 		"Network" CRLF
 		"0" CRLF
 		"Trailer: Value" CRLF
-		"Trailer: Value"
-		EOHEADER;
+		"Trailer1: Value1" CRLF
+		"Trailer2: Value2" CRLF
+		CRLF;
 
-	RequestParser parser;
+	RequestHandler parser;
 
 	std::size_t index = 0;
 
@@ -342,12 +349,15 @@ TEST_CASE("parser: chunked", "[request-parser]")
 	example.header_fields["Host"] = "127.0.0.1:80";
 	example.header_fields["Content-Type"] = "text/plain";
 	example.header_fields["Transfer-Encoding"] = "Chunked";
+	example.header_fields["Trailer"] = "Value";
+	example.header_fields["Trailer1"] = "Value1";
+	example.header_fields["Trailer2"] = "Value2";
 	example.message_body = "MozillaDeveloperNetwork";
 
 	REQUIRE(checkNextRequest(parser, example));
 }
 
-TEST_CASE("parser: chunked invalid", "[request-parser]")
+TEST_CASE("parser: chunked invalid", "[request-handler]")
 {
 	std::string inputs[] = {
 		"Transfer-Encoding: chunked, chunked" EOHEADER "7" CRLF "Mozilla" CRLF "0" EOHEADER,
@@ -357,9 +367,8 @@ TEST_CASE("parser: chunked invalid", "[request-parser]")
 
 	std::string prefix = "GET / HTTP/1.1" CRLF;
 
-	RequestParser parser;
+	RequestHandler parser;
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i) {
-		// std::cout << "REQUEST" << std::endl << prefix + inputs[i] << std::endl;
 		parser.parse(prefix + inputs[i]);
 		Request* r = parser.getNextRequest();
 		REQUIRE(r != NULL);

@@ -1,24 +1,33 @@
 #include "Config.hpp"
 #include "settings.hpp"
+#include <iostream>
 #include <fcntl.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <string>
+#include "utility/utility.hpp"
+#include <map>
+#include <limits>
 
 Config::Config(std::string const & config_file): _file_name(config_file), _server_amount(0), _token_index(0)
 {
 	this->parser();
-	// ConfigServer dummy;
-	// dummy.addPort(8080);
-	// dummy.addPort(8081);
-	// dummy.addPort(8082);
-	// dummy.addPort(8083);
-	// ConfigServer dummy2;
-	// dummy2.addPort(18000);
-	// dummy2.addPort(18001);
-	// dummy2.addPort(18002);
-	// _servers.push_back(dummy);
-	// _servers.push_back(dummy2);
+	initAddressMap();
+	printAddressMap();
+}
+
+// check for leaks
+Config::~Config()
+{
+	address_map::iterator it;
+	for (it = _address_map.begin(); it != _address_map.end(); ++it)
+	{
+		for (size_t i = 0; i < it->second.size(); i++)
+		{
+			it->second[i]->_locations.erase(it->second[i]->_locations.begin());
+		}
+		it->second.erase(it->second.begin());
+	}
 }
 
 Config::const_iterator Config::begin() const
@@ -160,6 +169,10 @@ int	Config::parseServer()
 		{
 			parseErrorPage();
 		}
+		else if (_tokens[_token_index].compare("client_body_size") == 0)
+		{
+			parseClientBodySize();
+		}
 		else if (_tokens[_token_index].compare("location") == 0)
 		{
 			parseLocation();
@@ -174,14 +187,9 @@ int	Config::parseServer()
 		checkExpectedSyntax(";");
 		_token_index++;
 	}
-	if (_servers[_server_amount].portIsEmpty())
+	if (_servers[_server_amount].emptyAddress())
 	{
-		_servers[_server_amount].addPort(80);
-	}
-	if (_servers[_server_amount].hostIsEmpty())
-	{
-		_servers[_server_amount].addHostName("localhost");
-		_servers[_server_amount].addServerName("localhost");
+		_servers[_server_amount].addAddress("0.0.0.0", 80);
 	}
 	checkExpectedSyntax("}");
 	return (OK);
@@ -192,6 +200,11 @@ int	Config::parseLocation()
 	_token_index++;
 	_servers[_server_amount].addLocation(ConfigLocation(_tokens[_token_index]));
 	_token_index++;
+	if (_tokens[_token_index].compare("=") == 0)
+	{
+		_token_index++;
+		_servers[_server_amount].addLocationFlag(EQUAL);
+	}
 	checkExpectedSyntax("{");
 	_token_index++;
 	while(_token_index < _tokens.size() && _tokens[_token_index].compare("}"))
@@ -199,10 +212,6 @@ int	Config::parseLocation()
 		if (_tokens[_token_index].compare("root") == 0)
 		{
 			parseRoot();
-		}
-		else if (_tokens[_token_index].compare("client_body_size") == 0)
-		{
-			parseClientBodySize();
 		}
 		else if (_tokens[_token_index].compare("allowed_methods") == 0)
 		{
@@ -216,6 +225,14 @@ int	Config::parseLocation()
 		{
 			parseIndex();
 		}
+		else if (_tokens[_token_index].compare("cgi") == 0)
+		{
+			parseCgi();
+		}
+		else if (_tokens[_token_index].compare("return") == 0)
+		{
+			parseReturn();
+		}
 		checkExpectedSyntax(";");
 		_token_index++;
 	}
@@ -228,23 +245,20 @@ int	Config::parseListen()
 	_token_index++;
 	size_t split = _tokens[_token_index].find_last_of(":");
 	std::string listen;
+	std::string host;
 	if (split != std::string::npos)
 	{
-		std::string host = _tokens[_token_index].substr(0, split);
-		if (host.find_first_of(":") == std::string::npos && _servers[_server_amount].hostIsEmpty())
-		{
-			_servers[_server_amount].addHostName(host);
-		}
+		host = _tokens[_token_index].substr(0, split);
 		size_t start = _tokens[_token_index].find_first_not_of(":", split);
 		if (start == std::string::npos)
 		{
 			configError("Listen config error");
 		}
 		listen = _tokens[_token_index].substr(start);
-
 	}
 	else
 	{
+		host = "0.0.0.0";
 		listen = _tokens[_token_index].substr(0);
 	}
 	for (size_t i = 0; i < listen.size(); i++)
@@ -255,7 +269,7 @@ int	Config::parseListen()
 		}
 	}
 	int port = atoi(listen.c_str());
-	_servers[_server_amount].addPort(port);
+	_servers[_server_amount].addAddress(host, port);
 	_token_index++;
 	return (_token_index);
 }
@@ -265,42 +279,10 @@ int	Config::parseServerName()
 	_token_index++;
 	while (_tokens[_token_index].compare(";") != 0)
 	{
-		if (_servers[_server_amount].hostIsEmpty())
-		{
-			_servers[_server_amount].addHostName(_tokens[_token_index]);
-			_servers[_server_amount].addServerName(_tokens[_token_index]);
-		}
-		else if (checkServerName(_tokens[_token_index]))
-		{
-			_servers[_server_amount].addServerName(_tokens[_token_index]);
-		}
+		_servers[_server_amount].addServerName(_tokens[_token_index]);
 		_token_index++;
 	}
 	return (_token_index);
-}
-
-int	Config::checkServerName(std::string name)
-{
-	std::string www = "www.";
-	std::string nl = ".nl";
-	std::string com = ".com";
-	std::string host = _servers[_server_amount].getHostName();
-	std::string variant_1 = www.substr(0).append(host);
-	std::string variant_2 = www.substr(0).append(host).append(com);
-	std::string variant_3 = www.substr(0).append(host).append(nl);
-	std::string variant_4 = host.substr(0).append(com);
-	std::string variant_5 = host.substr(0).append(nl);
-	if (variant_1.compare(name)
-		&& variant_2.compare(name)
-		&& variant_3.compare(name)
-		&& variant_4.compare(name)
-		&& variant_5.compare(name)
-		&& host.compare(name))
-	{
-		std::cout << RED_BOLD "Config Error: unexpected servername: '" << name << "' where hostname is '" << host << "'" << RESET_COLOR << std::endl;
-		exit(1);
-	}
-	return (1);
 }
 
 int	Config::parseRoot()
@@ -320,9 +302,12 @@ int	Config::parseClientBodySize()
 	std::string client_body_size = _tokens[_token_index];
 	for (size_t i = 0; i < client_body_size.size(); i++)
 	{
+
 		if (std::isdigit(client_body_size[i]) == 0)
 		{
+
 			client_body_size[i] =toupper(client_body_size[i]);
+
 			if (client_body_size.find_first_of("KGM") == client_body_size.size() - 1)
 			{
 				if (client_body_size[i] == 'K')
@@ -344,7 +329,11 @@ int	Config::parseClientBodySize()
 			}
 		}
 	}
-	size_t size = atol(client_body_size.c_str());
+	size_t size = WebservUtility::strtoul(client_body_size);
+	if (size == 0)
+	{
+		size - std::numeric_limits<std::size_t>::max();
+	}
 	_servers[_server_amount].addClientBodySize(size);
 	_token_index++;
 	return (_token_index);
@@ -392,6 +381,25 @@ int	Config::parseErrorPage()
 	return (_token_index);
 }
 
+int Config::parseCgi()
+{
+	_token_index++;
+	std::string extention;
+	std::string path;
+	if (_tokens[_token_index].compare(";") != 0)
+	{
+		extention = _tokens[_token_index];
+		_token_index++;
+	}
+	if (_tokens[_token_index].compare(";") != 0)
+	{
+		path = _tokens[_token_index];
+		_token_index++;
+	}
+	_servers[_server_amount].addCgi(extention, path);
+	return (_token_index);
+}
+
 int	Config::parseIndex()
 {
 	_token_index++;
@@ -400,6 +408,26 @@ int	Config::parseIndex()
 		_servers[_server_amount].addIndex(_tokens[_token_index]);
 		_token_index++;
 	}
+	return (_token_index);
+}
+
+int Config::parseReturn()
+{
+	_token_index++;
+	std::string ret;
+	std::string path;
+	if (_tokens[_token_index].compare(";") != 0)
+	{
+		ret = _tokens[_token_index];
+		_token_index++;
+	}
+	if (_tokens[_token_index].compare(";") != 0)
+	{
+		path = _tokens[_token_index];
+		_token_index++;
+	}
+	int code = WebservUtility::strtoul(ret);
+	_servers[_server_amount].addReturn(code, path);
 	return (_token_index);
 }
 
@@ -442,6 +470,38 @@ void	Config::configError(std::string str)
 	exit(1);
 }
 
+// Getters
+
+
+
+// Utility
+void	Config::initAddressMap()
+{
+	std::pair<std::map<ip_host_pair,server_block_vector>::iterator,bool> ret;
+	std::map<ip_host_pair,server_block_vector>::iterator map_it;
+	address_map tmp;
+
+	for (size_t i = 0; i < _servers.size(); i++)
+	{
+		tmp = _servers[i].getAddressMap();
+		for (const_iterator_map it = tmp.begin(); it != tmp.end(); ++it)
+		{
+			ret = _address_map.insert(std::make_pair(it->first, it->second));
+			if (ret.second == false)
+			{
+				map_it = _address_map.find(it->first);
+				map_it->second.push_back(it->second[0]);
+			}
+		}
+	}
+}
+
+std::map<std::pair<std::string, int>, std::vector<ServerBlock*> >	Config::getAddressMap()
+{
+	return this->_address_map;
+}
+
+
 /* Debugging */
 void Config::print() const
 {
@@ -450,4 +510,120 @@ void Config::print() const
 		std::cout << MAGENTA_BOLD "Server" RESET_COLOR " #" << (it - begin() + 1) << std::endl;
 		it->print();
 	}
+}
+
+
+void Config::printAddressMap() const
+{
+	std::cout << MAGENTA_BOLD "Address Map" RESET_COLOR << std::endl;
+	for (const_iterator_map it = _address_map.begin(); it != _address_map.end(); ++it)
+	{
+		printNode(it);
+	}
+}
+
+void Config::printNode(const_iterator_map node) const
+{
+	printKey(node);
+	printServerBlock(node);
+}
+
+void	Config::printKey(const_iterator_map node) const
+{
+	printIp(node);
+	printPort(node);
+}
+
+void	Config::printIp(const_iterator_map node) const
+{
+	std::cout << YELLOW_BOLD "  Ip: " RESET_COLOR << node->first.first << std::endl;
+}
+
+void	Config::printPort(const_iterator_map node) const
+{
+	std::cout << YELLOW_BOLD "  Port: " RESET_COLOR << node->first.second << std::endl;
+	
+}
+
+void	Config::printServerBlock(const_iterator_map node) const
+{
+	for (size_t i = 0; i < node->second.size(); i++)
+	{
+		std::cout << MAGENTA_BOLD "    ServerBlock #"  << i+1 << RESET_COLOR<< std::endl;
+		std::cout << "\tClient size : " << node->second[i]->_client_body_size << std::endl;
+		std::cout << "\tserver Names:" << std::endl;
+		for (size_t j = 0; j < node->second[i]->_server_names.size(); j++)
+		{
+			std::cout << "\t  " << node->second[i]->_server_names[j] << std::endl;
+		}
+		std::cout << "\terror pages:" << std::endl;
+		for (size_t j = 0; j < node->second[i]->_error_pages.size(); j++)
+		{
+			std::cout << "\t  " << node->second[i]->_error_pages[j].first << ", " << node->second[i]->_error_pages[j].second << std::endl;
+		}
+		for (size_t j = 0; j < node->second[i]->_locations.size(); j++)
+		{
+			std::cout << YELLOW_BOLD "    location #" << j+1 << RESET_COLOR << std::endl;
+			printLocationBlock(node->second[i]->_locations[j]);
+		}
+	}
+}
+
+void	Config::printLocationBlock(LocationBlock *location) const
+{
+	std::cout << "\t  path: " << location->_path << std::endl;
+	std::cout << "\t  root: " << location->_root << std::endl;
+	std::cout << "\t  index: " ;
+	for (size_t i = 0; i < location->_index.size(); i++)
+	{
+		if (i != 0)
+		{
+			std::cout << ", ";
+		}
+		std::cout << location->_index[i];
+	}
+	std::cout << std::endl;
+	std::cout << "\t  Allowed Methods: " ;
+	for (size_t i = 0; i < location->_allowed_methods.size(); i++)
+	{
+		if (i != 0)
+		{
+			std::cout << ", ";
+		}
+		std::cout << location->_allowed_methods[i];
+	}
+	std::cout << std::endl;
+	std::cout << "\t  CGI: " ;
+	for (size_t i = 0; i < location->_cgi.size(); i++)
+	{
+		if (i != 0)
+		{
+			std::cout <<"; ";
+		}
+		std::cout << location->_cgi[i].first << ", " << location->_cgi[i].second;
+	}
+	std::cout << std::endl;
+	std::cout << "\t  Autoindex status: ";
+	if (location->_autoindex_status)
+	{
+		std::cout << "ON";
+	}
+	else
+	{
+		std::cout << "OFF";
+	}
+	std::cout << std::endl;
+	std::cout << "\t  Return: " ;
+	std::cout << location->_return.first << ", " << location->_return.second;
+	std::cout << std::endl;
+	std::cout << "\t  Location flag: ";
+	if (location->_location_flag == NONE)
+	{
+		std::cout << "NONE";
+	}
+	else if (location->_location_flag == EQUAL)
+	{
+		std::cout << "EQUAL";
+	}
+	std::cout << std::endl;
 }

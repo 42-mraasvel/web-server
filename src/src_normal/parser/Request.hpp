@@ -32,9 +32,10 @@ struct Request
 		void print() const;
 		void printBodyBytes() const;
 
-
 	public:
 		Request();
+
+		static MethodType getMethodType(std::string const & s);
 
 	/*
 	TODO: No _prefix because public?

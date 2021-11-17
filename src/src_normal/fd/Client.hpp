@@ -5,6 +5,7 @@
 #include <deque>
 #include "FdTable.hpp"
 #include "AFdInfo.hpp"
+#include "handler/RequestHandler.hpp"
 #include "handler/Response.hpp"
 #include "parser/Request.hpp"
 
@@ -60,7 +61,7 @@ class Client : public AFdInfo
 
 	private:
 		Address					_address;
-		RequestParser			_request_parser;
+		RequestHandler			_request_parser;
 		Request*				_request;
 		Response*				_new_response;
 		ResponseQueue			_response_queue;

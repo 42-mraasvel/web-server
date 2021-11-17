@@ -5,14 +5,13 @@
 #include "CgiSender.hpp"
 #include "CgiReader.hpp"
 #include "utility/status_codes.hpp"
+#include <libgen.h>
 #include <signal.h>
 #include <errno.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <cstring>
 #include <sys/wait.h>
-
-
 
 // Change the root directories if you want to test CGI
 #ifdef __linux__
@@ -337,8 +336,8 @@ int CgiHandler::executeChildProcess() const
 	{
 		return ERR;
 	}
-	sleep(1);
-	execve(SCRIPT_PATH, args, WebservUtility::getEnvp());
+	// TODO: chdir into the target resource or root directory?
+	execve(_script.c_str(), args, WebservUtility::getEnvp());
 	// Execve only returns on ERROR
 	return syscallError(_FUNC_ERR("execve"));
 }
@@ -349,7 +348,7 @@ int CgiHandler::prepareArguments(char *args[3]) const
 	First argument: executable basename
 	Second argument: _target
 	*/
-	args[0] = strdup(SCRIPT_PATH_BASE);
+	args[0] = strdup(WebservUtility::ft_basename(_script.c_str()));
 	if (args[0] == NULL)
 	{
 		return ERR;
