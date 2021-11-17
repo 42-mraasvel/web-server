@@ -1,11 +1,12 @@
 include make_settings/src_files.mk
 include make_settings/settings.mk
+include make_settings/fadey.mk
 
 all: $(NAME)
 
 # Compilation
-$(NAME): $(OBJ)
-	$(CXX) -o $@ $(OBJ) $(LFLAGS)
+$(NAME): $(FADEY) $(OBJ)
+	$(CXX) -o $@ $(OBJ) $(FLINK) -I $(FHDIR) $(LFLAGS)
 $(OBJ): $(ODIR)/%.o: $(SDIR)/%.cpp Makefile
 	@mkdir -p $(@D)
 	$(CXX) -c -o $@ $< $(CXXFLAGS) $(IFLAGS)
