@@ -3,7 +3,7 @@
 #include <utility>
 #include <string>
 #include "config/Config.hpp"
-#include "parser/Request.hpp"
+// #include "parser/Request.hpp"
 
 struct Request;
 
@@ -13,9 +13,10 @@ class ConfigResolver
 		ConfigResolver();
 
 	public:
+		typedef std::pair< std::string, int > Address; //TODO_config: to incorporate with config class
 		//TODO: to evaluate typedef for config
 		typedef	std::vector< ConfigServer * >				ServerVector; 
-		typedef std::map< Request::Address, ServerVector >	ConfigMap;
+		typedef std::map< Address, ServerVector >	ConfigMap;
 		typedef std::vector<std::string>					StringVector;
 		typedef std::vector< ConfigLocation * >				LocationVector;
 		typedef std::pair< int, std::string>				RedirectInfo;
@@ -35,8 +36,8 @@ class ConfigResolver
 	public:
 		int	resolution(Request const & request);
 	private:
-		ServerVector	resolveAddress(ConfigMap map, Request::Address client_address);
-		void				setAddress(ConfigMap const & map, Request::Address const & client_address, Request::Address & address);
+		ServerVector	resolveAddress(ConfigMap map, Address client_address);
+		void				setAddress(ConfigMap const & map, Address const & client_address, Address & address);
 		ConfigServer*	resolveHost(Request const & request, ServerVector const & servers);
 		void				setHost(Request const & request);
 		bool				isMatchEmpty(ServerVector const & servers, ServerVector::const_iterator & it_matched);

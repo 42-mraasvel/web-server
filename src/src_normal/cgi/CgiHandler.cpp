@@ -101,7 +101,6 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 		return ERR;
 	}
 
-	printf("ROOT DIR: %s\n", _root_dir.c_str());
 	// TODO: replace with _root_dir
 	_target = SERVER_ROOT + _target;
 	generateMetaVariables(request);

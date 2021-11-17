@@ -78,7 +78,7 @@ void HttpRequestParser::parseHeader(std::string const & buffer,
 	else if (_header_parser.isComplete())
 	{
 		request.header_fields.swap(_header_parser.getHeaderField());
-		checkHeaderFields(request.header_fields);
+		processRequestHeader(request);
 	}
 }
 
@@ -112,14 +112,17 @@ void HttpRequestParser::parseChunked(std::string const & buffer,
 /* Header Field Checking */
 
 /*
-TODO:
-	- Error check HeaderFields
-	- Potential request appending for 100 continue
-	- Configuration resolution
+Flow:
+	1. RequestValidator
+	2. CloseConnection flag
+	3. ConfigResolver, set data properly into request
+	4. Resolved request validation
+	5. Present payload-body check
+	6. CONTINUE check (only if everything else is valid and the request is not COMPLETE)
 */
-int HttpRequestParser::checkHeaderFields(HeaderField const & header)
+int HttpRequestParser::processRequestHeader(Request & request)
 {
-	return checkContentType(header);
+	return checkContentType(request.header_fields);
 }
 
 int HttpRequestParser::checkContentType(HeaderField const & header)

@@ -4,6 +4,8 @@
 # include "HeaderFieldParser.hpp"
 # include "ContentParser.hpp"
 # include "ChunkedParser.hpp"
+# include "handler/ConfigResolver.hpp"
+# include "handler/RequestValidator.hpp"
 # include <string>
 
 struct Request;
@@ -55,7 +57,7 @@ class HttpRequestParser
 			std::size_t & index, Request & request);
 
 	/* HeaderFields */
-		int checkHeaderFields(HeaderField const & request);
+		int processRequestHeader(Request & request);
 		int checkContentType(HeaderField const & header);
 		int parseContentLength(std::string const & value);
 		int parseTransferEncoding(std::string const & value);
@@ -69,4 +71,7 @@ class HttpRequestParser
 		HeaderFieldParser _header_parser;
 		ContentParser _content_parser;
 		ChunkedParser _chunked_content_parser;
+
+		ConfigResolver _config_resolver;
+		RequestValidator _request_validator;
 };

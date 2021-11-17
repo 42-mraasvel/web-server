@@ -1,6 +1,7 @@
 #include "ConfigResolver.hpp"
 #include "settings.hpp"
 #include "utility/utility.hpp"
+#include "parser/Request.hpp"
 #include <iostream>
 #include <unistd.h>
 
@@ -32,14 +33,14 @@ int	ConfigResolver::resolution(Request const & request)
 /****** resolve address ******/
 /*****************************/
 
-ConfigResolver::ServerVector	ConfigResolver::resolveAddress(ConfigMap map, Request::Address client_address)
+ConfigResolver::ServerVector	ConfigResolver::resolveAddress(ConfigMap map, Address client_address)
 {
-	Request::Address	address;
+	Address	address;
 	setAddress(map, client_address, address);
 	return map.find(address)->second;
 }
 
-void	ConfigResolver::setAddress(ConfigMap const & map, Request::Address const & client_address, Request::Address & address)
+void	ConfigResolver::setAddress(ConfigMap const & map, Address const & client_address, Address & address)
 {
 	if (map.count(client_address) == 1)
 	{

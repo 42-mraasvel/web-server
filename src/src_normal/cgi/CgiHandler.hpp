@@ -19,19 +19,30 @@ class CgiHandler
 		enum Status {
 			INACTIVE,
 			INCOMPLETE,
+			ERROR,
 			COMPLETE
 		};
 	public:
 		CgiHandler();
 		~CgiHandler();
 
+	/* Main Interface Functions */
 		bool isCgi(const Request& request);
 		int executeRequest(FdTable& fd_table, Request& request);
-		bool isComplete() const;
 
+		void update();
+		bool isComplete() const;
+		bool isError() const;
+		bool isChunked(std::string const & http_version) const;
+		bool isReadyToWrite() const;
+
+		int getStatusCode() const;
+		void setResponseData(std::string & body, HeaderField & header);
+
+
+	/* Old Interface: REMOVE */
 		const std::string& getContent() const;
 		const HeaderField& getHeaderField() const;
-		int getStatusCode() const;
 		Status getStatus() const;
 
 		void generateMessageBody(std::string & message_body);
@@ -40,12 +51,9 @@ class CgiHandler
 
 	/* Interfacing Functions */
 		void setRootDir(std::string const & root);
-		bool isChunked(std::string const & http_version) const;
 		bool evaluateExecutionError();
 		bool evaluateExecutionCompletion();
 		void setMessageBody(std::string & response_body);
-		bool isReadyToWrite() const;
-		void update();
 
 	/* Debugging */
 	public:

@@ -1,5 +1,6 @@
 #pragma once
 # include "HeaderField.hpp"
+# include "handler/ConfigResolver.hpp"
 
 enum MethodType
 {
@@ -13,7 +14,7 @@ struct Request
 {
 	public:
 		typedef HeaderField header_field_t;
-		typedef std::pair< std::string, int > Address; //TODO_config: to incorporate with config class
+		typedef ConfigResolver::Address Address; //TODO_config: to incorporate with config class
 	public:
 
 		enum RequestStatus
