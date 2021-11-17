@@ -1,6 +1,8 @@
 #include "HeaderFieldParser.hpp"
 #include "settings.hpp"
 #include "utility/utility.hpp"
+#include "utility/status_codes.hpp"
+#include "ParserUtils.hpp"
 
 HeaderFieldParser::HeaderFieldParser(ValidFieldFunction valid_field_function,
 									std::size_t max_header_field_size)
@@ -31,10 +33,11 @@ int HeaderFieldParser::parse(buffer_type const & buffer, std::size_t & index)
 	while (_index < buffer.size() && _state != HeaderFieldParser::COMPLETE)
 	{
 		std::size_t start = _index;
-		_index = findEndLine(buffer);
+		_index = WebservUtility::findEndLine(_leftover, buffer, _index);
 		if (_index == std::string::npos)
 		{
-			if (appendLeftover(buffer, start, _index - start) == ERR)
+			_index = buffer.size();
+			if (appendLeftover(buffer, start, _index) == ERR)
 			{
 				return ERR;
 			}
@@ -45,7 +48,7 @@ int HeaderFieldParser::parse(buffer_type const & buffer, std::size_t & index)
 			{
 				return ERR;
 			}
-			skipEndLine(buffer);
+			WebservUtility::skipEndLine(buffer, _index);
 		}
 	}
 
@@ -75,7 +78,7 @@ int HeaderFieldParser::handleLeftover(buffer_type const & buffer)
 	std::size_t start = _index;
 	// Returns the index of the start of the ENDLINE in buffer
 	// Will destroy "\r" from END OF leftover IF edgecase is encountered
-	_index = findEndLine(buffer);
+	_index = WebservUtility::findEndLine(_leftover, buffer, _index);
 
 	// Append buffer[start:end] to leftover
 	// Returns ERR if it exceeds MAX_SIZE
@@ -91,7 +94,7 @@ int HeaderFieldParser::handleLeftover(buffer_type const & buffer)
 	}
 
 	// Set index beyond the ENDLINE in buffer
-	skipEndLine(buffer);
+	WebservUtility::skipEndLine(buffer, _index);
 	// Parse leftover's field into map
 	if (parseHeaderField(_leftover, 0, _leftover.size()) == ERR)
 	{
@@ -106,47 +109,14 @@ Size check the leftover (header-field-max-size)
 */
 int HeaderFieldParser::appendLeftover(buffer_type const & buffer, std::size_t start, std::size_t end)
 {
-	if (end == std::string::npos)
-	{
-		end = buffer.size();
-	}
 
 	if (end - start + _leftover.size() > _max_size)
 	{
-		return setError(HeaderFieldParser::HEADER_FIELD_SIZE);
+		return setError(StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE);
 	}
 
 	_leftover.append(buffer, start, end - start);
 	return OK;
-}
-
-/*
-Return index inside the buffer, to the start of the next endline
-TODO: newline should be a custom string, i.e. it can be any representation of a string (INPUT)
-So we can match a string at the end of leftover to the end of the buffer
-*/
-std::size_t HeaderFieldParser::findEndLine(buffer_type const & buffer)
-{
-	// Edgecase: back of leftover has '\r', front of buffer has '\n'
-	if (_leftover.size() > 0 && _leftover[_leftover.size() - 1] == '\r' && buffer[0] == '\n')
-	{
-		_leftover.resize(_leftover.size() - 1);
-		return 0;
-	}
-
-	return buffer.find(CRLF, _index);
-}
-
-void HeaderFieldParser::skipEndLine(buffer_type const & buffer)
-{
-	if (buffer[_index] == '\n')
-	{
-		_index += 1;
-	}
-	else if (buffer[_index] == '\r')
-	{
-		_index += 2;
-	}
 }
 
 /*
@@ -159,7 +129,7 @@ int HeaderFieldParser::parseHeaderField(std::string const & s, std::size_t start
 {
 	if (end - start > _max_size)
 	{
-		return setError(HeaderFieldParser::HEADER_FIELD_SIZE);
+		return setError(StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE);
 	}
 	else if (end - start == 0)
 	{
@@ -171,19 +141,22 @@ int HeaderFieldParser::parseHeaderField(std::string const & s, std::size_t start
 
 	if (parseFieldName(s, key, start) == ERR)
 	{
-		return setError(HeaderFieldParser::INVALID_FIELD);
+		return setError(StatusCode::BAD_REQUEST);
 	}
 	if (skipColon(s, start) == ERR)
 	{
-		return setError(HeaderFieldParser::INVALID_FIELD);
+		return setError(StatusCode::BAD_REQUEST);
 	}
 	// Whitespace is optional so we don't have to error-check it
 	skip(s, start, isWhiteSpace);
-	parseFieldValue(s, value, start, end);
+	if (parseFieldValue(s, value, start, end) == ERR)
+	{
+		return setError(StatusCode::BAD_REQUEST);
+	}
 	// Custom field validator
 	if (!_valid_field(key, value, _header))
 	{
-		return setError(HeaderFieldParser::INVALID_FIELD);
+		return setError(StatusCode::BAD_REQUEST);
 	}
 	_header[key] = value;
 	return OK;
@@ -237,6 +210,13 @@ int HeaderFieldParser::parseFieldValue(const std::string& s, std::string& value,
 	}
 	value = s.substr(index, end_value - index + 1);
 	index = end;
+	for (std::size_t i = 0; i < value.size(); ++i)
+	{
+		if (!isWhiteSpace(value[i]) && !isVchar(value[i]))
+		{
+			return ERR;
+		}
+	}
 	return OK;
 }
 
@@ -244,14 +224,19 @@ int HeaderFieldParser::parseFieldValue(const std::string& s, std::string& value,
 Public interfaces
 */
 
-HeaderFieldParser::State HeaderFieldParser::getState() const
+bool HeaderFieldParser::isError() const
 {
-	return _state;
+	return _state == HeaderFieldParser::ERROR;
 }
 
-HeaderFieldParser::ErrorType HeaderFieldParser::getErrorType() const
+bool HeaderFieldParser::isComplete() const
 {
-	return _error_type;
+	return _state == HeaderFieldParser::COMPLETE;
+}
+
+int HeaderFieldParser::getStatusCode() const
+{
+	return _status_code;
 }
 
 void HeaderFieldParser::reset()
@@ -270,9 +255,9 @@ HeaderFieldParser::HeaderFieldType& HeaderFieldParser::getHeaderField()
 Private utilities
 */
 
-int HeaderFieldParser::setError(ErrorType type)
+int HeaderFieldParser::setError(int code)
 {
-	_error_type = type;
+	_status_code = code;
 	setState(ERROR);
 	return ERR;
 }

@@ -7,7 +7,7 @@ Namespaced representations of status codes enumeration
 namespace StatusCode
 {
 
-	enum Codes
+	enum Code
 	{
 		/* Informational: 1xx */
 		CONTINUE = 100,

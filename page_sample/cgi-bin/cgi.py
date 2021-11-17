@@ -6,6 +6,11 @@ KILOBYTE = 1024 * BYTE
 MEGABYTE = 1024 * KILOBYTE
 GIGABYTE = 1024 * MEGABYTE
 
+def printEnv():
+	# import os for this
+	print(os.environ)
+	print(sys.argv)
+
 def printHeader(header):
 	for key in header:
 		print(key, ": ", header[key], sep = '', end = "\r\n")
@@ -24,7 +29,6 @@ content = '''<html>
 content_type = 'text/html'
 
 if __name__ == '__main__':
-
 	header = dict()
 
 	# Stress testing...
