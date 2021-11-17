@@ -3,7 +3,7 @@ SETTINGS_MK = 1
 
 CXX = clang++
 CXXFLAGS = -Wall -Wextra -Werror
-IFLAGS = -I$(IDIR) -I$(SDIR)/$(SRC_SUBDIR)
+IFLAGS = -I$(IDIR) -I$(SDIR)/$(SRC_SUBDIR) -I$(FHDIR)
 LFLAGS =
 
 ifdef USING_CATCH

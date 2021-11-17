@@ -6,7 +6,7 @@ all: $(NAME)
 
 # Compilation
 $(NAME): $(FADEY) $(OBJ)
-	$(CXX) -o $@ $(OBJ) $(FLINK) -I $(FHDIR) $(LFLAGS)
+	$(CXX) -o $@ $(OBJ) $(FLINK) $(LFLAGS)
 $(OBJ): $(ODIR)/%.o: $(SDIR)/%.cpp Makefile
 	@mkdir -p $(@D)
 	$(CXX) -c -o $@ $< $(CXXFLAGS) $(IFLAGS)
