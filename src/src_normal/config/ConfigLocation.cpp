@@ -2,7 +2,7 @@
 #include <iostream>
 #include "settings.hpp"
 
-ConfigLocation::ConfigLocation(std::string path): _path(path), _autoindex_status(1)
+ConfigLocation::ConfigLocation(std::string path): _path(path), _autoindex_status(true), _location_flag(NONE)
 {}
 
 void ConfigLocation::addRoot(std::string root)
@@ -28,6 +28,41 @@ void	ConfigLocation::addAutoIndex(int status)
 void	ConfigLocation::addIndex(std::string index)
 {
 	this->_index.push_back(index);
+}
+
+void	ConfigLocation::addCgi(std::string extention, std::string path)
+{
+	std::pair<std::string, std::string> cgi(extention, path);
+	this->_cgi.push_back(cgi);
+}
+
+void ConfigLocation::addReturn(int code, std::string path)
+{
+	this->_return = std::make_pair(code, path);
+}
+
+void ConfigLocation::addLocationFlag(location_flag flag)
+{
+	this->_location_flag = flag;
+}
+
+LocationBlock* ConfigLocation::getLocationBlock()
+{
+	initLocationBlock();
+	return this->_location_block;
+}
+
+void ConfigLocation::initLocationBlock()
+{
+	_location_block = new LocationBlock;
+	_location_block->_path = _path;
+	_location_block->_root = _root;
+	_location_block->_index = _index;
+	_location_block->_allowed_methods = _allowed_methods;
+	_location_block->_cgi = _cgi;
+	_location_block->_autoindex_status = _autoindex_status;
+	_location_block->_return = _return;
+	_location_block->_location_flag = _location_flag;
 }
 
 /* Debugging */
@@ -113,14 +148,18 @@ void ConfigLocation::printIndex() const
 
 void ConfigLocation::printCgi() const
 {
-		std::cout << "  \t" WHITE_BOLD << "CGI:" RESET_COLOR " [";
+	std::cout << "  \t" WHITE_BOLD << "CGI:" RESET_COLOR " [";
 	for (size_t i = 0; i < _cgi.size(); i++)
 	{
 		if (i != 0)
 		{
 			std::cout << ", ";
 		}
-		std::cout << _cgi[i];
+		std::cout << _cgi[i].first << ";" << _cgi[i].second;
 	}
 	std::cout << ']' << std::endl;
 }
+
+
+
+
