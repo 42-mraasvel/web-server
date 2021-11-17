@@ -4,8 +4,7 @@
 # include "HeaderFieldParser.hpp"
 # include "ContentParser.hpp"
 # include "ChunkedParser.hpp"
-# include "handler/ConfigResolver.hpp"
-# include "handler/RequestValidator.hpp"
+# include "handler/RequestHeaderProcessor.hpp"
 # include <string>
 
 struct Request;
