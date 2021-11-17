@@ -22,6 +22,7 @@ clean:
 	$(MAKE) -C $(FADIR) clean
 fclean: clean
 	$(RM) $(EXECS)
+	$(MAKE) -C $(FADIR) fclean
 re: fclean
 	$(MAKE) all
 
