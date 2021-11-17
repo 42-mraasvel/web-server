@@ -7,6 +7,7 @@
 #include <string>
 #include "utility/utility.hpp"
 #include <map>
+#include <limits>
 
 Config::Config(std::string const & config_file): _file_name(config_file), _server_amount(0), _token_index(0)
 {
@@ -331,7 +332,7 @@ int	Config::parseClientBodySize()
 	size_t size = WebservUtility::strtoul(client_body_size);
 	if (size == 0)
 	{
-		size - ULONG_MAX;
+		size - std::numeric_limits<std::size_t>::max();
 	}
 	_servers[_server_amount].addClientBodySize(size);
 	_token_index++;
