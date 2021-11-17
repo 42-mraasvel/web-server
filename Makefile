@@ -19,6 +19,7 @@ $(DDIR)/%.d: $(SDIR)/%.cpp
 clean:
 	$(RM) -r $(DDIR)
 	$(RM) -r $(ODIR)
+	$(MAKE) -C $(FADIR) clean
 fclean: clean
 	$(RM) $(EXECS)
 re: fclean
@@ -32,3 +33,6 @@ debug:
 	$(MAKE) all DEBUG=1
 
 -include $(DEP)
+
+$(FADEY):
+	Make -C $(FADIR)
