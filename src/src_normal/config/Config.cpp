@@ -185,6 +185,11 @@ int	Config::parseLocation()
 	_token_index++;
 	_servers[_server_amount].addLocation(ConfigLocation(_tokens[_token_index]));
 	_token_index++;
+	if (_tokens[_token_index].compare("=") == 0)
+	{
+		_token_index++;
+		_servers[_server_amount].addLocationFlag(EQUAL);
+	}
 	checkExpectedSyntax("{");
 	_token_index++;
 	while(_token_index < _tokens.size() && _tokens[_token_index].compare("}"))
@@ -595,5 +600,15 @@ void	Config::printLocationBlock(LocationBlock *location) const
 	std::cout << std::endl;
 	std::cout << "\t  Return: " ;
 	std::cout << location->_return.first << ", " << location->_return.second;
+	std::cout << std::endl;
+	std::cout << "\t  Location flag: ";
+	if (location->_location_flag == NONE)
+	{
+		std::cout << "NONE";
+	}
+	else if (location->_location_flag == EQUAL)
+	{
+		std::cout << "EQUAL";
+	}
 	std::cout << std::endl;
 }

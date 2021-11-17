@@ -14,6 +14,7 @@ typedef struct s_LocationBlock
 	std::vector<std::string>							_allowed_methods;
 	std::vector<std::pair<std::string, std::string> >	_cgi;
 	bool												_autoindex_status;
+	location_flag										_location_flag;
 
 }				LocationBlock;
 
@@ -28,7 +29,7 @@ class ConfigLocation
 		void	addIndex(std::string index);
 		void	addCgi(std::string extention, std::string path);
 		void	addReturn(int code, std::string path);
-
+		void	addLocationFlag(location_flag flag);
 	// Utility
 		LocationBlock* getLocationBlock();
 		void	initLocationBlock();

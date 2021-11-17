@@ -60,6 +60,11 @@ void	ConfigServer::addIndex(std::string index)
 	_locations[_locations.size() - 1].addIndex(index);
 }
 
+void	ConfigServer::addLocationFlag(location_flag flag)
+{
+	_locations[_locations.size() - 1].addLocationFlag(flag);
+}
+
 int	ConfigServer::emptyAddress()
 {
 	return _ports.empty();

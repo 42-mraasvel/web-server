@@ -2,7 +2,7 @@
 #include <iostream>
 #include "settings.hpp"
 
-ConfigLocation::ConfigLocation(std::string path): _path(path), _autoindex_status(1)
+ConfigLocation::ConfigLocation(std::string path): _path(path), _autoindex_status(true), _location_flag(NONE)
 {}
 
 void ConfigLocation::addRoot(std::string root)
@@ -41,6 +41,11 @@ void ConfigLocation::addReturn(int code, std::string path)
 	this->_return = std::make_pair(code, path);
 }
 
+void ConfigLocation::addLocationFlag(location_flag flag)
+{
+	this->_location_flag = flag;
+}
+
 LocationBlock* ConfigLocation::getLocationBlock()
 {
 	initLocationBlock();
@@ -57,6 +62,7 @@ void ConfigLocation::initLocationBlock()
 	_location_block->_cgi = _cgi;
 	_location_block->_autoindex_status = _autoindex_status;
 	_location_block->_return = _return;
+	_location_block->_location_flag = _location_flag;
 }
 
 /* Debugging */
