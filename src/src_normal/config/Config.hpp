@@ -8,6 +8,7 @@ class Config
 {
 	public:
 		Config(std::string const & config_file);
+		~Config();
 		// getter
 		typedef std::vector<ConfigServer>::const_iterator	const_iterator;
 

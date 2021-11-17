@@ -15,6 +15,20 @@ Config::Config(std::string const & config_file): _file_name(config_file), _serve
 	printAddressMap();
 }
 
+// check for leaks
+Config::~Config()
+{
+	address_map::iterator it;
+	for (it = _address_map.begin(); it != _address_map.end(); ++it)
+	{
+		for (size_t i = 0; i < it->second.size(); i++)
+		{
+			it->second[i]->_locations.erase(it->second[i]->_locations.begin());
+		}
+		it->second.erase(it->second.begin());
+	}
+}
+
 Config::const_iterator Config::begin() const
 {
 	return (this->_servers.begin());
