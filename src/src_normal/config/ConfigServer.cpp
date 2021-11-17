@@ -2,6 +2,8 @@
 #include "settings.hpp"
 #include <iostream>
 #include <iomanip>
+#include <fadey.hpp>
+
 // TODO: Remove port 80 somewhere when process is done
 ConfigServer::ConfigServer()
 {}
@@ -133,14 +135,14 @@ void ConfigServer::print() const
 	printErrorPages();
 	for (size_t i = 0; i < _locations.size(); i++)
 	{	
-		std::cout << YELLOW_BOLD "    Locations" RESET_COLOR " #" << (i + 1) << std::endl;
+		km::fadey << "    Locations"; std::cout << " #" << (i + 1) << std::endl;
 		_locations[i].print();
 	}
 }
 
 void ConfigServer::printPorts() const
 {
-	std::cout << "  " CYAN_BOLD << "Ports:" RESET_COLOR " [";
+	km::fadey << "  Ports:" RESET_COLOR " [";
 	for (const_iterator it = begin(); it != end(); ++it)
 	{
 		if (it != begin())
@@ -154,7 +156,7 @@ void ConfigServer::printPorts() const
 
 void ConfigServer::printServerName() const
 {
-	std::cout << "  " CYAN_BOLD << "Server names:" RESET_COLOR " [";
+	km::fadey << "Server names:"; std::cout << " [";
 	for (size_t i = 0; i < _server_name.size(); i++)
 	{
 		if (i != 0)
@@ -168,7 +170,7 @@ void ConfigServer::printServerName() const
 
 void ConfigServer::printErrorPages() const
 {
-		std::cout << "  " CYAN_BOLD << "Error_pages:" RESET_COLOR " [";
+		km::fadey << "Error_pages:"; std::cout << " [";
 	for (size_t i = 0; i < _error_pages.size(); i++)
 	{
 		if (i != 0)
@@ -182,8 +184,8 @@ void ConfigServer::printErrorPages() const
 
 void	ConfigServer::printAddress(int index) const
 {
-	std::cout << BLUE_BOLD << _address[index].first;
+	km::fadey << _address[index].first;
 	std::cout << ", ";
-	std::cout << BLUE_BOLD << _address[index].second;
+	km::fadey << _address[index].second;
 	std::cout << std::endl;
 }

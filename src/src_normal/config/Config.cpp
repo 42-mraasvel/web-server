@@ -8,6 +8,7 @@
 #include "utility/utility.hpp"
 #include <map>
 #include <limits>
+#include <fadey.hpp>
 
 Config::Config(std::string const & config_file): _file_name(config_file), _server_amount(0), _token_index(0)
 {
@@ -181,7 +182,7 @@ int	Config::parseServer()
 		}
 		else
 		{
-			std::cout << RED_BOLD "Config Error: '" << _tokens[_token_index] << "' is not a valid configuration" RESET_COLOR << std::endl;
+			km::fadey << km::red << std::string("Config Error: '" + _tokens[_token_index] + "' is not a valid configuration") << std::endl;
 			exit(1);
 		}
 		checkExpectedSyntax(";");
@@ -435,7 +436,7 @@ int	Config::checkExpectedSyntax(std::string str)
 {
 	if (_tokens[_token_index].compare(str) != 0)
 	{
-		std::cout << RED_BOLD "Config Error: expected " << str << " instead of " << _tokens[_token_index] << RESET_COLOR << std::endl;
+		km::fadey << km::red << std::string("Config Error: expected " + str + " instead of " + _tokens[_token_index]) << std::endl;
 		exit(1);
 	}
 	return (1);
@@ -446,7 +447,7 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2)
 	if (_tokens[_token_index].compare(str1) != 0 
 		&& _tokens[_token_index].compare(str2) != 0)
 	{
-		std::cout << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
+		km::fadey << km::red << std::string("Config Error: expected " + str1 + " or " + str2 + " instead of " + _tokens[_token_index]) << std::endl;
 		exit(1);
 	}
 	return (1);
@@ -458,7 +459,7 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2, std::string 
 		&& _tokens[_token_index].compare(str2) != 0
 		&& _tokens[_token_index].compare(str3) != 0)
 	{
-		std::cout << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 <<" or " << str3 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
+		km::fadey << km::red << std::string("Config Error: expected " + str1 + " or " + str2 + " or " + str3 + " instead of " + _tokens[_token_index]) << std::endl;
 		exit(1);
 	}
 	return (1);
@@ -466,7 +467,7 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2, std::string 
 
 void	Config::configError(std::string str)
 {
-	std::cout << RED_BOLD << "Config error: " << str << std::endl;
+	km::fadey << km::red << std::string("Config error: " + str) << std::endl;
 	exit(1);
 }
 
@@ -507,7 +508,7 @@ void Config::print() const
 {
 	for (const_iterator it = begin(); it != end(); ++it)
 	{
-		std::cout << MAGENTA_BOLD "Server" RESET_COLOR " #" << (it - begin() + 1) << std::endl;
+		km::fadey << "Server"; std::cout << " #" << (it - begin() + 1) << std::endl;
 		it->print();
 	}
 }
@@ -515,7 +516,7 @@ void Config::print() const
 
 void Config::printAddressMap() const
 {
-	std::cout << MAGENTA_BOLD "Address Map" RESET_COLOR << std::endl;
+	km::fadey << "Address Map" << std::endl;
 	for (const_iterator_map it = _address_map.begin(); it != _address_map.end(); ++it)
 	{
 		printNode(it);
@@ -536,12 +537,12 @@ void	Config::printKey(const_iterator_map node) const
 
 void	Config::printIp(const_iterator_map node) const
 {
-	std::cout << YELLOW_BOLD "  Ip: " RESET_COLOR << node->first.first << std::endl;
+	km::fadey <<  "  Ip: "; std::cout << node->first.first << std::endl;
 }
 
 void	Config::printPort(const_iterator_map node) const
 {
-	std::cout << YELLOW_BOLD "  Port: " RESET_COLOR << node->first.second << std::endl;
+	km::fadey <<  "  Port: "; std::cout << node->first.second << std::endl;
 	
 }
 
@@ -549,7 +550,7 @@ void	Config::printServerBlock(const_iterator_map node) const
 {
 	for (size_t i = 0; i < node->second.size(); i++)
 	{
-		std::cout << MAGENTA_BOLD "    ServerBlock #"  << i+1 << RESET_COLOR<< std::endl;
+		km::fadey << std::string("    ServerBlock #" + std::to_string(i + 1)) << std::endl;
 		std::cout << "\tClient size : " << node->second[i]->_client_body_size << std::endl;
 		std::cout << "\tserver Names:" << std::endl;
 		for (size_t j = 0; j < node->second[i]->_server_names.size(); j++)
@@ -563,7 +564,7 @@ void	Config::printServerBlock(const_iterator_map node) const
 		}
 		for (size_t j = 0; j < node->second[i]->_locations.size(); j++)
 		{
-			std::cout << YELLOW_BOLD "    location #" << j+1 << RESET_COLOR << std::endl;
+			km::fadey << std::string("    location #" + std::to_string(j + 1)) << std::endl;
 			printLocationBlock(node->second[i]->_locations[j]);
 		}
 	}
