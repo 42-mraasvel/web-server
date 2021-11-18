@@ -87,13 +87,13 @@ ConfigServer::const_iterator ConfigServer::end() const
 }
 
 
-std::vector<ServerBlock*> ConfigServer::getServerBlock()
+std::vector<ConfigServer::server_pointer> ConfigServer::getServerBlock()
 {
 	initServerBlock();
 	return this->_server_block;
 }
 
-std::map<std::pair<std::string, int>, std::vector<ServerBlock*> > ConfigServer::getAddressMap()
+std::map<std::pair<std::string, int>, std::vector<ConfigServer::server_pointer> > ConfigServer::getAddressMap()
 {
 	initAddressMap();
 
@@ -114,15 +114,15 @@ void	ConfigServer::initAddressMap()
 
 void	ConfigServer::initServerBlock()
 {
-	ServerBlock *tmp = new ServerBlock;
-	tmp->_client_body_size = _client_body_size;
-	tmp->_server_names = _server_name;
-	tmp->_error_pages = _error_pages;
+	_server_block = SmartPointer<ServerBlock>(new ServerBlock);
+	_server_block->_client_body_size = _client_body_size;
+	_server_block->_server_names = _server_name;
+	_server_block->_error_pages = _error_pages;
 	for (size_t i = 0; i < _locations.size(); i++)
 	{
-		tmp->_locations.push_back(_locations[i].getLocationBlock());
+		_server_block->_locations.push_back(_locations[i].getLocationBlock());
 	}
-	_server_block.push_back(tmp);
+	_server_block.push_back(_server_block);
 }
 
 /* Debugging */

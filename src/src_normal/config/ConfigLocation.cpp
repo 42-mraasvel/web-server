@@ -46,7 +46,7 @@ void ConfigLocation::addLocationFlag(location_flag flag)
 	this->_location_flag = flag;
 }
 
-LocationBlock* ConfigLocation::getLocationBlock()
+ConfigLocation::location_pointer ConfigLocation::getLocationBlock()
 {
 	initLocationBlock();
 	return this->_location_block;
@@ -54,7 +54,8 @@ LocationBlock* ConfigLocation::getLocationBlock()
 
 void ConfigLocation::initLocationBlock()
 {
-	_location_block = new LocationBlock;
+	// _location_block = new LocationBlock;
+	_location_block = SmartPointer<LocationBlock>(new LocationBlock);
 	_location_block->_path = _path;
 	_location_block->_root = _root;
 	_location_block->_index = _index;

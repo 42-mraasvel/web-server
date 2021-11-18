@@ -19,15 +19,15 @@ Config::Config(std::string const & config_file): _file_name(config_file), _serve
 // check for leaks
 Config::~Config()
 {
-	address_map::iterator it;
-	for (it = _address_map.begin(); it != _address_map.end(); ++it)
-	{
-		for (size_t i = 0; i < it->second.size(); i++)
-		{
-			it->second[i]->_locations.erase(it->second[i]->_locations.begin());
-		}
-		it->second.erase(it->second.begin());
-	}
+	// address_map::iterator it;
+	// for (it = _address_map.begin(); it != _address_map.end(); ++it)
+	// {
+	// 	for (size_t i = 0; i < it->second.size(); i++)
+	// 	{
+	// 		it->second[i]->_locations.erase(it->second[i]->_locations.begin());
+	// 	}
+	// 	it->second.erase(it->second.begin());
+	// }
 }
 
 Config::const_iterator Config::begin() const
@@ -197,14 +197,16 @@ int	Config::parseServer()
 
 int	Config::parseLocation()
 {
-	_token_index++;
-	_servers[_server_amount].addLocation(ConfigLocation(_tokens[_token_index]));
+	location_flag flag = NONE;
 	_token_index++;
 	if (_tokens[_token_index].compare("=") == 0)
 	{
+		flag = EQUAL;
 		_token_index++;
-		_servers[_server_amount].addLocationFlag(EQUAL);
 	}
+	_servers[_server_amount].addLocation(ConfigLocation(_tokens[_token_index]));
+	_servers[_server_amount].addLocationFlag(flag);
+	_token_index++;
 	checkExpectedSyntax("{");
 	_token_index++;
 	while(_token_index < _tokens.size() && _tokens[_token_index].compare("}"))
@@ -496,7 +498,7 @@ void	Config::initAddressMap()
 	}
 }
 
-std::map<std::pair<std::string, int>, std::vector<ServerBlock*> >	Config::getAddressMap()
+std::map<std::pair<std::string, int>, std::vector<ConfigServer::server_pointer> >	Config::getAddressMap()
 {
 	return this->_address_map;
 }
@@ -569,7 +571,7 @@ void	Config::printServerBlock(const_iterator_map node) const
 	}
 }
 
-void	Config::printLocationBlock(LocationBlock *location) const
+void	Config::printLocationBlock(ConfigLocation::location_pointer location) const
 {
 	std::cout << "\t  path: " << location->_path << std::endl;
 	std::cout << "\t  root: " << location->_root << std::endl;

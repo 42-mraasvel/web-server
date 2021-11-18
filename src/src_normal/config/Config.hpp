@@ -12,7 +12,7 @@ class Config
 		// getter
 		typedef std::vector<ConfigServer>::const_iterator	const_iterator;
 
-		typedef std::vector<ServerBlock*> 					server_block_vector;
+		typedef std::vector<ConfigServer::server_pointer> 					server_block_vector;
 		typedef std::pair<std::string, int>					ip_host_pair;
 		typedef std::map<ip_host_pair, server_block_vector>	address_map;
 		typedef address_map::const_iterator					const_iterator_map;
@@ -52,7 +52,7 @@ class Config
 
 	// Getters
 	public:
-		std::map<std::pair<std::string, int>, std::vector<ServerBlock*> >	getAddressMap();
+		std::map<std::pair<std::string, int>, std::vector<ConfigServer::server_pointer> >	getAddressMap();
 	// Utility
 	void	initAddressMap();
 	
@@ -78,5 +78,5 @@ class Config
 		void printIp(const_iterator_map node) const;
 		void printPort(const_iterator_map node) const;
 		void printServerBlock(const_iterator_map node) const;
-		void printLocationBlock(LocationBlock *location) const;
+		void printLocationBlock(ConfigLocation::location_pointer location) const;
 };
