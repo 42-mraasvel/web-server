@@ -59,7 +59,12 @@ void RequestHandler::newRequest()
 
 void RequestHandler::completeRequest()
 {
-	_requests.push(_request);
+	try {
+		_requests.push(_request);
+	} catch (const std::bad_alloc& e) {
+		delete _request;
+		throw e;
+	}
 	_request = NULL;
 	_parser.reset();
 }

@@ -46,22 +46,22 @@ int HttpRequestParser::parse(std::string const &buffer, std::size_t &index, Requ
 	{
 		switch (_state)
 		{
-		case PARSE_REQUEST_LINE:
-			parseRequestLine(buffer, index, request);
-			break;
-		case PARSE_HEADER:
-			parseHeader(buffer, index, request);
-			break;
-		case PARSE_CONTENT:
-			parseContent(buffer, index, request);
-			break;
-		case PARSE_CHUNKED:
-			parseChunked(buffer, index, request);
-			break;
-		case ERROR:
-			return ERR;
-		case COMPLETE:
-			return OK;
+			case PARSE_REQUEST_LINE:
+				parseRequestLine(buffer, index, request);
+				break;
+			case PARSE_HEADER:
+				parseHeader(buffer, index, request);
+				break;
+			case PARSE_CONTENT:
+				parseContent(buffer, index, request);
+				break;
+			case PARSE_CHUNKED:
+				parseChunked(buffer, index, request);
+				break;
+			case ERROR:
+				return ERR;
+			case COMPLETE:
+				return OK;
 		}
 	}
 	if (_state == ERROR)
@@ -96,7 +96,13 @@ void HttpRequestParser::parseHeader(std::string const &buffer,
 	else if (_header_parser.isComplete())
 	{
 		request.header_fields.swap(_header_parser.getHeaderField());
+		try {
 		processRequestHeader(request);
+
+		} catch(...) {
+			printf("PROCESS REQUEST HANDLER THREW\n");
+			throw;
+		}
 	}
 }
 

@@ -43,6 +43,7 @@ int	CgiReader::readEvent(FdTable & fd_table)
 	}
 	else if (n == 0)
 	{
+		//TODO: Set as ERROR or INCOMPLETE if the expected length has not been read
 		closeEvent(fd_table, AFdInfo::FILE_COMPLETE);
 		return OK;
 	}
@@ -89,14 +90,14 @@ bool CgiReader::isChunked() const
 	return false;
 }
 
-std::string const & CgiReader::getBody() const
+HeaderField & CgiReader::getHeader()
 {
-	return _message_body;
+	return _header;
 }
 
-void CgiReader::clearBody()
+std::string & CgiReader::getBody()
 {
-	_message_body.clear();
+	return _message_body;
 }
 
 std::string CgiReader::getName() const

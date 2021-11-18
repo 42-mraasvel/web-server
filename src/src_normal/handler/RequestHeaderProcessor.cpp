@@ -31,14 +31,21 @@ int RequestHeaderProcessor::process(Request & request)
 		return setError(_request_validator.getStatusCode());
 	}
 
+
 	determineCloseConnection(request);
-	_config_resolver.resolution(request);
+	// try {
+	// _config_resolver.resolution(request);
+	// } catch (...) {
+	// 	printf("CONFIG RESOLVER THREW\n");
+	// 	throw;
+	// }
+
 	// request.config = _config_resolver.getData();
 
-	if (!_request_validator.isRequestValidPostConfig(request, _config_resolver))
-	{
-		return setError(_request_validator.getStatusCode());
-	}
+	// if (!_request_validator.isRequestValidPostConfig(request, _config_resolver))
+	// {
+	// 	return setError(_request_validator.getStatusCode());
+	// }
 
 	// check payload body
 	// Set CONTINUE here?

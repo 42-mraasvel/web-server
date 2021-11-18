@@ -23,8 +23,8 @@ class CgiReader : public AFdInfo
 
 		bool isChunked() const;
 
-		std::string const & getBody() const;
-		void clearBody();
+		std::string & getBody();
+		HeaderField & getHeader();
 	
 	public:
 		std::string getName() const;

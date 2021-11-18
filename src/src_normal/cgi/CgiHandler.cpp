@@ -37,7 +37,7 @@ CgiHandler::~CgiHandler()
 	if (_status != CgiHandler::INACTIVE)
 	{
 		destroyFds();
-		checkCgi();
+		cleanCgi();
 	}
 }
 
@@ -97,7 +97,7 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 	_script = SCRIPT_PATH;
 	if (!scriptCanBeExecuted())
 	{
-		finishResponse(COMPLETE, StatusCode::BAD_GATEWAY);
+		finishCgi(ERROR, StatusCode::BAD_GATEWAY);
 		return ERR;
 	}
 
@@ -109,14 +109,14 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 	int fds[2] = {-1, -1};
 	if (initializeCgiConnection(fds, fd_table, request) == ERR)
 	{
-		finishResponse(COMPLETE, StatusCode::INTERNAL_SERVER_ERROR);
+		finishCgi(ERROR, StatusCode::INTERNAL_SERVER_ERROR);
 		return ERR;
 	}
 
 	/* 3. Fork */
 	if (forkCgi(fds, fd_table) == ERR)
 	{
-		finishResponse(COMPLETE, StatusCode::INTERNAL_SERVER_ERROR);
+		finishCgi(ERROR, StatusCode::INTERNAL_SERVER_ERROR);
 		WebservUtility::closePipe(fds);
 		return ERR;
 	}
@@ -445,24 +445,18 @@ bool CgiHandler::isChunked(std::string const & http_version) const
 	return _reader->isChunked();
 }
 
-/*
-TODO: ERROR handling
-	- CGI program exits before it was expected (or crashes)
-	- CGI program times out
-	- CGI program returns an invalid CGI response
-*/
 bool CgiHandler::evaluateExecutionError()
 {
 	//TODO: implement functionality
+	if ((_reader && _reader->flag == AFdInfo::FILE_ERROR)
+		|| (_sender && _sender->flag == AFdInfo::FILE_ERROR))
+	{
+		return true;
+	}
 	return false;
 }
 
 bool CgiHandler::evaluateExecutionCompletion()
-{
-	return isComplete();
-}
-
-bool CgiHandler::isReadyToWrite() const
 {
 	return isComplete();
 }
@@ -486,20 +480,31 @@ Function's purpose:
 	- Set completion status if both are complete
 		DISCUSS: IF CGI is complete and CGI process is still active (running) : send SIGKILL?
 
-TODO: ERROR checks and flag should be done here (evaluateExecutionError)
+TODO: ERROR handling
+	- CGI program exits before it was expected (or crashes)
+	- CGI program times out
 */
 void CgiHandler::update()
 {
 	//return if already finished communicating with CGI
-	if (_status == CgiHandler::COMPLETE)
+	if (isComplete() || isError())
 	{
+		return;
+	}
+
+	if (evaluateExecutionError())
+	{
+		destroyFds();
+		finishCgi(CgiHandler::ERROR, StatusCode::BAD_GATEWAY);
 		return;
 	}
 
 	if (_reader && _reader->flag == AFdInfo::FILE_COMPLETE)
 	{
-		_message_body = _reader->getBody();
-		_reader->clearBody();
+		// TODO: if sending a CHUNKED Message, then we should APPEND only if it's actively reading
+		// HeaderField should just be swapped once it's parsed in that case (add HEADER_COMPLETE)
+		_message_body.swap(_reader->getBody());
+		_header.swap(_reader->getHeader());
 		_reader->setToErase();
 		_reader = NULL;
 	}
@@ -512,12 +517,11 @@ void CgiHandler::update()
 
 	if (isComplete())
 	{
-		checkCgi();
-		finishResponse(CgiHandler::COMPLETE, StatusCode::STATUS_OK);
+		finishCgi(CgiHandler::COMPLETE, StatusCode::STATUS_OK);
 	}
 }
 
-int CgiHandler::checkCgi()
+int CgiHandler::cleanCgi()
 {
 	if (_cgi_pid == -1)
 	{
@@ -525,7 +529,7 @@ int CgiHandler::checkCgi()
 	}
 
 	int status;
-	if (cleanCgi(&status) == ERR)
+	if (killCgi(&status) == ERR)
 	{
 		return ERR;
 	}
@@ -534,7 +538,7 @@ int CgiHandler::checkCgi()
 	return OK;
 }
 
-int CgiHandler::cleanCgi(int* status)
+int CgiHandler::killCgi(int* status)
 {
 	printf(BLUE_BOLD "WaitEvent CGI:" RESET_COLOR " PID(%d)\n", _cgi_pid);
 	pid_t result = waitpid(_cgi_pid, status, WNOHANG);
@@ -550,6 +554,7 @@ int CgiHandler::cleanCgi(int* status)
 			return syscallError(_FUNC_ERR("kill"));
 		}
 
+		printf("Waiting for CGI after killing\n");
 		if (waitpid(_cgi_pid, status, 0) == ERR)
 		{
 			return syscallError(_FUNC_ERR("waitpid"));
@@ -558,14 +563,37 @@ int CgiHandler::cleanCgi(int* status)
 	return OK;
 }
 
-
 /* Utilities */
 
 bool CgiHandler::isComplete() const
 {
-	return
-		(_sender == NULL || _sender->flag == AFdInfo::FILE_COMPLETE) && 
-		(_reader == NULL || _reader->flag == AFdInfo::FILE_COMPLETE);
+	return _sender == NULL && _reader == NULL;
+}
+
+bool CgiHandler::isError() const
+{
+	return _status == CgiHandler::ERROR;
+}
+
+bool CgiHandler::isReadyToWrite() const
+{
+	return isComplete();
+}
+
+void CgiHandler::setResponseData(std::string & response_body, HeaderField & response_header)
+{
+	// This is done only once
+	if (_header.size() > 0)
+	{
+		for (HeaderField::iterator it = _header.begin(); it != _header.end(); ++it)
+		{
+			response_header[it->first] = it->second;
+		}
+		_header.clear();
+	}
+
+	// Append for chunked?
+	response_body.swap(_message_body);
 }
 
 void CgiHandler::clearContent()
@@ -573,8 +601,9 @@ void CgiHandler::clearContent()
 	_message_body.clear();
 }
 
-void CgiHandler::finishResponse(Status status, int code)
+void CgiHandler::finishCgi(Status status, int code)
 {
+	cleanCgi();
 	destroyFds();
 	_status = status;
 	_status_code = code;
