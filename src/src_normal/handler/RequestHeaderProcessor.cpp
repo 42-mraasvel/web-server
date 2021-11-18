@@ -1,6 +1,7 @@
 #include "RequestHeaderProcessor.hpp"
 #include "settings.hpp"
 #include "utility/utility.hpp"
+#include "utility/status_codes.hpp"
 
 int RequestHeaderProcessor::getStatusCode() const
 {
@@ -29,7 +30,19 @@ int RequestHeaderProcessor::process(Request & request)
 		request.close_connection = _request_validator.shouldCloseConnection();
 		return setError(_request_validator.getStatusCode());
 	}
+
 	determineCloseConnection(request);
+	_config_resolver.resolution(request);
+	// request.config = _config_resolver.getData();
+
+	if (!_request_validator.isRequestValidPostConfig(request, _config_resolver))
+	{
+		return setError(_request_validator.getStatusCode());
+	}
+
+	// check payload body
+	// Set CONTINUE here?
+
 	return OK;
 }
 
