@@ -16,7 +16,7 @@ int Webserver::initServer(ConfigServer const & conf)
 	for (port_it = conf.begin(); port_it != conf.end(); ++port_it)
 	{
 		Server *new_server = new Server();
-		if (new_server->setupServer(*port_it) == ERR)
+		if (new_server->setupServer(*port_it, &_config_map) == ERR)
 		{
 			delete new_server;
 			return ERR;
@@ -34,7 +34,7 @@ int	Webserver::init(Config const & config)
 
 	printf("Hardcoding: 8080\n");
 	Server* new_server = new Server();
-	if (new_server->setupServer(8080) == ERR)
+	if (new_server->setupServer(8080, &_config_map) == ERR)
 	{
 		delete new_server;
 		return ERR;
@@ -64,7 +64,7 @@ int	Webserver::dispatchFd(int ready)
 			{
 				printf(BLUE_BOLD "Read event:" RESET_COLOR " %s: [%d]\n",
 					_fd_table[i].second->getName().c_str(), _fd_table[i].first.fd);
-				if (_fd_table[i].second->readEvent(_fd_table, _config_map) == ERR)
+				if (_fd_table[i].second->readEvent(_fd_table) == ERR)
 					return ERR;
 			}
 			if (_fd_table[i].first.revents & POLLOUT)

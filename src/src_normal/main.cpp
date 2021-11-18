@@ -12,7 +12,7 @@ int main()
 {
 	Config config_file("src/src_normal/config/resources/default.conf");
 	config_file.print();
-	Webserver webserver;
+	Webserver webserver(config_file.getAddressMap());
 	if (webserver.init(config_file))
 		return (1);
 	webserver.print();

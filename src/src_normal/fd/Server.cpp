@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-int		Server::setupServer(int port)
+int		Server::setupServer(int port, Config::address_map* config_map)
 {
 	this->_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->_fd == ERR)
@@ -33,6 +33,7 @@ int		Server::setupServer(int port)
 		perror("fcntl");
 	}
 	_port = port; //TODO: to evaluate later
+	_config_map = config_map;
 	return OK;
 }
 

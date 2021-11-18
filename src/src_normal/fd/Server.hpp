@@ -11,7 +11,7 @@
 class Server : public AFdInfo
 {
 	public:
-		int	setupServer(int port);
+		int	setupServer(int port, Config::address_map* config_map);
 		int	readEvent(FdTable & fd_table);
 		int	writeEvent(FdTable & fd_table);
 		struct pollfd getPollFd() const;
@@ -25,4 +25,5 @@ class Server : public AFdInfo
 	
 	private:
 		int	_port;
+		Config::address_map*	_config_map;
 };
