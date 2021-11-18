@@ -2,10 +2,7 @@
 #include <iostream>
 #include "settings.hpp"
 
-ConfigLocation::ConfigLocation(std::string path):
-//TODO: REMOVE initialization
-auto_index_status(false), redirect(false),
-_path(path), _autoindex_status(true), _location_flag(NONE)
+ConfigLocation::ConfigLocation(std::string path): _path(path), _autoindex_status(true), _location_flag(NONE)
 {}
 
 void ConfigLocation::addRoot(std::string root)
@@ -163,28 +160,6 @@ void ConfigLocation::printCgi() const
 	std::cout << ']' << std::endl;
 }
 
-//TODO: only for ConfigResolver, to delete
-std::string const &	ConfigLocation::getPath() const
-{
-	return _path;
-}
 
-std::vector<std::string> const &	ConfigLocation::getIndex() const
-{
-	return _index;
-}
 
-std::vector<std::string> const &	ConfigLocation::getAllowedMethods() const
-{
-	return _allowed_methods;
-}
 
-int ConfigLocation::getAutoIndexStatus() const
-{
-	return _autoindex_status;
-}
-
-std::string const &	ConfigLocation::getRoot() const
-{
-	return _root;
-}

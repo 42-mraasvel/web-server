@@ -34,7 +34,7 @@ struct pollfd	Client::getPollFd() const
 /****** readEvent ******/
 /***********************/
 
-int	Client::readEvent(FdTable & fd_table)
+int	Client::readEvent(FdTable & fd_table, Config::address_map map)
 {
 	//TODO_config: add config map parameter, pass it on to processRequest
 	if (parseRequest() == ERR)

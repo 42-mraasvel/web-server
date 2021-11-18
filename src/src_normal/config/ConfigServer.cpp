@@ -187,19 +187,3 @@ void	ConfigServer::printAddress(int index) const
 	std::cout << BLUE_BOLD << _address[index].second;
 	std::cout << std::endl;
 }
-
-//TODO: only for ConfigResolver, to delete
-std::vector<std::string> const &	ConfigServer::getServerNames() 
-{
-	return _server_name;
-}
-
-std::vector<ConfigLocation * > const &	ConfigServer::getLocation() 
-{
-	return _locationptrs;
-}
-
-std::vector<std::pair<int, std::string> > const &	ConfigServer::getErrorPages()
-{
-	return _error_pages;
-}

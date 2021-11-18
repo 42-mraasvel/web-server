@@ -22,7 +22,7 @@ class Client : public AFdInfo
 
 	/* read */
 	public:
-		int	readEvent(FdTable & fd_table);
+		int	readEvent(FdTable & fd_table, Config::address_map map);
 	private:
 		int		parseRequest();
 		int			readRequest(std::string & buffer);

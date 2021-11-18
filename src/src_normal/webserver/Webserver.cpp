@@ -7,6 +7,9 @@
 #include <unistd.h>
 #include <cstdlib> // REMOVE, RM
 
+Webserver::Webserver(Config::address_map map): _config_map(map)
+{}
+
 int Webserver::initServer(ConfigServer const & conf)
 {
 	ConfigServer::const_iterator port_it;
@@ -61,7 +64,7 @@ int	Webserver::dispatchFd(int ready)
 			{
 				printf(BLUE_BOLD "Read event:" RESET_COLOR " %s: [%d]\n",
 					_fd_table[i].second->getName().c_str(), _fd_table[i].first.fd);
-				if (_fd_table[i].second->readEvent(_fd_table) == ERR)
+				if (_fd_table[i].second->readEvent(_fd_table, _config_map) == ERR)
 					return ERR;
 			}
 			if (_fd_table[i].first.revents & POLLOUT)

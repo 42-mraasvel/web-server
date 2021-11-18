@@ -47,15 +47,14 @@ void	Response::setHttpVersion(int minor_version)
 /****** (Client::readEvent) init response  ******/
 /************************************************/
 
-void	Response::initiate(Request const & request)
+void	Response::initiate(ConfigResolver::MapType const & map, Request const & request)
 {
-	//TODO_config: add config map parameter, pass it on to ...?
 	evaluateConnectionFlag(request);
 	if (validateRequest(request, false) == ERR)
 	{
 		return ;
 	}
-	if (resolveConfig(request) == ERR)
+	if (resolveConfig(map, request) == ERR)
 	{
 		return ;
 	}
@@ -70,26 +69,37 @@ void	Response::initiate(Request const & request)
 /****** init response - resolve config ******/
 /********************************************/
 
-int	Response::resolveConfig(Request const & request)
+int	Response::resolveConfig(ConfigResolver::MapType const & map, Request const & request)
 {
-	if (_config_resolver.resolution(request) == ERR)
+	std::string host;
+	if (request.header_fields.contains("host"))
 	{
-		markComplete(StatusCode::INTERNAL_SERVER_ERROR);
-		return ERR;
+		host = request.header_fields.find("host")->second;
 	}
+	else
+	{
+		host = "";
+	}
+
+	_config_resolver.resolution(map, request.address, host, request.request_target);
 	if (_config_resolver.result == ConfigResolver::NOT_FOUND)
 	{
 		markComplete(StatusCode::NOT_FOUND);
 		return ERR;
 	}
+	if (_config_resolver.result == ConfigResolver::REDIRECT)
+	{
+		markComplete(_config_resolver.resolved_location->_return.first);
+		processRedirectResponse(); //TODO: to move
+		return OK;
+	}
 	if (_config_resolver.result == ConfigResolver::AUTO_INDEX_ON)
 	{
 		markComplete(StatusCode::STATUS_OK);
-		_message_body = _config_resolver.auto_index_page;
-		return ERR;
+		return OK;
 	}
-	setEffectiveRequestURI(_config_resolver.resolved_host, request.address.second, _config_resolver.resolved_target);
-	setAbsoluteFilePath(_config_resolver.resolved_location->getRoot(), _config_resolver.resolved_file_path);
+	setEffectiveRequestURI(host, request.address.second, _config_resolver.resolved_target);
+	setAbsoluteFilePath(_config_resolver.resolved_location->_root, _config_resolver.resolved_file_path);
 	return OK;
 }
 
@@ -113,6 +123,22 @@ void	Response::setAbsoluteFilePath(std::string const & root, std::string const &
 	else
 	{
 		_file_handler.setAbsoluteFilePath(resolved_file_path);
+	}
+}
+
+void	Response::processRedirectResponse()
+{
+	std::string	redirect_text = _config_resolver.resolved_location->_return.second;
+
+	if (_status_code >= 300 && _status_code < 400)
+	{
+		// TODO: to check if the redirect_text needs to be absolute form??
+		_effective_request_uri = redirect_text;
+		_message_body = "Redirect to " + redirect_text + "\n";
+	}
+	else
+	{
+		_message_body = redirect_text;
 	}
 }
 
@@ -169,36 +195,9 @@ int	Response::validateRequest(Request const & request, bool is_config_completed)
 
 void	Response::processImmdiateResponse(Request const & request)
 {
-	if (isRedirectResponse())
-	{
-		processRedirectResponse();
-	}
-	else if (isContinueResponse(request))
+	if (isContinueResponse(request))
 	{
 		processContinueResponse();
-	}
-}
-
-bool	Response::isRedirectResponse() const
-{
-	return _config_resolver.result == ConfigResolver::REDIRECT;
-}
-
-void	Response::processRedirectResponse()
-{
-	int			redirect_code = _config_resolver.redirect_info.first;
-	std::string	redirect_text = _config_resolver.redirect_info.second;
-
-	markComplete(redirect_code);
-	if (_status_code >= 300 && _status_code < 400)
-	{
-		// TODO: to check if the redirect_text needs to be absolute form??
-		_effective_request_uri = redirect_text;
-		_message_body = "Redirect to " + redirect_text + "\n";
-	}
-	else
-	{
-		_message_body = redirect_text;
 	}
 }
 

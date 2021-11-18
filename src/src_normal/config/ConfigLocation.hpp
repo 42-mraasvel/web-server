@@ -34,15 +34,6 @@ class ConfigLocation
 		LocationBlock* getLocationBlock();
 		void	initLocationBlock();
 
-		//TODO: only for ConfigResolver, to delete
-		std::string const &					getPath() const;
-		std::vector<std::string> const &	getIndex() const;
-		std::vector<std::string> const &	getAllowedMethods() const;
-		int 						getAutoIndexStatus() const;
-		std::string const & 				getRoot() const;
-		bool				auto_index_status;
-		bool				redirect;
-
 	private:
 		std::string 				_path;
 		std::string					_root;

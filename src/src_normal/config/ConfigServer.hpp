@@ -51,12 +51,6 @@ class ConfigServer
 		const_iterator begin() const;
 		const_iterator end() const;
 
-		//TODO: only for ConfigResolver, to delete
-		std::vector<std::string> const &	getServerNames();
-		std::vector<ConfigLocation * > const & getLocation();
-		std::vector<ConfigLocation * >			_locationptrs;
-		std::vector<std::pair<int, std::string> > const & getErrorPages();
-
 	private:
 		int											_default_port;
 		size_t										_client_body_size;

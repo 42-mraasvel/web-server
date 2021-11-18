@@ -25,9 +25,9 @@ class Response
 
 	/* Client::readEvent() */
 	public:
-		void	initiate(Request const & request);
+		void	initiate(ConfigResolver::MapType const & map, Request const & request);
 	private:
-		int			resolveConfig(Request const & request);
+		int			resolveConfig(ConfigResolver::MapType const & map, Request const & request);
 		void			setEffectiveRequestURI(std::string const & resolved_host, int port, std::string const & resolved_target);
 		void			setAbsoluteFilePath(std::string const & root, std::string const & resolved_file_path);
 		void		evaluateConnectionFlag(Request const & request);

@@ -14,7 +14,7 @@ struct Request
 {
 	public:
 		typedef HeaderField header_field_t;
-		typedef ConfigResolver::Address Address; //TODO_config: to incorporate with config class
+		typedef ConfigResolver::AddressType Address;
 	public:
 
 		enum RequestStatus
