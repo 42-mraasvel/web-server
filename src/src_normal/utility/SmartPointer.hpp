@@ -54,9 +54,6 @@ class SmartPointer
 				return;
 			}
 			decrementReference();
-			if (getCount() == 0) {
-				delete p;
-			}
 		}
 
 		reference operator*() {
@@ -96,11 +93,14 @@ class SmartPointer
 			_SmartPointerDetail_::_reference_tracker[(void*)(p)] += 1;
 		}
 
-		void decrementReference() const {
+		void decrementReference() {
 			if (p == NULL) {
 				return;
 			}
 			_SmartPointerDetail_::_reference_tracker[(void*)(p)] -= 1;
+			if (getCount() == 0) {
+				delete p;
+			}
 		}
 
 		unsigned int getCount() const {

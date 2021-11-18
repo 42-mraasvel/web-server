@@ -11,8 +11,7 @@
 
 Client::Client(int fd, Config::ip_host_pair address, Config::address_map* config_map):
 AFdInfo(fd),
-_address(address),
-_config_map(config_map),
+_request_handler(address, config_map),
 _request(NULL),
 _new_response(NULL),
 _response(NULL)
@@ -66,7 +65,7 @@ int	Client::parseRequest()
 		closeConnection();
 		return ERR;
 	}
-	_request_parser.parse(buffer);
+	_request_handler.parse(buffer);
 	return OK;
 }
 
@@ -92,12 +91,12 @@ bool	Client::retrieveRequest()
 {
 	if (!_request)
 	{
-		_request = _request_parser.getNextRequest();
+		_request = _request_handler.getNextRequest();
 		if (!_request)
 		{
 			return false;
 		}
-		_request->address = _address; //TODO: to discuss where to put this
+		// Removed because the address is now initialized by default in RequestHandler
 	}
 	return true;
 }

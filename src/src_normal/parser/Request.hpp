@@ -1,6 +1,7 @@
 #pragma once
 # include "HeaderField.hpp"
 # include "handler/ConfigResolver.hpp"
+# include "handler/ConfigInfo.hpp"
 
 enum MethodType
 {
@@ -21,7 +22,7 @@ struct Request
 		{
 			READING,
 			HEADER_COMPLETE,
-			CONTINUE,
+			EXPECT, // TODO: discuss whether name should be CONTINUE, or EXPECT
 			COMPLETE,
 			BAD_REQUEST
 		};
@@ -36,18 +37,18 @@ struct Request
 
 	public:
 		Request();
+		Request(Address address);
 
 		static MethodType getMethodType(std::string const & s);
+	
+	private:
 
-	/*
-	TODO: No _prefix because public?
-	*/
+		void init();
 
 	public:
 		Address			address;
 		RequestStatus	status;
 		int				status_code;
-		// TODO: discuss whether this should remain a bool or be a flag
 		bool			close_connection;
 
 		MethodType		method;
@@ -57,4 +58,6 @@ struct Request
 		int				minor_version;
 		header_field_t	header_fields;
 		std::string		message_body;
+
+		ConfigInfo		config_info;
 };

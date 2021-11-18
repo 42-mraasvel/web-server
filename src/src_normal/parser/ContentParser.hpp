@@ -39,6 +39,8 @@ class ContentParser
 		void setContentLength(std::size_t length);
 		void setMaxSize(std::size_t max);
 
+		std::size_t getMaxSize() const;
+
 	private:
 		int parseRawData(std::string const & buffer, std::size_t& index);
 		int setError(StatusCode::Code code);

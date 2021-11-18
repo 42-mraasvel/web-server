@@ -2,8 +2,8 @@
 #include "settings.hpp"
 #include "parser/Request.hpp"
 
-RequestHandler::RequestHandler()
-: _request(NULL) {}
+RequestHandler::RequestHandler(AddressType address, MapType* config_map)
+: _address(address), _request(NULL), _parser(address, config_map) {}
 
 RequestHandler::~RequestHandler() {
 	while (!_requests.empty())
@@ -37,6 +37,11 @@ int RequestHandler::parse(std::string const & buffer)
 		}
 	}
 
+	if (_request && isContinueResponse(*_request))
+	{
+		newContinueRequest();
+	}
+
 	return OK;
 }
 
@@ -54,17 +59,12 @@ Request* RequestHandler::getNextRequest()
 
 void RequestHandler::newRequest()
 {
-	_request = new Request;
+	_request = new Request(_address);
 }
 
 void RequestHandler::completeRequest()
 {
-	try {
-		_requests.push(_request);
-	} catch (const std::bad_alloc& e) {
-		delete _request;
-		throw e;
-	}
+	_requests.push(_request);
 	_request = NULL;
 	_parser.reset();
 }
@@ -74,4 +74,25 @@ void RequestHandler::setErrorRequest()
 	_request->status = Request::BAD_REQUEST;
 	_request->status_code = _parser.getStatusCode();
 	completeRequest();
+}
+
+/*
+100: continue
+*/
+
+bool RequestHandler::isContinueResponse(Request const & request) const
+{
+	return request.header_fields.contains("expect")
+			&& request.minor_version == 1
+			&& request.header_fields.contains("content-length")
+			&& !(request.header_fields.find("content-length")->second.empty())
+			&& request.message_body.empty();
+}
+
+void RequestHandler::newContinueRequest()
+{
+	Request* cont = new Request(_address);
+	cont->config_info = _request->config_info;
+	cont->status = Request::EXPECT;
+	_requests.push(cont);
 }

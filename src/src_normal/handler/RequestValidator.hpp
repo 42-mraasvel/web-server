@@ -24,6 +24,8 @@ class RequestValidator
 		bool		isExpectationValid(Request const & request);
 
     public:
+		bool	isRequestValidPostConfig(Request const & request);
+		//TODO: delete this version: response conflict
 		bool	isRequestValidPostConfig(Request const & request, ConfigInfo const & config_info);
     private:
 		bool		isMethodAllowed(MethodType const method, std::vector<std::string> const & allowed_methods);

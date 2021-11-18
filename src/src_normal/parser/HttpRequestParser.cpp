@@ -4,12 +4,8 @@
 #include "Request.hpp"
 
 /*
-TODO:
-	- Check duplicate header fields (multiple content-length, multiple transfer-encoding, etc)
-	- Check header fields that aren't allowed (both content-length and chunked for example)
-- Multiple content-length
-- Multiple Transfer-Encoding
-- Multiple Host (close connection)
+This is the validator called during HeaderFieldParsing
+Used to check duplicate header-fields
 */
 static bool isValidRequestHeader(std::string const &key,
 								 std::string const &value, HeaderField const &header)
@@ -29,9 +25,10 @@ static bool isValidRequestHeader(std::string const &key,
 	return true;
 }
 
-HttpRequestParser::HttpRequestParser()
-	: _state(PARSE_REQUEST_LINE),
-	  _header_parser(isValidRequestHeader, MAX_HEADER_SIZE) {}
+HttpRequestParser::HttpRequestParser(AddressType address, MapType* config_map)
+: _state(PARSE_REQUEST_LINE),
+_header_parser(isValidRequestHeader, MAX_HEADER_SIZE),
+_header_processor(address, config_map) {}
 
 /*
 1. Parse RequestLine
@@ -137,12 +134,8 @@ void HttpRequestParser::parseChunked(std::string const &buffer,
 
 /*
 Flow:
-	1. RequestValidator
-	2. CloseConnection flag
-	3. ConfigResolver, set data properly into request
-	4. Resolved request validation
-	5. Present payload-body check
-	6. CONTINUE check (only if everything else is valid and the request is not COMPLETE)
+	1. Process request header (Checks errors, resolves configuration)
+	2. Present payload-body check
 */
 int HttpRequestParser::processRequestHeader(Request &request)
 {
@@ -150,7 +143,14 @@ int HttpRequestParser::processRequestHeader(Request &request)
 	{
 		return setError(_header_processor.getStatusCode());
 	}
-	return checkContentType(request.header_fields);
+	
+	_content_parser.setMaxSize(request.config_info.resolved_server->_client_body_size);
+
+	if (checkContentType(request.header_fields) == ERR)
+	{
+		return ERR;
+	}
+	return OK;
 }
 
 int HttpRequestParser::checkContentType(HeaderField const &header)
@@ -190,6 +190,12 @@ int HttpRequestParser::parseContentLength(std::string const &value)
 	{
 		return setError(StatusCode::BAD_REQUEST);
 	}
+
+	if (content_length > _content_parser.getMaxSize())
+	{
+		return setError(StatusCode::PAYLOAD_TOO_LARGE);
+	}
+
 	_content_parser.setContentLength(content_length);
 	setState(HttpRequestParser::PARSE_CONTENT);
 	return OK;

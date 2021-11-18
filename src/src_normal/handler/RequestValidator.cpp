@@ -59,6 +59,10 @@ bool	RequestValidator::isHostValid(Request const & request)
 	if (host.second)
 	{
 		std::string value = host.first->second;
+		if (value.empty())
+		{
+			return false;
+		}
 		std::size_t found = value.rfind(":");
 		if (found != std::string::npos)
 		{
@@ -74,6 +78,7 @@ bool	RequestValidator::isHostValid(Request const & request)
 	else if (request.minor_version >= 1)
 	{
 		generalError("%s: Version: %d\n", _FUNC_ERR("HOST REQUIRED").c_str(), request.minor_version);
+		//TODO: should the connection actually be closed in this case?
 		_close_connection = true;
 		_status_code = StatusCode::BAD_REQUEST;
 		return false;
@@ -167,6 +172,12 @@ bool	RequestValidator::isExpectationValid(Request const & request)
 /******      post config       ******/
 /************************************/
 
+bool	RequestValidator::isRequestValidPostConfig(Request const & request)
+{
+	return isMethodAllowed(request.method, request.config_info.resolved_location->_allowed_methods);
+}
+
+//TODO: delete this version
 bool	RequestValidator::isRequestValidPostConfig(Request const & request, ConfigInfo const & config_info)
 {
 	return isMethodAllowed(request.method, config_info.resolved_location->_allowed_methods);

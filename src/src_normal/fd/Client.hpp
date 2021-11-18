@@ -14,7 +14,11 @@ class File;
 class Client : public AFdInfo
 {
 	public:
-		Client(int fd, Config::ip_host_pair address, Config::address_map* config_map);
+		typedef	ConfigResolver::MapType		MapType;
+		typedef	ConfigResolver::AddressType	AddressType;
+
+	public:
+		Client(int fd, AddressType address, MapType* config_map);
 		~Client();
 		struct pollfd getPollFd() const;
 
@@ -58,9 +62,10 @@ class Client : public AFdInfo
 		bool	isResponseReadyToWrite() const;
 
 	private:
-		Config::ip_host_pair 	_address;
-		Config::address_map* 	_config_map;
-		RequestHandler			_request_parser;
+		//TODO: since this is only used inside of RequestHandler -> HttpRequestParser -> ConfigResolver, only keep it there?
+		AddressType 			_address;
+		MapType* 				_config_map;
+		RequestHandler			_request_handler;
 		Request*				_request;
 		Response*				_new_response;
 		ResponseQueue			_response_queue;

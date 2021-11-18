@@ -14,13 +14,14 @@ int RequestHeaderProcessor::setError(int code)
 	return ERR;
 }
 
+RequestHeaderProcessor::RequestHeaderProcessor(AddressType address, MapType* config_map)
+: _config_resolver(address, config_map) {}
+
 /*
 1. Validate Header
 2. Determine if the connection should be closed
 3. Resolve configuration
 4. Post configuration request validation
-5. Content-Length (maybe in HttpRequestParser?)
-6. Check CONTINUE
 */
 
 int RequestHeaderProcessor::process(Request & request)
@@ -31,25 +32,20 @@ int RequestHeaderProcessor::process(Request & request)
 		return setError(_request_validator.getStatusCode());
 	}
 
-
 	determineCloseConnection(request);
-	// try {
-	// _config_resolver.resolution(request);
-	// } catch (...) {
-	// 	printf("CONFIG RESOLVER THREW\n");
-	// 	throw;
-	// }
+	try {
+		_config_resolver.resolution(getHostString(request.header_fields), request.request_target);
+	} catch (const std::exception& e) {
+		generalError("%s: caught exception: %s\n", _FUNC_ERR("ConfigResolver").c_str(), e.what());
+		throw e;
+	}
 
-	// request.config = _config_resolver.getData();
+	request.config_info = _config_resolver.getConfigInfo();
 
-	// if (!_request_validator.isRequestValidPostConfig(request, _config_resolver))
-	// {
-	// 	return setError(_request_validator.getStatusCode());
-	// }
-
-	// check payload body
-	// Set CONTINUE here?
-
+	if (!_request_validator.isRequestValidPostConfig(request))
+	{
+		return setError(_request_validator.getStatusCode());
+	}
 	return OK;
 }
 
@@ -71,4 +67,22 @@ void RequestHeaderProcessor::determineCloseConnection(Request & request)
 	{
 		request.close_connection = true;
 	}
+}
+
+std::string RequestHeaderProcessor::getHostString(HeaderField const & header)
+{
+	HeaderField::const_pair_type host = header.get("host");
+	if (!host.second)
+	{
+		return "";
+	}
+
+	/* Remove port from host string */
+	std::size_t n = host.first->second.rfind(":");
+	if (n != std::string::npos)
+	{
+		return host.first->second.substr(0, n);
+	}
+
+	return host.first->second;
 }

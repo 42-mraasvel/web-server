@@ -20,12 +20,16 @@ Flow:
 	2. Determines if the connection should be closed
 	3. Resolves configuration
 	4. Checks if the method is allowed
-	5. Checks if the origin-server should send a CONTINUE response
 */
 
 class RequestHeaderProcessor
 {
 	public:
+		typedef	ConfigResolver::MapType		MapType;
+		typedef	ConfigResolver::AddressType	AddressType;
+
+	public:
+		RequestHeaderProcessor(AddressType address, MapType* config_map);
 
 		int process(Request & request);
 		int getStatusCode() const;
@@ -35,8 +39,11 @@ class RequestHeaderProcessor
 		int setError(int code);
 
 	/* Determine close connection */
-
 		void determineCloseConnection(Request & request);
+
+	/* Config Resolution */
+
+		std::string getHostString(HeaderField const & header);
 
 	private:
 		int _status_code;

@@ -224,6 +224,7 @@ int	FileHandler::redirectErrorPage(FdTable & fd_table, std::string const & file_
 	_method = GET;
 	_absolute_file_path = file_path;
 	_status_code = status_code;
+	// DISCUSS: is it necessary to create an empty request here? (I'd like to remove the default constructor)
 	Request	empty_request;
 	return executeRequest(fd_table, empty_request);
 }

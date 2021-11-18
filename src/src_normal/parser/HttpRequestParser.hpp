@@ -16,8 +16,11 @@ sets index to buffer.size() if incomplete request
 */
 class HttpRequestParser
 {
-	private:
+	public:
+		typedef	ConfigResolver::MapType		MapType;
+		typedef	ConfigResolver::AddressType	AddressType;
 
+	private:
 		enum State
 		{
 			PARSE_REQUEST_LINE,
@@ -29,8 +32,7 @@ class HttpRequestParser
 		};
 
 	public:
-
-		HttpRequestParser();
+		HttpRequestParser(AddressType address, MapType* config_map);
 
 		int parse(std::string const & buffer, std::size_t & index, Request& request);
 
@@ -72,5 +74,4 @@ class HttpRequestParser
 		ChunkedParser _chunked_content_parser;
 
 		RequestHeaderProcessor _header_processor;
-
 };

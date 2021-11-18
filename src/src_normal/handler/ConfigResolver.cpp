@@ -5,7 +5,31 @@
 #include <iostream>
 #include <unistd.h>
 
+/*********************/
+/****** Getters ******/
+/*********************/
+
+ConfigInfo const & ConfigResolver::getConfigInfo() const
+{
+	return info;
+}
+
+
+/****************************/
+/****** Main Interface ******/
+/****************************/
+
 ConfigResolver::ConfigResolver() {}
+ConfigResolver::ConfigResolver(AddressType address, MapType* config_map)
+: _address(address), _config_map(config_map) {}
+
+void	ConfigResolver::resolution(std::string const & request_host, std::string const & request_target)
+{
+	ServerVector	server_vector = resolveAddress(_address, *_config_map);
+	info.resolved_server = resolveHost(request_host, server_vector);
+	info.resolved_location = resolveLocationResult(request_target, info.resolved_server->_locations);
+	print(); //TODO: to delete
+}
 
 void	ConfigResolver::resolution(MapType const & map, AddressType const & request_address, std::string const & request_host, std::string const & request_target)
 {

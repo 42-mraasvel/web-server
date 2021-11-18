@@ -6,6 +6,7 @@
 #include "webserver/Webserver.hpp"
 #include "color.hpp"
 #include "config/Config.hpp"
+#include "utility/SmartPointer.hpp"
 
 #ifndef USING_CATCH
 int main()

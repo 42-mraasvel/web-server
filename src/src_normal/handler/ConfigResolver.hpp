@@ -1,16 +1,14 @@
 #pragma once
+#include "ConfigInfo.hpp"
+#include "config/Config.hpp"
 #include <map>
 #include <utility>
 #include <string>
-#include "ConfigInfo.hpp"
 
 struct Request;
 
 class ConfigResolver
 {
-	public:
-		ConfigResolver();
-
 	public:
 		//TODO: to evaluate typedef for config
 		typedef	Config::address_map							MapType;
@@ -21,9 +19,16 @@ class ConfigResolver
 		typedef	std::vector<std::pair<int, std::string> >	ErrorPageType;
 		typedef std::pair< int, std::string>				RedirectType;
 
+	public:
+		//TODO: remove DEFAULT constructor, it's here because of conflict with Response
+		ConfigResolver();
+		ConfigResolver(AddressType address, MapType* config_map);
+
 	/* general resolve */
 	public:
+		//TODO: remove resolution with MapType, AddressType, response conflict
 		void	resolution(MapType const & map, AddressType const & request_address, std::string const & request_host, std::string const & request_target);
+		void	resolution(std::string const & request_host, std::string const & request_target);
 	private:
 		ServerVector	resolveAddress(AddressType client_address, MapType const & map);
 		void				setAddress(AddressType const & client_address, AddressType & address, MapType const & map);
@@ -61,7 +66,16 @@ class ConfigResolver
 		int		findErrorFilePath(std::string const & error_uri, std::string & file_path);
 
 	public:
+		ConfigInfo const & getConfigInfo() const;
+
+	private:
+		//TODO: should this be a const pointer?
+		AddressType	_address;
+		MapType*	_config_map;
+	public:
+		//TODO: make private member instead, public for response conflict
 		ConfigInfo	info;
+
 
 	// debug 
 	private:
