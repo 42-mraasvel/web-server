@@ -34,6 +34,10 @@ class RequestHeaderProcessor
 	
 		int setError(int code);
 
+	/* Determine close connection */
+
+		void determineCloseConnection(Request & request);
+
 	private:
 		int _status_code;
 		RequestValidator _request_validator;

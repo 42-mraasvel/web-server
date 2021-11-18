@@ -77,11 +77,11 @@ class CgiHandler
 		int executeChildProcess() const;
 		int prepareArguments(char *args[3]) const;
 
-		void finishResponse(Status status, int code);
+		void finishCgi(Status status, int code);
 
 	/* Update Functionality */
-		int checkCgi();
-		int cleanCgi(int* status);
+		int cleanCgi();
+		int killCgi(int* status);
 
 	/* Destruction */
 

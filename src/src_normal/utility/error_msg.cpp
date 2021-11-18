@@ -15,6 +15,7 @@ int generalError(const char* format, ...)
 #ifdef PRINT_ERR
 	va_list vp;
 	va_start(vp, format);
+	fprintf(stderr, RED_BOLD "ERROR: " RESET_COLOR);
 	vfprintf(stderr, format, vp);
 	va_end(vp);
 #endif

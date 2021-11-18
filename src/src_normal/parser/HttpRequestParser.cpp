@@ -3,21 +3,35 @@
 #include "utility/utility.hpp"
 #include "Request.hpp"
 
-
 /*
 TODO:
 	- Check duplicate header fields (multiple content-length, multiple transfer-encoding, etc)
 	- Check header fields that aren't allowed (both content-length and chunked for example)
+- Multiple content-length
+- Multiple Transfer-Encoding
+- Multiple Host (close connection)
 */
-static bool isValidRequestHeader(std::string const & key,
-					std::string const & value, HeaderField const & header)
+static bool isValidRequestHeader(std::string const &key,
+								 std::string const &value, HeaderField const &header)
 {
+	HeaderField::const_pair_type field = header.get(key);
+
+	if (field.second)
+	{
+		if (WebservUtility::caseInsensitiveEqual(key, "Content-Length")
+		|| WebservUtility::caseInsensitiveEqual(key, "Transfer-Encoding")
+		|| WebservUtility::caseInsensitiveEqual(key, "Host"))
+		{
+			generalError("%s: %s\n", _FUNC_ERR("Duplicate Field").c_str(), key.c_str());
+			return false;
+		}
+	}
 	return true;
 }
 
 HttpRequestParser::HttpRequestParser()
-: _state(PARSE_REQUEST_LINE),
-_header_parser(isValidRequestHeader, MAX_HEADER_SIZE) {}
+	: _state(PARSE_REQUEST_LINE),
+	  _header_parser(isValidRequestHeader, MAX_HEADER_SIZE) {}
 
 /*
 1. Parse RequestLine
@@ -26,7 +40,7 @@ _header_parser(isValidRequestHeader, MAX_HEADER_SIZE) {}
 4. Set state to complete
 */
 
-int HttpRequestParser::parse(std::string const & buffer, std::size_t & index, Request& request)
+int HttpRequestParser::parse(std::string const &buffer, std::size_t &index, Request &request)
 {
 	while (index < buffer.size())
 	{
@@ -59,8 +73,8 @@ int HttpRequestParser::parse(std::string const & buffer, std::size_t & index, Re
 
 /* Main Parsing Logic */
 
-void HttpRequestParser::parseRequestLine(std::string const & buffer,
-	std::size_t & index, Request & request)
+void HttpRequestParser::parseRequestLine(std::string const &buffer,
+										 std::size_t &index, Request &request)
 {
 	if (_request_line_parser.parse(buffer, index, request) == ERR)
 	{
@@ -72,8 +86,8 @@ void HttpRequestParser::parseRequestLine(std::string const & buffer,
 	}
 }
 
-void HttpRequestParser::parseHeader(std::string const & buffer,
-	std::size_t & index, Request & request)
+void HttpRequestParser::parseHeader(std::string const &buffer,
+									std::size_t &index, Request &request)
 {
 	if (_header_parser.parse(buffer, index) == ERR)
 	{
@@ -82,12 +96,18 @@ void HttpRequestParser::parseHeader(std::string const & buffer,
 	else if (_header_parser.isComplete())
 	{
 		request.header_fields.swap(_header_parser.getHeaderField());
+		try {
 		processRequestHeader(request);
+
+		} catch(...) {
+			printf("PROCESS REQUEST HANDLER THREW\n");
+			throw;
+		}
 	}
 }
 
-void HttpRequestParser::parseContent(std::string const & buffer,
-	std::size_t & index, Request & request)
+void HttpRequestParser::parseContent(std::string const &buffer,
+									 std::size_t &index, Request &request)
 {
 	if (_content_parser.parse(buffer, index) == ERR)
 	{
@@ -100,8 +120,8 @@ void HttpRequestParser::parseContent(std::string const & buffer,
 	}
 }
 
-void HttpRequestParser::parseChunked(std::string const & buffer,
-	std::size_t & index, Request & request)
+void HttpRequestParser::parseChunked(std::string const &buffer,
+									 std::size_t &index, Request &request)
 {
 	if (_chunked_content_parser.parse(buffer, index, request) == ERR)
 	{
@@ -124,7 +144,7 @@ Flow:
 	5. Present payload-body check
 	6. CONTINUE check (only if everything else is valid and the request is not COMPLETE)
 */
-int HttpRequestParser::processRequestHeader(Request & request)
+int HttpRequestParser::processRequestHeader(Request &request)
 {
 	if (_header_processor.process(request) == ERR)
 	{
@@ -133,7 +153,7 @@ int HttpRequestParser::processRequestHeader(Request & request)
 	return checkContentType(request.header_fields);
 }
 
-int HttpRequestParser::checkContentType(HeaderField const & header)
+int HttpRequestParser::checkContentType(HeaderField const &header)
 {
 	HeaderField::const_pair_type content_length = header.get("Content-Length");
 	HeaderField::const_pair_type encoding = header.get("Transfer-Encoding");
@@ -155,7 +175,7 @@ int HttpRequestParser::checkContentType(HeaderField const & header)
 	return OK;
 }
 
-int HttpRequestParser::parseContentLength(std::string const & value)
+int HttpRequestParser::parseContentLength(std::string const &value)
 {
 	for (std::size_t i = 0; i < value.size(); ++i)
 	{
@@ -175,7 +195,7 @@ int HttpRequestParser::parseContentLength(std::string const & value)
 	return OK;
 }
 
-int HttpRequestParser::parseTransferEncoding(std::string const & value)
+int HttpRequestParser::parseTransferEncoding(std::string const &value)
 {
 	if (!WebservUtility::caseInsensitiveEqual(value, "chunked"))
 	{
