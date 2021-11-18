@@ -1,5 +1,17 @@
 #include "RequestHeaderProcessor.hpp"
 #include "settings.hpp"
+#include "utility/utility.hpp"
+
+int RequestHeaderProcessor::getStatusCode() const
+{
+	return _status_code;
+}
+
+int RequestHeaderProcessor::setError(int code)
+{
+	_status_code = code;
+	return ERR;
+}
 
 /*
 1. Validate Header
@@ -14,20 +26,29 @@ int RequestHeaderProcessor::process(Request & request)
 {
 	if (!_request_validator.isRequestValidPreConfig(request))
 	{
-		// Check if connection should be closed
 		request.close_connection = _request_validator.shouldCloseConnection();
 		return setError(_request_validator.getStatusCode());
 	}
+	determineCloseConnection(request);
 	return OK;
 }
 
-int RequestHeaderProcessor::getStatusCode() const
-{
-	return _status_code;
-}
+/*
+Determine close connection
+*/
 
-int RequestHeaderProcessor::setError(int code)
+void RequestHeaderProcessor::determineCloseConnection(Request & request)
 {
-	_status_code = code;
-	return ERR;
+	HeaderField::const_pair_type connection = request.header_fields.get("connection");
+	if (connection.second)
+	{
+		if (WebservUtility::caseInsensitiveEqual(connection.first->second, "close"))
+		{
+			request.close_connection = true;
+		}
+	}
+	else if (request.minor_version == 0)
+	{
+		request.close_connection = true;
+	}
 }

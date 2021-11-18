@@ -8,18 +8,28 @@ TEST_CASE("Valid RHP", "[request-header-processor]")
 {
 }
 
-TEST_CASE("Close Connection", "[request-header-processor]")
+TEST_CASE("Close Connection", "[request-header-processor-tmp]")
 {
 	RequestHandler handler;
 
-	std::string input =
+	std::vector<std::string> inputs = {
+		"GET / HTTP/1.1" EOHEADER,
+		"GET / HTTP/1.0" EOHEADER,
 		"GET / HTTP/1.1" CRLF
-		CRLF;
+			"host: localhost" CRLF
+			"connection: close" EOHEADER,
+	};
 
-	handler.parse(input);
-	Request* r = handler.getNextRequest();
-	REQUIRE(r != NULL);
-	REQUIRE(r->close_connection == true);
+
+	for (const std::string& input : inputs)
+	{
+		handler.parse(input);
+		Request* r = handler.getNextRequest();
+		REQUIRE(r != NULL);
+		REQUIRE(r->close_connection == true);
+		delete r;
+	}
+
 }
 
 TEST_CASE("Invalid HeaderFields", "[request-header-processor]")
