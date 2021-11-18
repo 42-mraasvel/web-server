@@ -26,9 +26,6 @@ _config_resolver(),
 _file_handler(request.method)
 {
 	setHttpVersion(request.minor_version);
-
-	//TODO: to discuss with team
-	MediaType::initMap(_media_type_map);
 }
 
 void	Response::setHttpVersion(int minor_version)
@@ -82,24 +79,24 @@ int	Response::resolveConfig(ConfigResolver::MapType const & map, Request const &
 	}
 
 	_config_resolver.resolution(map, request.address, host, request.request_target);
-	if (_config_resolver.result == ConfigResolver::NOT_FOUND)
+	_config_info = _config_resolver.info;
+	if (_config_resolver.info.result == ConfigInfo::NOT_FOUND)
 	{
 		markComplete(StatusCode::NOT_FOUND);
 		return ERR;
 	}
-	if (_config_resolver.result == ConfigResolver::REDIRECT)
+	if (_config_resolver.info.result == ConfigInfo::REDIRECT)
 	{
-		markComplete(_config_resolver.resolved_location->_return.first);
-		processRedirectResponse(); //TODO: to move
+		markComplete(_config_resolver.info.resolved_location->_return.first);
 		return OK;
 	}
-	if (_config_resolver.result == ConfigResolver::AUTO_INDEX_ON)
+	if (_config_resolver.info.result == ConfigInfo::AUTO_INDEX_ON)
 	{
 		markComplete(StatusCode::STATUS_OK);
 		return OK;
 	}
-	setEffectiveRequestURI(host, request.address.second, _config_resolver.resolved_target);
-	setAbsoluteFilePath(_config_resolver.resolved_location->_root, _config_resolver.resolved_file_path);
+	setEffectiveRequestURI(host, request.address.second, _config_resolver.info.resolved_target);
+	setAbsoluteFilePath(_config_resolver.info.resolved_location->_root, _config_resolver.info.resolved_file_path);
 	return OK;
 }
 
@@ -123,22 +120,6 @@ void	Response::setAbsoluteFilePath(std::string const & root, std::string const &
 	else
 	{
 		_file_handler.setAbsoluteFilePath(resolved_file_path);
-	}
-}
-
-void	Response::processRedirectResponse()
-{
-	std::string	redirect_text = _config_resolver.resolved_location->_return.second;
-
-	if (_status_code >= 300 && _status_code < 400)
-	{
-		// TODO: to check if the redirect_text needs to be absolute form??
-		_effective_request_uri = redirect_text;
-		_message_body = "Redirect to " + redirect_text + "\n";
-	}
-	else
-	{
-		_message_body = redirect_text;
 	}
 }
 
@@ -181,7 +162,7 @@ int	Response::validateRequest(Request const & request, bool is_config_completed)
 	}
 	else
 	{
-		if (!_request_validator.isRequestValidPostConfig(request, _config_resolver))
+		if (!_request_validator.isRequestValidPostConfig(request, _config_resolver.info))
 		{
 			markComplete(_request_validator.getStatusCode());
 			return ERR;
@@ -195,10 +176,47 @@ int	Response::validateRequest(Request const & request, bool is_config_completed)
 
 void	Response::processImmdiateResponse(Request const & request)
 {
+	if (_config_info.result == ConfigInfo::REDIRECT)
+	{
+		processRedirectResponse();
+	}
+	if (_config_info.result == ConfigInfo::AUTO_INDEX_ON)
+	{
+		if (processAutoIndex() == ERR)
+		{
+			markComplete(StatusCode::INTERNAL_SERVER_ERROR);
+		}
+	}
 	if (isContinueResponse(request))
 	{
 		processContinueResponse();
 	}
+}
+
+void	Response::processRedirectResponse()
+{
+	std::string	redirect_text = _config_info.resolved_location->_return.second;
+
+	if (_status_code >= 300 && _status_code < 400)
+	{
+		// TODO: to check if the redirect_text needs to be absolute form??
+		_effective_request_uri = redirect_text;
+		_message_body = "Redirect to " + redirect_text + "\n";
+	}
+	else
+	{
+		_message_body = redirect_text;
+	}
+}
+
+int	Response::processAutoIndex()
+{
+	printf(RED_BOLD "%s\n%s\n" RESET_COLOR, _config_info.resolved_target.c_str(), _config_info.resolved_file_path.c_str());
+	if (WebservUtility::list_directory(_config_info.resolved_target, _config_info.resolved_file_path, _message_body) == ERR)
+	{
+		return ERR;
+	}
+	return OK;
 }
 
 bool	Response::isContinueResponse(Request const & request) const
@@ -416,10 +434,10 @@ void	Response::setRetryAfter()
 
 void	Response::setAllow()
 {
-	if (_status_code == 405)
+	if (_status_code == StatusCode::METHOD_NOT_ALLOWED)
 	{
 		std::string	value;
-		for (method_iterator it = _config_resolver.resolved_location->getAllowedMethods().begin(); it != _config_resolver.resolved_location->getAllowedMethods().end(); ++it)
+		for (method_iterator it = _config_info.resolved_location->_allowed_methods.begin(); it != _config_info.resolved_location->_allowed_methods.end(); ++it)
 		{
 			value.append(*it + ", ");
 		}
@@ -456,7 +474,7 @@ void	Response::setContentLength()
 
 void	Response::setContentType()
 {
-	if ( _config_resolver.result == ConfigResolver::AUTO_INDEX_ON)
+	if ( _config_info.result == ConfigInfo::AUTO_INDEX_ON)
 	{
 		_header_fields["Content-Type"] = "text/html";
 		return ;
@@ -464,14 +482,7 @@ void	Response::setContentType()
 	std::string file = _file_handler.getAbsoluteFilePath();
 	if (_method == GET && !file.empty())
 	{
-		size_t	find = file.find_last_of(".");
-		std::string extensin = file.substr(find);
-		if (_media_type_map.contains(extensin))
-		{
-			_header_fields["Content-Type"] = _media_type_map.get();
-			return ;
-		}
-		_header_fields["Content-Type"] = "application/octet-stream";
+		_header_fields["Content-Type"] = MediaType::getMediaType(file);
 		return ;
 	}
 	if (!_message_body.empty())

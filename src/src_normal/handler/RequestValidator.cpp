@@ -133,9 +133,9 @@ bool	RequestValidator::isExpectationValid(Request const & request)
 /******      post config       ******/
 /************************************/
 
-bool	RequestValidator::isRequestValidPostConfig(Request const & request, ConfigResolver const & config_resolver)
+bool	RequestValidator::isRequestValidPostConfig(Request const & request, ConfigInfo const & config_info)
 {
-	return isMethodAllowed(request.method, config_resolver.resolved_location->getAllowedMethods());
+	return isMethodAllowed(request.method, config_info.resolved_location->_allowed_methods);
 }
 
 bool	RequestValidator::isMethodAllowed(MethodType const method, std::vector<std::string> const & allowed_methods)

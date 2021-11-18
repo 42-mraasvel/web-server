@@ -62,11 +62,11 @@ int	Server::initClient(sockaddr_in address, int connection_fd, FdTable & fd_tabl
 		return ERR;
 	}
 
-	Client::Address	address_output;
+	Config::ip_host_pair	address_output;
 	address_output.first = ip;
 	address_output.second = _port;
 
-	Client*	client = new Client(connection_fd, address_output);
+	Client*	client = new Client(connection_fd, address_output, _config_map);
 	fd_table.insertFd(client);
 	return OK;
 }

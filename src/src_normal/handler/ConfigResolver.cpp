@@ -5,22 +5,14 @@
 #include <iostream>
 #include <unistd.h>
 
-ConfigResolver::ConfigResolver():
-resolved_server(NULL),
-resolved_location(NULL)
-result(START),
-{}
+ConfigResolver::ConfigResolver() {}
 
 void	ConfigResolver::resolution(MapType const & map, AddressType const & request_address, std::string const & request_host, std::string const & request_target)
 {
 	ServerVector	server_vector = resolveAddress(request_address, map);
-	resolved_server = resolveHost(request_host, server_vector);
-	resolved_location = resolveLocation(request_target, resolved_server->_locations);
-	result = getResult(resolved_location);
-	if (result != NOT_FOUND)
-	{
-		resolved_file_path = getResolvedFilePath();
-	}
+	info.resolved_server = resolveHost(request_host, server_vector);
+	info.resolved_location = resolveLocationResult(request_target, info.resolved_server->_locations);
+	print(); //TODO: to delete
 }
 
 /*****************************/
@@ -229,10 +221,21 @@ ServerBlock*	ConfigResolver::resolveDefaultHost(ServerVector const & servers)
 /****** resolve location ******/
 /******************************/
 
+LocationBlock*	ConfigResolver::resolveLocationResult(std::string const & target, LocationVectorType const & locations)
+{
+	info.resolved_target = target;
+	LocationBlock*	location = resolveLocation(target, locations);
+	info.result = getResult(location);
+	if (info.result != ConfigInfo::NOT_FOUND)
+	{
+		info.resolved_file_path = location->_root + info.resolved_target;
+	}
+	return location;
+}
+
 LocationBlock*	ConfigResolver::resolveLocation(std::string const & target, LocationVectorType const & locations)
 {
 	LocationVectorType::const_iterator it_matched;
-	resolved_target = target;
 
 	if (isMatchLocation(target, locations, it_matched))
 	{
@@ -299,7 +302,7 @@ LocationBlock*	ConfigResolver::resolveIndexFile(StringVectorType indexes, std::s
 			std::string file = final_location->_root + temp_target;
 			if (access(file.c_str(), F_OK) == OK)
 			{
-				resolved_target = temp_target;
+				info.resolved_target = temp_target;
 				return final_location;
 			}
 			file.erase(); //TODO: to check is this necessary?
@@ -322,21 +325,21 @@ LocationBlock*	ConfigResolver::resolveAutoIndex(LocationVectorType::const_iterat
 /****** set result ******/
 /************************/
 
-ConfigResolver::ConfigResult	ConfigResolver::getResult(LocationBlock* location)
+ConfigInfo::ConfigResult	ConfigResolver::getResult(LocationBlock* location)
 {
 	if (!location)
 	{
-		return NOT_FOUND;
+		return ConfigInfo::NOT_FOUND;
 	}
 	if (isReturnOn(location)) 
 	{
-		return REDIRECT;
+		return ConfigInfo::REDIRECT;
 	}
-	else if (isAutoIndexOn(location))
+	if (isAutoIndexOn(location))
 	{
-		return AUTO_INDEX_ON;
+		return ConfigInfo::AUTO_INDEX_ON;
 	}
-	return LOCATION_RESOLVED;
+	return ConfigInfo::LOCATION_RESOLVED;
 }
 
 bool	ConfigResolver::isReturnOn(LocationBlock* location) const
@@ -347,27 +350,8 @@ bool	ConfigResolver::isReturnOn(LocationBlock* location) const
 
 bool	ConfigResolver::isAutoIndexOn(LocationBlock* location) const
 {
-	return resolved_location->_autoindex_status;
+	return location->_autoindex_status;
 }
-
-std::string	ConfigResolver::getResolvedFilePath()
-{
-	return resolved_location->_root + resolved_target;
-}
-
-
-/*
-int	ConfigResolver::setAutoIndexPage()
-{
-	//To move to set message body
-//	if (WebservUtility::list_directory(resolved_target, resolved_file_path, auto_index_page) == ERR)
-//	{
-//		return ERR;
-//	}
-	result = AUTO_INDEX_ON;
-	return OK;
-}
-*/
 
 /********************************/
 /****** resolve error page ******/
@@ -376,7 +360,7 @@ int	ConfigResolver::setAutoIndexPage()
 int	ConfigResolver::resolveErrorPage(int error_code, std::string & file_path)
 {
 	ErrorPageType::const_iterator it;
-	for (it = resolved_server->_error_pages.begin(); it !=  resolved_server->_error_pages.end(); ++it)
+	for (it = info.resolved_server->_error_pages.begin(); it !=  info.resolved_server->_error_pages.end(); ++it)
 	{
 		if (it->first == error_code)
 		{
@@ -388,13 +372,12 @@ int	ConfigResolver::resolveErrorPage(int error_code, std::string & file_path)
 
 int	ConfigResolver::findErrorFilePath(std::string const & error_uri, std::string & file_path)
 {
-	LocationBlock*	location = resolveLocation(error_uri, resolved_server->_locations);
-	ConfigResult 	result = getResult(location);
-	if (result != LOCATION_RESOLVED)
+	LocationBlock*	location = resolveLocationResult(error_uri, info.resolved_server->_locations);
+	if (info.result != ConfigInfo::LOCATION_RESOLVED)
 	{
 		return ERR;
 	}
-	file_path = getResolvedFilePath();
+	file_path = info.resolved_file_path;
 	return OK;
 }
 
@@ -407,8 +390,8 @@ void	ConfigResolver::print() const
 	std::cout << RED_BOLD << "----------------------" << RESET_COLOR << std::endl;
 	std::cout << "Config result based on hard-coded config\n(only for ConfigResolver testing):" << RESET_COLOR << std::endl;
 
-	printSolutionServer(resolved_server);
-	printSolutionLocation(resolved_location);
+	printSolutionServer(info.resolved_server);
+	printSolutionLocation(info.resolved_location);
 
 	std::cout << RED_BOLD << "----------------------" << RESET_COLOR << std::endl << std::endl;
 }
@@ -429,11 +412,11 @@ void	ConfigResolver::printSolutionLocation(LocationBlock * location) const
 	if (location)
 	{
 		std::cout << RED_BOLD << "Resolved location is [path]: " << location->_path << std::endl;
-		std::cout << RED_BOLD << "Resolved file is: " << resolved_file_path 
+		std::cout << RED_BOLD << "Resolved file is: " << info.resolved_file_path 
 				 << RESET_COLOR << std::endl;
 	}
 	else
 	{
-		std::cout << RED_BOLD << "ERROR 404!" << RESET_COLOR << std::endl;
+		std::cout << RED_BOLD << "Location block failed to resolve!" << RESET_COLOR << std::endl;
 	}
 }

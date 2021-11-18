@@ -2,7 +2,7 @@
 #include <map>
 #include <utility>
 #include <string>
-#include "config/Config.hpp"
+#include "ConfigInfo.hpp"
 
 struct Request;
 
@@ -20,14 +20,6 @@ class ConfigResolver
 		typedef std::vector<std::string>					StringVectorType;
 		typedef	std::vector<std::pair<int, std::string> >	ErrorPageType;
 		typedef std::pair< int, std::string>				RedirectType;
-		enum ConfigResult
-		{
-			START,
-			LOCATION_RESOLVED,
-			REDIRECT,
-			AUTO_INDEX_ON,
-			NOT_FOUND
-		};
 
 	/* general resolve */
 	public:
@@ -49,14 +41,15 @@ class ConfigResolver
 		bool					isBackWildCard(std::string const & string);
 		bool					isHostMatchBackWildCard(std::string const & host, std::string const & wildcard);		
 		ServerBlock*		resolveDefaultHost(ServerVector const & servers);
-		LocationBlock*	resolveLocation(std::string const & target, LocationVectorType const & locations);
-		bool				isMatchLocation(std::string const & target, LocationVectorType const & locations, LocationVectorType::const_iterator & it_matched);
-		bool				isPrefixMatch(std::string const & target, std::string const & location);
-		bool				isTargetDirectory(std::string const & target);
-		LocationBlock*		resolveIndex(LocationVectorType::const_iterator it_matched, std::string const & target, LocationVectorType const & locations);
-		LocationBlock*			resolveIndexFile(StringVectorType indexes, std::string const & target, LocationVectorType const & locations);
-		LocationBlock*			resolveAutoIndex(LocationVectorType::const_iterator it_matched);
-		ConfigResolver::ConfigResult	getResult(LocationBlock* location);
+		LocationBlock*	resolveLocationResult(std::string const & target, LocationVectorType const & locations);
+		LocationBlock*		resolveLocation(std::string const & target, LocationVectorType const & locations);
+		bool					isMatchLocation(std::string const & target, LocationVectorType const & locations, LocationVectorType::const_iterator & it_matched);
+		bool					isPrefixMatch(std::string const & target, std::string const & location);
+		bool					isTargetDirectory(std::string const & target);
+		LocationBlock*			resolveIndex(LocationVectorType::const_iterator it_matched, std::string const & target, LocationVectorType const & locations);
+		LocationBlock*				resolveIndexFile(StringVectorType indexes, std::string const & target, LocationVectorType const & locations);
+		LocationBlock*				resolveAutoIndex(LocationVectorType::const_iterator it_matched);
+		ConfigInfo::ConfigResult	getResult(LocationBlock* location);
 		bool								isReturnOn(LocationBlock* location) const;
 		bool								isAutoIndexOn(LocationBlock* location) const;
 		std::string						getResolvedFilePath();
@@ -68,12 +61,7 @@ class ConfigResolver
 		int		findErrorFilePath(std::string const & error_uri, std::string & file_path);
 
 	public:
-		ServerBlock*	resolved_server;
-		LocationBlock*	resolved_location;
-		std::string		resolved_target;
-		ConfigResult	result;
-		std::string		resolved_file_path;
-
+		ConfigInfo	info;
 
 	// debug 
 	private:

@@ -9,7 +9,14 @@
 #include <algorithm>
 #include <iostream>
 
-Client::Client(int fd, Address address): AFdInfo(fd), _address(address), _request(NULL), _new_response(NULL), _response(NULL) {}
+Client::Client(int fd, Config::ip_host_pair address, Config::address_map* config_map):
+AFdInfo(fd),
+_address(address),
+_config_map(config_map),
+_request(NULL),
+_new_response(NULL),
+_response(NULL)
+{}
 
 Client::~Client()
 {
@@ -97,7 +104,6 @@ bool	Client::retrieveRequest()
 
 void	Client::processRequest(FdTable & fd_table)
 {
-	//TODO_config: add config map parameter, pass it on to initResponse
 	if (!_new_response)
 	{
 		initResponse(*_request);
@@ -110,10 +116,9 @@ void	Client::processRequest(FdTable & fd_table)
 
 void	Client::initResponse(Request const & request)
 {
-	//TODO_config: add config map parameter, pass it on to response->initative
 	_new_response = new Response(request);
 	_response_queue.push_back(_new_response);
-	_new_response->initiate(request);
+	_new_response->initiate(*_config_map, request);
 }
 
 bool	Client::isRequestReadyToExecute() const

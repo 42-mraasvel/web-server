@@ -33,8 +33,8 @@ class Response
 		void		evaluateConnectionFlag(Request const & request);
 		int			validateRequest(Request const & request, bool is_config_completed);
 		void		processImmdiateResponse(Request const & request);
-		bool			isRedirectResponse() const;
 		void			processRedirectResponse();
+		int				processAutoIndex();
 		bool			isContinueResponse(Request const & request) const;
 		void			processContinueResponse();
 
@@ -102,6 +102,7 @@ class Response
 		RequestParser::header_field_t  _header_fields;
 		std::string 		_http_version;
 		int					_status_code;
+		ConfigInfo			_config_info;
 
 		/* flags */
 		Status				_status;

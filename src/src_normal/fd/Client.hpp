@@ -14,9 +14,7 @@ class File;
 class Client : public AFdInfo
 {
 	public:
-		typedef std::pair<std::string, int>	Address; // TODO_config: to take from config
-
-		Client(int fd, Address address);
+		Client(int fd, Config::ip_host_pair address, Config::address_map* config_map);
 		~Client();
 		struct pollfd getPollFd() const;
 
@@ -60,7 +58,8 @@ class Client : public AFdInfo
 		bool	isResponseReadyToWrite() const;
 
 	private:
-		Address					_address;
+		Config::ip_host_pair 	_address;
+		Config::address_map* 	_config_map;
 		RequestHandler			_request_parser;
 		Request*				_request;
 		Response*				_new_response;
