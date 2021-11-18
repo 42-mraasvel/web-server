@@ -8,10 +8,25 @@
 TODO:
 	- Check duplicate header fields (multiple content-length, multiple transfer-encoding, etc)
 	- Check header fields that aren't allowed (both content-length and chunked for example)
+- Multiple content-length
+- Multiple Transfer-Encoding
+- Multiple Host (close connection)
 */
 static bool isValidRequestHeader(std::string const & key,
 					std::string const & value, HeaderField const & header)
 {
+	HeaderField::const_pair_type field = header.get(key);
+
+	if (field.second)
+	{
+		if (WebservUtility::caseInsensitiveEqual(key, "Content-Length")
+		|| WebservUtility::caseInsensitiveEqual(key, "Transfer-Encoding")
+		|| WebservUtility::caseInsensitiveEqual(key, "Host"))
+		{
+			generalError("%s: %s\n", _FUNC_ERR("Duplicate Field").c_str(), key.c_str());
+			return false;
+		}
+	}
 	return true;
 }
 

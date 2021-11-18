@@ -40,7 +40,6 @@ class HeaderFieldParser
 		typedef bool (*ValidFieldFunction)(
 			std::string const & key, std::string const & value, HeaderField const & header);
 		typedef HeaderField HeaderFieldType;
-	
 
 		enum ErrorType
 		{

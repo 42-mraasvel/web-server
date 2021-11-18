@@ -38,6 +38,8 @@ bool	RequestValidator::isRequestValidPreConfig(Request const & request)
 			&& isConnectionValid(request)
 			&& isHttpVersionValid(request.major_version)
 			&& isMethodValid(request.method)
+			&& isTransferEncodingValid(request.header_fields)
+			&& isContentCodingValid(request.header_fields)
 			&& isExpectationValid(request);
 }
 
@@ -71,12 +73,11 @@ bool	RequestValidator::isHostValid(Request const & request)
 	}
 	else if (request.minor_version >= 1)
 	{
-		generalError("%s: %d\n", _FUNC_ERR("need host for this version").c_str(), request.minor_version);
+		generalError("%s: Version: %d\n", _FUNC_ERR("HOST REQUIRED").c_str(), request.minor_version);
 		_close_connection = true;
 		_status_code = StatusCode::BAD_REQUEST;
 		return false;
 	}
-
 	return true;
 }
 
@@ -107,6 +108,39 @@ bool	RequestValidator::isMethodValid(MethodType const method)
 	if (method == OTHER)
 	{
 		_status_code = StatusCode::NOT_IMPLEMENTED;
+		return false;
+	}
+	return true;
+}
+
+bool	RequestValidator::isTransferEncodingValid(const HeaderField & header)
+{
+	HeaderField::const_pair_type transfer_encoding = header.get("Transfer-Encoding");
+	if (transfer_encoding.second)
+	{
+		if (!WebservUtility::caseInsensitiveEqual(transfer_encoding.first->second, "chunked"))
+		{
+			generalError("%s %s\n", _FUNC_ERR("Unsupported TE:").c_str(), transfer_encoding.first->second.c_str());
+			_status_code = StatusCode::NOT_IMPLEMENTED;
+			_close_connection = true;
+			return false;
+		}
+	}
+	return true;
+}
+
+bool	RequestValidator::isContentCodingValid(const HeaderField & header)
+{
+	HeaderField::const_pair_type content_coding = header.get("Content-Coding");
+	if (content_coding.second)
+	{
+		generalError("%s\n", _FUNC_ERR("Content Coding Present").c_str());
+		if (content_coding.first->second.size() == 0)
+		{
+			_status_code = StatusCode::BAD_REQUEST;
+			return false;
+		}
+		_status_code = StatusCode::UNSUPPORTED_MEDIA_TYPE;
 		return false;
 	}
 	return true;

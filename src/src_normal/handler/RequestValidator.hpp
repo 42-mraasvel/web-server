@@ -19,6 +19,8 @@ class RequestValidator
 		bool		isConnectionValid(Request const & request);
 		bool		isHttpVersionValid(int http_major_version);
 		bool		isMethodValid(MethodType const method);
+		bool		isTransferEncodingValid(const HeaderField & header);
+		bool		isContentCodingValid(const HeaderField & header);
 		bool		isExpectationValid(Request const & request);
 
     public:
