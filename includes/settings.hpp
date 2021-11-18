@@ -1,7 +1,6 @@
 #pragma once
 #define OK 0
 #define ERR -1
-// #define INCOMPLETE 1
 
 #define BACKLOG 10 //TODO: check later
 #define TIMEOUT 10000
@@ -28,6 +27,10 @@ Response Specific Defines
 #define CHUNK_TAIL "0" CRLF CRLF
 #define RETRY_AFTER_SECONDS 30
 
+/*
+Printing
+*/
+#define PRINT_ERR true
 
 
 /*
@@ -37,4 +40,5 @@ Very unnecessary header includes
 #include <cstdio> // RM
 #include <iostream> // RM
 #include "color.hpp"
+#include "utility/macros.hpp"
 #include <cassert> // RM

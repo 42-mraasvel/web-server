@@ -15,6 +15,7 @@
 Request::Request()
 : status(Request::READING),
 status_code(200),
+close_connection(false),
 method(OTHER),
 major_version(-1),
 minor_version(-1) {}
@@ -66,6 +67,8 @@ std::string Request::getStatusString() const
 			return "READING";
 		case HEADER_COMPLETE:
 			return "HEADER_COMPLETE";
+		case CONTINUE:
+			return "CONTINUE";
 		case COMPLETE:
 			return "COMPLETE";
 		case BAD_REQUEST:

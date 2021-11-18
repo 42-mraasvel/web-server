@@ -1,12 +1,25 @@
 #include "RequestValidator.hpp"
 #include "utility/utility.hpp"
 #include "utility/status_codes.hpp"
+#include "settings.hpp"
 #include "ConfigResolver.hpp"
 #include <algorithm>
+
+RequestValidator::RequestValidator()
+: _close_connection(false) {}
+
+/****************************************/
+/******      basic interface       ******/
+/****************************************/
 
 int RequestValidator::getStatusCode() const
 {
     return _status_code;
+}
+
+bool RequestValidator::shouldCloseConnection() const
+{
+	return _close_connection;
 }
 
 /************************************/
@@ -35,20 +48,30 @@ bool	RequestValidator::isBadRequest(Request::RequestStatus status, int request_c
 
 bool	RequestValidator::isHostValid(Request const & request)
 {
-	if (request.header_fields.contains("host"))
+	HeaderField::const_pair_type host = request.header_fields.get("host");
+	if (host.second)
 	{
-		std::string host = request.header_fields.find("host")->second;
-		std::size_t found = host.rfind(":");
+		std::string value = host.first->second;
+		std::size_t found = value.rfind(":");
 		if (found != std::string::npos)
-        {
-			std::string	port_str = host.substr(found + 1);
+		{
+			std::string port_str = value.substr(found + 1);
 			if (!port_str.size() || WebservUtility::strtol(port_str) != request.address.second)
 			{
+				generalError("%s\n", _FUNC_ERR("invalid host").c_str());
 				_status_code = StatusCode::BAD_REQUEST;
 				return false;
 			}
 		}
 	}
+	else if (request.minor_version >= 1)
+	{
+		generalError("%s\n", _FUNC_ERR("missing host").c_str());
+		_close_connection = true;
+		_status_code = StatusCode::BAD_REQUEST;
+		return false;
+	}
+
 	return true;
 }
 

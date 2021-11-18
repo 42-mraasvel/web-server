@@ -69,7 +69,7 @@ TEST_CASE("Parser: single buffer: many requests", "[request-handler]")
 {
 	const int TOTAL = 20;
 	std::string req =
-		"GET / HTTP/1.1" CRLF
+		"GET / HTTP/1.0" CRLF
 		"Content-Length: 13" CRLF
 		CRLF
 		"HELLO THERE" CRLF;
@@ -82,7 +82,7 @@ TEST_CASE("Parser: single buffer: many requests", "[request-handler]")
 	example.status = Request::COMPLETE;
 	example.method = GET;
 	example.major_version = 1;
-	example.minor_version = 1;
+	example.minor_version = 0;
 	example.request_target = "/";
 	example.message_body = "HELLO THERE\r\n";
 	example.header_fields["Content-Length"] = "13";
@@ -100,7 +100,7 @@ TEST_CASE("Parser: partial requests", "[request-handler]")
 {
 	const int TOTAL = 20;
 	std::string req =
-		"GET / HTTP/1.1" CRLF
+		"GET / HTTP/1.0" CRLF
 		"Content-Length: 13" CRLF
 		CRLF
 		"HELLO THERE" CRLF;
@@ -123,7 +123,7 @@ TEST_CASE("Parser: partial requests", "[request-handler]")
 	example.status = Request::COMPLETE;
 	example.method = GET;
 	example.major_version = 1;
-	example.minor_version = 1;
+	example.minor_version = 0;
 	example.request_target = "/";
 	example.message_body = "HELLO THERE\r\n";
 	example.header_fields["Content-Length"] = "13";
@@ -140,30 +140,30 @@ TEST_CASE("Parser: Invalid Request-Lines", "[request-handler]")
 	// Append CRLF CRLF for header field checking
 	// Only testing the request-line parsing
 	const std::string inputs[] = {
-		" GET / HTTP/1.1",
-		"GET / HTTP/1.1 ",
-		"GET /  HTTP/1.1",
-		"GET  / HTTP/1.1",
-		"GET / HTTP /1.1",
+		" GET / HTTP/1.0",
+		"GET / HTTP/1.0 ",
+		"GET /  HTTP/1.0",
+		"GET  / HTTP/1.0",
+		"GET / HTTP /1.0",
 		"GET / HTTP/1.1000",
-		"GET / HTTP/0.1",
-		"GET / HTTP/01.1",
-		" / HTTP/1.1",
+		"GET / HTTP/0.0",
+		"GET / HTTP/01.0",
+		" / HTTP/1.0",
 		"GET / ",
-		"GET  HTTP/1.1",
-		"GET 1234/ HTTP/1.1",
-		"GET / aHTTP/1.1",
-		"GET / HTTP/a1.1",
+		"GET  HTTP/1.0",
+		"GET 1234/ HTTP/1.0",
+		"GET / aHTTP/1.0",
+		"GET / HTTP/a1.0",
 		"GET / HTTP/11.",
 		"GET / HTTP/1.",
 		": / HTTP/1.1",
-		"POST /\t HTTP/1.1",
+		"POST /\t HTTP/1.0",
 		"POST / HTTP/.1",
 				"POSTERS /11111/1/1/1/1/2/3/4/5/6/7198274981273 HTTP/1.123",
-		"AOISDJOIASJDOIAJSDIOJASD / HTTP/1.1",
-		"11Gabd3 / HTTP/1.1",
-		"GET / HTTP/10.1",
-		"GET / HTTP/11234123412341234123412341234.1",
+		"AOISDJOIASJDOIAJSDIOJASD / HTTP/1.0",
+		"11Gabd3 / HTTP/1.0",
+		"GET / HTTP/10.0",
+		"GET / HTTP/11234123412341234123412341234.0",
 
 	};
 
@@ -194,10 +194,11 @@ TEST_CASE("Parser: valid request-lines", "[request-handler]")
 	};
 
 	RequestHandler parser;
+	const std::string header = "Host: localhost" EOHEADER;
 
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i)
 	{
-		parser.parse(inputs[i] + EOHEADER);
+		parser.parse(inputs[i] + CRLF + header);
 		REQUIRE(checkNextRequest(parser, Request::COMPLETE));
 	}
 }
@@ -248,11 +249,11 @@ TEST_CASE("Parser: basic valid header-fields", "[request-handler]")
 		{"header-field: header-value \t\t\t  ", "header-field", "header-value"},
 	};
 
-	const std::string prefix = "GET / HTTP/1.1" CRLF;
+	const std::string prefix = "GET / HTTP/1.0" CRLF;
 	Request example;
 	example.status = Request::COMPLETE;
 	example.major_version = 1;
-	example.minor_version = 1;
+	example.minor_version = 0;
 	example.method = GET;
 	example.request_target = "/";
 
@@ -290,10 +291,10 @@ TEST_CASE("Parser: multiple header-fields", "[request-handler]")
 	example.method = GET;
 	example.request_target = "/";
 	example.major_version = 1;
-	example.minor_version = 1;
+	example.minor_version = 0;
 	example.status = Request::COMPLETE;
 
-	std::string request = "GET / HTTP/1.1" CRLF;
+	std::string request = "GET / HTTP/1.0" CRLF;
 	for (std::size_t i = 0; i < ARRAY_SIZE(input_fields); ++i)
 	{
 		request += input_fields[i] + CRLF;

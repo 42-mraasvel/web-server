@@ -21,6 +21,7 @@ struct Request
 		{
 			READING,
 			HEADER_COMPLETE,
+			CONTINUE,
 			COMPLETE,
 			BAD_REQUEST
 		};
@@ -46,6 +47,8 @@ struct Request
 		Address			address;
 		RequestStatus	status;
 		int				status_code;
+		// TODO: discuss whether this should remain a bool or be a flag
+		bool			close_connection;
 
 		MethodType		method;
 		std::string		request_target;

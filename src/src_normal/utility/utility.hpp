@@ -53,6 +53,7 @@ int list_directory(std::string const & directory, std::string const & path, std:
 }
 
 int syscallError(const std::string& str);
+int generalError(const char* format, ...);
 
 bool isSeperator(char x);
 bool isControl(char x);

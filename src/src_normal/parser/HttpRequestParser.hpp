@@ -71,6 +71,6 @@ class HttpRequestParser
 		ContentParser _content_parser;
 		ChunkedParser _chunked_content_parser;
 
-		ConfigResolver _config_resolver;
-		RequestValidator _request_validator;
+		RequestHeaderProcessor _header_processor;
+
 };

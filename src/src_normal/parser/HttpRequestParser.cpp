@@ -126,9 +126,9 @@ Flow:
 */
 int HttpRequestParser::processRequestHeader(Request & request)
 {
-	if (!_request_validator.isRequestValidPreConfig(request))
+	if (_header_processor.process(request) == ERR)
 	{
-		return setError(_request_validator.getStatusCode());
+		return setError(_header_processor.getStatusCode());
 	}
 	return checkContentType(request.header_fields);
 }

@@ -7,8 +7,11 @@ class ConfigResolver;
 
 class RequestValidator
 {
+	public:
+		RequestValidator();
     public:
 		bool	isRequestValidPreConfig(Request const & request);
+		bool	shouldCloseConnection() const;
     private:
 		bool		isBadRequest(Request::RequestStatus status, int request_code);
 		bool		isHostValid(Request const & request);
@@ -27,5 +30,6 @@ class RequestValidator
         int getStatusCode() const;
 
     private:
-        int                         _status_code;
+        int		_status_code;
+		bool	_close_connection;
 };
