@@ -8,18 +8,22 @@ Flow:
 	1. Read
 	2. RequestHandler
 
-		- new Request(address)
+		- new Request(address, configuration)
 
 		- Parse RequestLine
 		- Parse HeaderFields
+			- Error:
+				- Multiple Content-Length
+				- Multiple Transfer-Encoding
+				- Close Connection Errors:
+					- Multiple host
 		- Check HeaderFields
 			- RequestValidator();
 				- Content-Coding: BAD_REQUEST or always reject (415)
-				- Close Connection On:
-					- Multiple host
+				- Close Connection On: (set request flag, or check return in caller and set there)
 					- HTTP/1.1 + missing host
 					- Transfer-encoding invalid value
-			- DetermineCloseConnection();
+			- DetermineCloseConnection(); (set request flag)
 				request.close_conncetion = true;
 				- Valid Requests, but close connection:
 					- HTTP/1.0 without connection field
@@ -52,10 +56,15 @@ Flow:
 	-- Handler Interface --
 
 		- Change Flags to private + remove FILE_ prefix
+		bool isCgi(Request);
+		int executeRequest(FdTable, Request);
 		void update();
 		bool isComplete();
 		bool isError();
 		setResponseData(message_body, header);
+		int getStatusCode();
+		bool isChunked();
+		bool isReadyToWrite();
 
 	5. Update Client
 

@@ -6,7 +6,7 @@
 #include <algorithm>
 
 RequestValidator::RequestValidator()
-: _close_connection(false) {}
+: _close_connection(false), _continue(false) {}
 
 /****************************************/
 /******      basic interface       ******/
@@ -20,6 +20,11 @@ int RequestValidator::getStatusCode() const
 bool RequestValidator::shouldCloseConnection() const
 {
 	return _close_connection;
+}
+
+bool	RequestValidator::shouldSendContinue() const
+{
+	return _continue;
 }
 
 /************************************/
@@ -58,7 +63,7 @@ bool	RequestValidator::isHostValid(Request const & request)
 			std::string port_str = value.substr(found + 1);
 			if (!port_str.size() || WebservUtility::strtol(port_str) != request.address.second)
 			{
-				generalError("%s\n", _FUNC_ERR("invalid host").c_str());
+				generalError("%s\n", _FUNC_ERR("port number mismatch").c_str());
 				_status_code = StatusCode::BAD_REQUEST;
 				return false;
 			}
@@ -66,7 +71,7 @@ bool	RequestValidator::isHostValid(Request const & request)
 	}
 	else if (request.minor_version >= 1)
 	{
-		generalError("%s\n", _FUNC_ERR("missing host").c_str());
+		generalError("%s: %d\n", _FUNC_ERR("need host for this version").c_str(), request.minor_version);
 		_close_connection = true;
 		_status_code = StatusCode::BAD_REQUEST;
 		return false;
@@ -109,12 +114,18 @@ bool	RequestValidator::isMethodValid(MethodType const method)
 
 bool	RequestValidator::isExpectationValid(Request const & request)
 {
-	if (request.header_fields.contains("expect") &&
-		!WebservUtility::caseInsensitiveEqual(request.header_fields.find("expect")->second, "100-continue"))
+	HeaderField::const_pair_type expect = request.header_fields.get("expect");
+	if (!expect.second)
+	{
+		return true;
+	}
+
+	if (!WebservUtility::caseInsensitiveEqual(expect.first->second, "100-continue"))
 	{
 		_status_code = StatusCode::EXPECTATION_FAILED;
 		return false;
 	}
+	_continue = true;
 	return true;
 }
 

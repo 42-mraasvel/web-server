@@ -1,3 +1,4 @@
+#!/bin/bash
 OTHER_ARGS=${@:2}
 
 if [ "$#" -eq 0 ]; then

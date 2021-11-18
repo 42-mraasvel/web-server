@@ -12,6 +12,7 @@ class RequestValidator
     public:
 		bool	isRequestValidPreConfig(Request const & request);
 		bool	shouldCloseConnection() const;
+		bool	shouldSendContinue() const;
     private:
 		bool		isBadRequest(Request::RequestStatus status, int request_code);
 		bool		isHostValid(Request const & request);
@@ -32,4 +33,5 @@ class RequestValidator
     private:
         int		_status_code;
 		bool	_close_connection;
+		bool	_continue;
 };

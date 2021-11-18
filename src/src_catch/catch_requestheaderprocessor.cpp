@@ -21,3 +21,9 @@ TEST_CASE("Close Connection", "[request-header-processor]")
 	REQUIRE(r->close_connection == true);
 }
 
+TEST_CASE("Invalid HeaderFields", "[request-header-processor]")
+{
+	std::string inputs[] = {
+		""
+	};
+}
