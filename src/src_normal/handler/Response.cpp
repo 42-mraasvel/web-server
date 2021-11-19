@@ -17,10 +17,11 @@ Response::Response(Request const & request):
 _method(request.method),
 _request_target(request.request_target),
 _status_code(0),
+_config_info(request.config_info),
 _status(START),
 _header_part_set(false),
 _chunked(false),
-_close_connection(false),
+_close_connection(request.close_connection),
 _is_cgi(false),
 _file_handler(request.method)
 {
@@ -45,8 +46,6 @@ void	Response::setHttpVersion(int minor_version)
 
 void	Response::initiate(Request const & request)
 {
-//	TODO: evaluateConnectionFlag(request);
-	_config_info = request.config_info;
 	if (request.status == Request::BAD_REQUEST)
 	{
 		markComplete(request.status_code);
