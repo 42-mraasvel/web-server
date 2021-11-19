@@ -14,29 +14,23 @@ ConfigInfo const & ConfigResolver::getConfigInfo() const
 	return info;
 }
 
-
 /****************************/
 /****** Main Interface ******/
 /****************************/
 
-ConfigResolver::ConfigResolver() {}
-ConfigResolver::ConfigResolver(AddressType address, MapType* config_map)
+ConfigResolver::ConfigResolver(AddressType address, MapType const * config_map)
 : _address(address), _config_map(config_map) {}
+
+ConfigResolver::ConfigResolver(ServerBlock* server)
+{
+	info.resolved_server = server;
+}
 
 void	ConfigResolver::resolution(std::string const & request_host, std::string const & request_target)
 {
 	ServerVector	server_vector = resolveAddress(_address, *_config_map);
 	info.resolved_server = resolveHost(request_host, server_vector);
 	info.resolved_location = resolveLocationResult(request_target, info.resolved_server->_locations);
-	print(); //TODO: to delete
-}
-
-void	ConfigResolver::resolution(MapType const & map, AddressType const & request_address, std::string const & request_host, std::string const & request_target)
-{
-	ServerVector	server_vector = resolveAddress(request_address, map);
-	info.resolved_server = resolveHost(request_host, server_vector);
-	info.resolved_location = resolveLocationResult(request_target, info.resolved_server->_locations);
-	print(); //TODO: to delete
 }
 
 /*****************************/
@@ -381,27 +375,27 @@ bool	ConfigResolver::isAutoIndexOn(LocationBlock* location) const
 /****** resolve error page ******/
 /********************************/
 
-int	ConfigResolver::resolveErrorPage(int error_code, std::string & file_path)
+int	ConfigResolver::resolveErrorPage(int error_code)
 {
 	ErrorPageType::const_iterator it;
 	for (it = info.resolved_server->_error_pages.begin(); it !=  info.resolved_server->_error_pages.end(); ++it)
 	{
 		if (it->first == error_code)
 		{
-			return findErrorFilePath(it->second, file_path);
+			return findErrorFilePath(it->second);
 		}
 	}
 	return ERR;
 }
 
-int	ConfigResolver::findErrorFilePath(std::string const & error_uri, std::string & file_path)
+//TODO: check error page in config text if it can only be uri
+int	ConfigResolver::findErrorFilePath(std::string const & error_uri)
 {
 	LocationBlock*	location = resolveLocationResult(error_uri, info.resolved_server->_locations);
 	if (info.result != ConfigInfo::LOCATION_RESOLVED)
 	{
 		return ERR;
 	}
-	file_path = info.resolved_file_path;
 	return OK;
 }
 

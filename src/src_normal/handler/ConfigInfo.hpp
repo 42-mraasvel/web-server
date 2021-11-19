@@ -13,6 +13,7 @@ struct ConfigInfo
 		};
 
 		ConfigInfo();
+		ConfigInfo(ConfigInfo const & src);
 		ConfigInfo& operator=(ConfigInfo const & rhs);
 
 		ConfigResult	result;

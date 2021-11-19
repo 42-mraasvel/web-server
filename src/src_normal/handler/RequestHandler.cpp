@@ -2,7 +2,7 @@
 #include "settings.hpp"
 #include "parser/Request.hpp"
 
-RequestHandler::RequestHandler(AddressType address, MapType* config_map)
+RequestHandler::RequestHandler(AddressType address, MapType const * config_map)
 : _address(address), _request(NULL), _parser(address, config_map) {}
 
 RequestHandler::~RequestHandler() {

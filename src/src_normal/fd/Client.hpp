@@ -18,7 +18,7 @@ class Client : public AFdInfo
 		typedef	ConfigResolver::AddressType	AddressType;
 
 	public:
-		Client(int fd, AddressType address, MapType* config_map);
+		Client(int fd, AddressType address, MapType const * config_map);
 		~Client();
 		struct pollfd getPollFd() const;
 
@@ -33,7 +33,8 @@ class Client : public AFdInfo
 		void		initResponse(Request const & request);
 		void		checkRequestStatus();
 		bool		isRequestReadyToExecute() const;
-		bool		isRequestExecuted() const;
+		bool			isRequestComplete() const;
+		bool			isRequestExecuted() const;
 		void	resetRequest();
 
 	/* write*/
@@ -64,7 +65,7 @@ class Client : public AFdInfo
 	private:
 		//TODO: since this is only used inside of RequestHandler -> HttpRequestParser -> ConfigResolver, only keep it there?
 		AddressType 			_address;
-		MapType* 				_config_map;
+		MapType const * 		_config_map;
 		RequestHandler			_request_handler;
 		Request*				_request;
 		Response*				_new_response;

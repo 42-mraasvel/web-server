@@ -2,6 +2,11 @@
 
 ConfigInfo::ConfigInfo(): resolved_server(NULL), resolved_location(NULL) {}
 
+ConfigInfo::ConfigInfo(ConfigInfo const & src)
+{
+	*this = src;
+}
+
 ConfigInfo& ConfigInfo::operator=(ConfigInfo const & rhs)
 {
 	if (this != &rhs)

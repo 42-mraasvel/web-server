@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <iostream>
 
-Client::Client(int fd, Config::ip_host_pair address, Config::address_map* config_map):
+Client::Client(int fd, Config::ip_host_pair address, Config::address_map const * config_map):
 AFdInfo(fd),
 _request_handler(address, config_map),
 _request(NULL),
@@ -51,10 +51,12 @@ int	Client::readEvent(FdTable & fd_table)
 	{
 		_request->print();
 		processRequest(fd_table);
-		resetRequest();
+		if (isRequestComplete())
+		{
+			resetRequest();
+		}
 	}
 	return OK;
-
 }
 
 int	Client::parseRequest()
@@ -96,7 +98,6 @@ bool	Client::retrieveRequest()
 		{
 			return false;
 		}
-		// Removed because the address is now initialized by default in RequestHandler
 	}
 	return true;
 }
@@ -117,36 +118,33 @@ void	Client::initResponse(Request const & request)
 {
 	_new_response = new Response(request);
 	_response_queue.push_back(_new_response);
-	_new_response->initiate(*_config_map, request);
+	_new_response->initiate(request);
 }
 
 bool	Client::isRequestReadyToExecute() const
 {
-	return _request->status == Request::COMPLETE
+	return isRequestComplete()
 			&& !isRequestExecuted();
+}
+
+bool	Client::isRequestComplete() const
+{
+	return _request->status == Request::COMPLETE
+			|| _request->status == Request::EXPECT
+			|| _request->status == Request::BAD_REQUEST;
 }
 
 bool	Client::isRequestExecuted() const
 {
 	return _new_response
-			&& _new_response->isComplete()
-			&& _new_response->getStatusCode() != StatusCode::CONTINUE;
+			&& _new_response->isComplete();
 }
 
 void	Client::resetRequest()
 {
-	if (_request->status == Request::COMPLETE)
-	{
-		delete _request;
-		_request = NULL;
-		_new_response = NULL;
-	}
-	else if (_new_response
-			&& _new_response->isComplete()
-			&& _new_response->getStatusCode() == StatusCode::CONTINUE)
-	{
-		_new_response = NULL;
-	}
+	delete _request;
+	_request = NULL;
+	_new_response = NULL;
 }
 
 /************************/

@@ -29,7 +29,7 @@ class RequestHeaderProcessor
 		typedef	ConfigResolver::AddressType	AddressType;
 
 	public:
-		RequestHeaderProcessor(AddressType address, MapType* config_map);
+		RequestHeaderProcessor(AddressType address, MapType const * config_map);
 
 		int process(Request & request);
 		int getStatusCode() const;
