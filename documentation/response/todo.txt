@@ -1,33 +1,26 @@
 ------------------
 --     NOW      --
 ------------------
+>> FileHandler::dispatch method
+    - GET: check AutoIndex for directory
+    - POST: ERROR: has to go through CGI
+    - DELETE: delete request_target IF file
+
+
+>> resolve with config file
+    - add "=" into location resolution
 
 >> Redirection (3xx)
     - is URL good for Location header?
 
->> resolve with config file
-    - parse resource target %xxx
-    - add "=" into location resolution
-    - to delete extra in Config files
-    - to discuss with team whether do it or not:
-        - regular expression for server_name?
-        - modifier for location?
+>> close in stage
 
 >> To discuss:
-    - how to improve the update() process? CgiHandler is not doing anything fot evaluateExecutionCompletion()...evaluateExecutionError()
-    - implementation of MediaType + how to define charset?
     - if only send a string, no response for bad-request?
-    - tear-down process go through
-        - should implement close in stage or not?
-    - redirection: do we config rewrite? try-files?
-    - default server name as "localhost"?
-    - content-type: cgi?
 
 ------------------
 --    LATER     --
 ------------------
->> set _close_connection flag from request.
->> modify generatePage() for error response
 >> exception handling (Allocation error);
 >> automate the test for response correctness
 
@@ -53,26 +46,5 @@ std::cout << RED_BOLD << " " << RESET_COLOR << std::endl;
 ---------------
 --    NIELS  --
 ---------------
->> "return" in the location block.
 >> Index in location block cannot be a directory.
-
-
-REQUESTS {
-    '/'
-    '/index.py'
-    '/index.py/path/info'
-    '/index.py/path/info/'
-}
-
-/index.py
-
-location / {
-    index index.py index.html /dir/index.php
-    root /var/www
-    autoindex on;
-    cgi .py ...
-}
-
-location /dir {
-    cgi .php
-}
+>> error_page multiple error_code

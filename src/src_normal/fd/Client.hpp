@@ -48,7 +48,7 @@ class Client : public AFdInfo
 		void		closeConnection();
 		void	resetResponse();
 		int		sendResponseString();
-		void	resetEvent(FdTable & fd_table);
+		void	removeWriteEvent(FdTable & fd_table);
 	/* utility */
 	public:
 		typedef RequestParser::header_field_t::iterator header_iterator;

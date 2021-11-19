@@ -138,7 +138,7 @@ int	Client::writeEvent(FdTable & fd_table)
 		closeConnection();
 		return ERR;
 	}
-	resetEvent(fd_table);
+	removeWriteEvent(fd_table);
 	return OK;
 }
 
@@ -212,7 +212,7 @@ int	Client::sendResponseString()
 	return OK;
 }
 
-void	Client::resetEvent(FdTable & fd_table)
+void	Client::removeWriteEvent(FdTable & fd_table)
 {
 	updateEvents(AFdInfo::READING, fd_table);
 }
