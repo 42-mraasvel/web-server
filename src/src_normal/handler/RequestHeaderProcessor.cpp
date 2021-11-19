@@ -41,6 +41,10 @@ int RequestHeaderProcessor::process(Request & request)
 	}
 
 	request.config_info = _config_resolver.getConfigInfo();
+	if (request.config_info.result == ConfigInfo::NOT_FOUND)
+	{
+		return setError(StatusCode::NOT_FOUND);
+	}
 
 	if (!_request_validator.isRequestValidPostConfig(request))
 	{

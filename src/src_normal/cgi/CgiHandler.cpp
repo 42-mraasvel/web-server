@@ -51,6 +51,7 @@ Component analysis:
 
 bool CgiHandler::isCgi(const Request& request) {
 
+	// const std::string& target = request.config_info.resolved_target;
 	const std::string& target = request.request_target;
 
 	std::size_t index = 0;

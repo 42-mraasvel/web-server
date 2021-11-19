@@ -32,7 +32,6 @@ int RequestHandler::parse(std::string const & buffer)
 		else if (_parser.isComplete())
 		{
 			_request->status = Request::COMPLETE;
-			// _request->print();
 			completeRequest();
 		}
 	}
