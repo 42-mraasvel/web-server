@@ -147,13 +147,18 @@ static void printConfigInfo(const ConfigInfo& info)
 {
 	printf(GREEN_BOLD "-- REQUEST CONFIG INFO --" RESET_COLOR "\n");
 	
+	if (!info.resolved_server)
+	{
+		printf("No server block resolved.\n");
+		return;
+	}
 	printConfigResult(info.result);
 	printf("Client Max Body Size: %lu\n", info.resolved_server->_client_body_size);
 	printVector("  -- SERVER NAMES --", info.resolved_server->_server_names);
 
 	if (info.result == ConfigInfo::NOT_FOUND)
 	{
-		printf("No location block resolved.\n");		
+		printf("No location block resolved.\n");
 		return ;
 	}
 

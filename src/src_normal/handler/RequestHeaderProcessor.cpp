@@ -40,7 +40,6 @@ int RequestHeaderProcessor::process(Request & request)
 		throw e;
 	}
 	request.config_info = _config_resolver.getConfigInfo();
-	// Aileen: added below to filter 404 error
 	if (request.config_info.result == ConfigInfo::NOT_FOUND)
 	{
 		return setError(StatusCode::NOT_FOUND);
@@ -51,6 +50,16 @@ int RequestHeaderProcessor::process(Request & request)
 		return setError(_request_validator.getStatusCode());
 	}
 	return OK;
+}
+
+void RequestHeaderProcessor::processError(Request & request)
+{
+	if (request.config_info.resolved_server != NULL)
+	{
+		return;
+	}
+	_config_resolver.resolution("", "");
+	request.config_info = _config_resolver.getConfigInfo();
 }
 
 /*

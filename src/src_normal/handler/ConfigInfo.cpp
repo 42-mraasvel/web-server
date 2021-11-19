@@ -1,6 +1,6 @@
 #include "ConfigInfo.hpp"
 
-ConfigInfo::ConfigInfo(): resolved_server(NULL), resolved_location(NULL) {}
+ConfigInfo::ConfigInfo(): result(ConfigInfo::NOT_FOUND), resolved_server(NULL), resolved_location(NULL) {}
 
 ConfigInfo::ConfigInfo(ConfigInfo const & src)
 {
