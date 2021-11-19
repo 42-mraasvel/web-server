@@ -2,6 +2,7 @@
 #include "handler/RequestHeaderProcessor.hpp"
 #include "handler/RequestHandler.hpp"
 #include "settings.hpp"
+#include "tmp/create_address_map.hpp"
 #include <vector>
 
 TEST_CASE("Valid RHP", "[request-header-processor]")
@@ -10,7 +11,8 @@ TEST_CASE("Valid RHP", "[request-header-processor]")
 
 TEST_CASE("Close Connection", "[request-header-processor-tmp]")
 {
-	RequestHandler handler;
+	ConfigResolver::MapType* m = testing::createAddressMap();
+	RequestHandler handler(testing::createAddress(), m);
 
 	std::vector<std::string> inputs = {
 		"GET / HTTP/1.1" EOHEADER,
@@ -45,7 +47,8 @@ TEST_CASE("Invalid HeaderFields", "[request-header-processor]")
 	};
 
 	std::string prefix = "GET / HTTP/1.0" CRLF;
-	RequestHandler handler;
+	ConfigResolver::MapType* m = testing::createAddressMap();
+	RequestHandler handler(testing::createAddress(), m);
 
 	for (const std::pair<std::string, int>& field : inputs) {
 		std::string input = prefix + field.first + EOHEADER;

@@ -7,6 +7,8 @@
 #include "color.hpp"
 #include "config/Config.hpp"
 #include "utility/SmartPointer.hpp"
+#include "handler/RequestHandler.hpp"
+#include "tmp/create_address_map.hpp"
 
 #ifndef USING_CATCH
 int main()
