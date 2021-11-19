@@ -33,11 +33,11 @@ class FileHandler
 		bool	evaluateExecutionError();
 		bool	evaluateExecutionCompletion();
 		int		redirectErrorPage(FdTable & fd_table, std::string const & file_path, int status_code);
-		void	setMessageBody(std::string & message_body, std::string const & effective_request_uri);
+		void	setMessageBody(std::string & message_body);
 	private:
 		void		setMessageBodyGet(std::string & message_body);
-		void		setMessageBodyPost(std::string & message_body, std::string const & effective_request_uri);
-		void		setMessageBodyDelete(std::string & message_body);
+		void		setMessageBodyPost();
+		void		setMessageBodyDelete();
 
 	/* utility */
 	public:

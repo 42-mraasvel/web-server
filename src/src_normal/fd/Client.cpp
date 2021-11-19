@@ -87,13 +87,10 @@ int	Client::readRequest(std::string & buffer)
 
 bool	Client::retrieveRequest()
 {
+	_request = _request_handler.getNextRequest();
 	if (!_request)
 	{
-		_request = _request_handler.getNextRequest();
-		if (!_request)
-		{
-			return false;
-		}
+		return false;
 	}
 	return true;
 }
@@ -141,8 +138,7 @@ int	Client::writeEvent(FdTable & fd_table)
 		closeConnection();
 		return ERR;
 	}
-	//TODO: change naming
-	updateEvents(AFdInfo::READING, fd_table);
+	resetEvent(fd_table);
 	return OK;
 }
 
@@ -214,6 +210,11 @@ int	Client::sendResponseString()
 		_response_string.erase(0, size);
 	}
 	return OK;
+}
+
+void	Client::resetEvent(FdTable & fd_table)
+{
+	updateEvents(AFdInfo::READING, fd_table);
 }
 
 /*********************/

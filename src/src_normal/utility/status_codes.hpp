@@ -6,6 +6,12 @@ Namespaced representations of status codes enumeration
 
 namespace StatusCode
 {
+	bool		isStatusCode1xx(int status_code);
+	bool		isStatusCode2xx(int status_code);
+	bool		isStatusCode3xx(int status_code);
+	bool		isStatusCode4xx(int status_code);
+	bool		isStatusCode5xx(int status_code);
+	bool		isStatusCodeNoMessageBody(int status_code);
 	std::string getStatusMessage(int status_code);
 
 	enum Code

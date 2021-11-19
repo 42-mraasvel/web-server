@@ -255,7 +255,7 @@ LocationBlock*	ConfigResolver::resolveLocation(std::string const & target, Locat
 {
 	LocationVectorType::const_iterator it_matched;
 
-	if (isMatchLocation(target, locations, it_matched))
+	if (!target.empty() && isMatchLocation(target, locations, it_matched))
 	{
 		if (isTargetDirectory(target))
 		{

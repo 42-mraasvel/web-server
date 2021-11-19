@@ -233,16 +233,16 @@ int	FileHandler::redirectErrorPage(FdTable & fd_table, std::string const & file_
 /****** update - set message body *****/
 /**************************************/
 
-void	FileHandler::setMessageBody(std::string & message_body, std::string const & effective_request_uri)
+void	FileHandler::setMessageBody(std::string & message_body)
 {
 	switch (_method)
 	{
 		case GET:
 			return setMessageBodyGet(message_body);
 		case POST:
-			return setMessageBodyPost(message_body, effective_request_uri);
+			return setMessageBodyPost();
 		case DELETE:
-			return setMessageBodyDelete(message_body);
+			return setMessageBodyDelete();
 		default:
 			return ;
 	}
@@ -257,16 +257,12 @@ void	FileHandler::setMessageBodyGet(std::string & message_body)
 	}
 }
 
-void	FileHandler::setMessageBodyPost(std::string & message_body, std::string const & effective_request_uri)
+void	FileHandler::setMessageBodyPost()
 {
-	if (_status_code == StatusCode::CREATED)
-	{
-		message_body = "New content created!\n" + effective_request_uri + "\n";
-	}
 	return ;
 }
 
-void	FileHandler::setMessageBodyDelete(std::string & message_body)
+void	FileHandler::setMessageBodyDelete()
 {
 	return ;
 }

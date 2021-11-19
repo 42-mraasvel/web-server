@@ -29,8 +29,6 @@ class Response
 	private:
 		void		processCgiRequest(Request const & request);
 		void		processCompleteRequest(FdTable & fd_table, Request & request);
-		void			processRedirectResponse();
-		void			processAutoIndex();
 		void			setEffectiveRequestURI(Request const & request, int port, std::string const & resolved_target);
 		void			setAbsoluteFilePath(std::string const & root, std::string const & resolved_file_path);
 		void			handlerExecution(FdTable & fd_table, Request & request);
@@ -66,9 +64,11 @@ class Response
 	private:
 		void		evaluateExecutionError();
 		void		setMessageBody(FdTable & fd_table);
-		void			setHandlerMessageBody();
+		void			processRedirectResponse();
+		void			processAutoIndex();
 		bool			isErrorPageRedirected(FdTable & fd_table);
 		void			setOtherErrorPage();
+		void			setHandlerMessageBody();
 		void		evaluateExecutionCompletion();
 
 	/* utility */

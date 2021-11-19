@@ -6,6 +6,36 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 */
 namespace StatusCode
 {
+bool	isStatusCode1xx(int status_code)
+{
+	return status_code >= 100 && status_code < 200;
+}
+
+bool	isStatusCode2xx(int status_code)
+{
+	return status_code >= 200 && status_code < 300;
+}
+
+bool	isStatusCode3xx(int status_code)
+{
+	return status_code >= 300 && status_code < 400;
+}
+
+bool	isStatusCode4xx(int status_code)
+{
+	return status_code >= 400 && status_code < 500;
+}
+
+bool	isStatusCode5xx(int status_code)
+{
+	return status_code >= 500 && status_code < 600;
+}
+
+bool	isStatusCodeNoMessageBody(int status_code)
+{
+	return isStatusCode1xx(status_code) || status_code == NO_CONTENT || status_code == NOT_MODIFIED;
+}
+
 
 std::string getStatusMessage(int status_code)
 {

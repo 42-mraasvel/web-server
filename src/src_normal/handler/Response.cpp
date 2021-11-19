@@ -72,10 +72,10 @@ void	Response::processCompleteRequest(FdTable & fd_table, Request & request)
 	switch(_config_info.result)
 	{
 		case ConfigInfo::REDIRECT:
-			processRedirectResponse();
+			markComplete(_config_info.resolved_location->_return.first);
 			break ;
 		case ConfigInfo::AUTO_INDEX_ON:
-			processAutoIndex();
+			markComplete(StatusCode::STATUS_OK);
 			break ;
 		case ConfigInfo::LOCATION_RESOLVED:
 			setEffectiveRequestURI(request, request.address.second, _config_info.resolved_target);
@@ -92,35 +92,9 @@ void	Response::processCgiRequest(Request const & request)
 	_is_cgi = _cgi_handler.isCgi(request);
 }
 
-void	Response::processRedirectResponse()
-{
-	std::string	redirect_text = _config_info.resolved_location->_return.second;
-	markComplete(_config_info.resolved_location->_return.first);
-	if (_status_code >= 300 && _status_code < 400)
-	{
-		// TODO: to check if the redirect_text needs to be absolute form??
-		_effective_request_uri = redirect_text;
-		_message_body = "Redirect to " + redirect_text + "\n";
-	}
-	else
-	{
-		_message_body = redirect_text;
-	}
-}
-
-void	Response::processAutoIndex()
-{
-	markComplete(StatusCode::STATUS_OK);
-	if (WebservUtility::list_directory(_config_info.resolved_target, _config_info.resolved_file_path, _message_body) == ERR)
-	{
-		_message_body.erase();
-		markComplete(StatusCode::INTERNAL_SERVER_ERROR);
-	}
-}
-
 void	Response::setEffectiveRequestURI(Request const & request, int port, std::string const & resolved_target)
 {
-	//TODO: to pick up resolved_host (if it's default server_name, take from ConfigInfo)
+	//TODO: what if host is ""????
 	std::string resolved_host;
 	if (request.header_fields.contains("host"))
 	{
@@ -318,9 +292,10 @@ void	Response::setLocation()
 {
 	if (_status_code == StatusCode::CREATED)
 	{
+		// TODO: to check with Maarten how CGI is set?
 		_header_fields["Location"] = _request_target;
 	}
-	else if (_status_code >= 300 && _status_code < 400)
+	else if (StatusCode::isStatusCode3xx(_status_code))
 	{
 		_header_fields["Location"] = _effective_request_uri;
 	}
@@ -328,7 +303,7 @@ void	Response::setLocation()
 
 void	Response::setRetryAfter()
 {
-	if (_status_code >= 300 && _status_code < 400)
+	if (StatusCode::isStatusCode3xx(_status_code))
 	{
 		_header_fields["Retry-After"] = WebservUtility::itoa(RETRY_AFTER_SECONDS);
 	}
@@ -366,12 +341,10 @@ void	Response::setTransferEncodingOrContentLength()
 
 void	Response::setContentLength()
 {
-	if ((_status_code >= 100 && _status_code < 200)
-		|| _status_code == 204)
+	if (!StatusCode::isStatusCodeNoMessageBody(_status_code))
 	{
-		return ;
+		_header_fields["Content-Length"] = WebservUtility::itoa(_message_body.size());
 	}
-	_header_fields["Content-Length"] = WebservUtility::itoa(_message_body.size());
 }
 
 void	Response::setContentType()
@@ -469,32 +442,55 @@ void	Response::evaluateExecutionCompletion()
 
 void	Response::setMessageBody(FdTable & fd_table)
 {
-	if (_status != COMPLETE)
+	if (_status == COMPLETE && !StatusCode::isStatusCodeNoMessageBody(_status_code))
+	{
+		if (_config_info.result == ConfigInfo::REDIRECT)
+		{
+			processRedirectResponse();
+		}
+		else if (_config_info.result == ConfigInfo::AUTO_INDEX_ON)
+		{
+			processAutoIndex();
+		}
+		else if (_message_body.empty())
+		{
+			if (isErrorPageRedirected(fd_table))
+			{
+				_status = START;
+			}
+			else
+			{
+				setOtherErrorPage();
+			}
+		}
+	}
+	else if (_status != COMPLETE )
 	{
 		setHandlerMessageBody();
 	}
-	else if (_message_body.empty())
-	{
-		if (isErrorPageRedirected(fd_table))
-		{
-			_status = START;
-			return ;
-		}
-		setOtherErrorPage();
-	}
 }
 
-void	Response::setHandlerMessageBody()
+void	Response::processRedirectResponse()
 {
-	if (_is_cgi)
+	std::string	redirect_text = _config_info.resolved_location->_return.second;
+	if (StatusCode::isStatusCode3xx(_status_code))
 	{
-		// TODO_CGI Set HeaderFields
-		// Discuss: can I set headerFields inside this function too?
-		_cgi_handler.setMessageBody(_message_body);
+		// TODO: to check if the redirect_text needs to be absolute form??
+		_effective_request_uri = redirect_text;
+		_message_body = "Redirect to " + redirect_text + "\n";
 	}
 	else
 	{
-		_file_handler.setMessageBody(_message_body, _effective_request_uri);
+		_message_body = redirect_text;
+	}
+}
+
+void	Response::processAutoIndex()
+{
+	if (WebservUtility::list_directory(_config_info.resolved_target, _config_info.resolved_file_path, _message_body) == ERR)
+	{
+		_message_body.erase();
+		markComplete(StatusCode::INTERNAL_SERVER_ERROR);
 	}
 }
 
@@ -516,6 +512,20 @@ void	Response::setOtherErrorPage()
 {
 	_message_body = WebservUtility::itoa(_status_code) + " "
 					+ StatusCode::getStatusMessage(_status_code) + "\n";
+}
+
+void	Response::setHandlerMessageBody()
+{
+	if (_is_cgi)
+	{
+		// TODO_CGI Set HeaderFields
+		// Discuss: can I set headerFields inside this function too?
+		_cgi_handler.setMessageBody(_message_body);
+	}
+	else
+	{
+		_file_handler.setMessageBody(_message_body);
+	}
 }
 
 /******************************/
