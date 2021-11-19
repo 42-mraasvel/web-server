@@ -250,8 +250,11 @@ void	FileHandler::setMessageBody(std::string & message_body, std::string const &
 
 void	FileHandler::setMessageBodyGet(std::string & message_body)
 {
-	message_body.append(_file->getContent());
-	_file->clearContent();
+	if (!_file->getContent().empty())
+	{
+		message_body.append(_file->getContent());
+		_file->clearContent();
+	}
 }
 
 void	FileHandler::setMessageBodyPost(std::string & message_body, std::string const & effective_request_uri)

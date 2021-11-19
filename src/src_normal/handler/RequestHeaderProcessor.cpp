@@ -14,7 +14,7 @@ int RequestHeaderProcessor::setError(int code)
 	return ERR;
 }
 
-RequestHeaderProcessor::RequestHeaderProcessor(AddressType address, MapType* config_map)
+RequestHeaderProcessor::RequestHeaderProcessor(AddressType address, MapType const * config_map)
 : _config_resolver(address, config_map) {}
 
 /*
@@ -39,8 +39,12 @@ int RequestHeaderProcessor::process(Request & request)
 		generalError("%s: caught exception: %s\n", _FUNC_ERR("ConfigResolver").c_str(), e.what());
 		throw e;
 	}
-
 	request.config_info = _config_resolver.getConfigInfo();
+	// Aileen: added below to filter 404 error
+	if (request.config_info.result == ConfigInfo::NOT_FOUND)
+	{
+		return setError(StatusCode::NOT_FOUND);
+	}
 
 	if (!_request_validator.isRequestValidPostConfig(request))
 	{

@@ -22,7 +22,6 @@ _header_part_set(false),
 _chunked(false),
 _close_connection(false),
 _is_cgi(false),
-_config_resolver(),
 _file_handler(request.method)
 {
 	setHttpVersion(request.minor_version);
@@ -44,29 +43,77 @@ void	Response::setHttpVersion(int minor_version)
 /****** (Client::readEvent) init response  ******/
 /************************************************/
 
-void	Response::initiate(ConfigResolver::MapType const & map, Request const & request)
+void	Response::initiate(Request const & request)
 {
-	evaluateConnectionFlag(request);
-	if (validateRequest(request, false) == ERR)
+//	TODO: evaluateConnectionFlag(request);
+	_config_info = request.config_info;
+	if (request.status == Request::BAD_REQUEST)
 	{
+		markComplete(request.status_code);
 		return ;
 	}
-	if (resolveConfig(map, request) == ERR)
+	if (request.status == Request::EXPECT)
 	{
-		return ;
-	}
-	if (validateRequest(request, true) == ERR)
-	{
+		markComplete(StatusCode::CONTINUE);
 		return ;
 	}
 	processImmdiateResponse(request);
+	if (_status != COMPLETE)
+	{
+		setPathInfo(request);
+	}
 }
 
-/********************************************/
-/****** init response - resolve config ******/
-/********************************************/
+void	Response::processImmdiateResponse(Request const & request)
+{
+// TODO: to confirm with Maarten then delete (as this is already processed by request)
+//	if (_config_info.result == ConfigInfo::NOT_FOUND)
+//	{
+//		markComplete(StatusCode::NOT_FOUND);
+//		return ERR;
+//	}
+	//TODO: to move to execute
+	if (_config_info.result == ConfigInfo::REDIRECT)
+	{
+		processRedirectResponse();
+		markComplete(_config_info.resolved_location->_return.first);
+		return ;
+	}
+	if (_config_info.result == ConfigInfo::AUTO_INDEX_ON)
+	{
+		processAutoIndex();
+		markComplete(StatusCode::STATUS_OK);
+		return ;
+	}
+}
 
-int	Response::resolveConfig(ConfigResolver::MapType const & map, Request const & request)
+void	Response::processRedirectResponse()
+{
+	std::string	redirect_text = _config_info.resolved_location->_return.second;
+
+	if (_status_code >= 300 && _status_code < 400)
+	{
+		// TODO: to check if the redirect_text needs to be absolute form??
+		_effective_request_uri = redirect_text;
+		_message_body = "Redirect to " + redirect_text + "\n";
+	}
+	else
+	{
+		_message_body = redirect_text;
+	}
+}
+
+void	Response::processAutoIndex()
+{
+	if (WebservUtility::list_directory(_config_info.resolved_target, _config_info.resolved_file_path, _message_body) == ERR)
+	{
+		_message_body.erase();
+		markComplete(StatusCode::INTERNAL_SERVER_ERROR);
+	}
+}
+
+
+void	Response::setPathInfo(Request const & request)
 {
 	std::string host;
 	if (request.header_fields.contains("host"))
@@ -77,27 +124,9 @@ int	Response::resolveConfig(ConfigResolver::MapType const & map, Request const &
 	{
 		host = "";
 	}
+	setEffectiveRequestURI(host, request.address.second, _config_info.resolved_target);
+	setAbsoluteFilePath(_config_info.resolved_location->_root, _config_info.resolved_file_path);
 
-	_config_resolver.resolution(map, request.address, host, request.request_target);
-	_config_info = _config_resolver.info;
-	if (_config_resolver.info.result == ConfigInfo::NOT_FOUND)
-	{
-		markComplete(StatusCode::NOT_FOUND);
-		return ERR;
-	}
-	if (_config_resolver.info.result == ConfigInfo::REDIRECT)
-	{
-		markComplete(_config_resolver.info.resolved_location->_return.first);
-		return OK;
-	}
-	if (_config_resolver.info.result == ConfigInfo::AUTO_INDEX_ON)
-	{
-		markComplete(StatusCode::STATUS_OK);
-		return OK;
-	}
-	setEffectiveRequestURI(host, request.address.second, _config_resolver.info.resolved_target);
-	setAbsoluteFilePath(_config_resolver.info.resolved_location->_root, _config_resolver.info.resolved_file_path);
-	return OK;
 }
 
 void	Response::setEffectiveRequestURI(std::string const & resolved_host, int port, std::string const & resolved_target)
@@ -121,116 +150,6 @@ void	Response::setAbsoluteFilePath(std::string const & root, std::string const &
 	{
 		_file_handler.setAbsoluteFilePath(resolved_file_path);
 	}
-}
-
-/**********************************************/
-/****** init response - check connection ******/
-/**********************************************/
-
-void	Response::evaluateConnectionFlag(Request const & request)
-{
-	if (false) // TODO: change to if (request.close_connection)
-	{
-		_close_connection = true;
-	}
-	else if (request.header_fields.contains("connection"))
-	{
-		if(WebservUtility::caseInsensitiveEqual(request.header_fields.find("connection")->second, "close"))
-		{
-			_close_connection = true;
-		}
-	}
-	else if (request.major_version == 1 && request.minor_version == 0)
-	{
-		_close_connection = true;
-	}
-}
-
-/************************************************/
-/****** init response - validate request  *******/
-/************************************************/
-
-int	Response::validateRequest(Request const & request, bool is_config_completed)
-{
-	if (!is_config_completed)
-	{
-		if (!_request_validator.isRequestValidPreConfig(request))
-		{
-			markComplete(_request_validator.getStatusCode());
-			return ERR;
-		}
-	}
-	else
-	{
-		if (!_request_validator.isRequestValidPostConfig(request, _config_resolver.info))
-		{
-			markComplete(_request_validator.getStatusCode());
-			return ERR;
-		}
-	}
-	return OK;
-}
-/****************************************************/
-/****** (Client::readEvent) immediate response ******/
-/****************************************************/
-
-void	Response::processImmdiateResponse(Request const & request)
-{
-	if (_config_info.result == ConfigInfo::REDIRECT)
-	{
-		processRedirectResponse();
-	}
-	if (_config_info.result == ConfigInfo::AUTO_INDEX_ON)
-	{
-		if (processAutoIndex() == ERR)
-		{
-			markComplete(StatusCode::INTERNAL_SERVER_ERROR);
-		}
-	}
-	if (isContinueResponse(request))
-	{
-		processContinueResponse();
-	}
-}
-
-void	Response::processRedirectResponse()
-{
-	std::string	redirect_text = _config_info.resolved_location->_return.second;
-
-	if (_status_code >= 300 && _status_code < 400)
-	{
-		// TODO: to check if the redirect_text needs to be absolute form??
-		_effective_request_uri = redirect_text;
-		_message_body = "Redirect to " + redirect_text + "\n";
-	}
-	else
-	{
-		_message_body = redirect_text;
-	}
-}
-
-int	Response::processAutoIndex()
-{
-	printf(RED_BOLD "%s\n%s\n" RESET_COLOR, _config_info.resolved_target.c_str(), _config_info.resolved_file_path.c_str());
-	if (WebservUtility::list_directory(_config_info.resolved_target, _config_info.resolved_file_path, _message_body) == ERR)
-	{
-		return ERR;
-	}
-	return OK;
-}
-
-bool	Response::isContinueResponse(Request const & request) const
-{
-	return request.header_fields.contains("expect")
-			&& request.minor_version == 1
-			&& request.header_fields.contains("content-length")
-			&& !(request.header_fields.find("content-length")->second.empty())
-			&& request.message_body.empty();
-}
-
-void	Response::processContinueResponse()
-{
-	markComplete(StatusCode::CONTINUE);
 }
 
 /*************************************************/
@@ -599,8 +518,15 @@ void	Response::setHandlerMessageBody()
 bool	Response::isErrorPageRedirected(FdTable & fd_table)
 {
 	std::string file_path;
-	return _config_resolver.resolveErrorPage(_status_code, file_path) == OK
-		&& _file_handler.redirectErrorPage(fd_table, file_path, _status_code) == OK;
+	ConfigResolver	error_page_resolver(_config_info.resolved_server);
+	if (error_page_resolver.resolveErrorPage(_status_code) == OK)
+	{
+		if(_file_handler.redirectErrorPage(fd_table, error_page_resolver.getConfigInfo().resolved_file_path, _status_code) == OK)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 void	Response::setOtherErrorPage()

@@ -25,18 +25,15 @@ class Response
 
 	/* Client::readEvent() */
 	public:
-		void	initiate(ConfigResolver::MapType const & map, Request const & request);
+		void	initiate(Request const & request);
 	private:
-		int			resolveConfig(ConfigResolver::MapType const & map, Request const & request);
+		void		setConfig(Request const & request);
 		void			setEffectiveRequestURI(std::string const & resolved_host, int port, std::string const & resolved_target);
 		void			setAbsoluteFilePath(std::string const & root, std::string const & resolved_file_path);
-		void		evaluateConnectionFlag(Request const & request);
-		int			validateRequest(Request const & request, bool is_config_completed);
 		void		processImmdiateResponse(Request const & request);
 		void			processRedirectResponse();
-		int				processAutoIndex();
-		bool			isContinueResponse(Request const & request) const;
-		void			processContinueResponse();
+		void			processAutoIndex();
+		void		setPathInfo(Request const & request);
 
 	public:
 		void	executeRequest(FdTable & fd_table, Request & request);
@@ -119,7 +116,6 @@ class Response
 		/* handler */
 		bool				_is_cgi;
 		RequestValidator	_request_validator;
-		ConfigResolver		_config_resolver;
 		FileHandler			_file_handler;
 		CgiHandler			_cgi_handler;
 

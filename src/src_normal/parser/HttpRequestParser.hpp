@@ -32,7 +32,7 @@ class HttpRequestParser
 		};
 
 	public:
-		HttpRequestParser(AddressType address, MapType* config_map);
+		HttpRequestParser(AddressType address, MapType const * config_map);
 
 		int parse(std::string const & buffer, std::size_t & index, Request& request);
 

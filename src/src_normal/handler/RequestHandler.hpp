@@ -25,7 +25,7 @@ class RequestHandler
 
 
 	public:
-		RequestHandler(AddressType address, MapType* config_map);
+		RequestHandler(AddressType address, MapType const * config_map);
 		~RequestHandler();
 
 		int parse(std::string const & buffer);

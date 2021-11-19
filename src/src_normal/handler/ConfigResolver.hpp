@@ -20,14 +20,11 @@ class ConfigResolver
 		typedef std::pair< int, std::string>				RedirectType;
 
 	public:
-		//TODO: remove DEFAULT constructor, it's here because of conflict with Response
-		ConfigResolver();
-		ConfigResolver(AddressType address, MapType* config_map);
+		ConfigResolver(AddressType address, MapType const * config_map);
+		ConfigResolver(ServerBlock* server);
 
 	/* general resolve */
 	public:
-		//TODO: remove resolution with MapType, AddressType, response conflict
-		void	resolution(MapType const & map, AddressType const & request_address, std::string const & request_host, std::string const & request_target);
 		void	resolution(std::string const & request_host, std::string const & request_target);
 	private:
 		ServerVector	resolveAddress(AddressType client_address, MapType const & map);
@@ -61,20 +58,17 @@ class ConfigResolver
 
 	/* resolve error page */
 	public:
-		int	resolveErrorPage(int error_code, std::string & file_path);
+		int	resolveErrorPage(int error_code);
 	private:
-		int		findErrorFilePath(std::string const & error_uri, std::string & file_path);
+		int		findErrorFilePath(std::string const & error_uri);
 
 	public:
 		ConfigInfo const & getConfigInfo() const;
 
 	private:
-		//TODO: should this be a const pointer?
-		AddressType	_address;
-		MapType*	_config_map;
-	public:
-		//TODO: make private member instead, public for response conflict
-		ConfigInfo	info;
+		AddressType		_address;
+		MapType const *	_config_map;
+		ConfigInfo		info;
 
 
 	// debug 

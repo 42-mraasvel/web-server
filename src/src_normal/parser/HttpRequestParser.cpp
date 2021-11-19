@@ -25,7 +25,7 @@ static bool isValidRequestHeader(std::string const &key,
 	return true;
 }
 
-HttpRequestParser::HttpRequestParser(AddressType address, MapType* config_map)
+HttpRequestParser::HttpRequestParser(AddressType address, MapType const * config_map)
 : _state(PARSE_REQUEST_LINE),
 _header_parser(isValidRequestHeader, MAX_HEADER_SIZE),
 _header_processor(address, config_map) {}

@@ -123,15 +123,42 @@ void printVector(const std::string& prefix, const C& c)
 	}
 }
 
+static void	printConfigResult(ConfigInfo::ConfigResult const & result)
+{
+	std::string	string;
+	switch (result)
+	{
+		case ConfigInfo::NOT_FOUND:
+			string = "NOT_FOUND";
+			break ;
+		case ConfigInfo::AUTO_INDEX_ON:
+			string = "AUTO_INDEX_ON";
+			break ;
+		case ConfigInfo::REDIRECT:
+			string = "REDIRECT";
+			break ;
+		default:
+			string = "LOCATION_RESOLVED";
+	}
+	printf("Resolved result: %s\n", string.c_str());
+}
+
 static void printConfigInfo(const ConfigInfo& info)
 {
 	printf(GREEN_BOLD "-- REQUEST CONFIG INFO --" RESET_COLOR "\n");
 	
-	printf("Resolved File Path: %s\n", info.resolved_file_path.c_str());
-	printf("Resolved Target: %s\n", info.resolved_target.c_str());
-
+	printConfigResult(info.result);
 	printf("Client Max Body Size: %lu\n", info.resolved_server->_client_body_size);
 	printVector("  -- SERVER NAMES --", info.resolved_server->_server_names);
+
+	if (info.result == ConfigInfo::NOT_FOUND)
+	{
+		printf("No location block resolved.\n");		
+		return ;
+	}
+
+	printf("Resolved File Path: %s\n", info.resolved_file_path.c_str());
+	printf("Resolved Target: %s\n", info.resolved_target.c_str());
 	printVector("  -- ALLOWED METHODS --", info.resolved_location->_allowed_methods);
 	printVector("  -- INDEX --", info.resolved_location->_index);
 	printf("  -- CGI --\n");
