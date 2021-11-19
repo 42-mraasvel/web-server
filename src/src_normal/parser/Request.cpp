@@ -113,10 +113,43 @@ void Request::printBodyBytes() const
 	printf("\n");
 }
 
+template <typename C>
+void printVector(const std::string& prefix, const C& c)
+{
+	printf("%s\n", prefix.c_str());
+	for (std::size_t i = 0; i < c.size(); ++i)
+	{
+		printf("    [%s]\n", c[i].c_str());
+	}
+}
+
+static void printConfigInfo(const ConfigInfo& info)
+{
+	printf(GREEN_BOLD "-- REQUEST CONFIG INFO --" RESET_COLOR "\n");
+	
+	printf("Resolved File Path: %s\n", info.resolved_file_path.c_str());
+	printf("Resolved Target: %s\n", info.resolved_target.c_str());
+
+	printf("Client Max Body Size: %lu\n", info.resolved_server->_client_body_size);
+	printVector("  -- SERVER NAMES --", info.resolved_server->_server_names);
+	printVector("  -- ALLOWED METHODS --", info.resolved_location->_allowed_methods);
+	printVector("  -- INDEX --", info.resolved_location->_index);
+	printf("  -- CGI --\n");
+	for (std::size_t i = 0; i < info.resolved_location->_cgi.size(); ++i)
+	{
+
+		printf("    [%s]: [%s]\n",
+		info.resolved_location->_cgi[i].first.c_str(),
+		info.resolved_location->_cgi[i].second.c_str());
+	}
+
+}
+
 void Request::print() const
 {
 	printf(GREEN_BOLD "-- PARSED REQUEST --" RESET_COLOR "\r\n");
 	printf("Status: %s\n", getStatusString().c_str());
+	printf("StatusCode: %d\n", status_code);
 	printf("%s [%s][%s] HTTP/%d.%d\r\n",
 		getMethodString().c_str(),
 		request_target.c_str(),
@@ -129,6 +162,14 @@ void Request::print() const
 	}
 	printf(GREEN_BOLD "-- MESSAGE BODY --" RESET_COLOR "\r\n");
 	printf("Body-Size(%lu)\n", message_body.size());
-	printf("%s\r\n", message_body.c_str());
-	printBodyBytes();
+	if (message_body.size() <= 8192) {
+		printf("%s\r\n", message_body.c_str());
+		printBodyBytes();
+	}
+	else {
+		printf("body too large to print\n");
+	}
+
+	printf("Address: '%s:%d'\n", address.first.c_str(), address.second);
+	printConfigInfo(config_info);
 }
