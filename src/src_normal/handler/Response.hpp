@@ -25,18 +25,15 @@ class Response
 
 	/* Client::readEvent() */
 	public:
-		void	initiate(Request const & request);
+		void	executeRequest(FdTable & fd_table, Request & request);
 	private:
-		void		setConfig(Request const & request);
-		void			setEffectiveRequestURI(std::string const & resolved_host, int port, std::string const & resolved_target);
-		void			setAbsoluteFilePath(std::string const & root, std::string const & resolved_file_path);
-		void		processImmdiateResponse(Request const & request);
+		void		processCgiRequest(Request const & request);
+		void		processCompleteRequest(FdTable & fd_table, Request & request);
 		void			processRedirectResponse();
 		void			processAutoIndex();
-		void		setPathInfo(Request const & request);
-
-	public:
-		void	executeRequest(FdTable & fd_table, Request & request);
+		void			setEffectiveRequestURI(Request const & request, int port, std::string const & resolved_target);
+		void			setAbsoluteFilePath(std::string const & root, std::string const & resolved_file_path);
+		void			handlerExecution(FdTable & fd_table, Request & request);
 
 	/* Client::writeEvent() */
 	public:
@@ -45,23 +42,22 @@ class Response
 	public:
 		void	generateResponse();
 	private:
-		void		setStringToSend();
-		void			noChunked();
-		void			doChunked();
-		void			encodeMessageBody();
-		void			setHeaderPart();
-		void				setStatusCode();
-		void				setStringStatusLine();
-		void				setHeaderField();
-		void					setDate();
-		void					setConnection();
-		void					setLocation();
-		void					setRetryAfter();
-		void					setAllow();
-		void					setTransferEncodingOrContentLength();
-		void						setContentLength();
-		void					setContentType();
-		void				setStringHeaderField();
+		void		noChunked();
+		void		doChunked();
+		void		encodeMessageBody();
+		void		setHeaderPart();
+		void			setStatusCode();
+		void			setStringStatusLine();
+		void			setHeaderField();
+		void				setDate();
+		void				setConnection();
+		void				setLocation();
+		void				setRetryAfter();
+		void				setAllow();
+		void				setTransferEncodingOrContentLength();
+		void					setContentLength();
+		void				setContentType();
+		void			setStringHeaderField();
 
 
 	/* Client::update() */

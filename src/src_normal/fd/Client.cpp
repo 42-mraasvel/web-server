@@ -42,7 +42,6 @@ struct pollfd	Client::getPollFd() const
 
 int	Client::readEvent(FdTable & fd_table)
 {
-	//TODO_config: add config map parameter, pass it on to processRequest
 	if (parseRequest() == ERR)
 	{
 		return ERR;
@@ -51,10 +50,7 @@ int	Client::readEvent(FdTable & fd_table)
 	{
 		_request->print();
 		processRequest(fd_table);
-		if (isRequestComplete())
-		{
-			resetRequest();
-		}
+		resetRequest();
 	}
 	return OK;
 }
@@ -108,36 +104,13 @@ void	Client::processRequest(FdTable & fd_table)
 	{
 		initResponse(*_request);
 	}
-	if (isRequestReadyToExecute())
-	{
-		_new_response->executeRequest(fd_table, *_request);
-	}
+	_new_response->executeRequest(fd_table, *_request);
 }
 
 void	Client::initResponse(Request const & request)
 {
 	_new_response = new Response(request);
 	_response_queue.push_back(_new_response);
-	_new_response->initiate(request);
-}
-
-bool	Client::isRequestReadyToExecute() const
-{
-	return isRequestComplete()
-			&& !isRequestExecuted();
-}
-
-bool	Client::isRequestComplete() const
-{
-	return _request->status == Request::COMPLETE
-			|| _request->status == Request::EXPECT
-			|| _request->status == Request::BAD_REQUEST;
-}
-
-bool	Client::isRequestExecuted() const
-{
-	return _new_response
-			&& _new_response->isComplete();
 }
 
 void	Client::resetRequest()

@@ -40,56 +40,62 @@ void	Response::setHttpVersion(int minor_version)
 	}
 }
 
-/************************************************/
-/****** (Client::readEvent) init response  ******/
-/************************************************/
+/*************************************************/
+/****** (Client::readEvent) execute request ******/
+/*************************************************/
 
-void	Response::initiate(Request const & request)
+void	Response::executeRequest(FdTable & fd_table, Request & request)
 {
-	if (request.status == Request::BAD_REQUEST)
+	switch(request.status)
 	{
-		markComplete(request.status_code);
-		return ;
-	}
-	if (request.status == Request::EXPECT)
-	{
-		markComplete(StatusCode::CONTINUE);
-		return ;
-	}
-	processImmdiateResponse(request);
-	if (_status != COMPLETE)
-	{
-		setPathInfo(request);
+		case Request::BAD_REQUEST:
+			markComplete(request.status_code);
+			break ;
+		case Request::EXPECT:
+			markComplete(StatusCode::CONTINUE);
+			break ;
+		case Request::COMPLETE:
+			processCompleteRequest(fd_table, request);
+			break ;
+		default:
+			return ;
 	}
 }
 
-void	Response::processImmdiateResponse(Request const & request)
+/**********************************************************/
+/****** execute request - process complete request   ******/
+/**********************************************************/
+
+void	Response::processCompleteRequest(FdTable & fd_table, Request & request)
 {
-// TODO: to confirm with Maarten then delete (as this is already processed by request)
-//	if (_config_info.result == ConfigInfo::NOT_FOUND)
-//	{
-//		markComplete(StatusCode::NOT_FOUND);
-//		return ERR;
-//	}
-	//TODO: to move to execute
-	if (_config_info.result == ConfigInfo::REDIRECT)
+	processCgiRequest(request);
+	switch(_config_info.result)
 	{
-		processRedirectResponse();
-		markComplete(_config_info.resolved_location->_return.first);
-		return ;
+		case ConfigInfo::REDIRECT:
+			processRedirectResponse();
+			break ;
+		case ConfigInfo::AUTO_INDEX_ON:
+			processAutoIndex();
+			break ;
+		case ConfigInfo::LOCATION_RESOLVED:
+			setEffectiveRequestURI(request, request.address.second, _config_info.resolved_target);
+			setAbsoluteFilePath(_config_info.resolved_location->_root, _config_info.resolved_file_path);
+			handlerExecution(fd_table, request);
+			break ;
+		default:
+			return ;
 	}
-	if (_config_info.result == ConfigInfo::AUTO_INDEX_ON)
-	{
-		processAutoIndex();
-		markComplete(StatusCode::STATUS_OK);
-		return ;
-	}
+}
+
+void	Response::processCgiRequest(Request const & request)
+{
+	_is_cgi = _cgi_handler.isCgi(request);
 }
 
 void	Response::processRedirectResponse()
 {
 	std::string	redirect_text = _config_info.resolved_location->_return.second;
-
+	markComplete(_config_info.resolved_location->_return.first);
 	if (_status_code >= 300 && _status_code < 400)
 	{
 		// TODO: to check if the redirect_text needs to be absolute form??
@@ -104,6 +110,7 @@ void	Response::processRedirectResponse()
 
 void	Response::processAutoIndex()
 {
+	markComplete(StatusCode::STATUS_OK);
 	if (WebservUtility::list_directory(_config_info.resolved_target, _config_info.resolved_file_path, _message_body) == ERR)
 	{
 		_message_body.erase();
@@ -111,25 +118,18 @@ void	Response::processAutoIndex()
 	}
 }
 
-
-void	Response::setPathInfo(Request const & request)
+void	Response::setEffectiveRequestURI(Request const & request, int port, std::string const & resolved_target)
 {
-	std::string host;
+	//TODO: to pick up resolved_host (if it's default server_name, take from ConfigInfo)
+	std::string resolved_host;
 	if (request.header_fields.contains("host"))
 	{
-		host = request.header_fields.find("host")->second;
+		resolved_host = request.header_fields.find("host")->second;
 	}
 	else
 	{
-		host = "";
+		resolved_host = "";
 	}
-	setEffectiveRequestURI(host, request.address.second, _config_info.resolved_target);
-	setAbsoluteFilePath(_config_info.resolved_location->_root, _config_info.resolved_file_path);
-
-}
-
-void	Response::setEffectiveRequestURI(std::string const & resolved_host, int port, std::string const & resolved_target)
-{
 	std::string URI_scheme = "http://";
 	std::string authority = resolved_host;
 	if (port != DEFAULT_PORT)
@@ -151,19 +151,12 @@ void	Response::setAbsoluteFilePath(std::string const & root, std::string const &
 	}
 }
 
-/*************************************************/
-/****** (Client::readEvent) execute request ******/
-/*************************************************/
-
-void	Response::executeRequest(FdTable & fd_table, Request & request)
+void	Response::handlerExecution(FdTable & fd_table, Request & request)
 {
-
-	// This is the first time CGI is checked
 	// Note: if request_target is "/" OR a directory: the DEFAULT index needs to be checked
 	// which could also be CGI: 'index index.html index.php index.py ...'
-	if (_cgi_handler.isCgi(request))
+	if (_is_cgi)
 	{
-		_is_cgi = true;
 		if (_cgi_handler.executeRequest(fd_table, request) == ERR)
 		{
 			markComplete(_cgi_handler.getStatusCode());
@@ -203,15 +196,6 @@ void	Response::defineEncoding()
 /***************************************************/
 
 void	Response::generateResponse()
-{
-	setStringToSend();
-}
-
-/****************************************************/
-/****** generate response - set string to send ******/
-/****************************************************/
-
-void	Response::setStringToSend()
 {
 	if (_chunked)
 	{
