@@ -41,42 +41,65 @@ CgiHandler::~CgiHandler()
 	}
 }
 
-/*
-Precondition: target always starts with '/'
-
-Component analysis:
-	/c1/c2/c3/c4
-	If component ends in EXTENSION: true
-*/
-
-bool CgiHandler::isCgi(const Request& request) {
-
-	// const std::string& target = request.config_info.resolved_target;
-	const std::string& target = request.request_target;
-
+static std::size_t findCgiComponent(std::string const & request_target, std::string const & extension)
+{
 	std::size_t index = 0;
-	while (true) {
-		// Find the end of component: ('/') or std::string::npos
-		std::size_t end = target.find("/", index + 1);
-		if (WebservUtility::stringEndsWith(target, CGI_EXTENSION, index, end)) {
-
-			//TODO: _target should be the FULL path (?) /SERVER_ROOT/_target
-			_target = target.substr(0, end);
-			if (end != std::string::npos) {
-				_meta_variables.push_back(MetaVariableType("PATH_INFO", target.substr(end)));
-			} else {
-				//TODO: should this be "/" or "" (EMPTY) ?
-				_meta_variables.push_back(MetaVariableType("PATH_INFO", ""));
-			}
-
-			_status = CgiHandler::INCOMPLETE;
-			return true;
-		} else if (end == std::string::npos) {
+	while (true)
+	{
+		std::size_t end = request_target.find("/", index + 1);
+		if (WebservUtility::stringEndsWith(request_target, extension, index, end))
+		{
+			return index;
+		}
+		else if (end == std::string::npos)
+		{
 			break;
 		}
 		index = end;
 	}
+	return std::string::npos;
+}
+
+bool CgiHandler::isCgi(std::string const & request_target, CgiVectorType const & cgi)
+{
+	for (CgiVectorType::const_iterator it = cgi.begin(); it != cgi.end(); ++it)
+	{
+		if (findCgiComponent(request_target, it->first) != std::string::npos)
+		{
+			return true;
+		}
+	}
 	return false;
+}
+
+bool CgiHandler::isCgi(Request const & request)
+{
+	if (request.config_info.result == ConfigInfo::NOT_FOUND)
+	{
+		return false;
+	}
+	return isCgi(request.request_target, request.config_info.resolved_location->_cgi);
+}
+
+void CgiHandler::splitRequestTarget(std::string const & request_target, CgiVectorType const & cgi)
+{
+	std::size_t index = 0;
+	for (CgiVectorType::const_iterator it = cgi.begin(); it != cgi.end(); ++it)
+	{
+		index = findCgiComponent(request_target, it->first);
+		if (index != std::string::npos)
+		{
+			_script = it->second;
+			break;
+		}
+	}
+	std::size_t end = request_target.find("/", index + 1);
+	_target = request_target.substr(0, end);
+	if (end != std::string::npos) {
+		_meta_variables.push_back(MetaVariableType("PATH_INFO", request_target.substr(end)));
+	} else {
+		_meta_variables.push_back(MetaVariableType("PATH_INFO", ""));
+	}
 }
 
 /*
@@ -94,17 +117,15 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 	printf("-- Executing CGI --\n");
 
 	/* 1. Preparation */
-	//TODO: replace with configuration script (matched script)
-	_script = SCRIPT_PATH;
+	splitRequestTarget(request.request_target, request.config_info.resolved_location->_cgi);
+	_target = request.config_info.resolved_location->_root + _target;
+	generateMetaVariables(request);
+
 	if (!scriptCanBeExecuted())
 	{
 		finishCgi(ERROR, StatusCode::BAD_GATEWAY);
 		return ERR;
 	}
-
-	// TODO: replace with _root_dir
-	_target = SERVER_ROOT + _target;
-	generateMetaVariables(request);
 
 	/* 2. Open pipes, create FdClasses */
 	int fds[2] = {-1, -1};

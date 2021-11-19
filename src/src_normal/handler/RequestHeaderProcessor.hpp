@@ -32,6 +32,7 @@ class RequestHeaderProcessor
 		RequestHeaderProcessor(AddressType address, MapType const * config_map);
 
 		int process(Request & request);
+		void processError(Request & request);
 		int getStatusCode() const;
 
 	private:

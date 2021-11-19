@@ -2,6 +2,7 @@
 #include "settings.hpp"
 #include "utility/utility.hpp"
 #include "parser/Request.hpp"
+#include "cgi/CgiHandler.hpp"
 #include <iostream>
 #include <unistd.h>
 
@@ -255,9 +256,9 @@ LocationBlock*	ConfigResolver::resolveLocation(std::string const & target, Locat
 {
 	LocationVectorType::const_iterator it_matched;
 
-	if (isMatchLocation(target, locations, it_matched))
+	if (!target.empty() && isMatchLocation(target, locations, it_matched))
 	{
-		if (isTargetDirectory(target))
+		if (isTargetDirectory(target) && !CgiHandler::isCgi(target, (*it_matched)->_cgi))
 		{
 			return resolveIndex(it_matched, target, locations);
 		}

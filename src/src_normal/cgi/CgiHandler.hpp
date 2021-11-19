@@ -14,6 +14,7 @@ class CgiHandler
 	private:
 		typedef std::pair<std::string, std::string> MetaVariableType;
 		typedef std::vector<MetaVariableType> MetaVariableContainerType;
+		typedef std::vector<std::pair<std::string, std::string> > CgiVectorType;
 
 	public:
 		enum Status {
@@ -27,7 +28,8 @@ class CgiHandler
 		~CgiHandler();
 
 	/* Main Interface Functions */
-		bool isCgi(const Request& request);
+		static bool isCgi(Request const & request);
+		static bool isCgi(std::string const & request_target, CgiVectorType const & cgi);
 		int executeRequest(FdTable& fd_table, Request& request);
 
 		void update();
@@ -61,6 +63,7 @@ class CgiHandler
 	
 	private:
 
+		void splitRequestTarget(std::string const & request_target, CgiVectorType const & cgi);
 		bool scriptCanBeExecuted();
 		void generateMetaVariables(const Request& request);
 		void metaVariableContent(const Request& request);

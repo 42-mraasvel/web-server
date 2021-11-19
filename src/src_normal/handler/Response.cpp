@@ -161,7 +161,7 @@ void	Response::executeRequest(FdTable & fd_table, Request & request)
 	// This is the first time CGI is checked
 	// Note: if request_target is "/" OR a directory: the DEFAULT index needs to be checked
 	// which could also be CGI: 'index index.html index.php index.py ...'
-	if (_cgi_handler.isCgi(request))
+	if (CgiHandler::isCgi(request))
 	{
 		_is_cgi = true;
 		if (_cgi_handler.executeRequest(fd_table, request) == ERR)

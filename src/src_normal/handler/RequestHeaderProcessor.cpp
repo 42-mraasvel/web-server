@@ -52,6 +52,16 @@ int RequestHeaderProcessor::process(Request & request)
 	return OK;
 }
 
+void RequestHeaderProcessor::processError(Request & request)
+{
+	if (request.config_info.resolved_server != NULL)
+	{
+		return;
+	}
+	_config_resolver.resolution("", "");
+	request.config_info = _config_resolver.getConfigInfo();
+}
+
 /*
 Determine close connection
 */

@@ -9,7 +9,7 @@ TEST_CASE("Valid RHP", "[request-header-processor]")
 {
 }
 
-TEST_CASE("Close Connection", "[request-header-processor-tmp]")
+TEST_CASE("Close Connection", "[request-header-processor]")
 {
 	ConfigResolver::MapType* m = testing::createAddressMap();
 	RequestHandler handler(testing::createAddress(), m);
@@ -31,7 +31,6 @@ TEST_CASE("Close Connection", "[request-header-processor-tmp]")
 		REQUIRE(r->close_connection == true);
 		delete r;
 	}
-
 }
 
 TEST_CASE("Invalid HeaderFields", "[request-header-processor]")

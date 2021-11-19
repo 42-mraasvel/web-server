@@ -52,7 +52,7 @@ Config::address_map* createAddressMap()
 	#ifdef __linux__
 		location->_cgi.push_back(std::make_pair(".py", "/usr/bin/python3"));
 	#else
-		location->_cgi.push_back(std::make_pair(".py", "/usr/bin/python3"));
+		location->_cgi.push_back(std::make_pair(".py", "/Users/mraasvel/.brew/bin/python3"));
 	#endif /* __linux__ */
 
 		location->_index.push_back("index.html");
