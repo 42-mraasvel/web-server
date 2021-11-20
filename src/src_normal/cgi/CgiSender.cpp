@@ -24,17 +24,20 @@ struct pollfd CgiSender::getPollFd() const
 
 int CgiSender::writeEvent(FdTable & fd_table)
 {
-	ssize_t n = write(_fd, _request->message_body.c_str(),
-		std::min<std::size_t>(_request->message_body.size(), BUFFER_SIZE));
-	if (n == ERR)
+	std::size_t len = std::min<std::size_t>(_request->message_body.size(), BUFFER_SIZE);
+	if (len != 0)
 	{
-		flag = AFdInfo::FILE_ERROR;
-		return syscallError(_FUNC_ERR("write"));
+		ssize_t n = write(_fd, _request->message_body.c_str(), len);
+		if (n == ERR)
+		{
+			flag = AFdInfo::FILE_ERROR;
+			return syscallError(_FUNC_ERR("write"));
+		}
+		_request->message_body.erase(0, n);
+		printf("%s: [%d]: Sent: %ld bytes\n",
+			getName().c_str(), getFd(), n);
 	}
 
-	_request->message_body.erase(0, n);
-	printf("%s: [%d]: Sent: %ld bytes\n",
-		getName().c_str(), getFd(), n);
 	if (_request->message_body.size() == 0)
 	{
 		printf("%s: [%d]: Finished writing\n",

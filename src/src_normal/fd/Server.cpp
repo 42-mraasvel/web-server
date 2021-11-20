@@ -65,6 +65,9 @@ int	Server::initClient(sockaddr_in address, int connection_fd, FdTable & fd_tabl
 	Config::ip_host_pair	address_output;
 	address_output.first = ip;
 	address_output.second = _port;
+	printf("%sIP:%s %s, %sPort:%s %d\n",
+	YELLOW_BOLD, RESET_COLOR, ip.c_str(),
+	YELLOW_BOLD, RESET_COLOR, _port);
 
 	Client*	client = new Client(connection_fd, address_output, _config_map);
 	fd_table.insertFd(client);
