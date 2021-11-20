@@ -11,6 +11,9 @@ extern SmartPointerMapType _reference_tracker;
 
 }
 
+/*
+Overflow: doesn't work if more than std::numeric_limits<unsigned int>::max() references to same address
+*/
 
 template <typename T>
 class SmartPointer
@@ -50,9 +53,6 @@ class SmartPointer
 		}
 
 		~SmartPointer() {
-			if (p == NULL) {
-				return;
-			}
 			decrementReference();
 		}
 

@@ -78,7 +78,7 @@ bool CgiHandler::isCgi(Request const & request)
 	{
 		return false;
 	}
-	return isCgi(request.request_target, request.config_info.resolved_location->_cgi);
+	return isCgi(request.config_info.resolved_target, request.config_info.resolved_location->_cgi);
 }
 
 void CgiHandler::splitRequestTarget(std::string const & request_target, CgiVectorType const & cgi)
@@ -114,12 +114,12 @@ void CgiHandler::splitRequestTarget(std::string const & request_target, CgiVecto
 */
 int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 {
-	printf("-- Executing CGI --\n");
+	printf(YELLOW_BOLD "-- Executing CGI --" RESET_COLOR "\n");
 
 	/* 1. Preparation */
-	splitRequestTarget(request.request_target, request.config_info.resolved_location->_cgi);
-	_target = request.config_info.resolved_location->_root + _target;
+	splitRequestTarget(request.config_info.resolved_target, request.config_info.resolved_location->_cgi);
 	generateMetaVariables(request);
+	_target = request.config_info.resolved_location->_root + _target;
 
 	if (!scriptCanBeExecuted())
 	{
@@ -143,7 +143,7 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 		return ERR;
 	}
 
-	/* 4. Close unused pipes */
+	/* 4. Clean up CGI: should be done in 'FinishCgi' maybe? */
 	WebservUtility::closePipe(fds);
 	_meta_variables.clear();
 	return OK;
@@ -197,7 +197,7 @@ void CgiHandler::generateMetaVariables(const Request& request)
 	_meta_variables.push_back(MetaVariableType("SCRIPT_NAME", _target.c_str()));
 	// TODO: Should be the server name the client connected to (host-header-field)
 	_meta_variables.push_back(MetaVariableType("SERVER_NAME", "127.0.0.1"));
-	
+
 
 	/* Easy Copy */
 	_meta_variables.push_back(MetaVariableType("QUERY_STRING", request.query.c_str()));
@@ -206,7 +206,8 @@ void CgiHandler::generateMetaVariables(const Request& request)
 	_meta_variables.push_back(
 		MetaVariableType("SERVER_PROTOCOL", request.getProtocolString().c_str()));
 
-	// TODO: REMOTE_ADDR, SERVER_PORT from socket information, REMOTE_ADDR from accept information
+	// TODO: REMOTE_ADDR, SERVER_PORT
+	// From accept and socket information respectively
 	_meta_variables.push_back(MetaVariableType("REMOTE_ADDR", "127.0.0.1"));
 	_meta_variables.push_back(MetaVariableType("SERVER_PORT", "80"));
 
@@ -576,7 +577,7 @@ int CgiHandler::killCgi(int* status)
 			return syscallError(_FUNC_ERR("kill"));
 		}
 
-		printf("Waiting for CGI after killing\n");
+		printf("  Waiting for CGI after killing\n");
 		if (waitpid(_cgi_pid, status, 0) == ERR)
 		{
 			return syscallError(_FUNC_ERR("waitpid"));
