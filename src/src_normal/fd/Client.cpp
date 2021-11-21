@@ -9,13 +9,18 @@
 #include <algorithm>
 #include <iostream>
 
-Client::Client(int fd, Config::ip_host_pair address, Config::address_map const * config_map):
+Client::Client(int fd, AddressType client,
+	AddressType interface, Config::address_map const * config_map):
 AFdInfo(fd),
-_request_handler(address, config_map),
+_request_handler(client, interface, config_map),
 _request(NULL),
 _new_response(NULL),
 _response(NULL)
-{}
+{
+	printf("%s-- NEW CLIENT -- %s\n", RED_BOLD, RESET_COLOR);
+	printf("Client: [%s]:[%d]\n", client.first.c_str(), client.second);
+	printf("Interface: [%s]:[%d]\n", interface.first.c_str(), interface.second);
+}
 
 Client::~Client()
 {

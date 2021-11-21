@@ -189,33 +189,32 @@ Hardcoded:
 void CgiHandler::generateMetaVariables(const Request& request)
 {
 	/* To Generate */
-	// TODO: REMOTE_HOST, SERVER_NAME, PATH_TRANSLATED
+	// TODO: REMOTE_HOST, PATH_TRANSLATED
 	metaVariableContent(request);
-	// metaVariablePathTranslated();
 
-	// TODO: check if Correct interpretation of SCRIPT_NAME variable
 	_meta_variables.push_back(MetaVariableType("SCRIPT_NAME", _target.c_str()));
-	// TODO: Should be the server name the client connected to (host-header-field)
-	_meta_variables.push_back(MetaVariableType("SERVER_NAME", "127.0.0.1"));
+	// TODO: SERVER_NAME: Check SERVER_NAMES in the ResolvedServer: use Host to determine this
+	// Right now it's the IP the client connection to
+	_meta_variables.push_back(MetaVariableType("SERVER_NAME", request.interface_addr.first));
 
 
 	/* Easy Copy */
-	_meta_variables.push_back(MetaVariableType("QUERY_STRING", request.query.c_str()));
+	_meta_variables.push_back(MetaVariableType(
+		"QUERY_STRING", request.query.c_str()));
 	_meta_variables.push_back(
 		MetaVariableType("REQUEST_METHOD", request.getMethodString().c_str()));
 	_meta_variables.push_back(
 		MetaVariableType("SERVER_PROTOCOL", request.getProtocolString().c_str()));
-
-	// TODO: REMOTE_ADDR, SERVER_PORT
-	// From accept and socket information respectively
-	_meta_variables.push_back(MetaVariableType("REMOTE_ADDR", "127.0.0.1"));
-	_meta_variables.push_back(MetaVariableType("SERVER_PORT", "80"));
+	_meta_variables.push_back(MetaVariableType(
+		"REMOTE_ADDR", request.address.first));
+	_meta_variables.push_back(MetaVariableType(
+		"SERVER_PORT", WebservUtility::itoa(request.interface_addr.second)));
 
 	/* Header-Fields */
 	// TODO: copy header-field values
 
 	/* Hardcoded */
-	_meta_variables.push_back(MetaVariableType("SERVER_SOFTWARE", "Plebserv Reforged"));
+	_meta_variables.push_back(MetaVariableType("SERVER_SOFTWARE", "Plebserv Remastered"));
 	_meta_variables.push_back(MetaVariableType("GATEWAY_INTERFACE", "CGI/1.1"));
 }
 

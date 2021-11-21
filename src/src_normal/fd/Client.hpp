@@ -18,7 +18,7 @@ class Client : public AFdInfo
 		typedef	ConfigResolver::AddressType	AddressType;
 
 	public:
-		Client(int fd, AddressType address, MapType const * config_map);
+		Client(int fd, AddressType client, AddressType interface, MapType const * config_map);
 		~Client();
 		struct pollfd getPollFd() const;
 

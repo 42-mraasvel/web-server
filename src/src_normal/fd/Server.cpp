@@ -5,6 +5,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <fcntl.h>
+#include <cstring>
 
 int		Server::setupServer(int port, Config::address_map* config_map)
 {
@@ -44,13 +45,14 @@ int Server::readEvent(FdTable & fd_table)
 	int connection_fd = accept(_fd, reinterpret_cast<sockaddr *>(&client_address), &address_len);
 	if (connection_fd == ERR)
 	{
-		perror("Accept");
+		syscallError(_FUNC_ERR("accept"));
 		return ERR;
 	}
 	if (fcntl(connection_fd, F_SETFL, O_NONBLOCK) == ERR)
 	{
-		perror("fcntl");
+		syscallError(_FUNC_ERR("fcntl"));
 	}
+
 	return initClient(client_address, connection_fd, fd_table);
 }
 
@@ -65,12 +67,41 @@ int	Server::initClient(sockaddr_in address, int connection_fd, FdTable & fd_tabl
 	Config::ip_host_pair	address_output;
 	address_output.first = ip;
 	address_output.second = _port;
-	printf("%sIP:%s %s, %sPort:%s %d\n",
-	YELLOW_BOLD, RESET_COLOR, ip.c_str(),
-	YELLOW_BOLD, RESET_COLOR, _port);
 
-	Client*	client = new Client(connection_fd, address_output, _config_map);
+	// We have to use the interface IP to match with the correct server block
+	Config::ip_host_pair interface_address;
+	if (getSocketAddress(connection_fd, interface_address) == ERR)
+	{
+		return ERR;
+	}
+
+	Client*	client = new Client(connection_fd, address_output, interface_address, _config_map);
 	fd_table.insertFd(client);
+	return OK;
+}
+
+/*
+Get the interface information from a socketFd (IP:PORT belonging to the interface)
+This gives you the IP:PORT the client connected to, useful for INADDR_ANY (0.0.0.0) sockets
+*/
+int Server::getSocketAddress(int sockfd, Config::ip_host_pair & dst)
+{
+	sockaddr_in addr;
+	socklen_t len = sizeof(addr);
+	memset(&addr, 0, len);
+	if (getsockname(sockfd, reinterpret_cast<sockaddr *> (&addr), &len) == ERR)
+	{
+		return syscallError(_FUNC_ERR("getsockname"));
+	}
+
+	char ip[16];
+	if (inet_ntop(AF_INET, &(addr.sin_addr), ip, sizeof(ip)) == NULL)
+	{
+		return syscallError(_FUNC_ERR("inet_ntop"));
+	}
+
+	dst.first = std::string(ip);
+	dst.second = ntohs(addr.sin_port);
 	return OK;
 }
 

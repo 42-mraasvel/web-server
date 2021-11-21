@@ -19,6 +19,7 @@ class Server : public AFdInfo
 	private:
 		int	initClient(sockaddr_in address, int connection_fd, FdTable & fd_table);
 		int	convertIP(sockaddr_in address, std::string & ip);
+		int getSocketAddress(int sockfd, Config::ip_host_pair & dst);
 	
 	/* Debugging */
 	public:

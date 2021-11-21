@@ -2,8 +2,11 @@
 #include "settings.hpp"
 #include "parser/Request.hpp"
 
-RequestHandler::RequestHandler(AddressType address, MapType const * config_map)
-: _address(address), _request(NULL), _parser(address, config_map) {}
+RequestHandler::RequestHandler(AddressType client, AddressType interface, MapType const * config_map)
+: _client_addr(client),
+_interface_addr(interface),
+_request(NULL),
+_parser(client, config_map) {}
 
 RequestHandler::~RequestHandler() {
 	while (!_requests.empty())
@@ -58,7 +61,7 @@ Request* RequestHandler::getNextRequest()
 
 void RequestHandler::newRequest()
 {
-	_request = new Request(_address);
+	_request = new Request(_client_addr, _interface_addr);
 }
 
 void RequestHandler::completeRequest()
@@ -90,7 +93,7 @@ bool RequestHandler::isContinueResponse(Request const & request) const
 
 void RequestHandler::newContinueRequest()
 {
-	Request* cont = new Request(_address);
+	Request* cont = new Request(_client_addr, _interface_addr);
 	cont->config_info = _request->config_info;
 	cont->status = Request::EXPECT;
 	_requests.push(cont);

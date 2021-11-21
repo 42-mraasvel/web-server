@@ -37,7 +37,7 @@ struct Request
 
 	public:
 		Request();
-		Request(Address address);
+		Request(Address client, Address interface);
 
 		static MethodType getMethodType(std::string const & s);
 	
@@ -47,6 +47,7 @@ struct Request
 
 	public:
 		Address			address;
+		Address			interface_addr;
 		RequestStatus	status;
 		int				status_code;
 		bool			close_connection;

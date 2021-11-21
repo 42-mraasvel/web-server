@@ -17,8 +17,8 @@ Request::Request()
 	init();
 }
 
-Request::Request(Address address)
-: address(address)
+Request::Request(Address client, Address interface)
+: address(client), interface_addr(interface)
 {
 	init();
 }

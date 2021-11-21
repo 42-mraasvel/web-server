@@ -25,7 +25,7 @@ class RequestHandler
 
 
 	public:
-		RequestHandler(AddressType address, MapType const * config_map);
+		RequestHandler(AddressType client, AddressType interface, MapType const * config_map);
 		~RequestHandler();
 
 		int parse(std::string const & buffer);
@@ -42,7 +42,8 @@ class RequestHandler
 
 	private:
 
-		AddressType _address;
+		AddressType _client_addr;
+		AddressType _interface_addr;
 		Request* _request;
 		RequestQueueType _requests;
 		HttpRequestParser _parser;
