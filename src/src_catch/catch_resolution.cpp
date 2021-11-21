@@ -13,7 +13,7 @@ TEST_CASE("Basic Resolution", "[resolution]")
 		"1234567890";
 	
 	ConfigResolver::MapType* x = testing::createAddressMap();
-	RequestHandler handler(testing::createAddress(), x);
+	RequestHandler handler(testing::createAddress(), testing::createAddress(), x);
 
 	handler.parse(input);
 

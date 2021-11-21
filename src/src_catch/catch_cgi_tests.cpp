@@ -36,40 +36,41 @@ TEST_CASE("IsCgi tests", "[cgi]")
 {
 /* True Tests */
 	Request r;
+	r.config_info.result = ConfigInfo::LOCATION_RESOLVED;
 	r.config_info.resolved_location = generateCgiBlock();
-	r.request_target = "/x.py";
+	r.config_info.resolved_target = "/x.py";
 	REQUIRE(CgiHandler::isCgi(r) == true);
-	r.request_target = "/a/b/x.py";
+	r.config_info.resolved_target = "/a/b/x.py";
 	REQUIRE(CgiHandler::isCgi(r) == true);
-	r.request_target = "/a/b/x.py/a/b/x";
+	r.config_info.resolved_target = "/a/b/x.py/a/b/x";
 	REQUIRE(CgiHandler::isCgi(r) == true);
-	r.request_target = "/1234x.py";
+	r.config_info.resolved_target = "/1234x.py";
 	REQUIRE(CgiHandler::isCgi(r) == true);
-	r.request_target = "/asdf/asdf/ads/fadsfx.py";
+	r.config_info.resolved_target = "/asdf/asdf/ads/fadsfx.py";
 	REQUIRE(CgiHandler::isCgi(r) == true);
-	r.request_target = "/asdf/asdf/ads/.py";
+	r.config_info.resolved_target = "/asdf/asdf/ads/.py";
 	REQUIRE(CgiHandler::isCgi(r) == true);
-	r.request_target = "/.py";
+	r.config_info.resolved_target = "/.py";
 	REQUIRE(CgiHandler::isCgi(r) == true);
-	r.request_target = "/.py/";
+	r.config_info.resolved_target = "/.py/";
 	REQUIRE(CgiHandler::isCgi(r) == true);
-	r.request_target = "/.py/a";
+	r.config_info.resolved_target = "/.py/a";
 	REQUIRE(CgiHandler::isCgi(r) == true);
 
 /* False Tests */
-	r.request_target = "/";
+	r.config_info.resolved_target = "/";
 	REQUIRE(CgiHandler::isCgi(r) == false);
-	r.request_target = "/x.pyz";
+	r.config_info.resolved_target = "/x.pyz";
 	REQUIRE(CgiHandler::isCgi(r) == false);
-	r.request_target = "/x.pyz/asdf";
+	r.config_info.resolved_target = "/x.pyz/asdf";
 	REQUIRE(CgiHandler::isCgi(r) == false);
-	r.request_target = "/x.pyz/py./py";
+	r.config_info.resolved_target = "/x.pyz/py./py";
 	REQUIRE(CgiHandler::isCgi(r) == false);
-	r.request_target = "/x.pyz/asdf/.p/";
+	r.config_info.resolved_target = "/x.pyz/asdf/.p/";
 	REQUIRE(CgiHandler::isCgi(r) == false);
-	r.request_target = "/x.p";
+	r.config_info.resolved_target = "/x.p";
 	REQUIRE(CgiHandler::isCgi(r) == false);
-	r.request_target = "/x.pys/";
+	r.config_info.resolved_target = "/x.pys/";
 	REQUIRE(CgiHandler::isCgi(r) == false);
 }
 
@@ -79,7 +80,7 @@ TEST_CASE("Cgi Generate Meta-variables") {
 
 	// FdTable fd_table;
 
-	// r.request_target = "/cgi-bin/cgi.py/path/info";
+	// r.config_info.resolved_target = "/cgi-bin/cgi.py/path/info";
 	// r.query = "abcde=sa=d%20";
 	// r.method = GET;
 	// r.minor_version = 1;

@@ -89,7 +89,7 @@ TEST_CASE("Parser: single buffer: many requests", "[request-handler]")
 	example.header_fields["Content-Length"] = "13";
 
 	ConfigResolver::MapType* m = testing::createAddressMap();
-	RequestHandler parser(testing::createAddress(), m);
+	RequestHandler parser(testing::createAddress(), testing::createAddress(), m);
 	parser.parse(buffer);
 	for (int i = 0; i < TOTAL; ++i)
 	{
@@ -113,7 +113,7 @@ TEST_CASE("Parser: partial requests", "[request-handler]")
 
 	const std::size_t SEGMENT_SIZE = 10;
 	ConfigResolver::MapType* m = testing::createAddressMap();
-	RequestHandler parser(testing::createAddress(), m);
+	RequestHandler parser(testing::createAddress(), testing::createAddress(), m);
 	for (std::size_t i = 0; i < buffer.size(); i += SEGMENT_SIZE)
 	{
 		if (parser.parse(buffer.substr(i, SEGMENT_SIZE)) == ERR)
@@ -171,7 +171,7 @@ TEST_CASE("Parser: Invalid Request-Lines", "[request-handler]")
 	};
 
 	ConfigResolver::MapType* m = testing::createAddressMap();
-	RequestHandler parser(testing::createAddress(), m);
+	RequestHandler parser(testing::createAddress(), testing::createAddress(), m);
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i)
 	{
 		parser.parse(inputs[i] + EOHEADER);
@@ -182,7 +182,7 @@ TEST_CASE("Parser: Invalid Request-Lines", "[request-handler]")
 
 // TEST_CASE("Parser: stress testing no header end", "[request-parser]")
 // {
-// 	RequestHandler parser(testing::createAddress(), testing::createAddressMap);
+// 	RequestHandler parser(testing::createAddress(), testing::createAddress(), testing::createAddressMap);
 // 	for (std::size_t i = 0; i < 1000000; ++i)
 // 	{
 // 		parser.parse("a");
@@ -198,7 +198,7 @@ TEST_CASE("Parser: valid request-lines", "[request-handler]")
 	};
 
 	ConfigResolver::MapType* m = testing::createAddressMap();
-	RequestHandler parser(testing::createAddress(), m);
+	RequestHandler parser(testing::createAddress(), testing::createAddress(), m);
 	const std::string header = "Host: localhost" EOHEADER;
 
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i)
@@ -224,7 +224,7 @@ TEST_CASE("Parser: invalid header-fields", "[request-handler]")
 	const std::string prefix = "GET / HTTP/1.1" CRLF;
 
 	ConfigResolver::MapType* m = testing::createAddressMap();
-	RequestHandler parser(testing::createAddress(), m);
+	RequestHandler parser(testing::createAddress(), testing::createAddress(), m);
 
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i)
 	{
@@ -265,7 +265,7 @@ TEST_CASE("Parser: basic valid header-fields", "[request-handler]")
 
 
 	ConfigResolver::MapType* m = testing::createAddressMap();
-	RequestHandler parser(testing::createAddress(), m);
+	RequestHandler parser(testing::createAddress(), testing::createAddress(), m);
 
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i)
 	{
@@ -312,7 +312,7 @@ TEST_CASE("Parser: multiple header-fields", "[request-handler]")
 	}
 	request += CRLF;
 	ConfigResolver::MapType* m = testing::createAddressMap();
-	RequestHandler parser(testing::createAddress(), m);
+	RequestHandler parser(testing::createAddress(), testing::createAddress(), m);
 	parser.parse(request);
 
 	REQUIRE(checkNextRequest(parser, example));
@@ -340,7 +340,7 @@ TEST_CASE("parser: chunked", "[request-handler]")
 		CRLF;
 
 	ConfigResolver::MapType* m = testing::createAddressMap();
-	RequestHandler parser(testing::createAddress(), m);
+	RequestHandler parser(testing::createAddress(), testing::createAddress(), m);
 
 	std::size_t index = 0;
 
@@ -379,7 +379,7 @@ TEST_CASE("parser: chunked invalid", "[request-handler]")
 	std::string prefix = "GET / HTTP/1.1" CRLF;
 
 	ConfigResolver::MapType* m = testing::createAddressMap();
-	RequestHandler parser(testing::createAddress(), m);
+	RequestHandler parser(testing::createAddress(), testing::createAddress(), m);
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i) {
 		parser.parse(prefix + inputs[i]);
 		Request* r = parser.getNextRequest();

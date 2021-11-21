@@ -211,7 +211,7 @@ void CgiHandler::generateMetaVariables(const Request& request)
 		"SERVER_PORT", WebservUtility::itoa(request.interface_addr.second)));
 
 	/* Header-Fields */
-	// TODO: copy header-field values
+	metaVariableHeader(request);
 
 	/* Hardcoded */
 	_meta_variables.push_back(MetaVariableType("SERVER_SOFTWARE", "Plebserv Remastered"));
@@ -232,6 +232,30 @@ void CgiHandler::metaVariableContent(const Request& request)
 	{
 		_meta_variables.push_back(MetaVariableType("CONTENT_TYPE", p.first->second));
 	}
+}
+
+void CgiHandler::metaVariableHeader(const Request& request)
+{
+	for (HeaderField::const_iterator it = request.header_fields.begin();
+		it != request.header_fields.end(); ++it)
+	{
+		_meta_variables.push_back(convertFieldToMeta(it->first, it->second));
+	}
+}
+
+CgiHandler::MetaVariableType CgiHandler::convertFieldToMeta(
+		const std::string& key, const std::string& value) const
+{
+	std::string result;
+	for (std::size_t i = 0; i < key.size(); ++i)
+	{
+		if (key[i] == '-') {
+			result.push_back('_');
+		} else {
+			result.push_back(toupper(key[i]));
+		}
+	}
+	return MetaVariableType("HTTP_" + result, value);
 }
 
 /* Setting up FDs, pipes and connections to the CGI */

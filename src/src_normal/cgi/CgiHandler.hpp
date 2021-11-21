@@ -65,8 +65,12 @@ class CgiHandler
 
 		void splitRequestTarget(std::string const & request_target, CgiVectorType const & cgi);
 		bool scriptCanBeExecuted();
+	
 		void generateMetaVariables(const Request& request);
 		void metaVariableContent(const Request& request);
+		void metaVariableHeader(const Request& request);
+		MetaVariableType convertFieldToMeta(const std::string& key, const std::string& value) const;
+
 
 		int initializeCgiConnection(int* cgi_fds, FdTable& fd_table, Request& r);
 		int initializeCgiReader(int* cgi_fds, FdTable& fd_table);
