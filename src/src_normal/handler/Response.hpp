@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include "parser/RequestParser.hpp"
 #include "fd/AFdInfo.hpp"
 #include "MediaType.hpp"
 #include "RequestValidator.hpp"
@@ -74,7 +73,7 @@ class Response
 
 	/* utility */
 	public:
-		typedef RequestParser::header_field_t::const_iterator	header_iterator;
+		typedef HeaderField::const_iterator	header_iterator;
 		bool				getCloseConnectionFlag() const;
 		int					getStatusCode() const;
 		std::string const &	getString() const;
@@ -93,7 +92,7 @@ class Response
 		/* info */
 		MethodType			_method;
 		std::string			_request_target;
-		RequestParser::header_field_t  _header_fields;
+		HeaderField			_header_fields;
 		std::string 		_http_version;
 		int					_status_code;
 		ConfigInfo			_config_info;
