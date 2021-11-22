@@ -40,7 +40,6 @@ class ConfigServer
 	// getters
 		std::string getHostName();
 		std::vector<int> getPorts();
-		std::vector<server_pointer> getServerBlock();
 		address_map getAddressMap();
 
 	// Utility 
@@ -60,7 +59,7 @@ class ConfigServer
 		std::vector<std::string>					_server_name;
 		std::vector<std::pair<int, std::string> >	_error_pages;
 		std::vector<ConfigLocation>					_locations;
-		server_pointer								_server_block;
+		server_block_vector							_server_block;
 		address_map									_address_map;
 
 

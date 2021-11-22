@@ -238,7 +238,7 @@ int	Config::parseLocation()
 		checkExpectedSyntax(";");
 		_token_index++;
 	}
-	return (1);
+	return (OK);
 }
 
 // TODO: add protection
@@ -284,7 +284,7 @@ int	Config::parseServerName()
 		_servers[_server_amount].addServerName(_tokens[_token_index]);
 		_token_index++;
 	}
-	return (_token_index);
+	return (OK);
 }
 
 int	Config::parseRoot()
@@ -292,10 +292,14 @@ int	Config::parseRoot()
 	_token_index++;
 	if (_tokens[_token_index].compare(";"))
 	{
+		if (_tokens[_token_index].find_last_of("/") == _tokens[_token_index].size() - 1)
+		{
+			configError("Root cannot be directory");
+		}
 		_servers[_server_amount].addRoot(_tokens[_token_index]);
 	}
 	_token_index++;
-	return (1);
+	return (OK);
 }
 
 int	Config::parseClientBodySize()
@@ -338,7 +342,7 @@ int	Config::parseClientBodySize()
 	}
 	_servers[_server_amount].addClientBodySize(size);
 	_token_index++;
-	return (_token_index);
+	return (OK);
 }
 
 int	Config::parseAllowedMethods()
@@ -352,7 +356,7 @@ int	Config::parseAllowedMethods()
 		}
 		_token_index++;
 	}
-	return (_token_index);
+	return (OK);
 }
 
 int	Config::parseAutoindex()
@@ -363,7 +367,7 @@ int	Config::parseAutoindex()
 		_servers[_server_amount].addAutoIndex(_tokens[_token_index].compare("off"));
 	}
 	_token_index++;
-	return (_token_index);
+	return (OK);
 }
 
 int	Config::parseErrorPage()
@@ -380,7 +384,7 @@ int	Config::parseErrorPage()
 	_token_index++;
 	_servers[_server_amount].addErrorPage(page_number, _tokens[_token_index]);
 	_token_index++;
-	return (_token_index);
+	return (OK);
 }
 
 int Config::parseCgi()
@@ -399,7 +403,7 @@ int Config::parseCgi()
 		_token_index++;
 	}
 	_servers[_server_amount].addCgi(extention, path);
-	return (_token_index);
+	return (OK);
 }
 
 int	Config::parseIndex()
@@ -407,10 +411,14 @@ int	Config::parseIndex()
 	_token_index++;
 	while (_tokens[_token_index].compare(";") != 0)
 	{
+		if (_tokens[_token_index].find_last_of("/") == _tokens[_token_index].size() - 1)
+		{
+			configError("Index cannot be directory");
+		}
 		_servers[_server_amount].addIndex(_tokens[_token_index]);
 		_token_index++;
 	}
-	return (_token_index);
+	return (OK);
 }
 
 int Config::parseReturn()
@@ -430,17 +438,17 @@ int Config::parseReturn()
 	}
 	int code = WebservUtility::strtoul(ret);
 	_servers[_server_amount].addReturn(code, path);
-	return (_token_index);
+	return (OK);
 }
 
 int	Config::checkExpectedSyntax(std::string str)
 {
 	if (_tokens[_token_index].compare(str) != 0)
 	{
-		std::cout << RED_BOLD "Config Error: expected " << str << " instead of " << _tokens[_token_index] << RESET_COLOR << std::endl;
+		std::cerr << RED_BOLD "Config Error: expected " << str << " instead of " << _tokens[_token_index] << RESET_COLOR << std::endl;
 		exit(1);
 	}
-	return (1);
+	return (OK);
 }
 
 int	Config::checkExpectedSyntax(std::string str1, std::string str2)
@@ -448,10 +456,10 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2)
 	if (_tokens[_token_index].compare(str1) != 0 
 		&& _tokens[_token_index].compare(str2) != 0)
 	{
-		std::cout << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
+		std::cerr << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
 		exit(1);
 	}
-	return (1);
+	return (OK);
 }
 
 int	Config::checkExpectedSyntax(std::string str1, std::string str2, std::string str3)
@@ -460,15 +468,15 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2, std::string 
 		&& _tokens[_token_index].compare(str2) != 0
 		&& _tokens[_token_index].compare(str3) != 0)
 	{
-		std::cout << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 <<" or " << str3 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
+		std::cerr << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 <<" or " << str3 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
 		exit(1);
 	}
-	return (1);
+	return (OK);
 }
 
 void	Config::configError(std::string str)
 {
-	std::cout << RED_BOLD << "Config error: " << str << std::endl;
+	std::cerr << RED_BOLD << "Config error: " << str << std::endl;
 	exit(1);
 }
 
@@ -504,128 +512,3 @@ std::map<std::pair<std::string, int>, std::vector<ConfigServer::server_pointer> 
 }
 
 
-/* Debugging */
-void Config::print() const
-{
-	for (const_iterator it = begin(); it != end(); ++it)
-	{
-		std::cout << MAGENTA_BOLD "Server" RESET_COLOR " #" << (it - begin() + 1) << std::endl;
-		it->print();
-	}
-}
-
-
-void Config::printAddressMap() const
-{
-	std::cout << MAGENTA_BOLD "Address Map" RESET_COLOR << std::endl;
-	for (const_iterator_map it = _address_map.begin(); it != _address_map.end(); ++it)
-	{
-		printNode(it);
-	}
-}
-
-void Config::printNode(const_iterator_map node) const
-{
-	printKey(node);
-	printServerBlock(node);
-}
-
-void	Config::printKey(const_iterator_map node) const
-{
-	printIp(node);
-	printPort(node);
-}
-
-void	Config::printIp(const_iterator_map node) const
-{
-	std::cout << YELLOW_BOLD "  Ip: " RESET_COLOR << node->first.first << std::endl;
-}
-
-void	Config::printPort(const_iterator_map node) const
-{
-	std::cout << YELLOW_BOLD "  Port: " RESET_COLOR << node->first.second << std::endl;
-	
-}
-
-void	Config::printServerBlock(const_iterator_map node) const
-{
-	for (size_t i = 0; i < node->second.size(); i++)
-	{
-		std::cout << MAGENTA_BOLD "    ServerBlock #"  << i+1 << RESET_COLOR<< std::endl;
-		std::cout << "\tClient size : " << node->second[i]->_client_body_size << std::endl;
-		std::cout << "\tserver Names:" << std::endl;
-		for (size_t j = 0; j < node->second[i]->_server_names.size(); j++)
-		{
-			std::cout << "\t  " << node->second[i]->_server_names[j] << std::endl;
-		}
-		std::cout << "\terror pages:" << std::endl;
-		for (size_t j = 0; j < node->second[i]->_error_pages.size(); j++)
-		{
-			std::cout << "\t  " << node->second[i]->_error_pages[j].first << ", " << node->second[i]->_error_pages[j].second << std::endl;
-		}
-		for (size_t j = 0; j < node->second[i]->_locations.size(); j++)
-		{
-			std::cout << YELLOW_BOLD "    location #" << j+1 << RESET_COLOR << std::endl;
-			printLocationBlock(node->second[i]->_locations[j]);
-		}
-	}
-}
-
-void	Config::printLocationBlock(ConfigLocation::location_pointer location) const
-{
-	std::cout << "\t  path: " << location->_path << std::endl;
-	std::cout << "\t  root: " << location->_root << std::endl;
-	std::cout << "\t  index: " ;
-	for (size_t i = 0; i < location->_index.size(); i++)
-	{
-		if (i != 0)
-		{
-			std::cout << ", ";
-		}
-		std::cout << location->_index[i];
-	}
-	std::cout << std::endl;
-	std::cout << "\t  Allowed Methods: " ;
-	for (size_t i = 0; i < location->_allowed_methods.size(); i++)
-	{
-		if (i != 0)
-		{
-			std::cout << ", ";
-		}
-		std::cout << location->_allowed_methods[i];
-	}
-	std::cout << std::endl;
-	std::cout << "\t  CGI: " ;
-	for (size_t i = 0; i < location->_cgi.size(); i++)
-	{
-		if (i != 0)
-		{
-			std::cout <<"; ";
-		}
-		std::cout << location->_cgi[i].first << ", " << location->_cgi[i].second;
-	}
-	std::cout << std::endl;
-	std::cout << "\t  Autoindex status: ";
-	if (location->_autoindex_status)
-	{
-		std::cout << "ON";
-	}
-	else
-	{
-		std::cout << "OFF";
-	}
-	std::cout << std::endl;
-	std::cout << "\t  Return: " ;
-	std::cout << location->_return.first << ", " << location->_return.second;
-	std::cout << std::endl;
-	std::cout << "\t  Location flag: ";
-	if (location->_location_flag == NONE)
-	{
-		std::cout << "NONE";
-	}
-	else if (location->_location_flag == EQUAL)
-	{
-		std::cout << "EQUAL";
-	}
-	std::cout << std::endl;
-}

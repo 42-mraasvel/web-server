@@ -86,20 +86,12 @@ ConfigServer::const_iterator ConfigServer::end() const
 	return (this->_ports.end());
 }
 
-
-std::vector<ConfigServer::server_pointer> ConfigServer::getServerBlock()
-{
-	initServerBlock();
-	return this->_server_block;
-}
-
 std::map<std::pair<std::string, int>, std::vector<ConfigServer::server_pointer> > ConfigServer::getAddressMap()
 {
 	initAddressMap();
 
 	return this->_address_map;
 }
-
 
 // Utility
 void	ConfigServer::initAddressMap()
@@ -111,79 +103,15 @@ void	ConfigServer::initAddressMap()
 	}
 }
 
-
 void	ConfigServer::initServerBlock()
 {
-	_server_block = SmartPointer<ServerBlock>(new ServerBlock);
-	_server_block->_client_body_size = _client_body_size;
-	_server_block->_server_names = _server_name;
-	_server_block->_error_pages = _error_pages;
+	SmartPointer<ServerBlock> tmp = SmartPointer<ServerBlock>(new ServerBlock);
+	tmp->_client_body_size = _client_body_size;
+	tmp->_server_names = _server_name;
+	tmp->_error_pages = _error_pages;
 	for (size_t i = 0; i < _locations.size(); i++)
 	{
-		_server_block->_locations.push_back(_locations[i].getLocationBlock());
+		tmp->_locations.push_back(_locations[i].getLocationBlock());
 	}
-	_server_block.push_back(_server_block);
-}
-
-/* Debugging */
-void ConfigServer::print() const
-{
-	printPorts();
-	printServerName();
-	printErrorPages();
-	for (size_t i = 0; i < _locations.size(); i++)
-	{	
-		std::cout << YELLOW_BOLD "    Locations" RESET_COLOR " #" << (i + 1) << std::endl;
-		_locations[i].print();
-	}
-}
-
-void ConfigServer::printPorts() const
-{
-	std::cout << "  " CYAN_BOLD << "Ports:" RESET_COLOR " [";
-	for (const_iterator it = begin(); it != end(); ++it)
-	{
-		if (it != begin())
-		{
-			std::cout << ", ";
-		}
-		std::cout << *it;
-	}
-	std::cout << ']' << std::endl;
-}
-
-void ConfigServer::printServerName() const
-{
-	std::cout << "  " CYAN_BOLD << "Server names:" RESET_COLOR " [";
-	for (size_t i = 0; i < _server_name.size(); i++)
-	{
-		if (i != 0)
-		{
-			std::cout << ", ";
-		}
-		std::cout << _server_name[i];
-	}
-	std::cout << ']' << std::endl;
-}
-
-void ConfigServer::printErrorPages() const
-{
-		std::cout << "  " CYAN_BOLD << "Error_pages:" RESET_COLOR " [";
-	for (size_t i = 0; i < _error_pages.size(); i++)
-	{
-		if (i != 0)
-		{
-			std::cout << ", ";
-		}
-		std::cout << " { "<< _error_pages[i].first << ", " << _error_pages[i].second << " } ";
-	}
-	std::cout << ']' << std::endl;
-}
-
-void	ConfigServer::printAddress(int index) const
-{
-	std::cout << BLUE_BOLD << _address[index].first;
-	std::cout << ", ";
-	std::cout << BLUE_BOLD << _address[index].second;
-	std::cout << std::endl;
+	_server_block.push_back(tmp);
 }
