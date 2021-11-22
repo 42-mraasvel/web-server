@@ -43,7 +43,7 @@ int	CgiReader::readEvent(FdTable & fd_table)
 	}
 	else if (n == 0)
 	{
-		closeEvent(fd_table, AFdInfo::FILE_COMPLETE);
+		closeEvent(fd_table);
 		return OK;
 	}
 
@@ -68,8 +68,10 @@ void CgiReader::parseBuffer(FdTable & fd_table, std::string const & buffer)
 
 void CgiReader::closeEvent(FdTable & fd_table)
 {
-	// TODO: Set as ERROR or INCOMPLETE if the expected length has not been read
-	// Called from the webserver, so here we check if the CGI program quit prematurely
+	if (!_parser.isComplete() || !_parser.isCompleteIfEof())
+	{
+		return closeEvent(fd_table, AFdInfo::FILE_ERROR, StatusCode::BAD_GATEWAY);
+	}
 	closeEvent(fd_table, AFdInfo::FILE_COMPLETE);
 }
 

@@ -523,8 +523,28 @@ void CgiHandler::setHeaderField(HeaderField & header_field)
 				RED_BOLD, RESET_COLOR,
 				__FILE__, __LINE__, __FUNCTION__, it->first.c_str());
 		}
-		header_field[it->first] = it->second;
+		if (!skippedHeaderField(it->first))
+		{
+			header_field[it->first] = it->second;
+		}
 	}
+	_header.clear();
+}
+
+bool CgiHandler::skippedHeaderField(std::string const & key) const
+{
+	static const std::string skipped_fields[] = {
+		"status"
+	};
+
+	for (std::size_t i = 0; i < sizeof(skipped_fields) / sizeof(skipped_fields[0]); ++i)
+	{
+		if (WebservUtility::caseInsensitiveEqual(skipped_fields[i], key))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 /*

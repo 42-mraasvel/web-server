@@ -79,6 +79,7 @@ class CgiHandler
 
 		void finishCgi(Status status, int code);
 		int checkStatusField() const;
+		bool skippedHeaderField(std::string const & key) const;
 
 	/* Update Functionality */
 		int cleanCgi();
