@@ -58,6 +58,7 @@ int Client::run() {
 		if (sendRequest() == ERR) {
 			break;
 		}
+		sleep(1);
 		// If there is anything to read, we should read it and discard it so to keep the buffer empty
 		if (readResponse() == ERR) {
 			break;
