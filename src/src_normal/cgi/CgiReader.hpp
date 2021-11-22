@@ -23,6 +23,7 @@ class CgiReader : public AFdInfo
 
 		bool isChunked() const;
 
+		int getStatusCode() const;
 		std::string & getBody();
 		HeaderField & getHeader();
 	
@@ -31,6 +32,7 @@ class CgiReader : public AFdInfo
 
 	private:
 		void closeEvent(FdTable & fd_table, AFdInfo::Flags flag);
+		void closeEvent(FdTable & fd_table, AFdInfo::Flags flag, int status_code);
 		void parseBuffer(FdTable & fd_table, std::string const & buffer);
 
 	private:

@@ -3,9 +3,13 @@
 #include "utility/utility.hpp"
 #include <limits>
 
+/*
+Checks only the CGI related fields
+*/
 static bool validCgiField(std::string const & key, std::string const & value,
 					HeaderField const & header)
 {
+
 	return true;
 }
 

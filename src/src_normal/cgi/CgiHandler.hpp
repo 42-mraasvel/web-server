@@ -41,14 +41,14 @@ class CgiHandler
 		int getStatusCode() const;
 		void setResponseData(std::string & body, HeaderField & header);
 
-
+		void setHeaderField(HeaderField & header_field);
+		void setMessageBody(std::string & response_body);
 	/* Old Interface: REMOVE */
 
 	/* Interfacing Functions */
 		void setRootDir(std::string const & root);
 		bool evaluateExecutionError();
 		bool evaluateExecutionCompletion();
-		void setMessageBody(std::string & response_body);
 
 	/* Debugging */
 	public:
@@ -78,6 +78,7 @@ class CgiHandler
 		int prepareArguments(char *args[3]) const;
 
 		void finishCgi(Status status, int code);
+		int checkStatusField() const;
 
 	/* Update Functionality */
 		int cleanCgi();

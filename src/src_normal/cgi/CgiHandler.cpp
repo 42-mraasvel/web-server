@@ -67,27 +67,6 @@ bool CgiHandler::isCgi(Request const & request)
 	return isCgi(request.config_info.resolved_target, request.config_info.resolved_location->_cgi);
 }
 
-void CgiHandler::splitRequestTarget(std::string const & request_target, CgiVectorType const & cgi)
-{
-	std::size_t index = 0;
-	for (CgiVectorType::const_iterator it = cgi.begin(); it != cgi.end(); ++it)
-	{
-		index = findCgiComponent(request_target, it->first);
-		if (index != std::string::npos)
-		{
-			_script = it->second;
-			break;
-		}
-	}
-	std::size_t end = request_target.find("/", index + 1);
-	_target = request_target.substr(0, end);
-	if (end != std::string::npos) {
-		_meta_variables.push_back(MetaVariableType("PATH_INFO", request_target.substr(end)));
-	} else {
-		_meta_variables.push_back(MetaVariableType("PATH_INFO", ""));
-	}
-}
-
 /*
 1. Preparation: ScriptLocation, MetaVariables
 
@@ -130,10 +109,30 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 		return ERR;
 	}
 
-	/* 4. Clean up CGI: should be done in 'FinishCgi' maybe? */
 	WebservUtility::closePipe(fds);
 	_meta_variables.clear();
 	return OK;
+}
+
+void CgiHandler::splitRequestTarget(std::string const & request_target, CgiVectorType const & cgi)
+{
+	std::size_t index = 0;
+	for (CgiVectorType::const_iterator it = cgi.begin(); it != cgi.end(); ++it)
+	{
+		index = findCgiComponent(request_target, it->first);
+		if (index != std::string::npos)
+		{
+			_script = it->second;
+			break;
+		}
+	}
+	std::size_t end = request_target.find("/", index + 1);
+	_target = request_target.substr(0, end);
+	if (end != std::string::npos) {
+		_meta_variables.push_back(MetaVariableType("PATH_INFO", request_target.substr(end)));
+	} else {
+		_meta_variables.push_back(MetaVariableType("PATH_INFO", ""));
+	}
 }
 
 bool CgiHandler::scriptCanBeExecuted()
@@ -176,12 +175,12 @@ Hardcoded:
 void CgiHandler::generateMetaVariables(const Request& request)
 {
 	/* To Generate */
-	// TODO: REMOTE_HOST, PATH_TRANSLATED
+	// TODO: REMOTE_HOST, PATH_TRANSLATED [OPTIONAL]
 	metaVariableContent(request);
 
 	_meta_variables.push_back(MetaVariableType("SCRIPT_NAME", _target.c_str()));
 	// TODO: SERVER_NAME: Check SERVER_NAMES in the ResolvedServer: use Host to determine this
-	// Right now it's the IP the client connection to
+	// Right now it's the IP of the interface the client connected with
 	_meta_variables.push_back(MetaVariableType("SERVER_NAME", request.interface_addr.first));
 
 
@@ -501,11 +500,30 @@ bool CgiHandler::evaluateExecutionCompletion()
 
 void CgiHandler::setMessageBody(std::string & response_body)
 {
-	update();
-	//TODO: append HeaderFields
-	if (_message_body.size() > 0)
+	// DISCUSS: Maybe we should swap instead (if it's the entire message body)
+	// However that might be inconsistent with chunked responses
+	if (response_body.size() == 0)
 	{
 		response_body.swap(_message_body);
+	}
+	else
+	{
+		response_body.append(_message_body);
+		_message_body.clear();
+	}
+}
+
+void CgiHandler::setHeaderField(HeaderField & header_field)
+{
+	for (HeaderField::const_iterator it = _header.begin(); it != _header.end(); ++it)
+	{
+		if (header_field.contains(it->first))
+		{
+			fprintf(stderr, "  %sWARNING%s: %s:%d [%s]: Overwriting Field: %s\n",
+				RED_BOLD, RESET_COLOR,
+				__FILE__, __LINE__, __FUNCTION__, it->first.c_str());
+		}
+		header_field[it->first] = it->second;
 	}
 }
 
@@ -535,7 +553,7 @@ void CgiHandler::update()
 	if (evaluateExecutionError())
 	{
 		destroyFds();
-		finishCgi(CgiHandler::ERROR, StatusCode::BAD_GATEWAY);
+		finishCgi(CgiHandler::ERROR, _reader->getStatusCode());
 		return;
 	}
 
@@ -557,8 +575,18 @@ void CgiHandler::update()
 
 	if (isComplete())
 	{
-		finishCgi(CgiHandler::COMPLETE, StatusCode::STATUS_OK);
+		finishCgi(CgiHandler::COMPLETE, checkStatusField());
 	}
+}
+
+int CgiHandler::checkStatusField() const
+{
+	HeaderField::const_pair_type status = _header.get("Status");
+	if (status.second)
+	{
+		return WebservUtility::strtol(status.first->second);
+	}
+	return StatusCode::STATUS_OK;
 }
 
 int CgiHandler::cleanCgi()
