@@ -18,7 +18,6 @@ class HttpRequestParser
 {
 	public:
 		typedef	ConfigResolver::MapType		MapType;
-		typedef	ConfigResolver::AddressType	AddressType;
 
 	private:
 		enum State
@@ -32,7 +31,7 @@ class HttpRequestParser
 		};
 
 	public:
-		HttpRequestParser(AddressType address, MapType const * config_map);
+		HttpRequestParser(MapType const * config_map);
 
 		int parse(std::string const & buffer, std::size_t & index, Request& request);
 

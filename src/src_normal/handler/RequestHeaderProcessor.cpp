@@ -14,8 +14,8 @@ int RequestHeaderProcessor::setError(int code)
 	return ERR;
 }
 
-RequestHeaderProcessor::RequestHeaderProcessor(AddressType address, MapType const * config_map)
-: _config_resolver(address, config_map) {}
+RequestHeaderProcessor::RequestHeaderProcessor(MapType const * config_map)
+: _config_resolver(config_map) {}
 
 /*
 1. Validate Header
@@ -34,7 +34,7 @@ int RequestHeaderProcessor::process(Request & request)
 
 	determineCloseConnection(request);
 	try {
-		_config_resolver.resolution(getHostString(request.header_fields), request.request_target, request.method);
+		_config_resolver.resolution(getHostString(request.header_fields), request.request_target, request.method, request.interface_addr);
 	} catch (const std::exception& e) {
 		generalError("%s: caught exception: %s\n", _FUNC_ERR("ConfigResolver").c_str(), e.what());
 		throw e;
@@ -58,7 +58,7 @@ void RequestHeaderProcessor::processError(Request & request)
 	{
 		return;
 	}
-	_config_resolver.resolution("", "", GET); //TODO: aileen: to check with Maarten
+	_config_resolver.resolution("", "", GET, request.interface_addr); //TODO: aileen: to check with Maarten
 	request.config_info = _config_resolver.getConfigInfo();
 }
 

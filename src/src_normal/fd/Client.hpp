@@ -51,7 +51,7 @@ class Client : public AFdInfo
 		void	removeWriteEvent(FdTable & fd_table);
 	/* utility */
 	public:
-		typedef RequestParser::header_field_t::iterator header_iterator;
+		typedef HeaderField::iterator header_iterator;
 		typedef std::deque< Response * >	ResponseQueue;
 		void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 		void	update(FdTable & fd_table);

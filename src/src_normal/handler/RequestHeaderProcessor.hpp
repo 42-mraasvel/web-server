@@ -26,10 +26,9 @@ class RequestHeaderProcessor
 {
 	public:
 		typedef	ConfigResolver::MapType		MapType;
-		typedef	ConfigResolver::AddressType	AddressType;
 
 	public:
-		RequestHeaderProcessor(AddressType address, MapType const * config_map);
+		RequestHeaderProcessor(MapType const * config_map);
 
 		int process(Request & request);
 		void processError(Request & request);

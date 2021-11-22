@@ -6,7 +6,7 @@ RequestHandler::RequestHandler(AddressType client, AddressType interface, MapTyp
 : _client_addr(client),
 _interface_addr(interface),
 _request(NULL),
-_parser(client, config_map) {}
+_parser(config_map) {}
 
 RequestHandler::~RequestHandler() {
 	while (!_requests.empty())

@@ -19,17 +19,18 @@ ConfigInfo const & ConfigResolver::getConfigInfo() const
 /****** Main Interface ******/
 /****************************/
 
-ConfigResolver::ConfigResolver(AddressType address, MapType const * config_map)
-: _address(address), _config_map(config_map), _auto_index_on(false) {}
+ConfigResolver::ConfigResolver(MapType const * config_map)
+: _config_map(config_map), _auto_index_on(false) {}
 
 ConfigResolver::ConfigResolver(ServerBlock* server): _auto_index_on(false)
 {
 	info.resolved_server = server;
 }
 
-void	ConfigResolver::resolution(std::string const & request_host, std::string const & request_target, MethodType const & request_method)
+void	ConfigResolver::resolution(std::string const & request_host, std::string const & request_target,
+								MethodType const & request_method, AddressType interface_addr)
 {
-	ServerVector	server_vector = resolveAddress(_address, *_config_map);
+	ServerVector	server_vector = resolveAddress(interface_addr, *_config_map);
 	info.resolved_server = resolveHost(request_host, server_vector);
 	info.resolved_location = resolveLocationResult(request_method, request_target, info.resolved_server->_locations);
 }

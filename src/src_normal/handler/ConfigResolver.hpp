@@ -27,12 +27,12 @@ class ConfigResolver
 		typedef std::pair< int, std::string>				RedirectType;
 
 	public:
-		ConfigResolver(AddressType address, MapType const * config_map);
+		ConfigResolver(MapType const * config_map);
 		ConfigResolver(ServerBlock* server);
 
 	/* general resolve */
 	public:
-		void	resolution(std::string const & request_host, std::string const & request_target, MethodType const & request_method);
+		void	resolution(std::string const & request_host, std::string const & request_target, MethodType const & request_method, AddressType interface_addr);
 	private:
 		ServerVector	resolveAddress(AddressType interface_address, MapType const & map);
 		void				setAddress(AddressType const & interface_address, AddressType & address, MapType const & map);
@@ -73,7 +73,6 @@ class ConfigResolver
 		ConfigInfo const & getConfigInfo() const;
 
 	private:
-		AddressType		_address;
 		MapType const *	_config_map;
 		ConfigInfo		info;
 		bool			_auto_index_on;
