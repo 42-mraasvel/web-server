@@ -103,7 +103,6 @@ int	Config::splitToken(std::string const & string)
 	return (0);
 }
 
-
 int Config::parser()
 {
 	int	fd;
@@ -187,7 +186,7 @@ int	Config::parseServer()
 		checkExpectedSyntax(";");
 		_token_index++;
 	}
-	if (_servers[_server_amount].emptyAddress())
+	if (_servers[_server_amount].emptyAddress() == 0)
 	{
 		_servers[_server_amount].addAddress("0.0.0.0", 80);
 	}
@@ -506,7 +505,7 @@ void	Config::initAddressMap()
 	}
 }
 
-std::map<std::pair<std::string, int>, std::vector<ConfigServer::server_pointer> >	Config::getAddressMap()
+std::map<std::pair<std::string, int>, std::vector<ConfigServer::server_pointer> >	Config::getAddressMap() const
 {
 	return this->_address_map;
 }

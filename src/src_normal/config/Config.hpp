@@ -52,7 +52,7 @@ class Config
 
 	// Getters
 	public:
-		std::map<std::pair<std::string, int>, std::vector<ConfigServer::server_pointer> >	getAddressMap();
+		std::map<std::pair<std::string, int>, std::vector<ConfigServer::server_pointer> >	getAddressMap() const;
 	// Utility
 	void	initAddressMap();
 	

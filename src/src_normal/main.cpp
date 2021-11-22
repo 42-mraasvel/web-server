@@ -11,22 +11,22 @@
 int main(int argc, char **argv)
 {
 	std::string configuration;
-	if (argc == 2)
-	{
-		configuration = argv[1];
-	}
-	if (argc == 1)
-	{
-		std::cout << RED_BOLD "Warning: No configuration file given, using default config" << std::endl;
-		configuration = "src/src_normal/config/resources/default.conf";
-	}
-	else
-	{
-		std::cerr << RED_BOLD "Invalid argument amount" << std::endl;
-		exit(1);
-	}
 	try
 	{
+		if (argc == 2)
+		{
+			configuration = argv[1];
+		}
+		else if (argc == 1)
+		{
+			std::cout << RED_BOLD "Warning: No configuration file given, using default config" << std::endl;
+			configuration = "src/src_normal/config/resources/default.conf";
+		}
+		else
+		{
+			std::cerr << RED_BOLD "Invalid argument amount" << std::endl;
+			exit(1);
+		}
 		Config config_file(configuration);
 		config_file.print();
 		Webserver webserver;
