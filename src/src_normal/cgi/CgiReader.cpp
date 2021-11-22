@@ -38,13 +38,12 @@ int	CgiReader::readEvent(FdTable & fd_table)
 	if (n == ERR)
 	{
 		syscallError(_FUNC_ERR("read"));
-		closeEvent(fd_table, AFdInfo::FILE_ERROR);
+		closeEvent(fd_table, AFdInfo::FILE_ERROR, StatusCode::INTERNAL_SERVER_ERROR);
 		return ERR;
 	}
 	else if (n == 0)
 	{
-		//TODO: Set as ERROR or INCOMPLETE if the expected length has not been read
-		closeEvent(fd_table, AFdInfo::FILE_COMPLETE);
+		closeEvent(fd_table);
 		return OK;
 	}
 
@@ -59,7 +58,7 @@ void CgiReader::parseBuffer(FdTable & fd_table, std::string const & buffer)
 
 	if (_parser.isError())
 	{
-		closeEvent(fd_table, AFdInfo::FILE_ERROR);
+		closeEvent(fd_table, AFdInfo::FILE_ERROR, _parser.getStatusCode());
 	}
 	else if (_parser.isComplete())
 	{
@@ -69,20 +68,34 @@ void CgiReader::parseBuffer(FdTable & fd_table, std::string const & buffer)
 
 void CgiReader::closeEvent(FdTable & fd_table)
 {
+	if (!_parser.isComplete() || !_parser.isCompleteIfEof())
+	{
+		return closeEvent(fd_table, AFdInfo::FILE_ERROR, StatusCode::BAD_GATEWAY);
+	}
 	closeEvent(fd_table, AFdInfo::FILE_COMPLETE);
 }
 
 void CgiReader::closeEvent(FdTable & fd_table, AFdInfo::Flags flag)
 {
+	closeEvent(fd_table, flag, StatusCode::STATUS_OK);
+}
+
+void CgiReader::closeEvent(FdTable & fd_table, AFdInfo::Flags flag, int status_code)
+{
 	this->flag = flag;
 	updateEvents(AFdInfo::WAITING, fd_table);
 	_header.swap(_parser.getHeader());
 	_message_body.swap(_parser.getContent());
-	_status_code = _parser.getStatusCode();
+	_status_code = status_code;
 	closeFd(fd_table);
 }
 
 /* Interfacing Functions */
+
+int CgiReader::getStatusCode() const
+{
+	return _status_code;
+}
 
 bool CgiReader::isChunked() const
 {

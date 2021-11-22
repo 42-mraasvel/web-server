@@ -8,7 +8,15 @@
 
 CgiSender::CgiSender(int fd, Request* r)
 : AFdInfo(fd) {
-	_message_body.swap(r->message_body);
+	//TODO: determine location and clean solution to this
+	if (r->method == POST)
+	{
+		_message_body.swap(r->message_body);
+	}
+	else
+	{
+		r->message_body.clear();
+	}
 }
 
 CgiSender::~CgiSender() {}
