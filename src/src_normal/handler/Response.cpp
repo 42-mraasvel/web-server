@@ -102,7 +102,7 @@ int	Response::processCgiRequest(Request const & request)
 	return OK;
 }
 
-bool	Response::isTargetExist(Request & request)
+bool	Response::isTargetExist(Request const & request)
 {
 	if (!WebservUtility::isFileExist(_config_info.resolved_file_path))
 	{
@@ -280,7 +280,11 @@ void	Response::setHeaderField()
 	setTransferEncodingOrContentLength();
 	if (!_is_cgi)
 	{
-		setContentType();
+		setContentType(); //TODO move to file handler
+	}
+	else
+	{
+		//TODO: add CGI
 	}
 }
 
@@ -478,7 +482,7 @@ void	Response::setMessageBody(FdTable & fd_table)
 			if (isErrorPageRedirected(fd_table))
 			{
 				_status = START;
-				_is_cgi = false; //TODO: aileen: to check with Maarten
+				_is_cgi = false;
 			}
 			else
 			{
