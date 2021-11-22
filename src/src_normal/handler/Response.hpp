@@ -32,7 +32,7 @@ class Response
 		void			setEffectiveRequestURI(std::string const & host, int port, std::string const & resolved_target);
 		void			setAbsoluteFilePath(std::string const & root, std::string const & resolved_file_path);
 		void			handlerExecution(FdTable & fd_table, Request & request);
-		bool			isTargetExist(Request & request);
+		int				checkRequestTarget(Request const & request);
 
 	/* Client::writeEvent() */
 	public:

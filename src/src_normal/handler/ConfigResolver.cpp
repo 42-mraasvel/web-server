@@ -438,8 +438,9 @@ void	ConfigResolver::printSolutionLocation(LocationBlock * location) const
 	if (location)
 	{
 		std::cout << RED_BOLD << "Resolved location is [path]: " << location->_path << std::endl;
-		std::cout << RED_BOLD << "Resolved file is: " << info.resolved_file_path 
-				 << RESET_COLOR << std::endl;
+		std::cout << RED_BOLD << "Resolved target is: " << info.resolved_target << std::endl
+							  << "Resolved file is: " << info.resolved_file_path 
+				  << RESET_COLOR << std::endl;
 	}
 	else
 	{

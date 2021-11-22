@@ -80,7 +80,7 @@ void	Response::processCompleteRequest(FdTable & fd_table, Request & request)
 			markComplete(StatusCode::STATUS_OK);
 			break ;
 		case ConfigInfo::LOCATION_RESOLVED:
-			if (!isTargetExist(request))
+			if (checkRequestTarget(request) == ERR)
 				return ;
 			setEffectiveRequestURI(request.interface_addr.first, request.interface_addr.second, _config_info.resolved_target);
 			setAbsoluteFilePath(_config_info.resolved_location->_root, _config_info.resolved_file_path);
@@ -102,12 +102,12 @@ int	Response::processCgiRequest(Request const & request)
 	return OK;
 }
 
-bool	Response::isTargetExist(Request const & request)
+int	Response::checkRequestTarget(Request const & request)
 {
 	if (!WebservUtility::isFileExist(_config_info.resolved_file_path))
 	{
 		markComplete(StatusCode::NOT_FOUND);
-		return false;
+		return ERR;
 	}
 	DIR*	dir = opendir(_config_info.resolved_file_path.c_str());
 	if (dir != NULL)
@@ -115,9 +115,9 @@ bool	Response::isTargetExist(Request const & request)
 		markComplete(StatusCode::MOVED_PERMANENTLY);
 		setEffectiveRequestURI(request.interface_addr.first, request.interface_addr.second, _config_info.resolved_target.append("/"));
 		closedir(dir);
-		return false;
+		return ERR;
 	}
-	return true;
+	return OK;
 }
 
 void	Response::setEffectiveRequestURI(std::string const & host, int port, std::string const & resolved_target)
