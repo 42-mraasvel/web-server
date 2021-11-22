@@ -31,26 +31,16 @@ class CgiHandler: public iHandler
 	/* Main Interface Functions */
 		static bool isCgi(Request const & request);
 		static bool isCgi(std::string const & request_target, CgiVectorType const & cgi);
-		int executeRequest(FdTable& fd_table, Request& request);
 
-		void update();
-		bool isComplete() const;
-		bool isError() const;
-		bool isChunked(std::string const & http_version) const;
-		bool isReadyToWrite() const;
-
-		int getStatusCode() const;
-		void setResponseData(std::string & body, HeaderField & header);
-
-		void setHeaderField(HeaderField & header_field);
-		void setMessageBody(std::string & response_body);
-	/* Old Interface: REMOVE */
-
-	/* Interfacing Functions */
-		void setRootDir(std::string const & root);
-		bool evaluateExecutionError();
-		bool evaluateExecutionCompletion();
-		void setSpecificHeaderField(HeaderField & header_field) const;
+		int			executeRequest(FdTable& fd_table, Request& request);
+		std::string	resolvedRequestTarget(Request const & request);
+		void		update();
+		bool		isComplete() const;
+		bool		isError() const;
+		void		setMessageBody(std::string & response_body);
+		int			getStatusCode() const;
+		bool		isReadyToWrite() const;
+		void		setSpecificHeaderField(HeaderField & header_field);
 
 	/* Debugging */
 	public:
@@ -84,6 +74,7 @@ class CgiHandler: public iHandler
 		bool skippedHeaderField(std::string const & key) const;
 
 	/* Update Functionality */
+		bool evaluateExecutionError() const;
 		int cleanCgi();
 		int killCgi(int* status);
 

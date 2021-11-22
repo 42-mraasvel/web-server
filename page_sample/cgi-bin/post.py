@@ -16,6 +16,7 @@ def doResponse(content):
 
 	header['Content-Type'] = 'text/plain'
 	header['Content-Length'] = len(content)
+	header['Status'] = 200
 
 	printResponse(content, header)
 

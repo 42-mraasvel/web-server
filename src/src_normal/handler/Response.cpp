@@ -113,12 +113,14 @@ int	Response::processCgiRequest(Request const & request)
 
 int	Response::checkRequestTarget(Request const & request)
 {
-	if (!WebservUtility::isFileExist(_config_info.resolved_file_path))
+	//TODO: discuss PATH_INFO part of CGI and where it should be resolved
+	std::string file_path = _handler->resolvedRequestTarget(request);
+	if (!WebservUtility::isFileExist(file_path))
 	{
 		markComplete(StatusCode::NOT_FOUND);
 		return ERR;
 	}
-	DIR*	dir = opendir(_config_info.resolved_file_path.c_str());
+	DIR*	dir = opendir(file_path.c_str());
 	if (dir != NULL)
 	{
 		markComplete(StatusCode::MOVED_PERMANENTLY);
@@ -154,11 +156,7 @@ void	Response::setEffectiveRequestURI(Request const & request, std::string const
 //TODO: to improve
 void	Response::setAbsoluteFilePath(std::string const & root, std::string const & resolved_file_path)
 {
-	if (_is_cgi)
-	{
-		_cgi_handler.setRootDir(root);
-	}
-	else
+	if (!_is_cgi)
 	{
 		_file_handler.setAbsoluteFilePath(resolved_file_path);
 	}
@@ -428,7 +426,7 @@ void	Response::setMessageBody(FdTable & fd_table)
 			}
 		}
 	}
-	else if (_status != COMPLETE )
+	else if (_status != COMPLETE)
 	{
 		_handler->setMessageBody(_message_body);
 	}

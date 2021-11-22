@@ -21,8 +21,6 @@ class CgiReader : public AFdInfo
 		int	readEvent(FdTable & fd_table);
 		void closeEvent(FdTable & fd_table);
 
-		bool isChunked() const;
-
 		int getStatusCode() const;
 		std::string & getBody();
 		HeaderField & getHeader();

@@ -82,9 +82,7 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 	printf(YELLOW_BOLD "-- Executing CGI --" RESET_COLOR "\n");
 
 	/* 1. Preparation */
-	splitRequestTarget(request.config_info.resolved_target, request.config_info.resolved_location->_cgi);
 	generateMetaVariables(request);
-	_root_dir = request.config_info.resolved_location->_root;
 	_target = _root_dir + _target;
 
 	if (!scriptCanBeExecuted())
@@ -133,6 +131,13 @@ void CgiHandler::splitRequestTarget(std::string const & request_target, CgiVecto
 	} else {
 		_meta_variables.push_back(MetaVariableType("PATH_INFO", ""));
 	}
+}
+
+std::string CgiHandler::resolvedRequestTarget(Request const & request)
+{
+	splitRequestTarget(request.config_info.resolved_target, request.config_info.resolved_location->_cgi);
+	_root_dir = request.config_info.resolved_location->_root;
+	return _root_dir + _target;
 }
 
 bool CgiHandler::scriptCanBeExecuted()
@@ -465,24 +470,7 @@ int CgiHandler::setRedirection(int* cgi_fds) const
 	return OK;
 }
 
-/* Interfacing Functions */
-
-void CgiHandler::setRootDir(std::string const & root)
-{
-	_root_dir = root;
-}
-
-bool CgiHandler::isChunked(std::string const & http_version) const
-{
-	if (http_version != "HTTP/1.1")
-	{
-		return false;
-	}
-
-	return _reader->isChunked();
-}
-
-bool CgiHandler::evaluateExecutionError()
+bool CgiHandler::evaluateExecutionError() const
 {
 	//TODO: implement functionality
 	if ((_reader && _reader->flag == AFdInfo::FILE_ERROR)
@@ -491,11 +479,6 @@ bool CgiHandler::evaluateExecutionError()
 		return true;
 	}
 	return false;
-}
-
-bool CgiHandler::evaluateExecutionCompletion()
-{
-	return isComplete();
 }
 
 void CgiHandler::setMessageBody(std::string & response_body)
@@ -513,7 +496,7 @@ void CgiHandler::setMessageBody(std::string & response_body)
 	}
 }
 
-void CgiHandler::setHeaderField(HeaderField & header_field)
+void CgiHandler::setSpecificHeaderField(HeaderField & header_field)
 {
 	for (HeaderField::const_iterator it = _header.begin(); it != _header.end(); ++it)
 	{
@@ -572,7 +555,6 @@ void CgiHandler::update()
 
 	if (evaluateExecutionError())
 	{
-		destroyFds();
 		finishCgi(CgiHandler::ERROR, _reader->getStatusCode());
 		return;
 	}
@@ -665,23 +647,7 @@ bool CgiHandler::isError() const
 
 bool CgiHandler::isReadyToWrite() const
 {
-	return isComplete();
-}
-
-void CgiHandler::setResponseData(std::string & response_body, HeaderField & response_header)
-{
-	// This is done only once
-	if (_header.size() > 0)
-	{
-		for (HeaderField::iterator it = _header.begin(); it != _header.end(); ++it)
-		{
-			response_header[it->first] = it->second;
-		}
-		_header.clear();
-	}
-
-	// Append for chunked?
-	response_body.swap(_message_body);
+	return isComplete() || isError();
 }
 
 void CgiHandler::finishCgi(Status status, int code)
@@ -725,9 +691,4 @@ void CgiHandler::print() const {
 	{
 		printf("%s: %s\n", it->first.c_str(), it->second.c_str());
 	}
-}
-
-void    CgiHandler::setSpecificHeaderField(HeaderField & header_field) const
-{
-	return ; //TODO: for Maarten to add
 }

@@ -15,16 +15,17 @@ class FileHandler: public iHandler
 
 	/* Client::readEvent */
 	public:
-		int		executeRequest(FdTable & fd_table, Request & request);
+		int			executeRequest(FdTable & fd_table, Request & request);
+		std::string	resolvedRequestTarget(Request const & request);
 	private:
 		int			createFile(FdTable & fd_table);
-		void    	    setFileParameter();
-		bool		    isFileAuthorized();
-		bool			openFile(FdTable & fd_table);
+		void    	setFileParameter();
+		bool		isFileAuthorized();
+		bool		openFile(FdTable & fd_table);
 		int 		executeFile(Request & request);
-		int 			executeGet();
-		int 			executePost(Request & request);
-		int 			executeDelete();
+		int 		executeGet();
+		int 		executePost(Request & request);
+		int 		executeDelete();
 		void		updateFileEvent(FdTable & fd_table);
 
 	/* update */
@@ -41,7 +42,7 @@ class FileHandler: public iHandler
 
 	/* Client::writeEvent */
 	public:
-        void    setSpecificHeaderField(HeaderField & header_field) const;
+        void    setSpecificHeaderField(HeaderField & header_field);
 	private:
 		void		setContentType(HeaderField & header_field) const;
 

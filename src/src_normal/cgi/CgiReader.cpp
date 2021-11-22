@@ -97,12 +97,6 @@ int CgiReader::getStatusCode() const
 	return _status_code;
 }
 
-bool CgiReader::isChunked() const
-{
-	// TODO: implement check for when to send chunked request
-	return false;
-}
-
 HeaderField & CgiReader::getHeader()
 {
 	return _header;

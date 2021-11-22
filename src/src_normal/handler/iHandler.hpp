@@ -9,13 +9,16 @@ class HeaderField;
 
 class iHandler
 {
-    public:
-        virtual int     executeRequest(FdTable & fd_table, Request & request) = 0;
-        virtual void    update() = 0;
-        virtual bool    isComplete() const = 0;
-        virtual bool    isError() const = 0;
-        virtual void    setMessageBody(std::string & message_body) = 0;
-        virtual int     getStatusCode() const = 0;
-        virtual bool    isReadyToWrite() const = 0;
-        virtual void    setSpecificHeaderField(HeaderField & header_field) const = 0;
+	public:
+		virtual				~iHandler() {}
+		virtual int			executeRequest(FdTable & fd_table, Request & request) = 0;
+		virtual void		update() = 0;
+		virtual bool		isComplete() const = 0;
+		virtual bool		isError() const = 0;
+		virtual void		setMessageBody(std::string & message_body) = 0;
+		virtual int			getStatusCode() const = 0;
+		virtual bool		isReadyToWrite() const = 0;
+		// Note, Discuss: I removed the const tag so I can clear my own header
+		virtual void		setSpecificHeaderField(HeaderField & header_field) = 0;
+		virtual std::string	resolvedRequestTarget(Request const & request) = 0;
 };
