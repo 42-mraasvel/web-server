@@ -1,6 +1,9 @@
 ------------------
 --     NOW      --
 ------------------
+>> add resolved_server_name in resolver
+>> set Effective URI with server_name
+
 >> Handler Interface
 >> resolve with config file
     - add "=" into location resolution

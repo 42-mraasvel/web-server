@@ -61,7 +61,8 @@ Flow:
 		void update();
 		bool isComplete();
 		bool isError();
-		setResponseData(message_body, header);
+		setMessageBody(message_body);
+		setHeaderField(header);
 		int getStatusCode();
 		bool isChunked();
 		bool isReadyToWrite();
