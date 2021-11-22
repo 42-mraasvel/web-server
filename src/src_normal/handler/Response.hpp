@@ -18,6 +18,14 @@ class Response
 		};
 
 	public:
+		enum Chunk
+		{
+			UNDEFINED,
+			NOT_CHUNKED,
+			CHUNKED
+		};
+
+	public:
 		Response(Request const & request);
 	private:
 		void	setHttpVersion(int minor_version);
@@ -28,15 +36,12 @@ class Response
 	private:
 		void		processCompleteRequest(FdTable & fd_table, Request & request);
 		int				processCgiRequest(Request const & request);
-		void			setEffectiveRequestURI(std::string const & host, int port, std::string const & resolved_target);
+		void			setEffectiveRequestURI(Request const & request, std::string const & resolved_target);
 		void			setAbsoluteFilePath(std::string const & root, std::string const & resolved_file_path);
 		void			handlerExecution(FdTable & fd_table, Request & request);
 		int				checkRequestTarget(Request const & request);
 
 	/* Client::writeEvent() */
-	public:
-		void	defineEncoding();
-
 	public:
 		void	generateResponse();
 	private:
@@ -69,6 +74,7 @@ class Response
 		bool			isErrorPageRedirected(FdTable & fd_table);
 		void			setOtherErrorPage();
 		void			setHandlerMessageBody();
+		void		setEncoding();
 		void		evaluateExecutionCompletion();
 
 	/* utility */
@@ -100,7 +106,7 @@ class Response
 		/* flags */
 		Status				_status;
 		bool				_header_part_set;
-		bool				_chunked;
+		Chunk				_encoding;
 		bool				_close_connection;
 
 		/* strings to send out */

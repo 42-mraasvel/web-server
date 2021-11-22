@@ -12,7 +12,6 @@
 Config Specific Defines
 */
 #define DEFAULT_PORT 80
-#define DEFAULT_SERVER_NAME "localhost"
 
 /*
 Parsing Specific Defines
@@ -24,6 +23,7 @@ Parsing Specific Defines
 Response Specific Defines
 */
 #define BUFFER_SIZE 4096 // TODO: evaluate later
+#define CHUNK_THRESHOLD 2048 // TODO: evaluate later
 #define CHUNK_TAIL "0" CRLF CRLF
 #define RETRY_AFTER_SECONDS 30
 

@@ -1,9 +1,8 @@
 ------------------
 --     NOW      --
 ------------------
->> set Effective URI with server_name
-
 >> Handler Interface
+>> add isChunked()
 >> resolve with config file
     - add "=" into location resolution
 >> Redirection (3xx)

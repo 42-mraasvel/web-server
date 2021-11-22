@@ -64,7 +64,6 @@ Flow:
 		setMessageBody(message_body);
 		setHeaderField(header);
 		int getStatusCode();
-		bool isChunked();
 		bool isReadyToWrite();
 
 	5. Update Client

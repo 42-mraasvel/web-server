@@ -21,7 +21,7 @@ _status_code(0),
 _config_info(request.config_info),
 _status(START),
 _header_part_set(false),
-_chunked(false),
+_encoding(UNDEFINED),
 _close_connection(request.close_connection),
 _is_cgi(false),
 _file_handler(request.method)
@@ -82,7 +82,7 @@ void	Response::processCompleteRequest(FdTable & fd_table, Request & request)
 		case ConfigInfo::LOCATION_RESOLVED:
 			if (checkRequestTarget(request) == ERR)
 				return ;
-			setEffectiveRequestURI(request.interface_addr.first, request.interface_addr.second, _config_info.resolved_target);
+			setEffectiveRequestURI(request, _config_info.resolved_target);
 			setAbsoluteFilePath(_config_info.resolved_location->_root, _config_info.resolved_file_path);
 			handlerExecution(fd_table, request);
 			break ;
@@ -113,15 +113,26 @@ int	Response::checkRequestTarget(Request const & request)
 	if (dir != NULL)
 	{
 		markComplete(StatusCode::MOVED_PERMANENTLY);
-		setEffectiveRequestURI(request.interface_addr.first, request.interface_addr.second, _config_info.resolved_target.append("/"));
+		setEffectiveRequestURI(request, _config_info.resolved_target.append("/"));
 		closedir(dir);
 		return ERR;
 	}
 	return OK;
 }
 
-void	Response::setEffectiveRequestURI(std::string const & host, int port, std::string const & resolved_target)
+void	Response::setEffectiveRequestURI(Request const & request, std::string const & resolved_target)
 {
+	std::string host;
+	if (request.header_fields.contains("host"))
+	{
+		host = request.header_fields.find("host")->second;
+	}
+	else
+	{
+		host = request.interface_addr.first;
+	}
+	int	port = request.interface_addr.second;
+
 	std::string URI_scheme = "http://";
 	std::string authority = host;
 	if (port != DEFAULT_PORT)
@@ -163,33 +174,13 @@ void	Response::handlerExecution(FdTable & fd_table, Request & request)
 	}
 }
 
-/********************************************************/
-/****** (Client::writeEvent) pre-generate response ******/
-/********************************************************/
-
-void	Response::defineEncoding()
-{
-	if (_status != COMPLETE)
-	{
-		if (_is_cgi && _cgi_handler.isChunked(_http_version))
-		{
-			// DISCUSS: (error_proof) mentioned before in comment ?
-			_chunked = true;
-		}
-		else if (_file_handler.isChunked(_http_version))
-		{
-			_chunked = true;
-		}
-	}
-}
-
 /****************************************************/
 /****** (Client::writeEvent) generate response ******/
 /***************************************************/
 
 void	Response::generateResponse()
 {
-	if (_chunked)
+	if (_encoding == CHUNKED)
 	{
 		doChunked();
 	}
@@ -353,7 +344,7 @@ void	Response::setAllow()
 
 void	Response::setTransferEncodingOrContentLength()
 {
-	if (_chunked)
+	if (_encoding == CHUNKED)
 	{
 		_header_fields["Transfer-Encoding"] = "chunked";
 	}
@@ -415,6 +406,7 @@ void	Response::update(FdTable & fd_table)
 
 	evaluateExecutionError();
 	setMessageBody(fd_table);
+	setEncoding();
 	evaluateExecutionCompletion();
 }
 
@@ -436,6 +428,22 @@ void	Response::evaluateExecutionError()
 			{
 				markComplete(_file_handler.getStatusCode());
 			}
+		}
+	}
+}
+
+void	Response::setEncoding()
+{
+	if (_encoding == UNDEFINED)
+	{
+		if ((_http_version == "HTTP/1.1" && _method == GET)
+			&& _message_body.size() >= CHUNK_THRESHOLD)
+		{
+			_encoding = CHUNKED;
+		}
+		else
+		{
+			_encoding = NOT_CHUNKED;
 		}
 	}
 }
