@@ -71,16 +71,6 @@ std::string const &	File::getContent() const
 	return _content;
 }
 
-void	File::setContent(std::string const & content)
-{
-	_content = content;
-}
-
-void	File::clearContent()
-{
-	_content.clear();
-}
-
 void	File::swapContent(std::string & content)
 {
 	_content.swap(content);

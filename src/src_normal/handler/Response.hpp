@@ -38,7 +38,6 @@ class Response
 		int				processCgiRequest(Request const & request);
 		void			setEffectiveRequestURI(Request const & request, std::string const & resolved_target);
 		void			setAbsoluteFilePath(std::string const & root, std::string const & resolved_file_path);
-		void			handlerExecution(FdTable & fd_table, Request & request);
 		int				checkRequestTarget(Request const & request);
 
 	/* Client::writeEvent() */
@@ -67,15 +66,12 @@ class Response
 	public:
 		void	update(FdTable & fd_table);
 	private:
-		void		evaluateExecutionError();
 		void		setMessageBody(FdTable & fd_table);
 		void			processRedirectResponse();
 		void			processAutoIndex();
 		bool			isErrorPageRedirected(FdTable & fd_table);
 		void			setOtherErrorPage();
-		void			setHandlerMessageBody();
 		void		setEncoding();
-		void		evaluateExecutionCompletion();
 
 	/* utility */
 	public:
@@ -120,6 +116,7 @@ class Response
 		RequestValidator	_request_validator;
 		FileHandler			_file_handler;
 		CgiHandler			_cgi_handler;
+		iHandler*			_handler;
 
 
 };

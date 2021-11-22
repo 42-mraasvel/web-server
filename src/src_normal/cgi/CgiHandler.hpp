@@ -5,11 +5,12 @@
 # include "fd/FdTable.hpp"
 # include "CgiSender.hpp"
 # include "CgiReader.hpp"
+# include "handler/iHandler.hpp"
 
 # include <vector>
 # include <utility>
 
-class CgiHandler
+class CgiHandler: public iHandler
 {
 	private:
 		typedef std::pair<std::string, std::string> MetaVariableType;
@@ -49,6 +50,7 @@ class CgiHandler
 		bool evaluateExecutionError();
 		bool evaluateExecutionCompletion();
 		void setMessageBody(std::string & response_body);
+		void setSpecificHeaderField(HeaderField & header_field) const;
 
 	/* Debugging */
 	public:

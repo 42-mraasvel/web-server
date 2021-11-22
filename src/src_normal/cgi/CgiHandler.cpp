@@ -678,3 +678,8 @@ void CgiHandler::print() const {
 		printf("%s: %s\n", it->first.c_str(), it->second.c_str());
 	}
 }
+
+void    CgiHandler::setSpecificHeaderField(HeaderField & header_field) const
+{
+	return ; //TODO: for Maarten to add
+}

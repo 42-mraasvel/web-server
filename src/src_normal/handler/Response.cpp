@@ -24,7 +24,7 @@ _header_part_set(false),
 _encoding(UNDEFINED),
 _close_connection(request.close_connection),
 _is_cgi(false),
-_file_handler(request.method)
+_handler(&_file_handler)
 {
 	setHttpVersion(request.minor_version);
 }
@@ -84,7 +84,12 @@ void	Response::processCompleteRequest(FdTable & fd_table, Request & request)
 				return ;
 			setEffectiveRequestURI(request, _config_info.resolved_target);
 			setAbsoluteFilePath(_config_info.resolved_location->_root, _config_info.resolved_file_path);
-			handlerExecution(fd_table, request);
+			// Note: if request_target is "/" OR a directory: the DEFAULT index needs to be checked
+			// which could also be CGI: 'index index.html index.php index.py ...'
+			if (_handler->executeRequest(fd_table, request) == ERR)
+			{
+				markComplete(_handler->getStatusCode());
+			}
 			break ;
 		default:
 			return ;
@@ -93,7 +98,11 @@ void	Response::processCompleteRequest(FdTable & fd_table, Request & request)
 
 int	Response::processCgiRequest(Request const & request)
 {
-	_is_cgi = _cgi_handler.isCgi(request);
+	if(CgiHandler::isCgi(request))
+	{
+		_is_cgi = true;
+		_handler = &_cgi_handler;
+	}
 	if (_method == POST && !_is_cgi)
 	{
 		markComplete(StatusCode::METHOD_NOT_ALLOWED);
@@ -142,6 +151,7 @@ void	Response::setEffectiveRequestURI(Request const & request, std::string const
 	_effective_request_uri = URI_scheme + authority + resolved_target;
 }
 
+//TODO: to improve
 void	Response::setAbsoluteFilePath(std::string const & root, std::string const & resolved_file_path)
 {
 	if (_is_cgi)
@@ -151,26 +161,6 @@ void	Response::setAbsoluteFilePath(std::string const & root, std::string const &
 	else
 	{
 		_file_handler.setAbsoluteFilePath(resolved_file_path);
-	}
-}
-
-void	Response::handlerExecution(FdTable & fd_table, Request & request)
-{
-	// Note: if request_target is "/" OR a directory: the DEFAULT index needs to be checked
-	// which could also be CGI: 'index index.html index.php index.py ...'
-	if (_is_cgi)
-	{
-		if (_cgi_handler.executeRequest(fd_table, request) == ERR)
-		{
-			markComplete(_cgi_handler.getStatusCode());
-		}
-	}
-	else
-	{
-		if (_file_handler.executeRequest(fd_table, request) == ERR)
-		{
-			markComplete(_file_handler.getStatusCode());
-		}
 	}
 }
 
@@ -243,14 +233,7 @@ void	Response::setStatusCode()
 {
 	if (_status != COMPLETE)
 	{
-		if (_is_cgi)
-		{
-			_status_code = _cgi_handler.getStatusCode();
-		}
-		else
-		{
-			_status_code = _file_handler.getStatusCode();
-		}
+		_status_code = _handler->getStatusCode();
 	}
 }
 
@@ -269,14 +252,8 @@ void	Response::setHeaderField()
 	setRetryAfter();
 	setAllow();
 	setTransferEncodingOrContentLength();
-	if (!_is_cgi)
-	{
-		setContentType(); //TODO move to file handler
-	}
-	else
-	{
-		//TODO: add CGI
-	}
+	setContentType();
+	_handler->setSpecificHeaderField(_header_fields);
 }
 
 void	Response::setDate()
@@ -370,16 +347,6 @@ void	Response::setContentType()
 		_header_fields["Content-Type"] = "text/html";
 		return ;
 	}
-	std::string file = _file_handler.getAbsoluteFilePath();
-	if (_method == GET && !file.empty())
-	{
-		_header_fields["Content-Type"] = MediaType::getMediaType(file);
-		return ;
-	}
-	if (!_message_body.empty())
-	{
-		_header_fields["Content-Type"] = "text/plain;charset=UTF-8";
-	}
 }
 
 void	Response::setStringHeaderField()
@@ -396,39 +363,19 @@ void	Response::setStringHeaderField()
 
 void	Response::update(FdTable & fd_table)
 {
-	// handler->update(message_body, header_fields);
-
-	// if handler->isComplete() {
-	// 	// set to COMPLETE
-	// } else if handler->isError() {
-	// 	// errorPageCheck(fd_table);
-	// }
-
-	evaluateExecutionError();
-	setMessageBody(fd_table);
-	setEncoding();
-	evaluateExecutionCompletion();
-}
-
-// TODO_cgi: to discuss where to put this function
-void	Response::evaluateExecutionError()
-{
 	if (_status != COMPLETE)
 	{
-		if (_is_cgi)
+		_handler->update();
+		if (_handler->isError())
 		{
-			if (_cgi_handler.evaluateExecutionError())
-			{
-				markComplete(_cgi_handler.getStatusCode());
-			}
+			markComplete(_handler->getStatusCode());
 		}
-		else
-		{
-			if (_file_handler.evaluateExecutionError())
-			{
-				markComplete(_file_handler.getStatusCode());
-			}
-		}
+	}
+	setMessageBody(fd_table);
+	setEncoding();
+	if (_handler->isComplete())
+	{
+		markComplete(_handler->getStatusCode());
 	}
 }
 
@@ -444,27 +391,6 @@ void	Response::setEncoding()
 		else
 		{
 			_encoding = NOT_CHUNKED;
-		}
-	}
-}
-
-void	Response::evaluateExecutionCompletion()
-{
-	if (_status != COMPLETE)
-	{
-		if (_is_cgi)
-		{
-			if (_cgi_handler.evaluateExecutionCompletion())
-			{
-				markComplete(_cgi_handler.getStatusCode());
-			}
-		}
-		else
-		{
-			if (_file_handler.evaluateExecutionCompletion())
-			{
-				markComplete(_file_handler.getStatusCode());
-			}
 		}
 	}
 }
@@ -490,7 +416,11 @@ void	Response::setMessageBody(FdTable & fd_table)
 			if (isErrorPageRedirected(fd_table))
 			{
 				_status = START;
-				_is_cgi = false;
+				if (_is_cgi)
+				{
+					_is_cgi = false;
+					_handler = &_file_handler;
+				}
 			}
 			else
 			{
@@ -500,7 +430,7 @@ void	Response::setMessageBody(FdTable & fd_table)
 	}
 	else if (_status != COMPLETE )
 	{
-		setHandlerMessageBody();
+		_handler->setMessageBody(_message_body);
 	}
 }
 
@@ -548,20 +478,6 @@ void	Response::setOtherErrorPage()
 					+ StatusCode::getStatusMessage(_status_code) + "\n";
 }
 
-void	Response::setHandlerMessageBody()
-{
-	if (_is_cgi)
-	{
-		// TODO_CGI Set HeaderFields
-		// Discuss: can I set headerFields inside this function too?
-		_cgi_handler.setMessageBody(_message_body);
-	}
-	else
-	{
-		_file_handler.setMessageBody(_message_body);
-	}
-}
-
 /******************************/
 /****** utility - public ******/
 /******************************/
@@ -593,14 +509,7 @@ bool	Response::isComplete() const
 
 bool	Response::isHandlerReadyToWrite() const
 {
-	if (_is_cgi)
-	{
-		return _cgi_handler.isReadyToWrite();
-	}
-	else
-	{
-		return _file_handler.isFileReadyForResponse();
-	}
+	return _handler->isReadyToWrite();
 }
 
 /*******************************/

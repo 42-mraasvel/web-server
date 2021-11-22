@@ -1,5 +1,5 @@
-POST /expectation.txt HTTP/1.1
-host: 127.0.0.1:8080
+GET /test.txt HTTP/1.1
+host: 127.0.0.1
 expect: 100-ContinuE
 content-length: 26
 

@@ -1,17 +1,13 @@
 ------------------
 --     NOW      --
 ------------------
->> Handler Interface
->> add isChunked()
+>> 100 continue no follow response?
 >> resolve with config file
     - add "=" into location resolution
 >> Redirection (3xx)
     - is URL good for Location header?
 
 >> close in stage
-
->> To discuss:
-    - if only send a string, no response for bad-request?
 
 ------------------
 --    LATER     --

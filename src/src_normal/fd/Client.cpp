@@ -158,7 +158,6 @@ bool	Client::retrieveResponse()
 		_response = _response_queue.front();
 		return true;
 	}
-
 	return _response->isHandlerReadyToWrite();
 }
 

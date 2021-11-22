@@ -1,4 +1,5 @@
 #pragma once
+#include "iHandler.hpp"
 #include "fd/FdTable.hpp"
 #include "fd/AFdInfo.hpp"
 #include "parser/Request.hpp"
@@ -6,13 +7,13 @@
 
 class File;
 
-class FileHandler
+class FileHandler: public iHandler
 {
 	public:
-		FileHandler(MethodType method);
+		FileHandler();
 		~FileHandler();
 
-	/* execute request in read event */
+	/* Client::readEvent */
 	public:
 		int		executeRequest(FdTable & fd_table, Request & request);
 	private:
@@ -26,10 +27,11 @@ class FileHandler
 		int 			executeDelete();
 		void		updateFileEvent(FdTable & fd_table);
 
-	/* generate response in write event */
+	/* update */
 	public:
-		bool	evaluateExecutionError();
-		bool	evaluateExecutionCompletion();
+		void	update();
+		bool	isComplete() const;
+		bool	isError() const;
 		int		redirectErrorPage(FdTable & fd_table, std::string const & file_path, int status_code);
 		void	setMessageBody(std::string & message_body);
 	private:
@@ -37,18 +39,24 @@ class FileHandler
 		void		setMessageBodyPost();
 		void		setMessageBodyDelete();
 
+	/* Client::writeEvent */
+	public:
+        void    setSpecificHeaderField(HeaderField & header_field) const;
+	private:
+		void		setContentType(HeaderField & header_field) const;
+
 	/* utility */
 	public:
 		void    setAbsoluteFilePath(std::string const & path);
 		std::string    getAbsoluteFilePath() const;
 		int		getStatusCode() const;
-		bool	isChunked(std::string const & http_version) const;
-		bool	isFileReadyForResponse() const;
+		bool	isReadyToWrite() const;
 		bool	isFileError() const;
 		bool	isFileComplete() const;
 		bool	isFileReading() const;
 	private:
 		void    deleteFile();
+		void	markError(int status_code);
 
 	private:
 		MethodType      		_method;
@@ -56,8 +64,12 @@ class FileHandler
 		int             		_open_flag;
 		AFdInfo::EventTypes		_file_event;
 		std::string     		_absolute_file_path;
+		std::string				_message_body;
 
 		File*           _file;
 		int             _status_code;
+
+		bool			_is_error;
+		bool			_is_complete;
 	   
 };
