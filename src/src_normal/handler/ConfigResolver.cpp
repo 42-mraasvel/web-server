@@ -27,12 +27,11 @@ ConfigResolver::ConfigResolver(ServerBlock* server): _auto_index_on(false)
 	info.resolved_server = server;
 }
 
-void	ConfigResolver::resolution(std::string const & request_host, std::string const & request_target,
-								MethodType const & request_method, AddressType interface_addr)
+void	ConfigResolver::resolution(Request const & request, std::string const & request_host)
 {
-	ServerVector	server_vector = resolveAddress(interface_addr, *_config_map);
+	ServerVector	server_vector = resolveAddress(request.interface_addr, *_config_map);
 	info.resolved_server = resolveHost(request_host, server_vector);
-	info.resolved_location = resolveLocationResult(request_method, request_target, info.resolved_server->_locations);
+	info.resolved_location = resolveLocationResult(request.method, request.request_target, info.resolved_server->_locations);
 }
 
 /*****************************/

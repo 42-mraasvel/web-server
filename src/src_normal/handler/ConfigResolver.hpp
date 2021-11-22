@@ -32,7 +32,7 @@ class ConfigResolver
 
 	/* general resolve */
 	public:
-		void	resolution(std::string const & request_host, std::string const & request_target, MethodType const & request_method, AddressType interface_addr);
+		void	resolution(Request const & request, std::string const & request_host);
 	private:
 		ServerVector	resolveAddress(AddressType interface_address, MapType const & map);
 		void				setAddress(AddressType const & interface_address, AddressType & address, MapType const & map);
