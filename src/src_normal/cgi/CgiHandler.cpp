@@ -13,20 +13,6 @@
 #include <cstring>
 #include <sys/wait.h>
 
-// Change the root directories if you want to test CGI
-#ifdef __linux__
-	#define WEBSERV_DIR "/home/mraasvel/work/codam/webserv-pyxis/"
-	#define BIN_DIR "/usr/bin/"
-#else /* __linux__ */
-	#define WEBSERV_DIR "/Users/mraasvel/work/codam/webserv-pyxis/"
-	#define BIN_DIR "/Users/mraasvel/.brew/bin/"
-#endif /* __linux__ */
-
-#define SCRIPT_PATH_BASE "python3"
-#define CGI_EXTENSION ".py"
-#define SERVER_ROOT WEBSERV_DIR "page_sample"
-#define SCRIPT_PATH BIN_DIR SCRIPT_PATH_BASE
-
 // Configuration syntax: CGI .py /usr/bin/python3
 
 CgiHandler::CgiHandler()
@@ -119,7 +105,8 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 	/* 1. Preparation */
 	splitRequestTarget(request.config_info.resolved_target, request.config_info.resolved_location->_cgi);
 	generateMetaVariables(request);
-	_target = request.config_info.resolved_location->_root + _target;
+	_root_dir = request.config_info.resolved_location->_root;
+	_target = _root_dir + _target;
 
 	if (!scriptCanBeExecuted())
 	{
@@ -266,50 +253,18 @@ Stores the FDs used inside of the CGI in rfds
 */
 int CgiHandler::initializeCgiConnection(int* cgi_fds, FdTable& fd_table, Request& r)
 {
-	if (initializeCgiSender(cgi_fds, fd_table, r) == ERR)
+	if (initializeCgiReader(cgi_fds, fd_table) == ERR)
 	{
 		return ERR;
 	}
 
-	if (initializeCgiReader(cgi_fds, fd_table) == ERR)
+	if (initializeCgiSender(cgi_fds, fd_table, r) == ERR)
 	{
-		if (close(cgi_fds[0]) == ERR)
+		if (close(cgi_fds[1]) == ERR)
 		{
 			syscallError(_FUNC_ERR("close"));
 		}
 		return ERR;
-	}
-	return OK;
-}
-
-int CgiHandler::initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request& r)
-{
-	int fds[2];
-
-	if (pipe(fds) == ERR)
-	{
-		return syscallError(_FUNC_ERR("pipe"));
-	}
-
-	// Sender needs the WRITE end of the pipe, so it gives the READ end to the CGI
-	cgi_fds[0] = fds[0];
-
-	// Instantiate the CgiSender with the WRITE end of the pipe and add it to the FdTable
-	if (WebservUtility::makeNonBlocking(fds[1]) == ERR)
-	{
-		WebservUtility::closePipe(fds);
-		return syscallError(_FUNC_ERR("fcntl"));
-	}
-
-	/* Exception safe code */
-	try {
-		_sender = new CgiSender(fds[1], &r);
-		fd_table.insertFd(_sender);
-	} catch (...) {
-		WebservUtility::closePipe(fds);
-		delete _sender; // Will be NULL if allocation throw
-		_sender = NULL;
-		throw;
 	}
 	return OK;
 }
@@ -344,11 +299,43 @@ int CgiHandler::initializeCgiReader(int* cgi_fds, FdTable& fd_table)
 	return OK;
 }
 
+int CgiHandler::initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request& r)
+{
+	int fds[2];
+
+	if (pipe(fds) == ERR)
+	{
+		return syscallError(_FUNC_ERR("pipe"));
+	}
+
+	// Sender needs the WRITE end of the pipe, so it gives the READ end to the CGI
+	cgi_fds[0] = fds[0];
+
+	// Instantiate the CgiSender with the WRITE end of the pipe and add it to the FdTable
+	if (WebservUtility::makeNonBlocking(fds[1]) == ERR)
+	{
+		WebservUtility::closePipe(fds);
+		return syscallError(_FUNC_ERR("fcntl"));
+	}
+
+	/* Exception safe code */
+	try {
+		_sender = new CgiSender(fds[1], &r);
+		fd_table.insertFd(_sender);
+	} catch (...) {
+		WebservUtility::closePipe(fds);
+		WebservUtility::closePipe(cgi_fds);
+		delete _sender; // Will be NULL if allocation throw
+		_sender = NULL;
+		throw;
+	}
+	return OK;
+}
+
 /* Forking, Execve'ing */
 
 int CgiHandler::forkCgi(int* cgi_fds, FdTable& fd_table)
 {
-	print();
 	_cgi_pid = fork();
 	if (_cgi_pid == ERR)
 	{
@@ -382,6 +369,11 @@ int CgiHandler::executeChildProcess() const
 		return ERR;
 	}
 	// TODO: chdir into the target resource or root directory?
+	if (chdir(_root_dir.c_str()) == ERR)
+	{
+		return syscallError("chdir");
+	}
+
 	execve(_script.c_str(), args, WebservUtility::getEnvp());
 	// Execve only returns on ERROR
 	return syscallError(_FUNC_ERR("execve"));
@@ -398,7 +390,7 @@ int CgiHandler::prepareArguments(char *args[3]) const
 	{
 		return ERR;
 	}
-	args[1] = strdup(_target.c_str());
+	args[1] = realpath(_target.c_str(), NULL);
 	if (args[1] == NULL)
 	{
 		free(args[0]);
@@ -527,8 +519,10 @@ Function's purpose:
 		DISCUSS: IF CGI is complete and CGI process is still active (running) : send SIGKILL?
 
 TODO: ERROR handling
-	- CGI program exits before it was expected (or crashes)
-	- CGI program times out
+	- CGI program exits before it was expected (or crashes) (how is this registered by poll?)
+	- CGI program times out (inf loop, takes too long to produce content)
+	- CGI program doesn't provide any output (missing or incomplete response)
+	- Sender has not completely finished writing it's content
 */
 void CgiHandler::update()
 {
@@ -642,11 +636,6 @@ void CgiHandler::setResponseData(std::string & response_body, HeaderField & resp
 	response_body.swap(_message_body);
 }
 
-void CgiHandler::clearContent()
-{
-	_message_body.clear();
-}
-
 void CgiHandler::finishCgi(Status status, int code)
 {
 	cleanCgi();
@@ -674,26 +663,10 @@ void CgiHandler::destroyFds()
 
 /* Getters */
 
-const std::string& CgiHandler::getContent() const
-{
-	return _message_body;
-}
-
-const HeaderField& CgiHandler::getHeaderField() const
-{
-	return _header;
-}
-
 int CgiHandler::getStatusCode() const
 {
 	return _status_code;
 }
-
-CgiHandler::Status CgiHandler::getStatus() const
-{
-	return _status;
-}
-
 
 void CgiHandler::print() const {
 

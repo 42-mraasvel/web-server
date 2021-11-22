@@ -43,13 +43,6 @@ class CgiHandler
 
 
 	/* Old Interface: REMOVE */
-		const std::string& getContent() const;
-		const HeaderField& getHeaderField() const;
-		Status getStatus() const;
-
-		void generateMessageBody(std::string & message_body);
-
-		void clearContent();
 
 	/* Interfacing Functions */
 		void setRootDir(std::string const & root);

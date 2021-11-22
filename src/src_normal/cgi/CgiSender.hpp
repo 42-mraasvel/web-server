@@ -25,5 +25,5 @@ class CgiSender : public AFdInfo
 		std::string getName() const;
 
 	private:
-		Request* _request;
+		std::string _message_body;
 };

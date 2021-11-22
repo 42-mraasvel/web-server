@@ -7,7 +7,9 @@
 #include <algorithm>
 
 CgiSender::CgiSender(int fd, Request* r)
-: AFdInfo(fd), _request(r) {}
+: AFdInfo(fd) {
+	_message_body.swap(r->message_body);
+}
 
 CgiSender::~CgiSender() {}
 
@@ -24,21 +26,21 @@ struct pollfd CgiSender::getPollFd() const
 
 int CgiSender::writeEvent(FdTable & fd_table)
 {
-	std::size_t len = std::min<std::size_t>(_request->message_body.size(), BUFFER_SIZE);
+	std::size_t len = std::min<std::size_t>(_message_body.size(), BUFFER_SIZE);
 	if (len != 0)
 	{
-		ssize_t n = write(_fd, _request->message_body.c_str(), len);
+		ssize_t n = write(_fd, _message_body.c_str(), len);
 		if (n == ERR)
 		{
 			flag = AFdInfo::FILE_ERROR;
 			return syscallError(_FUNC_ERR("write"));
 		}
-		_request->message_body.erase(0, n);
+		_message_body.erase(0, n);
 		printf("%s: [%d]: Sent: %ld bytes\n",
 			getName().c_str(), getFd(), n);
 	}
 
-	if (_request->message_body.size() == 0)
+	if (_message_body.size() == 0)
 	{
 		printf("%s: [%d]: Finished writing\n",
 			getName().c_str(), getFd());
