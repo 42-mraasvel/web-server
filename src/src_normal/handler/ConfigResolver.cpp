@@ -20,41 +20,41 @@ ConfigInfo const & ConfigResolver::getConfigInfo() const
 /****************************/
 
 ConfigResolver::ConfigResolver(AddressType address, MapType const * config_map)
-: _address(address), _config_map(config_map) {}
+: _address(address), _config_map(config_map), _auto_index_on(false) {}
 
-ConfigResolver::ConfigResolver(ServerBlock* server)
+ConfigResolver::ConfigResolver(ServerBlock* server): _auto_index_on(false)
 {
 	info.resolved_server = server;
 }
 
-void	ConfigResolver::resolution(std::string const & request_host, std::string const & request_target)
+void	ConfigResolver::resolution(std::string const & request_host, std::string const & request_target, MethodType const & request_method)
 {
 	ServerVector	server_vector = resolveAddress(_address, *_config_map);
 	info.resolved_server = resolveHost(request_host, server_vector);
-	info.resolved_location = resolveLocationResult(request_target, info.resolved_server->_locations);
+	info.resolved_location = resolveLocationResult(request_method, request_target, info.resolved_server->_locations);
 }
 
 /*****************************/
 /****** resolve address ******/
 /*****************************/
 
-ConfigResolver::ServerVector	ConfigResolver::resolveAddress(AddressType client_address, MapType const & map)
+ConfigResolver::ServerVector	ConfigResolver::resolveAddress(AddressType interface_address, MapType const & map)
 {
 	AddressType address;
-	setAddress(client_address, address, map);
+	setAddress(interface_address, address, map);
 	return map.find(address)->second;
 }
 
-void	ConfigResolver::setAddress(AddressType const & client_address, AddressType & address, MapType const & map)
+void	ConfigResolver::setAddress(AddressType const & interface_address, AddressType & address, MapType const & map)
 {
-	if (map.count(client_address) == 1)
+	if (map.count(interface_address) == 1)
 	{
-		address = client_address;
+		address = interface_address;
 	}
 	else
 	{
 		address.first = "0.0.0.0";
-		address.second = client_address.second;
+		address.second = interface_address.second;
 	}
 }
 
@@ -240,11 +240,16 @@ ServerBlock*	ConfigResolver::resolveDefaultHost(ServerVector const & servers)
 /****** resolve location ******/
 /******************************/
 
-LocationBlock*	ConfigResolver::resolveLocationResult(std::string const & target, LocationVectorType const & locations)
+LocationBlock*	ConfigResolver::resolveLocationResult(MethodType const & method, std::string const & target, LocationVectorType const & locations)
 {
 	info.resolved_target = target;
 	LocationBlock*	location = resolveLocation(target, locations);
 	info.result = getResult(location);
+	if (info.result == ConfigInfo::AUTO_INDEX_ON && method != GET)
+	{
+		location = NULL;
+		info.result = ConfigInfo::NOT_FOUND;
+	}
 	if (info.result != ConfigInfo::NOT_FOUND)
 	{
 		info.resolved_file_path = location->_root + info.resolved_target;
@@ -335,6 +340,7 @@ LocationBlock*	ConfigResolver::resolveAutoIndex(LocationVectorType::const_iterat
 {
 	if ((*it_matched)->_autoindex_status)
 	{
+		_auto_index_on = true;
 		return *it_matched;
 	}
 	return NULL;
@@ -369,7 +375,7 @@ bool	ConfigResolver::isReturnOn(LocationBlock* location) const
 
 bool	ConfigResolver::isAutoIndexOn(LocationBlock* location) const
 {
-	return location->_autoindex_status;
+	return _auto_index_on;
 }
 
 /********************************/
@@ -392,7 +398,7 @@ int	ConfigResolver::resolveErrorPage(int error_code)
 //TODO: check error page in config text if it can only be uri
 int	ConfigResolver::findErrorFilePath(std::string const & error_uri)
 {
-	LocationBlock*	location = resolveLocationResult(error_uri, info.resolved_server->_locations);
+	LocationBlock*	location = resolveLocationResult(GET, error_uri, info.resolved_server->_locations);
 	if (info.result != ConfigInfo::LOCATION_RESOLVED)
 	{
 		return ERR;

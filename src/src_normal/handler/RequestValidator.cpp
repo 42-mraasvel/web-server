@@ -177,15 +177,9 @@ bool	RequestValidator::isRequestValidPostConfig(Request const & request)
 	return isMethodAllowed(request.method, request.config_info.resolved_location->_allowed_methods);
 }
 
-//TODO: delete this version
-bool	RequestValidator::isRequestValidPostConfig(Request const & request, ConfigInfo const & config_info)
-{
-	return isMethodAllowed(request.method, config_info.resolved_location->_allowed_methods);
-}
-
 bool	RequestValidator::isMethodAllowed(MethodType const method, std::vector<std::string> const & allowed_methods)
 {
-	if (!findMethod(method, allowed_methods))
+	if (!findMethodInConfig(method, allowed_methods))
 	{
 		_status_code = StatusCode::METHOD_NOT_ALLOWED;
 		return false;		
@@ -193,8 +187,7 @@ bool	RequestValidator::isMethodAllowed(MethodType const method, std::vector<std:
 	return true;
 }
 
-
-bool	RequestValidator::findMethod(MethodType const method, std::vector<std::string> const & allowed_methods) const
+bool	RequestValidator::findMethodInConfig(MethodType const method, std::vector<std::string> const & allowed_methods) const
 {
 	std::string	method_string;
 	switch (method)

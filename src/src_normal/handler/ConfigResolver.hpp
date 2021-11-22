@@ -7,10 +7,17 @@
 
 struct Request;
 
+enum MethodType
+{
+	GET,
+	POST,
+	DELETE,
+	OTHER
+};
+
 class ConfigResolver
 {
 	public:
-		//TODO: to evaluate typedef for config
 		typedef	Config::address_map							MapType;
 		typedef	Config::ip_host_pair						AddressType;
 		typedef	Config::server_block_vector					ServerVector; 
@@ -25,10 +32,10 @@ class ConfigResolver
 
 	/* general resolve */
 	public:
-		void	resolution(std::string const & request_host, std::string const & request_target);
+		void	resolution(std::string const & request_host, std::string const & request_target, MethodType const & request_method);
 	private:
-		ServerVector	resolveAddress(AddressType client_address, MapType const & map);
-		void				setAddress(AddressType const & client_address, AddressType & address, MapType const & map);
+		ServerVector	resolveAddress(AddressType interface_address, MapType const & map);
+		void				setAddress(AddressType const & interface_address, AddressType & address, MapType const & map);
 		ServerBlock*	resolveHost(std::string const & host, ServerVector const & servers);
 		bool				isMatchEmpty(std::string const & host, ServerVector const & servers, ServerVector::const_iterator & it_matched);
 		bool					isServerNameEmpty(StringVectorType const & server_names);
@@ -43,7 +50,7 @@ class ConfigResolver
 		bool					isBackWildCard(std::string const & string);
 		bool					isHostMatchBackWildCard(std::string const & host, std::string const & wildcard);		
 		ServerBlock*		resolveDefaultHost(ServerVector const & servers);
-		LocationBlock*	resolveLocationResult(std::string const & target, LocationVectorType const & locations);
+		LocationBlock*	resolveLocationResult(MethodType const & method, std::string const & target, LocationVectorType const & locations);
 		LocationBlock*		resolveLocation(std::string const & target, LocationVectorType const & locations);
 		bool					isMatchLocation(std::string const & target, LocationVectorType const & locations, LocationVectorType::const_iterator & it_matched);
 		bool					isPrefixMatch(std::string const & target, std::string const & location);
@@ -69,6 +76,7 @@ class ConfigResolver
 		AddressType		_address;
 		MapType const *	_config_map;
 		ConfigInfo		info;
+		bool			_auto_index_on;
 
 
 	// debug 

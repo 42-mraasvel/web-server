@@ -68,7 +68,8 @@ void	Response::executeRequest(FdTable & fd_table, Request & request)
 
 void	Response::processCompleteRequest(FdTable & fd_table, Request & request)
 {
-	processCgiRequest(request);
+	if (processCgiRequest(request) == ERR)
+		return ;
 	switch(_config_info.result)
 	{
 		case ConfigInfo::REDIRECT:
@@ -78,7 +79,9 @@ void	Response::processCompleteRequest(FdTable & fd_table, Request & request)
 			markComplete(StatusCode::STATUS_OK);
 			break ;
 		case ConfigInfo::LOCATION_RESOLVED:
-			setEffectiveRequestURI(request, request.address.second, _config_info.resolved_target);
+			// TODO: add case: 301 (return directory)
+			// TODO: check if target exist
+			setEffectiveRequestURI(request, request.interface_addr.second, _config_info.resolved_target);
 			setAbsoluteFilePath(_config_info.resolved_location->_root, _config_info.resolved_file_path);
 			handlerExecution(fd_table, request);
 			break ;
@@ -87,14 +90,19 @@ void	Response::processCompleteRequest(FdTable & fd_table, Request & request)
 	}
 }
 
-void	Response::processCgiRequest(Request const & request)
+int	Response::processCgiRequest(Request const & request)
 {
 	_is_cgi = _cgi_handler.isCgi(request);
+	if (_method == POST && !_is_cgi)
+	{
+		markComplete(StatusCode::METHOD_NOT_ALLOWED);
+		return ERR;
+	}
+	return OK;
 }
 
 void	Response::setEffectiveRequestURI(Request const & request, int port, std::string const & resolved_target)
 {
-	//TODO: what if host is ""????
 	std::string resolved_host;
 	if (request.header_fields.contains("host"))
 	{
@@ -448,7 +456,7 @@ void	Response::setMessageBody(FdTable & fd_table)
 		{
 			processRedirectResponse();
 		}
-		else if (_config_info.result == ConfigInfo::AUTO_INDEX_ON)
+		else if (_config_info.result == ConfigInfo::AUTO_INDEX_ON && _status_code == StatusCode::STATUS_OK)
 		{
 			processAutoIndex();
 		}

@@ -34,7 +34,7 @@ int RequestHeaderProcessor::process(Request & request)
 
 	determineCloseConnection(request);
 	try {
-		_config_resolver.resolution(getHostString(request.header_fields), request.request_target);
+		_config_resolver.resolution(getHostString(request.header_fields), request.request_target, request.method);
 	} catch (const std::exception& e) {
 		generalError("%s: caught exception: %s\n", _FUNC_ERR("ConfigResolver").c_str(), e.what());
 		throw e;
@@ -58,7 +58,7 @@ void RequestHeaderProcessor::processError(Request & request)
 	{
 		return;
 	}
-	_config_resolver.resolution("", "");
+	_config_resolver.resolution("", "", GET); //TODO: aileen: to check with Maarten
 	request.config_info = _config_resolver.getConfigInfo();
 }
 

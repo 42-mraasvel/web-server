@@ -3,13 +3,14 @@
 # include "handler/ConfigResolver.hpp"
 # include "handler/ConfigInfo.hpp"
 
-enum MethodType
-{
-	GET,
-	POST,
-	DELETE,
-	OTHER
-};
+// TODO: to discuss: move to ConfigResolver in order to compile...
+//enum MethodType
+//{
+//	GET,
+//	POST,
+//	DELETE,
+//	OTHER
+//};
 
 struct Request 
 {

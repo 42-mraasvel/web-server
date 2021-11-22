@@ -1,15 +1,10 @@
 ------------------
 --     NOW      --
 ------------------
->> FileHandler::dispatch method
-    - GET: check AutoIndex for directory
-    - POST: ERROR: has to go through CGI
-    - DELETE: delete request_target IF file
-
-
+>> Add check directory return 301
+>> Handler Interface
 >> resolve with config file
     - add "=" into location resolution
-
 >> Redirection (3xx)
     - is URL good for Location header?
 

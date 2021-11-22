@@ -27,8 +27,8 @@ class Response
 	public:
 		void	executeRequest(FdTable & fd_table, Request & request);
 	private:
-		void		processCgiRequest(Request const & request);
 		void		processCompleteRequest(FdTable & fd_table, Request & request);
+		int				processCgiRequest(Request const & request);
 		void			setEffectiveRequestURI(Request const & request, int port, std::string const & resolved_target);
 		void			setAbsoluteFilePath(std::string const & root, std::string const & resolved_file_path);
 		void			handlerExecution(FdTable & fd_table, Request & request);
