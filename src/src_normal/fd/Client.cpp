@@ -156,7 +156,6 @@ bool	Client::retrieveResponse()
 			return false;
 		}
 		_response = _response_queue.front();
-		_response->defineEncoding();
 		return true;
 	}
 
