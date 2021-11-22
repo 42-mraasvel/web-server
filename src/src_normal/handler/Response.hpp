@@ -29,9 +29,10 @@ class Response
 	private:
 		void		processCompleteRequest(FdTable & fd_table, Request & request);
 		int				processCgiRequest(Request const & request);
-		void			setEffectiveRequestURI(Request const & request, int port, std::string const & resolved_target);
+		void			setEffectiveRequestURI(std::string const & host, int port, std::string const & resolved_target);
 		void			setAbsoluteFilePath(std::string const & root, std::string const & resolved_file_path);
 		void			handlerExecution(FdTable & fd_table, Request & request);
+		bool			isTargetExist(Request & request);
 
 	/* Client::writeEvent() */
 	public:

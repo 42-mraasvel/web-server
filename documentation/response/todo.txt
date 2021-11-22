@@ -1,7 +1,6 @@
 ------------------
 --     NOW      --
 ------------------
->> Add check directory return 301
 >> Handler Interface
 >> resolve with config file
     - add "=" into location resolution

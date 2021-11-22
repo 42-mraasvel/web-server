@@ -18,9 +18,7 @@ class FileHandler
 	private:
 		int			createFile(FdTable & fd_table);
 		void    	    setFileParameter();
-		bool		    isFileAccessible();
-		bool		    	isFileExist();
-		bool		    	isFileAuthorized();
+		bool		    isFileAuthorized();
 		bool			openFile(FdTable & fd_table);
 		int 		executeFile(Request & request);
 		int 			executeGet();

@@ -45,7 +45,8 @@ int makeNonBlocking(int fd);
 const char*	ft_basename(const char* x);
 bool additionOverflow(std::size_t x, std::size_t y);
 
-int list_directory(std::string const & directory, std::string const & path, std::string & content);
+bool	isFileExist(std::string const & file_path);
+int 	list_directory(std::string const & directory, std::string const & path, std::string & content);
 
 /* TODO: RM DEBUGGING */
 	void printStrings(char **strings, FILE* stream);

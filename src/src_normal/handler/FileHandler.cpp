@@ -46,7 +46,7 @@ int	FileHandler::executeRequest(FdTable & fd_table, Request & request)
 int	FileHandler::createFile(FdTable & fd_table)
 {
 	setFileParameter();
-	if (!isFileAccessible() || !openFile(fd_table))
+	if (!isFileAuthorized() || !openFile(fd_table))
 	{
 		return ERR;
 	}
@@ -88,33 +88,6 @@ void	FileHandler::setFileParameter()
 		default:
 			return;
 	}
-}
-
-bool	FileHandler::isFileAccessible()
-{
-	if (_method == GET || _method == DELETE)
-	{
-		return isFileExist() && isFileAuthorized();
-	}
-	if (_method == POST)
-	{
-		if (access(_absolute_file_path.c_str(), F_OK) == OK)
-		{
-			_status_code = StatusCode::NO_CONTENT;
-			return isFileAuthorized();
-		}
-	}
-	return true;
-}
-
-bool	FileHandler::isFileExist()
-{
-	if (access(_absolute_file_path.c_str(), F_OK) == ERR)
-	{
-		_status_code = StatusCode::NOT_FOUND;
-		return false;
-	}
-	return true;
 }
 
 bool	FileHandler::isFileAuthorized()

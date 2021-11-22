@@ -12,6 +12,7 @@
 #include <iostream>
 #include <time.h>
 #include <algorithm>
+#include <dirent.h>
 
 Response::Response(Request const & request):
 _method(request.method),
@@ -79,9 +80,9 @@ void	Response::processCompleteRequest(FdTable & fd_table, Request & request)
 			markComplete(StatusCode::STATUS_OK);
 			break ;
 		case ConfigInfo::LOCATION_RESOLVED:
-			// TODO: add case: 301 (return directory)
-			// TODO: check if target exist
-			setEffectiveRequestURI(request, request.interface_addr.second, _config_info.resolved_target);
+			if (!isTargetExist(request))
+				return ;
+			setEffectiveRequestURI(request.interface_addr.first, request.interface_addr.second, _config_info.resolved_target);
 			setAbsoluteFilePath(_config_info.resolved_location->_root, _config_info.resolved_file_path);
 			handlerExecution(fd_table, request);
 			break ;
@@ -101,19 +102,28 @@ int	Response::processCgiRequest(Request const & request)
 	return OK;
 }
 
-void	Response::setEffectiveRequestURI(Request const & request, int port, std::string const & resolved_target)
+bool	Response::isTargetExist(Request & request)
 {
-	std::string resolved_host;
-	if (request.header_fields.contains("host"))
+	if (!WebservUtility::isFileExist(_config_info.resolved_file_path))
 	{
-		resolved_host = request.header_fields.find("host")->second;
+		markComplete(StatusCode::NOT_FOUND);
+		return false;
 	}
-	else
+	DIR*	dir = opendir(_config_info.resolved_file_path.c_str());
+	if (dir != NULL)
 	{
-		resolved_host = "";
+		markComplete(StatusCode::MOVED_PERMANENTLY);
+		setEffectiveRequestURI(request.interface_addr.first, request.interface_addr.second, _config_info.resolved_target.append("/"));
+		closedir(dir);
+		return false;
 	}
+	return true;
+}
+
+void	Response::setEffectiveRequestURI(std::string const & host, int port, std::string const & resolved_target)
+{
 	std::string URI_scheme = "http://";
-	std::string authority = resolved_host;
+	std::string authority = host;
 	if (port != DEFAULT_PORT)
 	{
 		authority += ":" + WebservUtility::itoa(port);
@@ -324,7 +334,10 @@ void	Response::setAllow()
 		std::string	value;
 		for (method_iterator it = _config_info.resolved_location->_allowed_methods.begin(); it != _config_info.resolved_location->_allowed_methods.end(); ++it)
 		{
-			value.append(*it + ", ");
+			if (!(!_is_cgi && *it == "POST")) // if not CGI and method is POST, by default set METHOD_NOT_ALLOWED (regardles of config file)
+			{
+				value.append(*it + ", ");
+			}
 		}
 		if (!value.empty())
 		{
@@ -465,6 +478,7 @@ void	Response::setMessageBody(FdTable & fd_table)
 			if (isErrorPageRedirected(fd_table))
 			{
 				_status = START;
+				_is_cgi = false; //TODO: aileen: to check with Maarten
 			}
 			else
 			{
