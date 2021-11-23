@@ -13,7 +13,6 @@ class Response
 		enum Status
 		{
 			START,
-			HEADER_COMPLETE,
 			COMPLETE
 		};
 
@@ -72,6 +71,7 @@ class Response
 		bool			isErrorPageRedirected(FdTable & fd_table);
 		void			setOtherErrorPage();
 		void		setEncoding();
+		bool			isReadyToBeChunked() const;
 
 	/* utility */
 	public:
@@ -81,7 +81,7 @@ class Response
 		std::string const &	getString() const;
 		void				clearString();
 		bool				isComplete() const;
-		bool				isHandlerReadyToWrite() const;
+		bool				isReadyToWrite() const;
 	private:
 		typedef	std::vector<std::string>::const_iterator		method_iterator;
 		void				markComplete(int code);

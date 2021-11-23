@@ -304,7 +304,7 @@ void	Response::setAllow()
 		std::string	value;
 		for (method_iterator it = _config_info.resolved_location->_allowed_methods.begin(); it != _config_info.resolved_location->_allowed_methods.end(); ++it)
 		{
-			if (!(!_is_cgi && *it == "POST")) // if not CGI and method is POST, by default set METHOD_NOT_ALLOWED (regardles of config file)
+			if (!(!_is_cgi && *it == "POST")) // TODO: to double check with Maarten: if not CGI and method is POST, by default set METHOD_NOT_ALLOWED (regardles of config file)
 			{
 				value.append(*it + ", ");
 			}
@@ -370,27 +370,42 @@ void	Response::update(FdTable & fd_table)
 		}
 	}
 	setMessageBody(fd_table);
-	setEncoding();
 	if (_handler->isComplete())
 	{
 		markComplete(_handler->getStatusCode());
 	}
+	setEncoding();
 }
 
 void	Response::setEncoding()
 {
 	if (_encoding == UNDEFINED)
 	{
-		if ((_http_version == "HTTP/1.1" && _method == Method::GET)
-			&& _message_body.size() >= CHUNK_THRESHOLD)
+		if (_status != COMPLETE)
 		{
-			_encoding = CHUNKED;
+			if (isReadyToBeChunked())
+			{
+				_encoding = CHUNKED;
+			}
 		}
 		else
 		{
-			_encoding = NOT_CHUNKED;
+			if (isReadyToBeChunked())
+			{
+				_encoding = CHUNKED;
+			}
+			else
+			{
+				_encoding = NOT_CHUNKED;
+			}
 		}
 	}
+}
+
+bool	Response::isReadyToBeChunked() const
+{
+	return _http_version == "HTTP/1.1"
+				&& _message_body.size() >= CHUNK_THRESHOLD;
 }
 
 /*************************************************/
@@ -414,6 +429,7 @@ void	Response::setMessageBody(FdTable & fd_table)
 			if (isErrorPageRedirected(fd_table))
 			{
 				_status = START;
+				_encoding = UNDEFINED;
 				if (_is_cgi)
 				{
 					_is_cgi = false;
@@ -505,9 +521,28 @@ bool	Response::isComplete() const
 	return _status == COMPLETE;
 }
 
-bool	Response::isHandlerReadyToWrite() const
+//bool	Response::isReadyToWrite() const
+//{
+//	switch(_encoding)
+//	{
+//		case CHUNKED:
+//			return !_message_body.empty() || _handler->isReadyToWrite();
+//		case NOT_CHUNKED:
+//			return _handler->isReadyToWrite();
+//		default:
+//			return false;
+//	}
+//}
+
+bool	Response::isReadyToWrite() const
 {
-	return _handler->isReadyToWrite();
+	switch(_encoding)
+	{
+		case CHUNKED:
+			return !_message_body.empty() || _handler->isReadyToWrite();
+		default:
+			return false;
+	}
 }
 
 /*******************************/

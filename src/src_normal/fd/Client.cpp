@@ -158,7 +158,7 @@ bool	Client::retrieveResponse()
 		_response = _response_queue.front();
 		return true;
 	}
-	return _response->isHandlerReadyToWrite();
+	return _response->isReadyToWrite();
 }
 
 void	Client::processResponse()
@@ -260,7 +260,7 @@ bool	Client::isResponseReadyToWrite() const
 {
 	return !_response_queue.empty()
 			&& (_response_queue.front()->isComplete()
-				|| _response_queue.front()->isHandlerReadyToWrite());
+				|| _response_queue.front()->isReadyToWrite());
 }
 
 std::string Client::getName() const

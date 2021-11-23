@@ -313,7 +313,7 @@ int	FileHandler::getStatusCode() const
 
 bool	FileHandler::isReadyToWrite() const
 {
-	return _file == NULL || isFileError() || isFileComplete();
+	return isFileError() || isFileComplete();
 }
 
 bool	FileHandler::isFileError() const
