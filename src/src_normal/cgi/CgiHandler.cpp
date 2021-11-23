@@ -473,18 +473,12 @@ int CgiHandler::setRedirection(int* cgi_fds) const
 bool CgiHandler::evaluateExecutionError() const
 {
 	//TODO: implement functionality
-	if ((_reader && _reader->flag == AFdInfo::FILE_ERROR)
-		|| (_sender && _sender->flag == AFdInfo::FILE_ERROR))
-	{
-		return true;
-	}
-	return false;
+	return (_reader && _reader->flag == AFdInfo::FILE_ERROR)
+		|| (_sender && _sender->flag == AFdInfo::FILE_ERROR);
 }
 
 void CgiHandler::setMessageBody(std::string & response_body)
 {
-	// DISCUSS: Maybe we should swap instead (if it's the entire message body)
-	// However that might be inconsistent with chunked responses
 	if (response_body.size() == 0)
 	{
 		response_body.swap(_message_body);
@@ -494,12 +488,33 @@ void CgiHandler::setMessageBody(std::string & response_body)
 		response_body.append(_message_body);
 		_message_body.clear();
 	}
+
+	if (_reader && _reader->getBody().size() > 0)
+	{
+		response_body.append(_reader->getBody());
+		_reader->getBody().clear();
+	}
 }
 
+/*
+This function should only be called once
+TODO: remove _header from the handler class and make it a local variable
+*/
 void CgiHandler::setSpecificHeaderField(HeaderField & header_field)
 {
+	if (_reader && _header.size() == 0)
+	{
+		_header.swap(_reader->getHeader());
+	}
 	for (HeaderField::const_iterator it = _header.begin(); it != _header.end(); ++it)
 	{
+		// Don't add Content-Length if TE is present
+		if (WebservUtility::caseInsensitiveEqual(it->first, "content-length")
+			&& header_field.contains("Transfer-Encoding"))
+		{
+			continue;
+		}
+
 		if (header_field.contains(it->first))
 		{
 			fprintf(stderr, "  %sWARNING%s: %s:%d [%s]: Overwriting Field: %s\n",

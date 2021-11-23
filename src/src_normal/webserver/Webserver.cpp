@@ -43,6 +43,17 @@ int	Webserver::init(Config const & config)
 	return OK;
 }
 
+bool Webserver::shouldExecuteFd(const FdTable::pair_t& fd)
+{
+#ifdef __linux__
+	return fd.second->flag != AFdInfo::TO_ERASE
+		&& !(fd.first.revents & POLLERR);
+#else
+	// TODO: test POLLERR on mac (PIPE = CLOSED), Maybe we can just call the closeEvent
+	return fd.second->flag != AFdInfo::TO_ERASE;
+#endif /* __linux__ */
+}
+
 //TODO: evaluate 'ready'
 //TODO: add Multithreading
 int	Webserver::dispatchFd(int ready)
@@ -50,7 +61,7 @@ int	Webserver::dispatchFd(int ready)
 	std::size_t i = 0;
 	while (i < _fd_table.size())
 	{
-		if (_fd_table[i].second->flag != AFdInfo::TO_ERASE)
+		if (shouldExecuteFd(_fd_table[i]))
 		{
 			if (_fd_table[i].first.revents & POLLHUP)
 			{
@@ -126,7 +137,7 @@ int	Webserver::run()
 		scanFdTable();
 		ready = poll(_fd_table.getPointer(), _fd_table.size(), TIMEOUT);
 		printf("Number of connections: %lu\n", _fd_table.size());
-		// print();
+		print();
 		if (ready < 0)
 		{
 			perror("Poll");

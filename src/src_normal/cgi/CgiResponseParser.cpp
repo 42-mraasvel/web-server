@@ -106,11 +106,11 @@ void CgiResponseParser::setContentParsing()
 	{
 		// TODO: overflow check??
 		_content_parser.setContentLength(WebservUtility::strtoul(length.first->second));
+		_length_present = true;
 	}
 	else
 	{
 		_content_parser.setContentLength(std::numeric_limits<std::size_t>::max());
-		_length_present = true;
 	}
 	setState(CgiResponseParser::PARSE_CONTENT);
 }

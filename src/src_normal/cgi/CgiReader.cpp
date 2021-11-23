@@ -68,7 +68,7 @@ void CgiReader::parseBuffer(FdTable & fd_table, std::string const & buffer)
 
 void CgiReader::closeEvent(FdTable & fd_table)
 {
-	if (!_parser.isComplete() || !_parser.isCompleteIfEof())
+	if (!_parser.isComplete() && !_parser.isCompleteIfEof())
 	{
 		return closeEvent(fd_table, AFdInfo::FILE_ERROR, StatusCode::BAD_GATEWAY);
 	}
@@ -84,8 +84,6 @@ void CgiReader::closeEvent(FdTable & fd_table, AFdInfo::Flags flag, int status_c
 {
 	this->flag = flag;
 	updateEvents(AFdInfo::WAITING, fd_table);
-	_header.swap(_parser.getHeader());
-	_message_body.swap(_parser.getContent());
 	_status_code = status_code;
 	closeFd(fd_table);
 }
@@ -99,12 +97,12 @@ int CgiReader::getStatusCode() const
 
 HeaderField & CgiReader::getHeader()
 {
-	return _header;
+	return _parser.getHeader();
 }
 
 std::string & CgiReader::getBody()
 {
-	return _message_body;
+	return _parser.getContent();
 }
 
 std::string CgiReader::getName() const

@@ -1,3 +1,20 @@
-GET /cgi-bin/doesnt_exist.py HTTP/1.1
+POST /cgi-bin/invalid.py HTTP/1.1
 Host: localhost:8080
+Content-Length: 240
 
+Hello, World!
+Hello, World!
+Hello, World!
+Hello, World!
+Hello, World!
+Hello, World!
+Hello, World!
+Hello, World!
+Hello, World!
+Hello, World!
+Hello, World!
+Hello, World!
+Hello, World!
+Hello, World!
+Hello, World!
+Hello, World!

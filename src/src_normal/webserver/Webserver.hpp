@@ -13,7 +13,7 @@ class Webserver
 		int initServer(ConfigServer const & conf);
 		int	dispatchFd(int ready);
 		void	scanFdTable();
-		int checkDisconnectedSockets();
+		bool shouldExecuteFd(const FdTable::pair_t& fd);
 
 	private:
 		FdTable 			_fd_table;
