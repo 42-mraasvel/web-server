@@ -14,6 +14,7 @@ class Webserver
 		int	dispatchFd(int ready);
 		void	scanFdTable();
 		bool shouldExecuteFd(const FdTable::pair_t& fd);
+		bool shouldCloseFd(const FdTable::pair_t & fd);
 
 	private:
 		FdTable 			_fd_table;

@@ -45,12 +45,21 @@ int	Webserver::init(Config const & config)
 
 bool Webserver::shouldExecuteFd(const FdTable::pair_t& fd)
 {
-#ifdef __linux__
-	return fd.second->getFlag() != AFdInfo::TO_ERASE
-		&& !(fd.first.revents & POLLERR);
-#else
-	// TODO: test POLLERR on mac (PIPE = CLOSED), Maybe we can just call the closeEvent
 	return fd.second->getFlag() != AFdInfo::TO_ERASE;
+}
+
+bool Webserver::shouldCloseFd(const FdTable::pair_t & fd)
+{
+#ifdef __linux__
+	if (fd.first.revents & (POLLERR | POLLNVAL))
+	{
+		return true;
+	}
+	//TODO: test on mac if this is how it functions as well
+	return (fd.first.revents & (POLLERR | POLLNVAL)) ||
+		((fd.first.revents & POLLHUP) && !(fd.first.revents & POLLIN));
+#else
+	return fd.first.revents & POLLHUP;
 #endif /* __linux__ */
 }
 
@@ -59,16 +68,15 @@ bool Webserver::shouldExecuteFd(const FdTable::pair_t& fd)
 int	Webserver::dispatchFd(int ready)
 {
 	std::size_t i = 0;
-	while (i < _fd_table.size())
+	for (std::size_t i = 0; i < _fd_table.size(); ++i)
 	{
 		if (shouldExecuteFd(_fd_table[i]))
 		{
-			if (_fd_table[i].first.revents & POLLHUP)
+			if (shouldCloseFd(_fd_table[i]))
 			{
 				printf(BLUE_BOLD "Close Event:" RESET_COLOR " %s: [%d]\n",
 					_fd_table[i].second->getName().c_str(), _fd_table[i].first.fd);
 				_fd_table[i].second->closeEvent(_fd_table);
-				++i;
 				continue;
 			}
 			if (_fd_table[i].first.revents & POLLIN)
@@ -86,7 +94,6 @@ int	Webserver::dispatchFd(int ready)
 					return ERR;
 			}
 		}
-		++i;
 	}
 	return OK;
 }
@@ -125,7 +132,7 @@ int	Webserver::run()
 		scanFdTable();
 		ready = poll(_fd_table.getPointer(), _fd_table.size(), TIMEOUT);
 		printf("Number of connections: %lu\n", _fd_table.size());
-		print();
+		// print();
 		if (ready < 0)
 		{
 			perror("Poll");
