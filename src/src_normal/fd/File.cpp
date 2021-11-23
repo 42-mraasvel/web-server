@@ -71,9 +71,17 @@ std::string const &	File::getContent() const
 	return _content;
 }
 
-void	File::swapContent(std::string & content)
+void	File::appendContent(std::string & content)
 {
-	_content.swap(content);
+	if (content.size() == 0)
+	{
+		content.swap(_content);
+	}
+	else
+	{
+		content.append(_content);
+		_content.clear();
+	}
 }
 
 std::string File::getName() const

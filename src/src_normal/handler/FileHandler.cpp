@@ -150,7 +150,7 @@ int	FileHandler::executeGet()
 
 int	FileHandler::executePost(Request & request)
 {
-	_file->swapContent(request.message_body);
+	_file->appendContent(request.message_body);
 	return OK;
 }
 
@@ -195,7 +195,7 @@ void	FileHandler::update()
 		return ;
 	}
 
-	_file->swapContent(_message_body);
+	_file->appendContent(_message_body);
 
 	if (isFileComplete())
 	{
@@ -236,9 +236,14 @@ void	FileHandler::setMessageBody(std::string & message_body)
 
 void	FileHandler::setMessageBodyGet(std::string & message_body)
 {
-	if (!_message_body.empty())
+	if (message_body.size() == 0)
 	{
-		_message_body.swap(message_body);
+		message_body.swap(_message_body);
+	}
+	else
+	{
+		message_body.append(_message_body);
+		_message_body.clear();
 	}
 }
 
@@ -308,7 +313,7 @@ int	FileHandler::getStatusCode() const
 
 bool	FileHandler::isReadyToWrite() const
 {
-	return isFileError() || isFileComplete() || isFileReading();
+	return _file == NULL || isFileError() || isFileComplete();
 }
 
 bool	FileHandler::isFileError() const

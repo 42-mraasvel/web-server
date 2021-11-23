@@ -14,7 +14,7 @@ class File : public AFdInfo
 		int	writeEvent(FdTable & fd_table);
 
 		std::string	const &	getContent() const;
-		void				swapContent(std::string & content);
+		void				appendContent(std::string & content);
 
 	/* Debugging */
 	public:
