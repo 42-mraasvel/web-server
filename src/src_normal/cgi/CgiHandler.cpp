@@ -580,7 +580,6 @@ Function's purpose:
 		IF exited AND sender is INCOMPLETE: BAD_GATEWAY
 	- Check if either Sender or Reader is complete: remove from table if so
 	- Set completion status if both are complete
-		DISCUSS: IF CGI is complete and CGI process is still active (running) : send SIGKILL?
 
 TODO: ERROR handling
 	- CGI program times out (inf loop, takes too long to produce content)

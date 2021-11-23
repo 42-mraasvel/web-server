@@ -13,7 +13,7 @@ struct Request
 		enum RequestStatus
 		{
 			READING,
-			EXPECT, // TODO: discuss whether name should be CONTINUE, or EXPECT
+			EXPECT,
 			COMPLETE,
 			BAD_REQUEST
 		};

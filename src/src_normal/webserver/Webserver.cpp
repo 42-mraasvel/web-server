@@ -94,21 +94,9 @@ int	Webserver::dispatchFd(int ready)
 //TODO: scan for Timeout
 void	Webserver::scanFdTable()
 {
-/*
-DISCUSS:
-
-First the update function is called: setting all the TO_ERASE flags if necessary
-Otherwise there could be some issues in terms of setting a FD to be deleted at a previous index
-The TO_ERASE function shouldn't be called inside of the update(), since it will modify the
-structure and ordering of the FdTable, causing the loop invariant to be violated
-*/
 	for (std::size_t i = 0; i < _fd_table.size(); ++i)
 	{
-		//TODO: remove this if condition after the _fd_table.eraseFd() call inside update() is removed
-		if (_fd_table[i].second->getFlag() != AFdInfo::TO_ERASE)
-		{
-			_fd_table[i].second->update(_fd_table);
-		}
+		_fd_table[i].second->update(_fd_table);
 	}
 
 	std::size_t i = 0;
