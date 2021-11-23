@@ -354,6 +354,7 @@ int CgiHandler::forkCgi(int* cgi_fds, FdTable& fd_table)
 		}
 		exit(executeChildProcess());
 	}
+	sleep(1);
 	return OK;
 }
 

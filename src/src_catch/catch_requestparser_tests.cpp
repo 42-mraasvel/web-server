@@ -6,6 +6,7 @@
 #include "parser/Request.hpp"
 #include "handler/RequestHandler.hpp"
 #include "tmp/create_address_map.hpp"
+#include "webserver/MethodType.hpp"
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) sizeof(x) / sizeof(x[0])
@@ -81,7 +82,7 @@ TEST_CASE("Parser: single buffer: many requests", "[request-handler]")
 
 	Request example;
 	example.status = Request::COMPLETE;
-	example.method = GET;
+	example.method = Method::GET;
 	example.major_version = 1;
 	example.minor_version = 0;
 	example.request_target = "/";
@@ -124,7 +125,7 @@ TEST_CASE("Parser: partial requests", "[request-handler]")
 
 	Request example;
 	example.status = Request::COMPLETE;
-	example.method = GET;
+	example.method = Method::GET;
 	example.major_version = 1;
 	example.minor_version = 0;
 	example.request_target = "/";
@@ -260,7 +261,7 @@ TEST_CASE("Parser: basic valid header-fields", "[request-handler]")
 	example.status = Request::COMPLETE;
 	example.major_version = 1;
 	example.minor_version = 0;
-	example.method = GET;
+	example.method = Method::GET;
 	example.request_target = "/";
 
 
@@ -295,7 +296,7 @@ TEST_CASE("Parser: multiple header-fields", "[request-handler]")
 	};
 
 	Request example;
-	example.method = GET;
+	example.method = Method::GET;
 	example.request_target = "/";
 	example.major_version = 1;
 	example.minor_version = 0;
@@ -354,7 +355,7 @@ TEST_CASE("parser: chunked", "[request-handler]")
 	Request example;
 	example.status = Request::COMPLETE;
 	example.major_version = 1;
-	example.method = GET;
+	example.method = Method::GET;
 	example.request_target = "/";
 	example.minor_version = 1;
 	example.header_fields["Host"] = "127.0.0.1";

@@ -39,6 +39,8 @@ class RequestLineParser
 		int		parseMethod(Request & request);
 		int		parseTargetResource(Request & request);
 		int		skipAbsolutePath();
+		int		decodeRequestTarget(std::string & request_target) const;
+		char	decodePercent(char x, char y) const;
 		int		skipQuery();
 		int		parseVersion(Request & request);
 		int		parseMajorVersion(Request & request);
