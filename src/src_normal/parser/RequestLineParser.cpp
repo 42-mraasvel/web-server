@@ -3,6 +3,7 @@
 #include "utility/status_codes.hpp"
 #include "utility/utility.hpp"
 #include "ParserUtils.hpp"
+#include "http_bnf.hpp"
 #include "Request.hpp"
 
 #define MAX_REQUESTLINE_SIZE 4096
@@ -135,13 +136,41 @@ int RequestLineParser::parseTargetResource(Request & request)
 	if (request.request_target.find("..") != std::string::npos) {
 		return ERR;
 	}
-	// if (decodeRequestTarget(request.request_target) == ERR)
-	// {
-	// 	return ERR;
-	// }
+	if (decodeRequestTarget(request.request_target) == ERR) {
+		return ERR;
+	}
 	skipQuery();
 	request.query = _leftover.substr(start, _index - start);
 	return OK;
+}
+
+int RequestLineParser::decodeRequestTarget(std::string & request_target) const
+{
+	for (std::size_t i = 0; i < request_target.size(); ++i)
+	{
+		if (request_target[i] == '%')
+		{
+			if (request_target.size() - 2 < 2 ||
+				!isHex(request_target[i + 1]) || !isHex(request_target[i + 2]))
+			{
+				return ERR;
+			}
+
+			request_target[i] = decodePercent(request_target[i + 1], request_target[i + 2]);
+			request_target.erase(i + 1, 2);
+		}
+	}
+	return OK;
+}
+
+/*
+%20
+0 = 0 * 16^0
+2 = 2 * 16^1
+*/
+char RequestLineParser::decodePercent(char x, char y) const {
+	static const std::string hex_digits(HEXDIG);
+	return hex_digits.find(tolower(x)) * 16 + hex_digits.find(tolower(y));
 }
 
 int RequestLineParser::skipAbsolutePath()

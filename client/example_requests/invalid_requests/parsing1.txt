@@ -1,2 +1,2 @@
-GET /%20a HTTP/1.0
+GET /%xz HTTP/1.0
 
