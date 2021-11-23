@@ -16,7 +16,6 @@ class FileHandler: public iHandler
 	/* Client::readEvent */
 	public:
 		int			executeRequest(FdTable & fd_table, Request & request);
-		std::string	resolvedRequestTarget(Request const & request);
 	private:
 		int			createFile(FdTable & fd_table);
 		void    	setFileParameter();

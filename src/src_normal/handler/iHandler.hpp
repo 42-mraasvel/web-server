@@ -19,5 +19,4 @@ class iHandler
 		virtual int			getStatusCode() const = 0;
 		virtual bool		isReadyToWrite() const = 0;
 		virtual void		setSpecificHeaderField(HeaderField & header_field) = 0;
-		virtual std::string	resolvedRequestTarget(Request const & request) = 0;
 };

@@ -113,14 +113,12 @@ int	Response::processCgiRequest(Request const & request)
 
 int	Response::checkRequestTarget(Request const & request)
 {
-	//TODO: discuss PATH_INFO part of CGI and where it should be resolved
-	std::string file_path = _handler->resolvedRequestTarget(request);
-	if (!WebservUtility::isFileExist(file_path))
+	if (!WebservUtility::isFileExist(request.config_info.resolved_file_path))
 	{
 		markComplete(StatusCode::NOT_FOUND);
 		return ERR;
 	}
-	DIR*	dir = opendir(file_path.c_str());
+	DIR*	dir = opendir(request.config_info.resolved_file_path.c_str());
 	if (dir != NULL)
 	{
 		markComplete(StatusCode::MOVED_PERMANENTLY);
