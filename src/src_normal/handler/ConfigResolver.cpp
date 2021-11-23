@@ -253,6 +253,10 @@ LocationBlock*	ConfigResolver::resolveLocationResult(Method::Type const & method
 	if (info.result != ConfigInfo::NOT_FOUND)
 	{
 		info.resolved_file_path = location->_root + info.resolved_target;
+		if (CgiHandler::isCgi(target, location->_cgi))
+		{
+			CgiHandler::resolveCgiTarget(target, location->_cgi, info);
+		}
 	}
 	return location;
 }

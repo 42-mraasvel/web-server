@@ -31,6 +31,8 @@ class CgiHandler: public iHandler
 	/* Main Interface Functions */
 		static bool isCgi(Request const & request);
 		static bool isCgi(std::string const & request_target, CgiVectorType const & cgi);
+		static void resolveCgiTarget(std::string const & target, CgiVectorType const & cgi,
+								ConfigInfo & info);
 
 		int			executeRequest(FdTable& fd_table, Request& request);
 		std::string	resolvedRequestTarget(Request const & request);
@@ -50,7 +52,8 @@ class CgiHandler: public iHandler
 
 		void splitRequestTarget(std::string const & request_target, CgiVectorType const & cgi);
 		bool scriptCanBeExecuted();
-	
+
+		void setInfo(ConfigInfo const & info);
 		void generateMetaVariables(const Request& request);
 		void metaVariableContent(const Request& request);
 		void metaVariableHeader(const Request& request);

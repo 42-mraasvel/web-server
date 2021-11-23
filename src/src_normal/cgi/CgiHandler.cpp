@@ -67,6 +67,26 @@ bool CgiHandler::isCgi(Request const & request)
 	return isCgi(request.config_info.resolved_target, request.config_info.resolved_location->_cgi);
 }
 
+void CgiHandler::resolveCgiTarget(std::string const & target, CgiVectorType const & cgi,
+						ConfigInfo& info)
+{
+	std::size_t index = 0;
+	for (CgiVectorType::const_iterator it = cgi.begin(); it != cgi.end(); ++it)
+	{
+		index = findCgiComponent(target, it->first);
+		if (index != std::string::npos)
+		{
+			info.resolved_cgi_script = it->second;
+			break;
+		}
+	}
+	std::size_t end = target.find("/", index + 1);
+	info.resolved_target = target.substr(0, end);
+	if (end != std::string::npos) {
+		info.resolved_path_info = target.substr(end);
+	}
+}
+
 /*
 1. Preparation: ScriptLocation, MetaVariables
 
@@ -83,7 +103,7 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 
 	/* 1. Preparation */
 	generateMetaVariables(request);
-	_target = _root_dir + _target;
+	setInfo(request.config_info);
 
 	if (!scriptCanBeExecuted())
 	{
@@ -110,6 +130,13 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 	WebservUtility::closePipe(fds);
 	_meta_variables.clear();
 	return OK;
+}
+
+void CgiHandler::setInfo(ConfigInfo const & info)
+{
+	_root_dir = info.resolved_location->_root;
+	_target = _root_dir + info.resolved_target;
+	_script = info.resolved_cgi_script;
 }
 
 void CgiHandler::splitRequestTarget(std::string const & request_target, CgiVectorType const & cgi)
@@ -181,6 +208,7 @@ void CgiHandler::generateMetaVariables(const Request& request)
 {
 	/* To Generate */
 	// TODO: REMOTE_HOST, PATH_TRANSLATED [OPTIONAL]
+	_meta_variables.push_back(MetaVariableType("PATH_INFO", request.config_info.resolved_path_info));
 	metaVariableContent(request);
 
 	_meta_variables.push_back(MetaVariableType("SCRIPT_NAME", _target.c_str()));
