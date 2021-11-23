@@ -102,8 +102,8 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 	printf(YELLOW_BOLD "-- Executing CGI --" RESET_COLOR "\n");
 
 	/* 1. Preparation */
-	generateMetaVariables(request);
 	setInfo(request.config_info);
+	generateMetaVariables(request);
 
 	if (!scriptCanBeExecuted())
 	{
@@ -120,6 +120,7 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 	}
 
 	/* 3. Fork */
+	print();
 	if (forkCgi(fds, fd_table) == ERR)
 	{
 		finishCgi(ERROR, StatusCode::INTERNAL_SERVER_ERROR);
@@ -183,7 +184,7 @@ void CgiHandler::generateMetaVariables(const Request& request)
 	_meta_variables.push_back(MetaVariableType("PATH_INFO", request.config_info.resolved_path_info));
 	metaVariableContent(request);
 
-	_meta_variables.push_back(MetaVariableType("SCRIPT_NAME", _target.c_str()));
+	_meta_variables.push_back(MetaVariableType("SCRIPT_NAME", request.config_info.resolved_target));
 	// TODO: SERVER_NAME: Check SERVER_NAMES in the ResolvedServer: use Host to determine this
 	// Right now it's the IP of the interface the client connected with
 	_meta_variables.push_back(MetaVariableType("SERVER_NAME", request.interface_addr.first));
@@ -354,7 +355,6 @@ int CgiHandler::forkCgi(int* cgi_fds, FdTable& fd_table)
 		}
 		exit(executeChildProcess());
 	}
-	sleep(1);
 	return OK;
 }
 
