@@ -159,7 +159,10 @@ static void printConfigInfo(const ConfigInfo& info)
 		printf("No location block resolved.\n");
 		return ;
 	}
-
+	else
+	{
+		printf("Resolved location block is: [%s]\n", info.resolved_location->_path.c_str());
+	}
 	printf("Resolved Target: %s\n", info.resolved_target.c_str());
 	printf("Resolved File Path: %s\n", info.resolved_file_path.c_str());
 	printf("Resolved CGI Script: %s\n", info.resolved_cgi_script.c_str());

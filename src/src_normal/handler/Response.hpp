@@ -35,9 +35,9 @@ class Response
 	private:
 		void		processCompleteRequest(FdTable & fd_table, Request & request);
 		int				processCgiRequest(Request const & request);
-		void			setEffectiveRequestURI(Request const & request, std::string const & resolved_target);
-		void			setAbsoluteFilePath(std::string const & root, std::string const & resolved_file_path);
 		int				checkRequestTarget(Request const & request);
+		void			setEffectiveRequestURI(Request const & request, std::string const & resolved_target);
+		void			setAbsoluteFilePath(std::string const & resolved_file_path);
 
 	/* Client::writeEvent() */
 	public:

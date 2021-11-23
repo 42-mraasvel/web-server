@@ -46,7 +46,8 @@ class ConfigResolver
 		LocationBlock*	resolveLocationResult(Method::Type const & method, std::string const & target, LocationVectorType const & locations);
 		LocationBlock*		resolveLocation(std::string const & target, LocationVectorType const & locations);
 		bool					isMatchLocation(std::string const & target, LocationVectorType const & locations, LocationVectorType::const_iterator & it_matched);
-		bool					isPrefixMatch(std::string const & target, std::string const & location);
+		bool					isExactMatch(std::string const & target, std::string const & location) const;
+		bool					isPrefixMatch(std::string const & target, std::string const & location) const;
 		bool					isTargetDirectory(std::string const & target);
 		LocationBlock*			resolveIndex(LocationVectorType::const_iterator it_matched, std::string const & target, LocationVectorType const & locations);
 		LocationBlock*				resolveIndexFile(StringVectorType indexes, std::string const & target, LocationVectorType const & locations);

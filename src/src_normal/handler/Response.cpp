@@ -83,9 +83,7 @@ void	Response::processCompleteRequest(FdTable & fd_table, Request & request)
 			if (checkRequestTarget(request) == ERR)
 				return ;
 			setEffectiveRequestURI(request, _config_info.resolved_target);
-			setAbsoluteFilePath(_config_info.resolved_location->_root, _config_info.resolved_file_path);
-			// Note: if request_target is "/" OR a directory: the DEFAULT index needs to be checked
-			// which could also be CGI: 'index index.html index.php index.py ...'
+			setAbsoluteFilePath(_config_info.resolved_file_path);
 			if (_handler->executeRequest(fd_table, request) == ERR)
 			{
 				markComplete(_handler->getStatusCode());
@@ -103,7 +101,7 @@ int	Response::processCgiRequest(Request const & request)
 		_is_cgi = true;
 		_handler = &_cgi_handler;
 	}
-	if (_method == Method::POST && !_is_cgi)
+	if (_method == Method::POST && !_is_cgi) //TODO: to confirm with how to deal POST
 	{
 		markComplete(StatusCode::METHOD_NOT_ALLOWED);
 		return ERR;
@@ -113,12 +111,12 @@ int	Response::processCgiRequest(Request const & request)
 
 int	Response::checkRequestTarget(Request const & request)
 {
-	if (!WebservUtility::isFileExist(request.config_info.resolved_file_path))
+	if (!WebservUtility::isFileExist(_config_info.resolved_file_path))
 	{
 		markComplete(StatusCode::NOT_FOUND);
 		return ERR;
 	}
-	DIR*	dir = opendir(request.config_info.resolved_file_path.c_str());
+	DIR*	dir = opendir(_config_info.resolved_file_path.c_str());
 	if (dir != NULL)
 	{
 		markComplete(StatusCode::MOVED_PERMANENTLY);
@@ -152,7 +150,7 @@ void	Response::setEffectiveRequestURI(Request const & request, std::string const
 }
 
 //TODO: to improve
-void	Response::setAbsoluteFilePath(std::string const & root, std::string const & resolved_file_path)
+void	Response::setAbsoluteFilePath(std::string const & resolved_file_path)
 {
 	if (!_is_cgi)
 	{

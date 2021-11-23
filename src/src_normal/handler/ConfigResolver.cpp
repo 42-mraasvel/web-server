@@ -286,16 +286,32 @@ bool	ConfigResolver::isMatchLocation(std::string const & target, LocationVectorT
 	for (LocationVectorType::const_iterator it = locations.begin(); it != locations.end(); ++it)
 	{
 		std::string path = (*it)->_path;
-		if (isPrefixMatch(target, path) && path.size() > longest_match.size())
+		if ((*it)->_location_flag == EQUAL)
 		{
-			longest_match = (*it)->_path;
-			it_matched = it;
+			if (isExactMatch(target, path))
+			{
+				it_matched = it;
+				return true;
+			}
+		}
+		else
+		{
+			if (isPrefixMatch(target, path) && path.size() > longest_match.size())
+			{
+				longest_match = (*it)->_path;
+				it_matched = it;
+			}
 		}
 	}
 	return !longest_match.empty();
 }
 
-bool	ConfigResolver::isPrefixMatch(std::string const & target, std::string const & location)
+bool	ConfigResolver::isExactMatch(std::string const & target, std::string const & location) const
+{
+	return target == location;
+}
+
+bool	ConfigResolver::isPrefixMatch(std::string const & target, std::string const & location) const
 {
 	if (target.size() >= location.size())
 	{

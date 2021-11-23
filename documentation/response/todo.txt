@@ -2,10 +2,6 @@
 --     NOW      --
 ------------------
 >> 100 continue no follow response?
->> resolve with config file
-    - add "=" into location resolution
->> Redirection (3xx)
-    - is URL good for Location header?
 
 >> close in stage
 
@@ -38,4 +34,19 @@ std::cout << RED_BOLD << " " << RESET_COLOR << std::endl;
 --    NIELS  --
 ---------------
 >> Index in location block cannot be a directory.
->> error_page multiple error_code
+>> Location "=" should be before the path
+(not necessary) >> error_page multiple error_code??
+
+
+----------------
+--    Agreed  --
+----------------
+
+>> Config:
+    - Server Block
+        - [error_page] code(*1) uri (i.e. error_page 404 /error/404.html
+    - Location Block
+        - [optional modifier]
+            - only accept "="
+        - [return]: return code effective_uri (i.e. return 301 http://localhost:8080/index.html)
+
