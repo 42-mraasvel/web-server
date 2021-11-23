@@ -103,7 +103,7 @@ int	Response::processCgiRequest(Request const & request)
 		_is_cgi = true;
 		_handler = &_cgi_handler;
 	}
-	if (_method == POST && !_is_cgi)
+	if (_method == Method::POST && !_is_cgi)
 	{
 		markComplete(StatusCode::METHOD_NOT_ALLOWED);
 		return ERR;
@@ -381,7 +381,7 @@ void	Response::setEncoding()
 {
 	if (_encoding == UNDEFINED)
 	{
-		if ((_http_version == "HTTP/1.1" && _method == GET)
+		if ((_http_version == "HTTP/1.1" && _method == Method::GET)
 			&& _message_body.size() >= CHUNK_THRESHOLD)
 		{
 			_encoding = CHUNKED;

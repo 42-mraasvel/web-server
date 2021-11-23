@@ -46,11 +46,11 @@ int	Webserver::init(Config const & config)
 bool Webserver::shouldExecuteFd(const FdTable::pair_t& fd)
 {
 #ifdef __linux__
-	return fd.second->flag != AFdInfo::TO_ERASE
+	return fd.second->getFlag() != AFdInfo::TO_ERASE
 		&& !(fd.first.revents & POLLERR);
 #else
 	// TODO: test POLLERR on mac (PIPE = CLOSED), Maybe we can just call the closeEvent
-	return fd.second->flag != AFdInfo::TO_ERASE;
+	return fd.second->getFlag() != AFdInfo::TO_ERASE;
 #endif /* __linux__ */
 }
 
@@ -105,7 +105,7 @@ structure and ordering of the FdTable, causing the loop invariant to be violated
 	for (std::size_t i = 0; i < _fd_table.size(); ++i)
 	{
 		//TODO: remove this if condition after the _fd_table.eraseFd() call inside update() is removed
-		if (_fd_table[i].second->flag != AFdInfo::TO_ERASE)
+		if (_fd_table[i].second->getFlag() != AFdInfo::TO_ERASE)
 		{
 			_fd_table[i].second->update(_fd_table);
 		}
@@ -114,7 +114,7 @@ structure and ordering of the FdTable, causing the loop invariant to be violated
 	std::size_t i = 0;
 	while (i < _fd_table.size())
 	{
-		if (_fd_table[i].second->flag == AFdInfo::TO_ERASE)
+		if (_fd_table[i].second->getFlag() == AFdInfo::TO_ERASE)
 		{
 			printf("Erasing Fd: %s: [%d]\n",
 				_fd_table[i].second->getName().c_str(), _fd_table[i].second->getFd());
@@ -137,7 +137,7 @@ int	Webserver::run()
 		scanFdTable();
 		ready = poll(_fd_table.getPointer(), _fd_table.size(), TIMEOUT);
 		printf("Number of connections: %lu\n", _fd_table.size());
-		print();
+		// print();
 		if (ready < 0)
 		{
 			perror("Poll");

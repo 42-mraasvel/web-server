@@ -92,7 +92,7 @@ class Response
 		std::string					_effective_request_uri;
 
 		/* info */
-		MethodType			_method;
+		Method::Type		_method;
 		std::string			_request_target;
 		HeaderField			_header_fields;
 		std::string 		_http_version;

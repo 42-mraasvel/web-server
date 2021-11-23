@@ -164,7 +164,7 @@ bool	Client::retrieveResponse()
 void	Client::processResponse()
 {
 	_response->generateResponse();
-	if (flag != AFdInfo::TO_ERASE)
+	if (getFlag() != AFdInfo::TO_ERASE)
 	{
 		appendResponseString();
 	}
@@ -186,10 +186,11 @@ void	Client::evaluateConnection()
 
 void	Client::closeConnection()
 {
-	if (flag != AFdInfo::TO_ERASE)
+	if (getFlag() != AFdInfo::TO_ERASE)
 	{
 		std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
-		flag = AFdInfo::TO_ERASE;
+		// TODO: discuss with aileen if this should be done through the AFdInfo function
+		setToErase();
 	}
 }
 

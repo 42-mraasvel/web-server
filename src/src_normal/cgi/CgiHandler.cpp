@@ -470,11 +470,10 @@ int CgiHandler::setRedirection(int* cgi_fds) const
 	return OK;
 }
 
-bool CgiHandler::evaluateExecutionError() const
+bool CgiHandler::isExecutionError() const
 {
-	//TODO: implement functionality
-	return (_reader && _reader->flag == AFdInfo::FILE_ERROR)
-		|| (_sender && _sender->flag == AFdInfo::FILE_ERROR);
+	return (_reader && _reader->getFlag() == AFdInfo::ERROR)
+		|| (_sender && _sender->getFlag() == AFdInfo::ERROR);
 }
 
 void CgiHandler::setMessageBody(std::string & response_body)
@@ -498,7 +497,6 @@ void CgiHandler::setMessageBody(std::string & response_body)
 
 /*
 This function should only be called once
-TODO: remove _header from the handler class and make it a local variable
 */
 void CgiHandler::setSpecificHeaderField(HeaderField & header_field)
 {
@@ -517,9 +515,10 @@ void CgiHandler::setSpecificHeaderField(HeaderField & header_field)
 
 		if (header_field.contains(it->first))
 		{
-			fprintf(stderr, "  %sWARNING%s: %s:%d [%s]: Overwriting Field: %s\n",
+			fprintf(stderr, "  %sWARNING%s: %s:%d [%s]: Overwriting Field: %s: [%s] with [%s]\n",
 				RED_BOLD, RESET_COLOR,
-				__FILE__, __LINE__, __FUNCTION__, it->first.c_str());
+				__FILE__, __LINE__, __FUNCTION__, it->first.c_str(),
+				header_field[it->first].c_str(), it->second.c_str());
 		}
 		if (!skippedHeaderField(it->first))
 		{
@@ -555,10 +554,9 @@ Function's purpose:
 		DISCUSS: IF CGI is complete and CGI process is still active (running) : send SIGKILL?
 
 TODO: ERROR handling
-	- CGI program exits before it was expected (or crashes) (how is this registered by poll?)
 	- CGI program times out (inf loop, takes too long to produce content)
-	- CGI program doesn't provide any output (missing or incomplete response)
-	- Sender has not completely finished writing it's content
+	- Sender has not completely finished writing it's content (POLLERR + closeEvent())
+		: Example: reader has finished reading a valid response, but the sender is still not done and the CGI exited
 */
 void CgiHandler::update()
 {
@@ -568,13 +566,13 @@ void CgiHandler::update()
 		return;
 	}
 
-	if (evaluateExecutionError())
+	if (isExecutionError())
 	{
 		finishCgi(CgiHandler::ERROR, _reader->getStatusCode());
 		return;
 	}
 
-	if (_reader && _reader->flag == AFdInfo::FILE_COMPLETE)
+	if (_reader && _reader->getFlag() == AFdInfo::COMPLETE)
 	{
 		// TODO: if sending a CHUNKED Message, then we should APPEND only if it's actively reading
 		// HeaderField should just be swapped once it's parsed in that case (add HEADER_COMPLETE)
@@ -584,7 +582,7 @@ void CgiHandler::update()
 		_reader = NULL;
 	}
 
-	if (_sender && _sender->flag == AFdInfo::FILE_COMPLETE)
+	if (_sender && _sender->getFlag() == AFdInfo::COMPLETE)
 	{
 		_sender->setToErase();
 		_sender = NULL;

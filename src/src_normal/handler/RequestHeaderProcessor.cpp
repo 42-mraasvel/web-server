@@ -59,7 +59,7 @@ void RequestHeaderProcessor::processError(Request & request)
 		return;
 	}
 	request.request_target = "";
-	request.method = GET;
+	request.method = Method::GET;
 	_config_resolver.resolution(request, "");
 	request.config_info = _config_resolver.getConfigInfo();
 }

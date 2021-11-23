@@ -108,9 +108,9 @@ bool	RequestValidator::isHttpVersionValid(int http_major_version)
 	return true;
 }
 
-bool	RequestValidator::isMethodValid(MethodType const method)
+bool	RequestValidator::isMethodValid(Method::Type const method)
 {
-	if (method == OTHER)
+	if (method == Method::OTHER)
 	{
 		_status_code = StatusCode::NOT_IMPLEMENTED;
 		return false;
@@ -177,7 +177,7 @@ bool	RequestValidator::isRequestValidPostConfig(Request const & request)
 	return isMethodAllowed(request.method, request.config_info.resolved_location->_allowed_methods);
 }
 
-bool	RequestValidator::isMethodAllowed(MethodType const method, std::vector<std::string> const & allowed_methods)
+bool	RequestValidator::isMethodAllowed(Method::Type const method, std::vector<std::string> const & allowed_methods)
 {
 	if (!findMethodInConfig(method, allowed_methods))
 	{
@@ -187,18 +187,18 @@ bool	RequestValidator::isMethodAllowed(MethodType const method, std::vector<std:
 	return true;
 }
 
-bool	RequestValidator::findMethodInConfig(MethodType const method, std::vector<std::string> const & allowed_methods) const
+bool	RequestValidator::findMethodInConfig(Method::Type const method, std::vector<std::string> const & allowed_methods) const
 {
 	std::string	method_string;
 	switch (method)
 	{
-		case GET:
+		case Method::GET:
 			method_string = "GET";
 			break ;
-		case POST:
+		case Method::POST:
 			method_string = "POST";
 			break ;
-		case DELETE:
+		case Method::DELETE:
 			method_string = "DELETE";
 			break ;
 		default:

@@ -240,12 +240,12 @@ ServerBlock*	ConfigResolver::resolveDefaultHost(ServerVector const & servers)
 /****** resolve location ******/
 /******************************/
 
-LocationBlock*	ConfigResolver::resolveLocationResult(MethodType const & method, std::string const & target, LocationVectorType const & locations)
+LocationBlock*	ConfigResolver::resolveLocationResult(Method::Type const & method, std::string const & target, LocationVectorType const & locations)
 {
 	info.resolved_target = target;
 	LocationBlock*	location = resolveLocation(target, locations);
 	info.result = getResult(location);
-	if (info.result == ConfigInfo::AUTO_INDEX_ON && method != GET)
+	if (info.result == ConfigInfo::AUTO_INDEX_ON && method != Method::GET)
 	{
 		location = NULL;
 		info.result = ConfigInfo::NOT_FOUND;
@@ -398,7 +398,7 @@ int	ConfigResolver::resolveErrorPage(int error_code)
 //TODO: check error page in config text if it can only be uri
 int	ConfigResolver::findErrorFilePath(std::string const & error_uri)
 {
-	LocationBlock*	location = resolveLocationResult(GET, error_uri, info.resolved_server->_locations);
+	LocationBlock*	location = resolveLocationResult(Method::GET, error_uri, info.resolved_server->_locations);
 	if (info.result != ConfigInfo::LOCATION_RESOLVED)
 	{
 		return ERR;

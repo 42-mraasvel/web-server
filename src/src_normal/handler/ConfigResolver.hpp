@@ -1,19 +1,12 @@
 #pragma once
 #include "ConfigInfo.hpp"
 #include "config/Config.hpp"
+#include "webserver/MethodType.hpp"
 #include <map>
 #include <utility>
 #include <string>
 
 struct Request;
-
-enum MethodType
-{
-	GET,
-	POST,
-	DELETE,
-	OTHER
-};
 
 class ConfigResolver
 {
@@ -50,7 +43,7 @@ class ConfigResolver
 		bool					isBackWildCard(std::string const & string);
 		bool					isHostMatchBackWildCard(std::string const & host, std::string const & wildcard);		
 		ServerBlock*		resolveDefaultHost(ServerVector const & servers);
-		LocationBlock*	resolveLocationResult(MethodType const & method, std::string const & target, LocationVectorType const & locations);
+		LocationBlock*	resolveLocationResult(Method::Type const & method, std::string const & target, LocationVectorType const & locations);
 		LocationBlock*		resolveLocation(std::string const & target, LocationVectorType const & locations);
 		bool					isMatchLocation(std::string const & target, LocationVectorType const & locations, LocationVectorType::const_iterator & it_matched);
 		bool					isPrefixMatch(std::string const & target, std::string const & location);

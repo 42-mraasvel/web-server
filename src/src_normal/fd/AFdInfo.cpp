@@ -75,7 +75,7 @@ void	AFdInfo::closeEvent(FdTable & fd_table)
 void AFdInfo::setToErase()
 {
 	closeFd();
-	flag = AFdInfo::TO_ERASE;
+	setFlag(AFdInfo::TO_ERASE);
 }
 
 void AFdInfo::closeFd()
@@ -99,3 +99,14 @@ void AFdInfo::closeFd(FdTable & fd_table)
 	closeFd();
 	fd_table[_index].first.fd = -1;
 }
+
+AFdInfo::Flags AFdInfo::getFlag() const
+{
+	return _flag;
+}
+
+void AFdInfo::setFlag(AFdInfo::Flags flag)
+{
+	_flag = flag;
+}
+

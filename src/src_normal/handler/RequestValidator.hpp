@@ -18,7 +18,7 @@ class RequestValidator
 		bool		isHostValid(Request const & request);
 		bool		isConnectionValid(Request const & request);
 		bool		isHttpVersionValid(int http_major_version);
-		bool		isMethodValid(MethodType const method);
+		bool		isMethodValid(Method::Type const method);
 		bool		isTransferEncodingValid(const HeaderField & header);
 		bool		isContentCodingValid(const HeaderField & header);
 		bool		isExpectationValid(Request const & request);
@@ -26,8 +26,8 @@ class RequestValidator
     public:
 		bool	isRequestValidPostConfig(Request const & request);
     private:
-		bool		isMethodAllowed(MethodType const method, std::vector<std::string> const & allowed_methods);
-		bool			findMethodInConfig(MethodType const method, std::vector<std::string> const & allowed_methods) const;
+		bool		isMethodAllowed(Method::Type const method, std::vector<std::string> const & allowed_methods);
+		bool			findMethodInConfig(Method::Type const method, std::vector<std::string> const & allowed_methods) const;
     public:
         int getStatusCode() const;
 

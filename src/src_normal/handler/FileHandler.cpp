@@ -66,7 +66,7 @@ void	FileHandler::setFileParameter()
 {
 	switch(_method)
 	{
-		case GET:
+		case Method::GET:
 			_access_flag = R_OK;
 			_open_flag = O_RDONLY;
 			_file_event = AFdInfo::READING;
@@ -75,7 +75,7 @@ void	FileHandler::setFileParameter()
 				_status_code = StatusCode::STATUS_OK;
 			}
 			return ;
-		case POST:
+		case Method::POST:
 			_access_flag = W_OK;
 			_open_flag = O_CREAT | O_WRONLY | O_APPEND;
 			_file_event = AFdInfo::WRITING;
@@ -84,7 +84,7 @@ void	FileHandler::setFileParameter()
 				_status_code = StatusCode::CREATED;
 			}
 			return ;
-		case DELETE:
+		case Method::DELETE:
 			_access_flag = W_OK;
 			_open_flag = O_WRONLY;
 			_file_event = AFdInfo::WAITING;
@@ -93,7 +93,7 @@ void	FileHandler::setFileParameter()
 				_status_code = StatusCode::NO_CONTENT;
 			}
 			return ;
-		case OTHER:
+		case Method::OTHER:
 		default:
 			return;
 	}
@@ -132,11 +132,11 @@ int	FileHandler::executeFile(Request & request)
 {
 	switch (_method)
 	{
-		case GET:
+		case Method::GET:
 			return executeGet();
-		case POST:
+		case Method::POST:
 			return executePost(request);
-		case DELETE:
+		case Method::DELETE:
 			return executeDelete();
 		default:
 			return OK;
@@ -163,7 +163,7 @@ int	FileHandler::executeDelete()
 		return ERR;
 	}
 	printf(BLUE_BOLD "Delete File:" RESET_COLOR " [%s]\n", _absolute_file_path.c_str());
-	_file->flag = AFdInfo::FILE_COMPLETE;
+	_file->setFlag(AFdInfo::COMPLETE);
 	return OK;
 }
 
@@ -211,7 +211,7 @@ int	FileHandler::redirectErrorPage(FdTable & fd_table, std::string const & file_
 	_status_code = status_code;
 	// TODO: DISCUSS: is it necessary to create an empty request here? (I'd like to remove the default constructor)
 	Request	error_page_request;
-	error_page_request.method = GET;
+	error_page_request.method = Method::GET;
 	return executeRequest(fd_table, error_page_request);
 }
 
@@ -223,11 +223,11 @@ void	FileHandler::setMessageBody(std::string & message_body)
 {
 	switch (_method)
 	{
-		case GET:
+		case Method::GET:
 			return setMessageBodyGet(message_body);
-		case POST:
+		case Method::POST:
 			return setMessageBodyPost();
-		case DELETE:
+		case Method::DELETE:
 			return setMessageBodyDelete();
 		default:
 			return ;
@@ -266,7 +266,7 @@ void    FileHandler::setSpecificHeaderField(HeaderField & header_field)
 
 void	FileHandler::setContentType(HeaderField & header_field) const
 {
-	if (_method == GET && !_absolute_file_path.empty())
+	if (_method == Method::GET && !_absolute_file_path.empty())
 	{
 		header_field["Content-Type"] = MediaType::getMediaType(_absolute_file_path);
 		return ;
@@ -313,17 +313,17 @@ bool	FileHandler::isReadyToWrite() const
 
 bool	FileHandler::isFileError() const
 {
-	return _file && _file->flag == AFdInfo::FILE_ERROR;
+	return _file && _file->getFlag() == AFdInfo::ERROR;
 }
 
 bool	FileHandler::isFileComplete() const
 {
-	return _file && _file->flag == AFdInfo::FILE_COMPLETE;
+	return _file && _file->getFlag() == AFdInfo::COMPLETE;
 }
 
 bool	FileHandler::isFileReading() const
 {
-	return _file && _file->flag == AFdInfo::FILE_START && !_file->getContent().empty();
+	return _file && _file->getFlag() == AFdInfo::START && !_file->getContent().empty();
 }
 
 /*******************************/

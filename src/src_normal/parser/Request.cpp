@@ -28,7 +28,7 @@ void Request::init()
 	status = Request::READING;
 	status_code = 200; //TODO: to discuss, shouldn't this be 0?
 	close_connection = false;
-	method = OTHER;
+	method = Method::OTHER;
 	major_version = -1;
 	minor_version = -1;
 }
@@ -38,7 +38,7 @@ Debugging
 Move to become part of REQUEST
 */
 
-MethodType Request::getMethodType(std::string const & s)
+Method::Type Request::getMethodType(std::string const & s)
 {
 	static const std::string types[] = {
 		"GET",
@@ -46,27 +46,27 @@ MethodType Request::getMethodType(std::string const & s)
 		"DELETE"
 	};
 
-	for (int i = GET; i < OTHER; ++i)
+	for (int i = Method::GET; i < Method::OTHER; ++i)
 	{
 		if (types[i] == s)
 		{
-			return static_cast<MethodType>(i);
+			return static_cast<Method::Type>(i);
 		}
 	}
-	return OTHER;
+	return Method::OTHER;
 }
 
 std::string Request::getMethodString() const
 {
 	switch (method)
 	{
-		case GET:
+		case Method::GET:
 			return "GET";
-		case POST:
+		case Method::POST:
 			return "POST";
-		case DELETE:
+		case Method::DELETE:
 			return "DELETE";
-		case OTHER:
+		case Method::OTHER:
 			break;
 	}
 	return "OTHER";
@@ -78,8 +78,6 @@ std::string Request::getStatusString() const
 	{
 		case READING:
 			return "READING";
-		case HEADER_COMPLETE:
-			return "HEADER_COMPLETE";
 		case EXPECT:
 			return "EXPECT";
 		case COMPLETE:

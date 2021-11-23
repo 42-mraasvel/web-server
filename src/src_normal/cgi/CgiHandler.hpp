@@ -74,7 +74,7 @@ class CgiHandler: public iHandler
 		bool skippedHeaderField(std::string const & key) const;
 
 	/* Update Functionality */
-		bool evaluateExecutionError() const;
+		bool isExecutionError() const;
 		int cleanCgi();
 		int killCgi(int* status);
 

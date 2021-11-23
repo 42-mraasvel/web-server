@@ -9,7 +9,7 @@
 
 File::File(int fd): AFdInfo(fd)
 {
-	flag = AFdInfo::ACTIVE;
+	setFlag(AFdInfo::ACTIVE);
 }
 
 struct pollfd	File::getPollFd() const
@@ -30,19 +30,19 @@ int File::readEvent(FdTable & fd_table)
 	{
 		perror("read");
 		this->updateEvents(AFdInfo::WAITING, fd_table);
-		flag = AFdInfo::FILE_ERROR;
+		setFlag(AFdInfo::ERROR);
 		return ERR;
 	}
-	if (flag == AFdInfo::ACTIVE)
+	if (getFlag() == AFdInfo::ACTIVE)
 	{
-		flag = AFdInfo::FILE_START;
+		setFlag(AFdInfo::START);
 	}
 	buffer.resize(ret);
 	_content.append(buffer);
 	if (ret < BUFFER_SIZE) // read EOF
 	{
 		this->updateEvents(AFdInfo::WAITING, fd_table);
-		flag = AFdInfo::FILE_COMPLETE;
+		setFlag(AFdInfo::COMPLETE);
 	}
 	return OK;
 }
@@ -54,14 +54,14 @@ int File::writeEvent(FdTable & fd_table)
 	{
 		perror("write");
 		this->updateEvents(AFdInfo::WAITING, fd_table);
-		flag = AFdInfo::FILE_ERROR;
+		setFlag(AFdInfo::ERROR);
 		return ERR;
 	}
 	_content.erase(0, size);
 	if (_content.empty())
 	{
 		this->updateEvents(AFdInfo::WAITING, fd_table);
-		flag = AFdInfo::FILE_COMPLETE;
+		setFlag(AFdInfo::COMPLETE);
 	}
 	return OK;
 }

@@ -9,7 +9,7 @@
 CgiSender::CgiSender(int fd, Request* r)
 : AFdInfo(fd) {
 	//TODO: determine location and clean solution to this
-	if (r->method == POST)
+	if (r->method == Method::POST)
 	{
 		_message_body.swap(r->message_body);
 	}
@@ -40,7 +40,7 @@ int CgiSender::writeEvent(FdTable & fd_table)
 		ssize_t n = write(_fd, _message_body.c_str(), len);
 		if (n == ERR)
 		{
-			flag = AFdInfo::FILE_ERROR;
+			setFlag(AFdInfo::ERROR);
 			return syscallError(_FUNC_ERR("write"));
 		}
 		_message_body.erase(0, n);
@@ -53,7 +53,7 @@ int CgiSender::writeEvent(FdTable & fd_table)
 		printf("%s: [%d]: Finished writing\n",
 			getName().c_str(), getFd());
 		updateEvents(WAITING, fd_table);
-		flag = AFdInfo::FILE_COMPLETE;
+		setFlag(AFdInfo::COMPLETE);
 		closeFd(fd_table);
 	}
 	return OK;

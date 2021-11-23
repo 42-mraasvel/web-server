@@ -3,15 +3,6 @@
 # include "handler/ConfigResolver.hpp"
 # include "handler/ConfigInfo.hpp"
 
-// TODO: to discuss: move to ConfigResolver in order to compile...
-//enum MethodType
-//{
-//	GET,
-//	POST,
-//	DELETE,
-//	OTHER
-//};
-
 struct Request 
 {
 	public:
@@ -22,7 +13,6 @@ struct Request
 		enum RequestStatus
 		{
 			READING,
-			HEADER_COMPLETE,
 			EXPECT, // TODO: discuss whether name should be CONTINUE, or EXPECT
 			COMPLETE,
 			BAD_REQUEST
@@ -40,7 +30,7 @@ struct Request
 		Request();
 		Request(Address client, Address interface);
 
-		static MethodType getMethodType(std::string const & s);
+		static Method::Type getMethodType(std::string const & s);
 	
 	private:
 
@@ -53,7 +43,7 @@ struct Request
 		int				status_code;
 		bool			close_connection;
 
-		MethodType		method;
+		Method::Type	method;
 		std::string		request_target;
 		std::string		query;
 		int				major_version;

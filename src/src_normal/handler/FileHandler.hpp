@@ -60,7 +60,7 @@ class FileHandler: public iHandler
 		void	markError(int status_code);
 
 	private:
-		MethodType      		_method;
+		Method::Type      		_method;
 		int	            		_access_flag;
 		int             		_open_flag;
 		AFdInfo::EventTypes		_file_event;

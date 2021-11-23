@@ -38,7 +38,7 @@ int	CgiReader::readEvent(FdTable & fd_table)
 	if (n == ERR)
 	{
 		syscallError(_FUNC_ERR("read"));
-		closeEvent(fd_table, AFdInfo::FILE_ERROR, StatusCode::INTERNAL_SERVER_ERROR);
+		closeEvent(fd_table, AFdInfo::ERROR, StatusCode::INTERNAL_SERVER_ERROR);
 		return ERR;
 	}
 	else if (n == 0)
@@ -58,11 +58,11 @@ void CgiReader::parseBuffer(FdTable & fd_table, std::string const & buffer)
 
 	if (_parser.isError())
 	{
-		closeEvent(fd_table, AFdInfo::FILE_ERROR, _parser.getStatusCode());
+		closeEvent(fd_table, AFdInfo::ERROR, _parser.getStatusCode());
 	}
 	else if (_parser.isComplete())
 	{
-		closeEvent(fd_table, AFdInfo::FILE_COMPLETE);
+		closeEvent(fd_table, AFdInfo::COMPLETE);
 	}
 }
 
@@ -70,9 +70,9 @@ void CgiReader::closeEvent(FdTable & fd_table)
 {
 	if (!_parser.isComplete() && !_parser.isCompleteIfEof())
 	{
-		return closeEvent(fd_table, AFdInfo::FILE_ERROR, StatusCode::BAD_GATEWAY);
+		return closeEvent(fd_table, AFdInfo::ERROR, StatusCode::BAD_GATEWAY);
 	}
-	closeEvent(fd_table, AFdInfo::FILE_COMPLETE);
+	closeEvent(fd_table, AFdInfo::COMPLETE);
 }
 
 void CgiReader::closeEvent(FdTable & fd_table, AFdInfo::Flags flag)
@@ -82,7 +82,7 @@ void CgiReader::closeEvent(FdTable & fd_table, AFdInfo::Flags flag)
 
 void CgiReader::closeEvent(FdTable & fd_table, AFdInfo::Flags flag, int status_code)
 {
-	this->flag = flag;
+	setFlag(flag);
 	updateEvents(AFdInfo::WAITING, fd_table);
 	_status_code = status_code;
 	closeFd(fd_table);
