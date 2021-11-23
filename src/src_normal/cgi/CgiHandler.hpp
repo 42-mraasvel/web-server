@@ -34,15 +34,14 @@ class CgiHandler: public iHandler
 		static void resolveCgiTarget(std::string const & target, CgiVectorType const & cgi,
 								ConfigInfo & info);
 
-		int			executeRequest(FdTable& fd_table, Request& request);
-		std::string	resolvedRequestTarget(Request const & request);
-		void		update();
-		bool		isComplete() const;
-		bool		isError() const;
-		void		setMessageBody(std::string & response_body);
-		int			getStatusCode() const;
-		bool		isReadyToWrite() const;
-		void		setSpecificHeaderField(HeaderField & header_field);
+		int		executeRequest(FdTable& fd_table, Request& request);
+		void	update();
+		bool	isComplete() const;
+		bool	isError() const;
+		void	setMessageBody(std::string & response_body);
+		int		getStatusCode() const;
+		bool	isReadyToWrite() const;
+		void	setSpecificHeaderField(HeaderField & header_field);
 
 	/* Debugging */
 	public:
@@ -50,7 +49,7 @@ class CgiHandler: public iHandler
 	
 	private:
 
-		void splitRequestTarget(std::string const & request_target, CgiVectorType const & cgi);
+		// void splitRequestTarget(std::string const & request_target, CgiVectorType const & cgi);
 		bool scriptCanBeExecuted();
 
 		void setInfo(ConfigInfo const & info);

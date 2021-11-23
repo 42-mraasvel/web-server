@@ -43,11 +43,6 @@ int	FileHandler::executeRequest(FdTable & fd_table, Request & request)
 	return OK;
 }
 
-std::string	FileHandler::resolvedRequestTarget(Request const & request)
-{
-	return request.config_info.resolved_file_path;
-}
-
 /*******************************************/
 /****** execute request - create file ******/
 /*******************************************/

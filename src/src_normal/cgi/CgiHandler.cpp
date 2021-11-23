@@ -135,36 +135,8 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 void CgiHandler::setInfo(ConfigInfo const & info)
 {
 	_root_dir = info.resolved_location->_root;
-	_target = _root_dir + info.resolved_target;
+	_target = info.resolved_file_path;
 	_script = info.resolved_cgi_script;
-}
-
-void CgiHandler::splitRequestTarget(std::string const & request_target, CgiVectorType const & cgi)
-{
-	std::size_t index = 0;
-	for (CgiVectorType::const_iterator it = cgi.begin(); it != cgi.end(); ++it)
-	{
-		index = findCgiComponent(request_target, it->first);
-		if (index != std::string::npos)
-		{
-			_script = it->second;
-			break;
-		}
-	}
-	std::size_t end = request_target.find("/", index + 1);
-	_target = request_target.substr(0, end);
-	if (end != std::string::npos) {
-		_meta_variables.push_back(MetaVariableType("PATH_INFO", request_target.substr(end)));
-	} else {
-		_meta_variables.push_back(MetaVariableType("PATH_INFO", ""));
-	}
-}
-
-std::string CgiHandler::resolvedRequestTarget(Request const & request)
-{
-	splitRequestTarget(request.config_info.resolved_target, request.config_info.resolved_location->_cgi);
-	_root_dir = request.config_info.resolved_location->_root;
-	return _root_dir + _target;
 }
 
 bool CgiHandler::scriptCanBeExecuted()
