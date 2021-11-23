@@ -1,5 +1,7 @@
 from sys import stdin
 import os
+from requests_toolbelt.multipart import decoder
+import sys
 
 def printHeader(header):
 	for key in header:
@@ -11,20 +13,32 @@ def printResponse(content, header):
 	printHeader(header)
 	print(content, end = "")
 
-def doResponse(content):
+def doResponse():
 	header = dict()
 
-	header['Content-Type'] = 'text/plain'
-	header['Content-Length'] = len(content)
 	header['Status'] = 200
-
-	printResponse(content, header)
+	printResponse("", header)
 
 def readRequest():
-	content = str()
-	for line in stdin:
-		content += line
-	return content
+	data = sys.stdin.buffer.read()
+	return data
+
+def postRequestImage(multipart_string):
+	content_type = os.getenv("CONTENT_TYPE")
+
+	x = decoder.MultipartDecoder(multipart_string, content_type)
+
+	print(content_type, file = sys.stderr)
+
+	file = open('./img.png', 'wb')
+	for part in decoder.MultipartDecoder(multipart_string, content_type).parts:
+		print(type(part.content), file = sys.stderr)
+		file.write(part.content)
+		pass
+	file.close()
+
+def executeRequest(content):
+	postRequestImage(content)
 
 # 1. Read until EOF
 # 2. Print basic response
@@ -32,5 +46,5 @@ def readRequest():
 if __name__ == '__main__':
 
 	content = readRequest()
-	content += os.getcwd() + "\r\n"
-	doResponse(content)
+	executeRequest(content)
+	doResponse()
