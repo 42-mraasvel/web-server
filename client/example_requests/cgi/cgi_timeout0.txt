@@ -1,0 +1,4 @@
+GET /cgi-bin/timeout.py HTTP/1.1
+host: localhost:8080
+connection: close
+

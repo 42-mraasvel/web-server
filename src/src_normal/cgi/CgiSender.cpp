@@ -3,12 +3,13 @@
 #include "utility/utility.hpp"
 #include "utility/macros.hpp"
 #include "utility/status_codes.hpp"
+#include "utility/Timer.hpp"
 #include <poll.h>
 #include <unistd.h>
 #include <algorithm>
 
-CgiSender::CgiSender(int fd, Request* r)
-: AFdInfo(fd) {
+CgiSender::CgiSender(int fd, Request* r, Timer* timer)
+: AFdInfo(fd), _timer(timer) {
 	//TODO: determine location and clean solution to this
 	if (r->method == Method::POST)
 	{
@@ -35,6 +36,8 @@ struct pollfd CgiSender::getPollFd() const
 
 int CgiSender::writeEvent(FdTable & fd_table)
 {
+	_timer->reset();
+
 	std::size_t len = std::min<std::size_t>(_message_body.size(), BUFFER_SIZE);
 	if (len != 0)
 	{
@@ -67,6 +70,7 @@ int CgiSender::readEvent(FdTable & fd_table)
 
 void CgiSender::closeEvent(FdTable & fd_table)
 {
+	_timer->reset();
 	if (_message_body.size() == 0)
 	{
 		closeEvent(fd_table, AFdInfo::COMPLETE, StatusCode::STATUS_OK);

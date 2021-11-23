@@ -2,12 +2,13 @@
 #include "settings.hpp"
 #include "utility/macros.hpp"
 #include "utility/utility.hpp"
+#include "utility/Timer.hpp"
 #include <poll.h>
 #include <cassert>
 #include <unistd.h>
 
-CgiReader::CgiReader(int fd)
-: AFdInfo(fd) {}
+CgiReader::CgiReader(int fd, Timer* timer)
+: AFdInfo(fd), _timer(timer) {}
 
 CgiReader::~CgiReader() {}
 
@@ -32,6 +33,8 @@ int	CgiReader::writeEvent(FdTable & fd_table)
 
 int	CgiReader::readEvent(FdTable & fd_table)
 {
+	_timer->reset();
+
 	std::string buffer(BUFFER_SIZE + 1, '\0');
 
 	ssize_t n = read(_fd, &buffer[0], BUFFER_SIZE);
@@ -68,6 +71,7 @@ void CgiReader::parseBuffer(FdTable & fd_table, std::string const & buffer)
 
 void CgiReader::closeEvent(FdTable & fd_table)
 {
+	_timer->reset();
 	if (!_parser.isComplete() && !_parser.isCompleteIfEof())
 	{
 		return closeEvent(fd_table, AFdInfo::ERROR, StatusCode::BAD_GATEWAY);

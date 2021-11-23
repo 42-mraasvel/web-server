@@ -6,6 +6,7 @@
 # include "CgiSender.hpp"
 # include "CgiReader.hpp"
 # include "handler/iHandler.hpp"
+# include "utility/Timer.hpp"
 
 # include <vector>
 # include <utility>
@@ -97,6 +98,7 @@ class CgiHandler: public iHandler
 		MetaVariableContainerType _meta_variables;
 		CgiSender* _sender;
 		CgiReader* _reader;
+		Timer _timer;
 
 		pid_t _cgi_pid;
 };
