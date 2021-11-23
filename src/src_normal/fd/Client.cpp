@@ -189,8 +189,8 @@ void	Client::closeConnection()
 	if (getFlag() != AFdInfo::TO_ERASE)
 	{
 		std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
-		// TODO: discuss with aileen if this should be done through the AFdInfo function
-		setToErase();
+		// TODO/DISCUSS: Does this take the response string being empty into account?
+		setFlag(AFdInfo::TO_ERASE);
 	}
 }
 

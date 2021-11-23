@@ -32,7 +32,6 @@ int RequestLineParser::parse(std::string const & buffer, std::size_t & index, Re
 		return appendLeftover(buffer, index, buffer.size() - index);
 	}
 
-
 	appendLeftover(buffer, index, pos - index);
 	WebservUtility::skipEndLine(buffer, index);
 	if (parseRequestLine(request) == ERR)
@@ -133,6 +132,13 @@ int RequestLineParser::parseTargetResource(Request & request)
 	}
 	request.request_target = _leftover.substr(start, _index - start);
 	start = _index;
+	if (request.request_target.find("..") != std::string::npos) {
+		return ERR;
+	}
+	// if (decodeRequestTarget(request.request_target) == ERR)
+	// {
+	// 	return ERR;
+	// }
 	skipQuery();
 	request.query = _leftover.substr(start, _index - start);
 	return OK;
