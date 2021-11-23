@@ -16,7 +16,7 @@
 // Configuration syntax: CGI .py /usr/bin/python3
 
 CgiHandler::CgiHandler()
-: _status(CgiHandler::INACTIVE), _sender(NULL), _reader(NULL), _cgi_pid(-1) {}
+: _status(CgiHandler::INACTIVE), _status_code(StatusCode::STATUS_OK), _sender(NULL), _reader(NULL), _cgi_pid(-1) {}
 
 CgiHandler::~CgiHandler()
 {
@@ -102,8 +102,8 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 	printf(YELLOW_BOLD "-- Executing CGI --" RESET_COLOR "\n");
 
 	/* 1. Preparation */
-	generateMetaVariables(request);
 	setInfo(request.config_info);
+	generateMetaVariables(request);
 
 	if (!scriptCanBeExecuted())
 	{
@@ -183,7 +183,7 @@ void CgiHandler::generateMetaVariables(const Request& request)
 	_meta_variables.push_back(MetaVariableType("PATH_INFO", request.config_info.resolved_path_info));
 	metaVariableContent(request);
 
-	_meta_variables.push_back(MetaVariableType("SCRIPT_NAME", _target.c_str()));
+	_meta_variables.push_back(MetaVariableType("SCRIPT_NAME", request.config_info.resolved_target));
 	// TODO: SERVER_NAME: Check SERVER_NAMES in the ResolvedServer: use Host to determine this
 	// Right now it's the IP of the interface the client connected with
 	_meta_variables.push_back(MetaVariableType("SERVER_NAME", request.interface_addr.first));
