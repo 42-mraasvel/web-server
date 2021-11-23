@@ -63,8 +63,6 @@ class Client : public AFdInfo
 		bool	isResponseReadyToWrite() const;
 
 	private:
-		//TODO: since this is only used inside of RequestHandler -> HttpRequestParser -> ConfigResolver, only keep it there?
-		AddressType 			_address;
 		MapType const * 		_config_map;
 		RequestHandler			_request_handler;
 		Request*				_request;
@@ -72,4 +70,5 @@ class Client : public AFdInfo
 		ResponseQueue			_response_queue;
 		Response*				_response;
 		std::string				_response_string;
+		bool					_close_connection;
 };

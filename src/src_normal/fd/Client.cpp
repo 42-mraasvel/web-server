@@ -15,7 +15,8 @@ AFdInfo(fd),
 _request_handler(client, interface, config_map),
 _request(NULL),
 _new_response(NULL),
-_response(NULL)
+_response(NULL),
+_close_connection(false)
 {
 	printf("%s-- NEW CLIENT -- %s\n", RED_BOLD, RESET_COLOR);
 	printf("Client: [%s]:[%d]\n", client.first.c_str(), client.second);
@@ -134,7 +135,7 @@ int	Client::writeEvent(FdTable & fd_table)
 		processResponse();
 		if (_response->isComplete())
 		{
-			evaluateConnection();
+			_close_connection = _response->getCloseConnectionFlag();
 			resetResponse();
 		}
 	}
@@ -144,6 +145,7 @@ int	Client::writeEvent(FdTable & fd_table)
 		return ERR;
 	}
 	removeWriteEvent(fd_table);
+	evaluateConnection();
 	return OK;
 }
 
@@ -151,6 +153,10 @@ bool	Client::retrieveResponse()
 {
 	if (!_response)
 	{
+		if (_close_connection)
+		{
+			return false;
+		}
 		if (_response_queue.empty())
 		{
 			return false;
@@ -164,10 +170,7 @@ bool	Client::retrieveResponse()
 void	Client::processResponse()
 {
 	_response->generateResponse();
-	if (getFlag() != AFdInfo::TO_ERASE)
-	{
-		appendResponseString();
-	}
+	appendResponseString();
 }
 
 void	Client::appendResponseString()
@@ -178,7 +181,7 @@ void	Client::appendResponseString()
 
 void	Client::evaluateConnection()
 {
-	if (_response->getCloseConnectionFlag())
+	if (_close_connection && _response_string.empty())
 	{
 		closeConnection();
 	}
@@ -186,12 +189,9 @@ void	Client::evaluateConnection()
 
 void	Client::closeConnection()
 {
-	if (getFlag() != AFdInfo::TO_ERASE)
-	{
-		std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
-		// TODO/DISCUSS: Does this take the response string being empty into account?
-		setFlag(AFdInfo::TO_ERASE);
-	}
+	std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
+	_flag = AFdInfo::TO_ERASE;
+	_close_connection = true;
 }
 
 void	Client::resetResponse()
