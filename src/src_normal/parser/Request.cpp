@@ -26,7 +26,7 @@ Request::Request(Address client, Address interface)
 void Request::init()
 {
 	status = Request::READING;
-	status_code = 200; //TODO: to discuss, shouldn't this be 0?
+	status_code = 0;
 	close_connection = false;
 	method = Method::OTHER;
 	major_version = -1;
