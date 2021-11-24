@@ -50,7 +50,6 @@ bool Webserver::shouldExecuteFd(const FdTable::pair_t& fd)
 
 bool Webserver::shouldCloseFd(const FdTable::pair_t & fd)
 {
-#ifdef __linux__
 	if (fd.first.revents & (POLLERR | POLLNVAL))
 	{
 		return true;
@@ -58,9 +57,6 @@ bool Webserver::shouldCloseFd(const FdTable::pair_t & fd)
 	//TODO: test on mac if this is how it functions as well
 	return (fd.first.revents & (POLLERR | POLLNVAL)) ||
 		((fd.first.revents & POLLHUP) && !(fd.first.revents & POLLIN));
-#else
-	return fd.first.revents & POLLHUP;
-#endif /* __linux__ */
 }
 
 //TODO: evaluate 'ready'
@@ -132,7 +128,7 @@ int	Webserver::run()
 		scanFdTable();
 		ready = poll(_fd_table.getPointer(), _fd_table.size(), TIMEOUT);
 		printf("Number of connections: %lu\n", _fd_table.size());
-		// print();
+		print();
 		if (ready < 0)
 		{
 			perror("Poll");
