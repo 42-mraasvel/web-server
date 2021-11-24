@@ -517,19 +517,6 @@ bool	Response::isComplete() const
 	return _status == COMPLETE;
 }
 
-//bool	Response::isReadyToWrite() const
-//{
-//	switch(_encoding)
-//	{
-//		case CHUNKED:
-//			return !_message_body.empty() || _handler->isReadyToWrite();
-//		case NOT_CHUNKED:
-//			return _handler->isReadyToWrite();
-//		default:
-//			return false;
-//	}
-//}
-
 bool	Response::isReadyToWrite() const
 {
 	switch(_encoding)
