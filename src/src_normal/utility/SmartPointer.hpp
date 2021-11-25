@@ -94,6 +94,14 @@ class SmartPointer
 			return !p;
 		}
 
+		operator pointer() {
+			return p;
+		}
+
+		// operator const_pointer() const {
+		// 	return p;
+		// }
+
 	private:
 
 		void incrementReference() const {

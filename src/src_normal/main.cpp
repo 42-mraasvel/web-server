@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 		Config config_file(configuration);
-		config_file.print();
+		// config_file.print();
 		Webserver webserver(config_file.getAddressMap());
 		if (webserver.init(config_file))
 			return (1);

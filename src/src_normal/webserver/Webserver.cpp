@@ -12,6 +12,7 @@ Webserver::Webserver(Config::address_map map): _config_map(map)
 
 int Webserver::initServer(std::pair<std::string, int> ip_host_pair)
 {
+	//TODO:fix
 	Server *new_server = new Server();
 	if (new_server->setupServer(ip_host_pair.second, &_config_map) == ERR)
 	{
@@ -28,13 +29,12 @@ TODO: close FD after failure
 int	Webserver::init(Config const & config)
 {
 	printf("Hardcoding: 8080\n");
-	Server* new_server = new Server();
+	SmartPointer<Server> new_server(new Server());
 	if (new_server->setupServer(8080, &_config_map) == ERR)
 	{
-		delete new_server;
 		return ERR;
 	}
-	_fd_table.insertFd(new_server);
+	_fd_table.insertFd(SmartPointer<AFdInfo>(new_server));
 	return OK;
 }
 
@@ -133,6 +133,15 @@ int	Webserver::run()
 		{
 			printf(YELLOW_BOLD "Poll returns: " RESET_COLOR "%d\n", ready);
 			dispatchFd(ready);
+		}
+		else
+		{
+			#ifdef __APPLE__
+			#ifdef LEAK_CHECK
+			//RM, REMOVE
+			system("leaks debug.out");
+			#endif /* LEAK_CHECK */
+			#endif /* __APPLE__ */
 		}
 	}
 

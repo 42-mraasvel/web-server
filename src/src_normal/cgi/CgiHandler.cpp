@@ -291,12 +291,13 @@ int CgiHandler::initializeCgiReader(int* cgi_fds, FdTable& fd_table)
 		return syscallError(_FUNC_ERR("fcntl"));
 	}
 
+
+
 	try {
-		_reader = new CgiReader(fds[0]);
-		fd_table.insertFd(_reader);
+		_reader = SmartPointer<CgiReader>(new CgiReader(fds[0]));
+		fd_table.insertFd(SmartPointer<AFdInfo>(_reader));
 	} catch (...) {
 		WebservUtility::closePipe(fds);
-		delete _reader;
 		_reader = NULL;
 		throw;
 	}
@@ -324,12 +325,11 @@ int CgiHandler::initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request& r)
 
 	/* Exception safe code */
 	try {
-		_sender = new CgiSender(fds[1], &r);
-		fd_table.insertFd(_sender);
+		_sender = SmartPointer<CgiSender>(new CgiSender(fds[1], &r));
+		fd_table.insertFd(SmartPointer<AFdInfo>(_sender));
 	} catch (...) {
 		WebservUtility::closePipe(fds);
 		WebservUtility::closePipe(cgi_fds);
-		delete _sender; // Will be NULL if allocation throw
 		_sender = NULL;
 		throw;
 	}
@@ -514,7 +514,8 @@ void CgiHandler::setSpecificHeaderField(HeaderField & header_field)
 			continue;
 		}
 
-		if (header_field.contains(it->first))
+		//TODO: check if should be removed
+		if (header_field.contains(it->first) && it->second != header_field[it->first])
 		{
 			fprintf(stderr, "  %sWARNING%s: %s:%d [%s]: Overwriting Field: %s: [%s] with [%s]\n",
 				RED_BOLD, RESET_COLOR,

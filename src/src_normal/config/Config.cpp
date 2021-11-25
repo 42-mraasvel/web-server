@@ -270,7 +270,6 @@ int	Config::parseListen()
 		}
 	}
 	int port = atoi(listen.c_str());
-	printf("server amount %d\n", _server_amount);
 	_servers[_server_amount].addAddress(host, port);
 	_token_index++;
 	return (_token_index);
@@ -336,7 +335,6 @@ int	Config::parseClientBodySize()
 		}
 	}
 	std::size_t size = WebservUtility::strtoul(client_body_size);
-	printf("SIZE: %lu, String: %s\n", size, client_body_size.c_str());
 	if (size == 0)
 	{
 		size = std::numeric_limits<std::size_t>::max();
@@ -353,7 +351,6 @@ int	Config::parseAllowedMethods()
 	{
 		if (checkExpectedSyntax("GET", "POST", "DELETE") == OK)
 		{
-			printf("%s\n", _tokens[_token_index].c_str());
 			_servers[_server_amount].addAllowedMethods(_tokens[_token_index]);
 		}
 		_token_index++;

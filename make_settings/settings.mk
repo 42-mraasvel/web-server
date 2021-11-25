@@ -10,7 +10,6 @@ ifdef USING_CATCH
 	CXXFLAGS += -std=c++14 -pedantic -DUSING_CATCH
 else
 	CXXFLAGS += -std=c++98 -pedantic
-	CXXFLAGS += -std=c++11 -pedantic
 endif # USING_CATCH
 
 # REMOVE
@@ -24,7 +23,7 @@ else
 endif # Darwin
 
 ifdef DEBUG
-	CXXFLAGS += -O0 -g3
+	CXXFLAGS += -O0 -g3 -DLEAK_CHECK
 endif # DEBUG
 
 ifdef FSANITIZE
