@@ -10,6 +10,7 @@ ifdef USING_CATCH
 	CXXFLAGS += -std=c++14 -pedantic -DUSING_CATCH
 else
 	CXXFLAGS += -std=c++98 -pedantic
+	CXXFLAGS += -std=c++11 -pedantic
 endif # USING_CATCH
 
 # REMOVE
@@ -17,16 +18,24 @@ ANNOYING_FLAGS = -Wno-unused -Wno-unused-parameter
 CXXFLAGS += $(ANNOYING_FLAGS)
 
 ifeq ($(shell uname),Darwin)
-	DFLAGS = -g3 -fsanitize=address
+	DFLAGS = -O0 -g3 -fsanitize=address
 else
-	DFLAGS = -g3 -fsanitize=address -fsanitize=leak
+	DFLAGS = -O0 -g3 -fsanitize=address -fsanitize=leak
 endif # Darwin
 
 ifdef DEBUG
+	CXXFLAGS += -O0 -g3
+endif # DEBUG
+
+ifdef FSANITIZE
 	CXXFLAGS += $(DFLAGS)
 	LFLAGS += $(DFLAGS)
-else
-	CXXFLAGS += -g3 -O0
+endif # FSANITIZE
+
+ifndef DEBUG
+	ifndef FSANITIZE
+		CXXFLAGS += -O3
+	endif # FSANITIZE
 endif # DEBUG
 
 endif # SETTINGS_MK

@@ -5,6 +5,7 @@
 class Webserver
 {
 	public:
+		Webserver(Config::address_map map);
 		int init(Config const & config);
 		int	run();
 
@@ -13,10 +14,12 @@ class Webserver
 		int initServer(std::pair<std::string, int> ip_host_pair);
 		int	dispatchFd(int ready);
 		void	scanFdTable();
-		int checkDisconnectedSockets();
+		bool shouldExecuteFd(const FdTable::pair_t& fd);
+		bool shouldCloseFd(const FdTable::pair_t & fd);
 
 	private:
-		FdTable _fd_table;
+		FdTable 			_fd_table;
+		Config::address_map	_config_map;
 	
 	/* Debugging */
 	public:

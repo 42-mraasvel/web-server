@@ -3,9 +3,39 @@
 #include "utility/utility.hpp"
 #include <limits>
 
+static bool isValidStatus(std::string const & status)
+{
+	if (status.size() < 3)
+	{
+		return false;
+	}
+
+	std::size_t i = 0;
+	while (i < 3)
+	{
+		if (!isdigit(status[i]))
+		{
+			return false;
+		}
+		++i;
+	}
+	if (status.size() > 3 && status[i] != ' ')
+	{
+		return false;
+	}
+	return true;
+}
+
+/*
+Checks only the CGI related fields
+*/
 static bool validCgiField(std::string const & key, std::string const & value,
 					HeaderField const & header)
 {
+	if (WebservUtility::caseInsensitiveEqual(key, "status"))
+	{
+		return isValidStatus(value);
+	}
 	return true;
 }
 
@@ -13,7 +43,8 @@ CgiResponseParser::CgiResponseParser()
 :
 _header_parser(validCgiField, MAX_HEADER_SIZE),
 _state(CgiResponseParser::PARSE_HEADER),
-_status_code(StatusCode::STATUS_OK) {}
+_status_code(StatusCode::STATUS_OK),
+_length_present(false) {}
 
 /*
 Main parsing function
@@ -52,12 +83,18 @@ void CgiResponseParser::parseHeader(std::string const & buffer,
 {
 	if (_header_parser.parse(buffer, index) == ERR)
 	{
-		// TODO: determine if this should always be BAD_GATEWAY, or HEADER_TOO_LARGE for example?
 		setError(StatusCode::BAD_GATEWAY);
 	}
 	else if (_header_parser.isComplete())
 	{
-		setContentParsing();
+		if (_header_parser.getHeaderField().size() == 0)
+		{
+			setError(StatusCode::BAD_GATEWAY);
+		}
+		else
+		{
+			setContentParsing();
+		}
 	}
 }
 
@@ -67,7 +104,9 @@ void CgiResponseParser::setContentParsing()
 
 	if (length.second == true)
 	{
+		// TODO: overflow check??
 		_content_parser.setContentLength(WebservUtility::strtoul(length.first->second));
+		_length_present = true;
 	}
 	else
 	{
@@ -137,4 +176,9 @@ bool CgiResponseParser::isError() const
 bool CgiResponseParser::isComplete() const
 {
 	return _state == CgiResponseParser::COMPLETE;
+}
+
+bool CgiResponseParser::isCompleteIfEof() const
+{
+	return _state == CgiResponseParser::PARSE_CONTENT && !_length_present;
 }

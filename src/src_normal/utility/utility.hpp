@@ -36,8 +36,6 @@ void convertToLowercase(std::string & s);
 std::string strToLower(std::string const & s);
 bool caseInsensitiveEqual(const std::string& a, const std::string& b);
 
-std::string getStatusMessage(int status_code);
-
 bool stringEndsWith(const std::string &s, const std::string& to_find,
                 std::size_t begin = 0, std::size_t end = std::string::npos);
 
@@ -47,12 +45,16 @@ int makeNonBlocking(int fd);
 const char*	ft_basename(const char* x);
 bool additionOverflow(std::size_t x, std::size_t y);
 
+bool	isFileExist(std::string const & file_path);
+int 	list_directory(std::string const & directory, std::string const & path, std::string & content);
+
 /* TODO: RM DEBUGGING */
 	void printStrings(char **strings, FILE* stream);
 
 }
 
 int syscallError(const std::string& str);
+int generalError(const char* format, ...);
 
 bool isSeperator(char x);
 bool isControl(char x);

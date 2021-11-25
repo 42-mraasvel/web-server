@@ -20,10 +20,18 @@ class CgiSender : public AFdInfo
 		struct pollfd getPollFd() const;
 		int writeEvent(FdTable & fd_table);
 		int readEvent(FdTable & fd_table);
+		void closeEvent(FdTable & fd_table);
+
+		int getStatusCode() const;
 
 	public:
 		std::string getName() const;
 
 	private:
-		Request* _request;
+
+		void closeEvent(FdTable & fd_table, AFdInfo::Flags flag, int status_code);
+
+	private:
+		std::string _message_body;
+		int _status_code;
 };

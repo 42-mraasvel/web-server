@@ -137,9 +137,10 @@ void	Config::printLocationBlock(ConfigLocation::location_pointer location) const
 /* Debugging */
 void ConfigServer::print() const
 {
-	printPorts();
+	printAddress();
 	printServerName();
 	printErrorPages();
+	printClientBodySize();
 	for (size_t i = 0; i < _locations.size(); i++)
 	{	
 		std::cout << YELLOW_BOLD "    Locations" RESET_COLOR " #" << (i + 1) << std::endl;
@@ -189,14 +190,27 @@ void ConfigServer::printErrorPages() const
 	std::cout << ']' << std::endl;
 }
 
-void	ConfigServer::printAddress(int index) const
+void	ConfigServer::printAddress() const
 {
-	std::cout << BLUE_BOLD << _address[index].first;
-	std::cout << ", ";
-	std::cout << BLUE_BOLD << _address[index].second;
-	std::cout << std::endl;
+	std::cout << "  " CYAN_BOLD << "addresses:" RESET_COLOR " [";
+	for (size_t i = 0; i < _address.size(); i++)
+	{
+		if (i != 0)
+		{
+			std::cout << ", ";
+		}
+		std::cout << " { "<< _address[i].first << ", " << _address[i].second << " } ";
+	}
+	std::cout << ']' << std::endl;
 }
 
+
+void ConfigServer::printClientBodySize() const
+{
+	std::cout << "  " CYAN_BOLD << "Client Body Size:" RESET_COLOR " [";
+	std::cout << _client_body_size;
+	std::cout << ']' << std::endl;
+}
 
 
 
@@ -213,7 +227,6 @@ void	ConfigLocation::print() const
 	printIndex();
 	printAutoIndex();
 	printAllowedMethods();
-	printClientBodySize();
 	printCgi();
 }
 
@@ -234,13 +247,6 @@ void	ConfigLocation::printRoot() const
 	{	
 		std::cout << _root;
 	}
-	std::cout << ']' << std::endl;
-}
-
-void ConfigLocation::printClientBodySize() const
-{
-	std::cout << "  \t" WHITE_BOLD << "Client Body Size:" RESET_COLOR " [";
-	std::cout << _client_body_size;
 	std::cout << ']' << std::endl;
 }
 

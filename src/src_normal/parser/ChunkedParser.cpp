@@ -20,6 +20,7 @@ ChunkedParser::ChunkedParser()
 : _state(ChunkedParser::SIZE),
 _max_size(std::numeric_limits<std::size_t>::max()),
 _chunk_size(0),
+_discarded(0),
 _status_code(StatusCode::BAD_REQUEST),
 _header_parser(IsValidChunkedField, MAX_HEADER_SIZE) {}
 
@@ -228,23 +229,32 @@ Only edgecase is if the end of previous buffer had a '\r' and start of next buff
 */
 int ChunkedParser::parseDiscardLine(std::string const & buffer, std::size_t & index, Request & request)
 {
+	std::size_t start = index;
 	index = WebservUtility::findEndLine(_leftover, buffer, index);
 	if (index == std::string::npos)
 	{
 		index = buffer.size();
+		_discarded += index - start;
+		if (_discarded > MAX_HEADER_SIZE)
+		{
+			return ERR;
+		}
 		if (buffer[buffer.size() - 1] == '\r')
 		{
 			_leftover = "\r";
-			return OK;
 		}
-	}
-	else
-	{
-		WebservUtility::skipEndLine(buffer, index);
-		_state = _next_state;
+		return OK;
 	}
 
+	if (index - start > MAX_HEADER_SIZE)
+	{
+		return ERR;
+	}
+
+	WebservUtility::skipEndLine(buffer, index);
 	_leftover.clear();
+	_state = _next_state;
+	_discarded = 0;
 	return OK;
 }
 

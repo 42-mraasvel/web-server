@@ -106,6 +106,7 @@ void	ConfigServer::initAddressMap()
 void	ConfigServer::initServerBlock()
 {
 	SmartPointer<ServerBlock> tmp = SmartPointer<ServerBlock>(new ServerBlock);
+	tmp->_address = _address;
 	tmp->_client_body_size = _client_body_size;
 	tmp->_server_names = _server_name;
 	tmp->_error_pages = _error_pages;

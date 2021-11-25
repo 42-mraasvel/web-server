@@ -1,13 +1,17 @@
 #pragma once
 #define OK 0
 #define ERR -1
-// #define INCOMPLETE 1
 
 #define BACKLOG 10 //TODO: check later
 #define TIMEOUT 10000
 #define CRLF "\r\n"
 #define NEWLINE CRLF
 #define EOHEADER CRLF CRLF
+
+/*
+Config Specific Defines
+*/
+#define DEFAULT_PORT 80
 
 /*
 Parsing Specific Defines
@@ -19,9 +23,14 @@ Parsing Specific Defines
 Response Specific Defines
 */
 #define BUFFER_SIZE 4096 // TODO: evaluate later
+#define CHUNK_THRESHOLD 2048 // TODO: evaluate later
 #define CHUNK_TAIL "0" CRLF CRLF
 #define RETRY_AFTER_SECONDS 30
 
+/*
+Printing
+*/
+#define PRINT_ERR true
 
 
 /*
@@ -31,4 +40,5 @@ Very unnecessary header includes
 #include <cstdio> // RM
 #include <iostream> // RM
 #include "color.hpp"
+#include "utility/macros.hpp"
 #include <cassert> // RM

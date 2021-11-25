@@ -16,12 +16,11 @@ class AFdInfo
 		enum Flags
 		{
 			ACTIVE,
-			FILE_START,
-			FILE_COMPLETE,
-			FILE_ERROR,
+			START,
+			COMPLETE,
+			ERROR,
 			TO_ERASE
 		};
-		Flags		flag;
 
 	public:
 		virtual	~AFdInfo();
@@ -41,11 +40,14 @@ class AFdInfo
 		void		setToErase();
 		void		closeFd();
 		void		closeFd(FdTable & fd_table);
+		Flags		getFlag() const;
+		void		setFlag(AFdInfo::Flags flag);
 	
 	/* Debugging, dispatchFd output */
 		virtual std::string getName() const = 0;
 
 	protected:
+		Flags		_flag;
 		std::size_t	_index;
 		int			_fd;
 };

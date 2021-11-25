@@ -3,8 +3,9 @@ SRC_FILES_MK = 1
 
 NAME = a.out
 CATCH_NAME = catch.out
-DEBUG_NAME = debug_build.out
-EXECS = $(NAME) $(CATCH_NAME) $(DEBUG_NAME)
+FSANITIZE_NAME = fsanitize.out
+DEBUG_NAME = debug.out
+EXECS = $(NAME) $(CATCH_NAME) $(FSANITIZE_NAME) $(DEBUG_NAME)
 
 SDIR = src
 ODIR = obj
@@ -25,6 +26,12 @@ ifdef DEBUG
 	ODIR = obj/obj_debug
 	DDIR = dep/dep_debug
 endif # DEBUG
+
+ifdef FSANITIZE
+	NAME = $(FSANITIZE_NAME)
+	ODIR = obj/obj_fsanitize
+	DDIR = dep/dep_fsanitize
+endif # FSANITIZE
 
 SRC := $(shell find $(SDIR)/$(SRC_SUBDIR) -type f -name "*.cpp")
 ifdef USING_CATCH

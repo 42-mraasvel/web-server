@@ -38,12 +38,12 @@ int	CgiReader::readEvent(FdTable & fd_table)
 	if (n == ERR)
 	{
 		syscallError(_FUNC_ERR("read"));
-		closeEvent(fd_table, AFdInfo::FILE_ERROR);
+		closeEvent(fd_table, AFdInfo::ERROR, StatusCode::INTERNAL_SERVER_ERROR);
 		return ERR;
 	}
 	else if (n == 0)
 	{
-		closeEvent(fd_table, AFdInfo::FILE_COMPLETE);
+		closeEvent(fd_table);
 		return OK;
 	}
 
@@ -58,45 +58,52 @@ void CgiReader::parseBuffer(FdTable & fd_table, std::string const & buffer)
 
 	if (_parser.isError())
 	{
-		closeEvent(fd_table, AFdInfo::FILE_ERROR);
+		printf("Reader Parsing ERROR\n");
+		closeEvent(fd_table, AFdInfo::ERROR, _parser.getStatusCode());
 	}
 	else if (_parser.isComplete())
 	{
-		closeEvent(fd_table, AFdInfo::FILE_COMPLETE);
+		closeEvent(fd_table, AFdInfo::COMPLETE);
 	}
 }
 
 void CgiReader::closeEvent(FdTable & fd_table)
 {
-	closeEvent(fd_table, AFdInfo::FILE_COMPLETE);
+	if (!_parser.isComplete() && !_parser.isCompleteIfEof())
+	{
+		return closeEvent(fd_table, AFdInfo::ERROR, StatusCode::BAD_GATEWAY);
+	}
+	closeEvent(fd_table, AFdInfo::COMPLETE);
 }
 
 void CgiReader::closeEvent(FdTable & fd_table, AFdInfo::Flags flag)
 {
-	this->flag = flag;
+	closeEvent(fd_table, flag, StatusCode::STATUS_OK);
+}
+
+void CgiReader::closeEvent(FdTable & fd_table, AFdInfo::Flags flag, int status_code)
+{
+	setFlag(flag);
 	updateEvents(AFdInfo::WAITING, fd_table);
-	_header.swap(_parser.getHeader());
-	_message_body.swap(_parser.getContent());
-	_status_code = _parser.getStatusCode();
+	_status_code = status_code;
 	closeFd(fd_table);
 }
 
 /* Interfacing Functions */
 
-bool CgiReader::isChunked() const
+int CgiReader::getStatusCode() const
 {
-	// TODO: implement check for when to send chunked request
-	return false;
+	return _status_code;
 }
 
-std::string const & CgiReader::getBody() const
+HeaderField & CgiReader::getHeader()
 {
-	return _message_body;
+	return _parser.getHeader();
 }
 
-void CgiReader::clearBody()
+std::string & CgiReader::getBody()
 {
-	_message_body.clear();
+	return _parser.getContent();
 }
 
 std::string CgiReader::getName() const
