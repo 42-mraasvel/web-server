@@ -96,8 +96,8 @@ class CgiHandler: public iHandler
 		std::string _script;
 		std::string _target;
 		MetaVariableContainerType _meta_variables;
-		CgiSender* _sender;
-		CgiReader* _reader;
+		SmartPointer<CgiSender> _sender;
+		SmartPointer<CgiReader> _reader;
 		Timer _timer;
 
 		pid_t _cgi_pid;

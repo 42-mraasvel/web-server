@@ -3,15 +3,9 @@
 #include "AFdInfo.hpp"
 #include <poll.h>
 
-FdTable::~FdTable()
-{
-	for (FdVector_t::iterator it = _fd_info_table.begin(); it != _fd_info_table.end(); ++it)
-	{
-		delete *it;
-	}
-}
+FdTable::~FdTable() {}
 
-void	FdTable::insertFd(AFdInfo *info)
+void	FdTable::insertFd(AFdPointer info)
 {
 	_pollfd_table.push_back(info->getPollFd());
 	_fd_info_table.push_back(info);
@@ -30,7 +24,6 @@ Complexity: O(1)
 	_pollfd_table.pop_back();
 	// TODO: close event monitoring
 	_fd_info_table.back()->setIndex(index);
-	delete _fd_info_table[index];
 	_fd_info_table[index] = _fd_info_table.back();
 	_fd_info_table.pop_back();
 }

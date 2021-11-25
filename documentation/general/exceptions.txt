@@ -1,0 +1,60 @@
+-- General Flow, Ideas --
+
+	Configuration, Webserver::initServer:
+
+		- Exit the webserver
+
+	ScanFdTable:
+
+		try {
+			update()
+		} catch (...) {
+			AFdInfo::exceptionEvent();
+		}
+
+	DispatchFd:
+
+		try {
+			readEvent();
+			writeEvent();
+		} catch (...) {
+			AFdInfo::exceptionEvent();
+		}
+
+	-- Main Exception Throwers (AFdInfo) --
+
+		Server:
+
+			- Initializing of the client:
+				1. Reject client (close socket) but keep listening
+				2. If this has happened x times in the past minute, exit webserver?
+
+		Client:
+
+			- Close the connection
+
+			File:
+				- ERROR response
+				- What if ERROR_PAGE FileHandler is giving an ERROR: use default ERROR page?
+			CgiFiles:
+				- ERROR response
+
+What are the exceptions thrown?
+
+	- Configuration initialization (try catch constructor and exit)
+	- Memory allocations
+
+Where?
+
+	Almost any part of the program using std::string function
+
+When?
+
+	When there is not enough memory available, due to outside influence or poor program behavior
+
+How to solve it?
+
+	Initialization exceptions simply exit the webserver
+	Runtime exceptions are thrown in the PollLoop by the classes derived from AFdInfo
+	My idea is to have a new virtual pure AFdInfo function `exceptionEvent()`
+	This way each Class can have their own definition for how to continue after an exception.

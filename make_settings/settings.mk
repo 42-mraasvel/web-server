@@ -23,7 +23,7 @@ else
 endif # Darwin
 
 ifdef DEBUG
-	CXXFLAGS += -O0 -g3
+	CXXFLAGS += -O0 -g3 -DLEAK_CHECK
 endif # DEBUG
 
 ifdef FSANITIZE

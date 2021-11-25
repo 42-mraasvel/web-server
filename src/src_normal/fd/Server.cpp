@@ -75,8 +75,8 @@ int	Server::initClient(sockaddr_in address, int connection_fd, FdTable & fd_tabl
 		return ERR;
 	}
 
-	Client*	client = new Client(connection_fd, address_output, interface_address, _config_map);
-	fd_table.insertFd(client);
+	SmartPointer<Client> client(new Client(connection_fd, address_output, interface_address, _config_map));
+	fd_table.insertFd(SmartPointer<AFdInfo>(client));
 	return OK;
 }
 

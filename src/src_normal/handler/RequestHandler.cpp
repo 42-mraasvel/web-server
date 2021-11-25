@@ -11,9 +11,8 @@ _parser(config_map) {}
 RequestHandler::~RequestHandler() {
 	while (!_requests.empty())
 	{
-		Request* x = _requests.front();
+		RequestPointer x = _requests.front();
 		_requests.pop();
-		delete x;
 	}
 }
 
@@ -47,14 +46,14 @@ int RequestHandler::parse(std::string const & buffer)
 	return OK;
 }
 
-Request* RequestHandler::getNextRequest()
+RequestHandler::RequestPointer RequestHandler::getNextRequest()
 {
 	if (_requests.empty())
 	{
 		return NULL;
 	}
 
-	Request* r = _requests.front();
+	RequestPointer r = _requests.front();
 	_requests.pop();
 	return r;
 }
@@ -67,7 +66,7 @@ bool RequestHandler::isNextRequestSafe() const
 
 void RequestHandler::newRequest()
 {
-	_request = new Request(_client_addr, _interface_addr);
+	_request = RequestPointer(new Request(_client_addr, _interface_addr));
 }
 
 void RequestHandler::completeRequest()
@@ -99,7 +98,7 @@ bool RequestHandler::isContinueResponse(Request const & request) const
 
 void RequestHandler::newContinueRequest()
 {
-	Request* cont = new Request(_client_addr, _interface_addr);
+	RequestPointer cont = RequestPointer(new Request(_client_addr, _interface_addr));
 	cont->config_info = _request->config_info;
 	cont->status = Request::EXPECT;
 	_requests.push(cont);

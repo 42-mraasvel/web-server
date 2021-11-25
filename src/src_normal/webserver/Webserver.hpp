@@ -10,7 +10,8 @@ class Webserver
 		int	run();
 
 	private:
-		int initServer(ConfigServer const & conf);
+		// int initServer(ConfigServer const & conf);
+		int initServer(std::pair<std::string, int> ip_host_pair);
 		int	dispatchFd(int ready);
 		void	scanFdTable();
 		bool shouldExecuteFd(const FdTable::pair_t& fd);

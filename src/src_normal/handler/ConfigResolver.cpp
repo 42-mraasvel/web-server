@@ -22,7 +22,7 @@ ConfigInfo const & ConfigResolver::getConfigInfo() const
 ConfigResolver::ConfigResolver(MapType const * config_map)
 : _config_map(config_map), _auto_index_on(false) {}
 
-ConfigResolver::ConfigResolver(ServerBlock* server): _auto_index_on(false)
+ConfigResolver::ConfigResolver(ConfigInfo::server_block_pointer server): _auto_index_on(false)
 {
 	info.resolved_server = server;
 }
@@ -62,7 +62,7 @@ void	ConfigResolver::setAddress(AddressType const & interface_address, AddressTy
 /****** resolve host ******/
 /**************************/
 
-ServerBlock*	ConfigResolver::resolveHost(std::string const & host, ServerVector const & servers)
+ConfigInfo::server_block_pointer	ConfigResolver::resolveHost(std::string const & host, ServerVector const & servers)
 {
 	ServerVector::const_iterator it_matched;
 
@@ -231,7 +231,7 @@ bool	ConfigResolver::isHostMatchBackWildCard(std::string const & host, std::stri
 	return host.compare(0, to_find_size, to_find_string) == 0;
 }
 
-ServerBlock*	ConfigResolver::resolveDefaultHost(ServerVector const & servers)
+ConfigInfo::server_block_pointer	ConfigResolver::resolveDefaultHost(ServerVector const & servers)
 {
 	return *servers.begin();
 }
@@ -240,10 +240,10 @@ ServerBlock*	ConfigResolver::resolveDefaultHost(ServerVector const & servers)
 /****** resolve location ******/
 /******************************/
 
-LocationBlock*	ConfigResolver::resolveLocationResult(Method::Type const & method, std::string const & target, LocationVectorType const & locations)
+ConfigInfo::location_block_pointer	ConfigResolver::resolveLocationResult(Method::Type const & method, std::string const & target, LocationVectorType const & locations)
 {
 	info.resolved_target = target;
-	LocationBlock*	location = resolveLocation(target, locations);
+	ConfigInfo::location_block_pointer	location = resolveLocation(target, locations);
 	info.result = getResult(location);
 	if (info.result == ConfigInfo::AUTO_INDEX_ON && method != Method::GET)
 	{
@@ -261,7 +261,7 @@ LocationBlock*	ConfigResolver::resolveLocationResult(Method::Type const & method
 	return location;
 }
 
-LocationBlock*	ConfigResolver::resolveLocation(std::string const & target, LocationVectorType const & locations)
+ConfigInfo::location_block_pointer	ConfigResolver::resolveLocation(std::string const & target, LocationVectorType const & locations)
 {
 	LocationVectorType::const_iterator it_matched;
 
@@ -325,9 +325,9 @@ bool	ConfigResolver::isTargetDirectory(std::string const & target)
 	return target[target.size() - 1] == '/';
 }
 
-LocationBlock*	ConfigResolver::resolveIndex(LocationVectorType::const_iterator it_matched, std::string const & target, LocationVectorType const & locations)
+ConfigInfo::location_block_pointer	ConfigResolver::resolveIndex(LocationVectorType::const_iterator it_matched, std::string const & target, LocationVectorType const & locations)
 {
-	LocationBlock*	final_location = resolveIndexFile((*it_matched)->_index, target, locations);
+	ConfigInfo::location_block_pointer	final_location = resolveIndexFile((*it_matched)->_index, target, locations);
 	if (final_location)
 	{
 		return final_location;
@@ -335,12 +335,12 @@ LocationBlock*	ConfigResolver::resolveIndex(LocationVectorType::const_iterator i
 	return resolveAutoIndex(it_matched);
 }
 
-LocationBlock*	ConfigResolver::resolveIndexFile(StringVectorType indexes, std::string const & target, LocationVectorType const & locations)
+ConfigInfo::location_block_pointer	ConfigResolver::resolveIndexFile(StringVectorType indexes, std::string const & target, LocationVectorType const & locations)
 {
 	for (StringVectorType::const_iterator it = indexes.begin(); it != indexes.end(); ++it)
 	{
 		std::string temp_target = target + *it;
-		LocationBlock*	final_location = resolveLocation(temp_target, locations);
+		ConfigInfo::location_block_pointer	final_location = resolveLocation(temp_target, locations);
 		if (final_location)
 		{
 			std::string file = final_location->_root + temp_target;
@@ -356,7 +356,7 @@ LocationBlock*	ConfigResolver::resolveIndexFile(StringVectorType indexes, std::s
 	return NULL;
 }
 
-LocationBlock*	ConfigResolver::resolveAutoIndex(LocationVectorType::const_iterator it_matched)
+ConfigInfo::location_block_pointer	ConfigResolver::resolveAutoIndex(LocationVectorType::const_iterator it_matched)
 {
 	if ((*it_matched)->_autoindex_status)
 	{
@@ -370,7 +370,7 @@ LocationBlock*	ConfigResolver::resolveAutoIndex(LocationVectorType::const_iterat
 /****** set result ******/
 /************************/
 
-ConfigInfo::ConfigResult	ConfigResolver::getResult(LocationBlock* location)
+ConfigInfo::ConfigResult	ConfigResolver::getResult(ConfigInfo::location_block_pointer location)
 {
 	if (!location)
 	{
@@ -387,13 +387,13 @@ ConfigInfo::ConfigResult	ConfigResolver::getResult(LocationBlock* location)
 	return ConfigInfo::LOCATION_RESOLVED;
 }
 
-bool	ConfigResolver::isReturnOn(LocationBlock* location) const
+bool	ConfigResolver::isReturnOn(ConfigInfo::location_block_pointer location) const
 {
 	// TODO: check with Niels how to best check if no return is input in config file
 	return location->_return.first != 0;
 }
 
-bool	ConfigResolver::isAutoIndexOn(LocationBlock* location) const
+bool	ConfigResolver::isAutoIndexOn(ConfigInfo::location_block_pointer location) const
 {
 	return _auto_index_on;
 }
@@ -418,7 +418,7 @@ int	ConfigResolver::resolveErrorPage(int error_code)
 //TODO: check error page in config text if it can only be uri
 int	ConfigResolver::findErrorFilePath(std::string const & error_uri)
 {
-	LocationBlock*	location = resolveLocationResult(Method::GET, error_uri, info.resolved_server->_locations);
+	ConfigInfo::location_block_pointer	location = resolveLocationResult(Method::GET, error_uri, info.resolved_server->_locations);
 	if (info.result != ConfigInfo::LOCATION_RESOLVED)
 	{
 		return ERR;
@@ -441,7 +441,7 @@ void	ConfigResolver::print() const
 	std::cout << RED_BOLD << "----------------------" << RESET_COLOR << std::endl << std::endl;
 }
 
-void	ConfigResolver::printSolutionServer(ServerBlock * server) const
+void	ConfigResolver::printSolutionServer(ConfigInfo::server_block_pointer server) const
 {
 	std::cout << RED_BOLD << "Resolved server is [server_name]: ";
 	StringVectorType names = server->_server_names;
@@ -452,7 +452,7 @@ void	ConfigResolver::printSolutionServer(ServerBlock * server) const
 	std::cout << RESET_COLOR << std::endl;
 }
 
-void	ConfigResolver::printSolutionLocation(LocationBlock * location) const
+void	ConfigResolver::printSolutionLocation(ConfigInfo::location_block_pointer location) const
 {
 	if (location)
 	{
