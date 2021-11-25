@@ -48,6 +48,7 @@ struct pollfd	Client::getPollFd() const
 
 int	Client::readEvent(FdTable & fd_table)
 {
+	_timer.reset();
 	if (parseRequest() == ERR)
 	{
 		return ERR;
@@ -129,6 +130,7 @@ void	Client::resetRequest()
 
 int	Client::writeEvent(FdTable & fd_table)
 {
+	_timer.reset();
 	while (_response_string.size() < BUFFER_SIZE
 			&& retrieveResponse())
 	{
@@ -253,6 +255,16 @@ void	Client::update(FdTable & fd_table)
 		|| isResponseReadyToWrite())
 	{
 		updateEvents(AFdInfo::WRITING, fd_table);
+	}
+
+	if (!_response_queue.empty())
+	{
+		_timer.reset();
+	}
+	else if (_timer.elapsed() >= TIMEOUT)
+	{
+		printf("%sClient%s: TIMEOUT\n", RED_BOLD, RESET_COLOR);
+		closeConnection();
 	}
 }
 

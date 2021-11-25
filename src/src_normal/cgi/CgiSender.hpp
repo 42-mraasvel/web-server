@@ -3,6 +3,8 @@
 #include "fd/AFdInfo.hpp"
 #include "parser/Request.hpp"
 
+class Timer;
+
 /*
 Main functionality of this class:
 
@@ -14,7 +16,7 @@ Main functionality of this class:
 class CgiSender : public AFdInfo
 {
 	public:
-		CgiSender(int fd, Request* r);
+		CgiSender(int fd, Request* r, Timer* timer);
 		~CgiSender();
 
 		struct pollfd getPollFd() const;
@@ -34,4 +36,5 @@ class CgiSender : public AFdInfo
 	private:
 		std::string _message_body;
 		int _status_code;
+		Timer* _timer;
 };

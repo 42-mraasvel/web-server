@@ -2,7 +2,7 @@ include make_settings/src_files.mk
 include make_settings/settings.mk
 
 all:
-	$(MAKE) $(NAME) -j8
+	$(MAKE) $(NAME) -j4
 
 # Compilation
 $(NAME): $(OBJ)

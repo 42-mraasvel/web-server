@@ -20,11 +20,8 @@ CgiHandler::CgiHandler()
 
 CgiHandler::~CgiHandler()
 {
-	if (_status != CgiHandler::INACTIVE)
-	{
-		destroyFds();
-		cleanCgi();
-	}
+	destroyFds();
+	cleanCgi();
 }
 
 static std::size_t findCgiComponent(std::string const & request_target, std::string const & extension)
@@ -129,6 +126,7 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 
 	WebservUtility::closePipe(fds);
 	_meta_variables.clear();
+	_timer.reset();
 	return OK;
 }
 
@@ -292,7 +290,7 @@ int CgiHandler::initializeCgiReader(int* cgi_fds, FdTable& fd_table)
 	}
 
 	try {
-		_reader = new CgiReader(fds[0]);
+		_reader = new CgiReader(fds[0], &_timer);
 		fd_table.insertFd(_reader);
 	} catch (...) {
 		WebservUtility::closePipe(fds);
@@ -324,7 +322,7 @@ int CgiHandler::initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request& r)
 
 	/* Exception safe code */
 	try {
-		_sender = new CgiSender(fds[1], &r);
+		_sender = new CgiSender(fds[1], &r, &_timer);
 		fd_table.insertFd(_sender);
 	} catch (...) {
 		WebservUtility::closePipe(fds);
@@ -588,9 +586,15 @@ void CgiHandler::update()
 		_sender = NULL;
 	}
 
+
 	if (isComplete())
 	{
 		finishCgi(CgiHandler::COMPLETE, checkStatusField());
+	}
+	else if (_timer.elapsed() >= TIMEOUT)
+	{
+		printf("%sCgiHandler%s: TIMEOUT\n", RED_BOLD, RESET_COLOR); 
+		finishCgi(CgiHandler::ERROR, StatusCode::GATEWAY_TIMEOUT);
 	}
 }
 

@@ -8,6 +8,7 @@
 #include "handler/RequestHandler.hpp"
 #include "handler/Response.hpp"
 #include "parser/Request.hpp"
+#include "utility/Timer.hpp"
 
 class File;
 
@@ -71,4 +72,5 @@ class Client : public AFdInfo
 		Response*				_response;
 		std::string				_response_string;
 		bool					_close_connection;
+		Timer					_timer;
 };
