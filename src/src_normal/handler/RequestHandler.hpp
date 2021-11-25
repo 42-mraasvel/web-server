@@ -30,6 +30,7 @@ class RequestHandler
 
 		int parse(std::string const & buffer);
 		Request* getNextRequest();
+		bool isNextRequestSafe() const;
 
 	private:
 

@@ -61,6 +61,8 @@ class Client : public AFdInfo
 		bool	isMethodSafe(Method::Type const & method) const;
 		void	increUnsafe(Method::Type const & method);
 		void	decreUnsafe(Method::Type const & method);
+		bool	canExecuteRequest() const;
+		void	executeRequests(FdTable & fd_table);
 
 	/* Debugging */
 	public:

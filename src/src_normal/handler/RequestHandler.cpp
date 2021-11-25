@@ -59,6 +59,12 @@ Request* RequestHandler::getNextRequest()
 	return r;
 }
 
+bool RequestHandler::isNextRequestSafe() const
+{
+	return _requests.empty()
+		|| _requests.front()->method == Method::GET;
+}
+
 void RequestHandler::newRequest()
 {
 	_request = new Request(_client_addr, _interface_addr);

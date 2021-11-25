@@ -206,5 +206,5 @@ void Request::print() const
 	}
 
 	printf("Address: '%s:%d'\n", address.first.c_str(), address.second);
-	printConfigInfo(config_info);
+	// printConfigInfo(config_info);
 }

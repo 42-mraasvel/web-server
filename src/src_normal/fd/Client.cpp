@@ -54,12 +54,6 @@ int	Client::readEvent(FdTable & fd_table)
 	{
 		return ERR;
 	}
-	while (!_unsafe_request_count && retrieveRequest())
-	{
-		_request->print();
-		processRequest(fd_table);
-		resetRequest();
-	}
 	return OK;
 }
 
@@ -245,8 +239,25 @@ void	Client::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
 	fd_table[_index].first.events = updated_events | POLLIN;
 }
 
+bool Client::canExecuteRequest() const
+{
+	return !_unsafe_request_count
+		&& !(!_request_handler.isNextRequestSafe() && _response_queue.size() > 0);
+}
+
+void Client::executeRequests(FdTable & fd_table)
+{
+	while (canExecuteRequest() && retrieveRequest())
+	{
+		_request->print();
+		processRequest(fd_table);
+		resetRequest();
+	}
+}
+
 void	Client::update(FdTable & fd_table)
 {
+	executeRequests(fd_table);
 	for (ResponseQueue::const_iterator it = _response_queue.begin(); it != _response_queue.end(); ++it)
 	{
 		(*it)->update(fd_table);
