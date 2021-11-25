@@ -86,23 +86,16 @@ This gives you the IP:PORT the client connected to, useful for INADDR_ANY (0.0.0
 */
 int Server::getSocketAddress(int sockfd, Config::ip_host_pair & dst)
 {
-	sockaddr_in addr;
-	socklen_t len = sizeof(addr);
-	memset(&addr, 0, len);
-	if (getsockname(sockfd, reinterpret_cast<sockaddr *> (&addr), &len) == ERR)
+	sockaddr_in interface_addr;
+	socklen_t len = sizeof(interface_addr);
+	memset(&interface_addr, 0, len);
+	if (getsockname(sockfd, reinterpret_cast<sockaddr *> (&interface_addr), &len) == ERR)
 	{
 		return syscallError(_FUNC_ERR("getsockname"));
 	}
 
-	char ip[16];
-	if (inet_ntop(AF_INET, &(addr.sin_addr), ip, sizeof(ip)) == NULL)
-	{
-		return syscallError(_FUNC_ERR("inet_ntop"));
-	}
-
-	dst.first = std::string(ip);
-	dst.second = ntohs(addr.sin_port);
-	return OK;
+	dst.second = ntohs(interface_addr.sin_port);
+	return convertIP(interface_addr, dst.first);
 }
 
 int	Server::convertIP(sockaddr_in address, std::string & ip)

@@ -183,19 +183,20 @@ static void printConfigInfo(const ConfigInfo& info)
 void Request::print() const
 {
 	printf(GREEN_BOLD "-- PARSED REQUEST --" RESET_COLOR "\r\n");
-	printf("Status: %s\n", getStatusString().c_str());
-	printf("StatusCode: %d\n", status_code);
 	printf("%s [%s][%s] HTTP/%d.%d\r\n",
 		getMethodString().c_str(),
 		request_target.c_str(),
 		query.c_str(),
 		major_version, minor_version);
-	
+	printf("Status: %s\n", getStatusString().c_str());
+	printf("StatusCode: %d\n", status_code);
+	printf("Address: '%s:%d'\n", address.first.c_str(), address.second);
+	printf(" %s- HEADER FIELDS -%s\n", GREEN_BOLD, RESET_COLOR);
 	for (header_field_t::const_iterator it = header_fields.begin(); it != header_fields.end(); ++it)
 	{
 		printf("  %s: %s\r\n", it->first.c_str(), it->second.c_str());
 	}
-	printf(GREEN_BOLD "-- MESSAGE BODY --" RESET_COLOR "\r\n");
+	printf(GREEN_BOLD " - MESSAGE BODY -" RESET_COLOR "\r\n");
 	printf("Body-Size(%lu)\n", message_body.size());
 	if (message_body.size() <= 8192) {
 		printf("%s\r\n", message_body.c_str());
@@ -205,6 +206,5 @@ void Request::print() const
 		printf("body too large to print\n");
 	}
 
-	printf("Address: '%s:%d'\n", address.first.c_str(), address.second);
 	// printConfigInfo(config_info);
 }
