@@ -507,6 +507,11 @@ std::string const &	Response::getString() const
 	return _string_to_send;
 }
 
+Method::Type const &	Response::getMethod() const
+{
+	return _method;
+}
+
 void	Response::clearString()
 {
 	_string_to_send.clear();
