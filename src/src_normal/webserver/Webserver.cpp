@@ -45,10 +45,6 @@ bool Webserver::shouldExecuteFd(const FdTable::pair_t& fd)
 
 bool Webserver::shouldCloseFd(const FdTable::pair_t & fd)
 {
-	if (fd.first.revents & (POLLERR | POLLNVAL))
-	{
-		return true;
-	}
 	//TODO: test on mac if this is how it functions as well
 	return (fd.first.revents & (POLLERR | POLLNVAL)) ||
 		((fd.first.revents & POLLHUP) && !(fd.first.revents & POLLIN));
