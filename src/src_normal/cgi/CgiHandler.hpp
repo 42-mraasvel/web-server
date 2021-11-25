@@ -6,6 +6,7 @@
 # include "CgiSender.hpp"
 # include "CgiReader.hpp"
 # include "handler/iHandler.hpp"
+# include "utility/Timer.hpp"
 
 # include <vector>
 # include <utility>

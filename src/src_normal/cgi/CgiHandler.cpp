@@ -20,11 +20,8 @@ CgiHandler::CgiHandler()
 
 CgiHandler::~CgiHandler()
 {
-	if (_status != CgiHandler::INACTIVE)
-	{
-		destroyFds();
-		cleanCgi();
-	}
+	destroyFds();
+	cleanCgi();
 }
 
 static std::size_t findCgiComponent(std::string const & request_target, std::string const & extension)
@@ -129,6 +126,7 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 
 	WebservUtility::closePipe(fds);
 	_meta_variables.clear();
+	_timer.reset();
 	return OK;
 }
 
@@ -589,9 +587,15 @@ void CgiHandler::update()
 		_sender = NULL;
 	}
 
+
 	if (isComplete())
 	{
 		finishCgi(CgiHandler::COMPLETE, checkStatusField());
+	}
+	else if (_timer.elapsed() >= TIMEOUT)
+	{
+		printf("%sCgiHandler%s: TIMEOUT\n", RED_BOLD, RESET_COLOR); 
+		finishCgi(CgiHandler::ERROR, StatusCode::GATEWAY_TIMEOUT);
 	}
 }
 

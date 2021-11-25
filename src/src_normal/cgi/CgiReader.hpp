@@ -4,6 +4,8 @@
 #include "parser/HeaderField.hpp"
 #include "CgiResponseParser.hpp"
 
+class Timer;
+
 /*
 Purpose of the class:
 	- Read the output from the CGI program
@@ -13,7 +15,7 @@ Purpose of the class:
 class CgiReader : public AFdInfo
 {
 	public:
-		CgiReader(int fd);
+		CgiReader(int fd, Timer* timer);
 		~CgiReader();
 
 		struct pollfd getPollFd() const;
@@ -38,4 +40,5 @@ class CgiReader : public AFdInfo
 		std::string _message_body;
 		HeaderField _header;
 		int _status_code;
+		Timer* _timer;
 };

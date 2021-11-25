@@ -117,9 +117,8 @@ int	Webserver::run()
 	while(true)
 	{
 		scanFdTable();
-		ready = poll(_fd_table.getPointer(), _fd_table.size(), TIMEOUT);
+		ready = poll(_fd_table.getPointer(), _fd_table.size(), POLL_TIMEOUT);
 		printf("Number of connections: %lu\n", _fd_table.size());
-		print();
 		if (ready < 0)
 		{
 			perror("Poll");
@@ -128,6 +127,7 @@ int	Webserver::run()
 		else if (ready > 0)
 		{
 			printf(YELLOW_BOLD "Poll returns: " RESET_COLOR "%d\n", ready);
+			print();
 			dispatchFd(ready);
 		}
 		else
