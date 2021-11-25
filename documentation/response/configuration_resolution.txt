@@ -1,0 +1,33 @@
+ConfigResolver class is used to resolve request to certain server block + location block in the config file.
+
+----------------------------------------------
+--    Step 1: resolve address (IP + Port)   --
+----------------------------------------------
+To match [listen] directive in config file
+    - If no IP match exactly, then resolve with "0.0.0.0"
+
+--------------------------------
+--    Step 2: resolve host   --
+--------------------------------
+To match [server_name] directive in config file
+    - If request has no 'Host' header field, resolve with
+        - server block contains empty name "", otherwise
+            (no server_name directive is considered as empty server_name)
+        - resolve with default server block
+    - If request has 'Host' header field, resolve with server block contains:
+        - exactly matched name, otherwise
+        - longest wildcard name start with "*" (front-wildcard), otherwise
+        - longest wildcard name end with "*" (back-wildcard), otherwise
+        - the first matching regular expression, otherwise
+        - resolve with default server block
+
+Default Server: 
+    can be set explicitly in the listen directive (i.e. listen 80 default_server;)  
+    otherwise it is the first server
+
+--------------------------------------
+--    Step 3: resolve request URI   --
+--------------------------------------
+To match [location] directive in config file
+
+

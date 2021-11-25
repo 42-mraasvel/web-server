@@ -13,7 +13,7 @@ Config::Config(std::string const & config_file): _file_name(config_file), _serve
 {
 	this->parser();
 	initAddressMap();
-	printAddressMap();
+	// printAddressMap();
 }
 
 // check for leaks

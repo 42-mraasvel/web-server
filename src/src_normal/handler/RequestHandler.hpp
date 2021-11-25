@@ -19,11 +19,13 @@ Completely parses the buffer
 class RequestHandler
 {
 	public:
+		typedef std::queue<Request*> 		RequestQueueType;
+		typedef	ConfigResolver::MapType		MapType;
+		typedef	ConfigResolver::AddressType	AddressType;
 
-		typedef std::queue<Request*> RequestQueueType;
 
 	public:
-		RequestHandler();
+		RequestHandler(AddressType client, AddressType interface, MapType const * config_map);
 		~RequestHandler();
 
 		int parse(std::string const & buffer);
@@ -35,8 +37,13 @@ class RequestHandler
 		void setErrorRequest();
 		void completeRequest();
 
+		bool isContinueResponse(Request const & request) const;
+		void newContinueRequest();
+
 	private:
 
+		AddressType _client_addr;
+		AddressType _interface_addr;
 		Request* _request;
 		RequestQueueType _requests;
 		HttpRequestParser _parser;

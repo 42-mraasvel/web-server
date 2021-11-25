@@ -1,4 +1,3 @@
-GET / HTTP/1.1
+GET / HTTP/1.0
 description: port 8080 default
-Host: test
 

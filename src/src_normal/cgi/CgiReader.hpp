@@ -21,16 +21,16 @@ class CgiReader : public AFdInfo
 		int	readEvent(FdTable & fd_table);
 		void closeEvent(FdTable & fd_table);
 
-		bool isChunked() const;
-
-		std::string const & getBody() const;
-		void clearBody();
+		int getStatusCode() const;
+		std::string & getBody();
+		HeaderField & getHeader();
 	
 	public:
 		std::string getName() const;
 
 	private:
 		void closeEvent(FdTable & fd_table, AFdInfo::Flags flag);
+		void closeEvent(FdTable & fd_table, AFdInfo::Flags flag, int status_code);
 		void parseBuffer(FdTable & fd_table, std::string const & buffer);
 
 	private:

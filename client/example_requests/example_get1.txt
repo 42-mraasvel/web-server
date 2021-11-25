@@ -1,4 +1,4 @@
-GET /check/ HTTP/1.0
-Host: 1
+GET /bigfile.txt HTTP/1.0
+Host: localhost
 Connection: Keep-alive
 

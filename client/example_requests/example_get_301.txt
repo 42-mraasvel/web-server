@@ -1,0 +1,3 @@
+GET /auto_index HTTP/1.1
+host: localhost
+

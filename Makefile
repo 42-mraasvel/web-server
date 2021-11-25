@@ -1,7 +1,8 @@
 include make_settings/src_files.mk
 include make_settings/settings.mk
 
-all: $(NAME)
+all:
+	$(MAKE) $(NAME) -j8
 
 # Compilation
 $(NAME): $(OBJ)
@@ -24,10 +25,12 @@ re: fclean
 	$(MAKE) all
 
 # Catch
-.PHONY: catch debug
+.PHONY: catch debug fsanitize
 catch:
 	$(MAKE) all USING_CATCH=1
 debug:
 	$(MAKE) all DEBUG=1
+fsanitize:
+	$(MAKE) all FSANITIZE=1
 
 -include $(DEP)

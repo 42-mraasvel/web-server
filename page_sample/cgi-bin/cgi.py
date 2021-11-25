@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
 	# Stress testing...
 
-	# content += KILOBYTE * "A"
+	# content += KILOBYTE * "A" * 10
 	# content += MEGABYTE * "A"
 	# content += GIGABYTE * "A"
 

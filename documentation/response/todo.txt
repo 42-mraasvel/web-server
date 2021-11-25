@@ -1,30 +1,13 @@
 ------------------
 --     NOW      --
 ------------------
+>> 100 continue no follow response?
 
->> to figure mark response complete
+>> close in stage
 
->> Redirection (3xx)
-    - is URL good for Location header?
-
->> resolve with config file
-    - general
-    - default error page?
-    - HTTP redirection?
-    - auto index
-
->> To discuss:
-    - implementation of MediaType + how to define charset?
-    - if only send a string, no response for bad-request?
-    - tear-down process go through
-        - should implement close in stage or not?
-    - redirection: do we config rewrite? try-files?
-    
 ------------------
 --    LATER     --
 ------------------
->> set _close_connection flag from request.
->> modify generatePage() for error response
 >> exception handling (Allocation error);
 >> automate the test for response correctness
 
@@ -35,10 +18,13 @@
 std::cout << RED_BOLD << " " << RESET_COLOR << std::endl;
 
 
----------------------------
---    MAARTEN RAASVELDT  --
----------------------------
+------------------------------------
+--    MAARTEN BENJAMIN RAASVELDT  --
+------------------------------------
 >> to check for Host (400 Bad Request):
+    - A server MUST respond with a 400 (Bad Request) status code to any HTTP/1.1 request message that lacks a Host header field and to any request message that contains more than one Host hea
+    - return 400 if invalid port number in Host
+    - eliminate valid port number (so the host )
 >> to mark close connection flag:
     - transfer encoding (see note on request part)
     - When Content-Length is valid, but the sender closes the connection or the recipient times out before complete message_body received, the recipient MUST consider the message to be incomplete and close the connection.
@@ -47,4 +33,20 @@ std::cout << RED_BOLD << " " << RESET_COLOR << std::endl;
 ---------------
 --    NIELS  --
 ---------------
->> "return" in the location block.
+>> Index in location block cannot be a directory.
+>> Location "=" should be before the path
+(not necessary) >> error_page multiple error_code??
+
+
+----------------
+--    Agreed  --
+----------------
+
+>> Config:
+    - Server Block
+        - [error_page] code(*1) uri (i.e. error_page 404 /error/404.html
+    - Location Block
+        - [optional modifier]
+            - only accept "="
+        - [return]: return code effective_uri (i.e. return 301 http://localhost:8080/index.html)
+
