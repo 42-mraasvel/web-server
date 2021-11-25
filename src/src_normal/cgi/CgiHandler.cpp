@@ -292,7 +292,7 @@ int CgiHandler::initializeCgiReader(int* cgi_fds, FdTable& fd_table)
 
 
 	try {
-		_reader = SmartPointer<CgiReader>(new CgiReader(fds[0]));
+		_reader = SmartPointer<CgiReader>(new CgiReader(fds[0], &_timer));
 		fd_table.insertFd(SmartPointer<AFdInfo>(_reader));
 	} catch (...) {
 		WebservUtility::closePipe(fds);
@@ -323,7 +323,7 @@ int CgiHandler::initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request& r)
 
 	/* Exception safe code */
 	try {
-		_sender = SmartPointer<CgiSender>(new CgiSender(fds[1], &r));
+		_sender = SmartPointer<CgiSender>(new CgiSender(fds[1], &r, &_timer));
 		fd_table.insertFd(SmartPointer<AFdInfo>(_sender));
 	} catch (...) {
 		WebservUtility::closePipe(fds);

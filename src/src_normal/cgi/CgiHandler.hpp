@@ -98,6 +98,7 @@ class CgiHandler: public iHandler
 		MetaVariableContainerType _meta_variables;
 		SmartPointer<CgiSender> _sender;
 		SmartPointer<CgiReader> _reader;
+		Timer _timer;
 
 		pid_t _cgi_pid;
 };
