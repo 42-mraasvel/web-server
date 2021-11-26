@@ -52,7 +52,6 @@ int	CgiReader::readEvent(FdTable & fd_table)
 
 	buffer.resize(n);
 	parseBuffer(fd_table, buffer);
-	throw std::bad_alloc();
 	return OK;
 }
 

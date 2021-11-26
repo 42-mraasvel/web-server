@@ -12,6 +12,8 @@ class File : public AFdInfo
 
 		int	readEvent(FdTable & fd_table);
 		int	writeEvent(FdTable & fd_table);
+		void exceptionEvent(FdTable & fd_table);
+
 
 		std::string	const &	getContent() const;
 		void				appendContent(std::string & content);

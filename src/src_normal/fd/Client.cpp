@@ -118,6 +118,7 @@ void	Client::resetRequest()
 int	Client::writeEvent(FdTable & fd_table)
 {
 	_timer.reset();
+	throw std::bad_alloc();
 	while (_response_string.size() < BUFFER_SIZE
 			&& retrieveResponse())
 	{
@@ -217,7 +218,7 @@ void	Client::removeWriteEvent(FdTable & fd_table)
 void	Client::exceptionEvent(FdTable & fd_table)
 {
 	AFdInfo::exceptionEvent(fd_table); // RM, REMOVE, just for printing purposes
-	//TODO: clean up all resources
+	//TODO: clean up all resources: should be done in the closeConnection() function?
 	//	- (Allocated Resources, Responses, RequestHandler)
 	//	NOTE: we could also delegate cleanup to destructors, since the client will be deleted after
 	closeConnection();

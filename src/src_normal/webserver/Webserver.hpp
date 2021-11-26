@@ -15,8 +15,8 @@ class Webserver
 		int	dispatchFd(int ready);
 		void scanFdTable();
 		bool shouldExecuteFd(const FdTable::AFdPointer afd);
-		bool shouldCloseFd(const struct pollfd & pfd);
-		void executeFd(const struct pollfd& pfd, FdTable::AFdPointer afd);
+		bool shouldCloseFd(short revents) const;
+		void executeFd(short revents, FdTable::AFdPointer afd);
 
 	private:
 		FdTable 			_fd_table;

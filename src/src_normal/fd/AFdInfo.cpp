@@ -10,14 +10,7 @@ AFdInfo::AFdInfo(): _fd(-1) {}
 AFdInfo::AFdInfo(int fd): _fd(fd) {}
 
 AFdInfo::~AFdInfo() {
-	if (_fd != -1)
-	{
-		if (close(_fd) == ERR)
-		{
-			syscallError(_FUNC_ERR("close"));
-		}
-		_fd = -1;
-	}
+	closeFd();
 }
 
 int	AFdInfo::getFd() const
@@ -87,7 +80,7 @@ void AFdInfo::closeFd()
 		{
 			syscallError(_FUNC_ERR("close"));
 		}
-		printf(BLUE_BOLD "Close File:" RESET_COLOR " [%d]\n", _fd);
+		printf(BLUE_BOLD "Close Fd:" RESET_COLOR " [%d]\n", _fd);
 		_fd = -1;
 	}
 }

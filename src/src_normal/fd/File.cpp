@@ -66,6 +66,13 @@ int File::writeEvent(FdTable & fd_table)
 	return OK;
 }
 
+void File::exceptionEvent(FdTable & fd_table)
+{
+	AFdInfo::exceptionEvent(fd_table); // RM, REMOVE
+	this->updateEvents(AFdInfo::WAITING, fd_table);
+	setFlag(AFdInfo::ERROR);
+}
+
 std::string const &	File::getContent() const
 {
 	return _content;

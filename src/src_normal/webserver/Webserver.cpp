@@ -43,37 +43,36 @@ bool Webserver::shouldExecuteFd(const FdTable::AFdPointer afd)
 	return afd->getFlag() != AFdInfo::TO_ERASE;
 }
 
-bool Webserver::shouldCloseFd(const struct pollfd & pfd)
+bool Webserver::shouldCloseFd(short revents) const
 {
 	//TODO: test on mac if this is how it functions as well
-	return (pfd.revents & (POLLERR | POLLNVAL)) ||
-		((pfd.revents & POLLHUP) && !(pfd.revents & POLLIN));
+	return (revents & (POLLERR | POLLNVAL)) ||
+		((revents & POLLHUP) && !(revents & POLLIN));
 }
 
-void Webserver::executeFd(const struct pollfd& pfd, FdTable::AFdPointer afd)
+void Webserver::executeFd(short revents, FdTable::AFdPointer afd)
 {
-	if (shouldCloseFd(pfd))
+	if (shouldCloseFd(revents))
 	{
 		printf(BLUE_BOLD "Close Event:" RESET_COLOR " %s: [%d]\n",
-			afd->getName().c_str(), pfd.fd);
+			afd->getName().c_str(), afd->getFd());
 		afd->closeEvent(_fd_table);
 		return;
 	}
 
-	if (pfd.revents & POLLIN)
+	if (revents & POLLIN)
 	{
 		printf(BLUE_BOLD "Read event:" RESET_COLOR " %s: [%d]\n",
-			afd->getName().c_str(), pfd.fd);
+			afd->getName().c_str(), afd->getFd());
 		afd->readEvent(_fd_table);
 	}
 
-	if (pfd.revents & POLLOUT)
+	if (revents & POLLOUT)
 	{
 		printf(BLUE_BOLD "Write event:" RESET_COLOR " %s: [%d]\n",
-			afd->getName().c_str(), pfd.fd);
+			afd->getName().c_str(), afd->getFd());
 		afd->writeEvent(_fd_table);
 	}
-
 }
 
 //TODO: evaluate 'ready'
@@ -85,9 +84,8 @@ int	Webserver::dispatchFd(int ready)
 	{
 		if (shouldExecuteFd(_fd_table[i].second))
 		{
-			printf("EXECUTING: %lu, %s\n", i, _fd_table[i].second->getName().c_str());
 			try {
-				executeFd(_fd_table[i].first, _fd_table[i].second);
+				executeFd(_fd_table[i].first.revents, _fd_table[i].second);
 			} catch (std::exception const & e) {
 				fprintf(stderr, "%sEXCEPTION%s: [%s]\n",
 					RED_BOLD, RESET_COLOR, e.what());
