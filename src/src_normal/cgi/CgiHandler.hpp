@@ -37,6 +37,7 @@ class CgiHandler: public iHandler
 
 		int		executeRequest(FdTable& fd_table, Request& request);
 		void	update();
+		void	exceptionEvent();
 		bool	isComplete() const;
 		bool	isError() const;
 		void	setMessageBody(std::string & response_body);
@@ -85,6 +86,7 @@ class CgiHandler: public iHandler
 	/* Destruction */
 
 		void destroyFds();
+		void clear();
 
 	private:
 		Status		_status;

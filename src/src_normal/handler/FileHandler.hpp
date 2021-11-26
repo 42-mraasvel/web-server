@@ -33,6 +33,7 @@ class FileHandler: public iHandler
 	/* update */
 	public:
 		void	update();
+		void	exceptionEvent();
 		bool	isComplete() const;
 		bool	isError() const;
 		int		redirectErrorPage(FdTable & fd_table, std::string const & file_path, int status_code);

@@ -13,6 +13,7 @@ class iHandler
 		virtual				~iHandler() {}
 		virtual int			executeRequest(FdTable & fd_table, Request & request) = 0;
 		virtual void		update() = 0;
+		virtual void		exceptionEvent() = 0;
 		virtual bool		isComplete() const = 0;
 		virtual bool		isError() const = 0;
 		virtual void		setMessageBody(std::string & message_body) = 0;

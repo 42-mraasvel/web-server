@@ -118,7 +118,6 @@ void	Client::resetRequest()
 int	Client::writeEvent(FdTable & fd_table)
 {
 	_timer.reset();
-	throw std::bad_alloc();
 	while (_response_string.size() < BUFFER_SIZE
 			&& retrieveResponse())
 	{
@@ -269,6 +268,7 @@ void	Client::update(FdTable & fd_table)
 	{
 		(*it)->update(fd_table);
 	}
+
 	if (!_response_string.empty()
 		|| isResponseReadyToWrite())
 	{
@@ -281,7 +281,7 @@ void	Client::update(FdTable & fd_table)
 	}
 	else if (_timer.elapsed() >= TIMEOUT)
 	{
-		printf("%sClient%s: TIMEOUT\n", RED_BOLD, RESET_COLOR);
+		printf("%sClient%s: [%d]: TIMEOUT\n", RED_BOLD, RESET_COLOR, getFd());
 		closeConnection();
 	}
 }

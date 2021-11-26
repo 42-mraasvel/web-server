@@ -200,6 +200,19 @@ void	FileHandler::update()
 	}
 }
 
+void	FileHandler::exceptionEvent()
+{
+	_absolute_file_path.clear();
+	_message_body.clear();
+	_status_code = StatusCode::INTERNAL_SERVER_ERROR;
+	_is_error = true;
+	if (_file)
+	{
+		deleteFile();
+	}
+	fprintf(stderr, "%sEXCEPTION%s: FileHandler\n", RED_BOLD, RESET_COLOR);
+}
+
 int	FileHandler::redirectErrorPage(FdTable & fd_table, std::string const & file_path, int status_code)
 {
 	_absolute_file_path = file_path;

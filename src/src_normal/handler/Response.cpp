@@ -359,7 +359,13 @@ void	Response::update(FdTable & fd_table)
 {
 	if (_status != COMPLETE)
 	{
-		_handler->update();
+		try {
+			_handler->update();
+		} catch (std::exception const & e) {
+			fprintf(stderr, "%sUPDATE RESPONSE EXCEPTION%s: [%s]\n",
+				RED_BOLD, RESET_COLOR, e.what());
+			_handler->exceptionEvent();
+		}
 		if (_handler->isError())
 		{
 			markComplete(_handler->getStatusCode());

@@ -585,7 +585,12 @@ void CgiHandler::update()
 	{
 		// TODO: if sending a CHUNKED Message, then we should APPEND only if it's actively reading
 		// HeaderField should just be swapped once it's parsed in that case (add HEADER_COMPLETE)
-		_message_body.swap(_reader->getBody());
+		if (_message_body.size() == 0) {
+			_message_body.swap(_reader->getBody());
+		} else {
+			_message_body.append(_reader->getBody());
+			_reader->getBody().clear();
+		}
 		_header.swap(_reader->getHeader());
 		_reader->setToErase();
 		_reader = NULL;
@@ -607,6 +612,23 @@ void CgiHandler::update()
 		printf("%sCgiHandler%s: TIMEOUT\n", RED_BOLD, RESET_COLOR); 
 		finishCgi(CgiHandler::ERROR, StatusCode::GATEWAY_TIMEOUT);
 	}
+}
+
+void CgiHandler::exceptionEvent()
+{
+	clear();
+	finishCgi(CgiHandler::ERROR, StatusCode::INTERNAL_SERVER_ERROR);
+	fprintf(stderr, "%sEXCEPTION%s: CgiHandler\n", RED_BOLD, RESET_COLOR);
+}
+
+void CgiHandler::clear()
+{
+	_root_dir.clear();;
+	_script.clear();
+	_target.clear();
+	_meta_variables.clear();;
+	_message_body.clear();
+	_header.clear();
 }
 
 int CgiHandler::checkStatusField() const
@@ -695,7 +717,7 @@ void CgiHandler::destroyFds()
 		_sender->setToErase();
 		_sender = NULL;
 	}
-	
+
 	if (_reader)
 	{
 		_reader->setToErase();
