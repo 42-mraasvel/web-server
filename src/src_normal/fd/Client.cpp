@@ -26,11 +26,7 @@ _unsafe_request_count(0)
 
 Client::~Client()
 {
-	while (!_response_queue.empty())
-	{
-		Response*	temp = _response_queue.front();
-		_response_queue.pop_front();
-	}
+	_response_queue.clear();
 }
 
 struct pollfd	Client::getPollFd() const
@@ -212,6 +208,19 @@ int	Client::sendResponseString()
 void	Client::removeWriteEvent(FdTable & fd_table)
 {
 	updateEvents(AFdInfo::READING, fd_table);
+}
+
+/****************************/
+/****** exceptionEvent ******/
+/****************************/
+
+void	Client::exceptionEvent(FdTable & fd_table)
+{
+	AFdInfo::exceptionEvent(fd_table); // RM, REMOVE, just for printing purposes
+	//TODO: clean up all resources
+	//	- (Allocated Resources, Responses, RequestHandler)
+	//	NOTE: we could also delegate cleanup to destructors, since the client will be deleted after
+	closeConnection();
 }
 
 /*********************/

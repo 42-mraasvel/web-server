@@ -53,6 +53,9 @@ class Client : public AFdInfo
 		void	resetResponse();
 		int		sendResponseString();
 		void	removeWriteEvent(FdTable & fd_table);
+	/* Exception */
+	public:
+		void	exceptionEvent(FdTable & fd_table);
 	/* utility */
 	public:
 		typedef HeaderField::iterator header_iterator;

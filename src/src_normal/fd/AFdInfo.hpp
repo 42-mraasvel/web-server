@@ -28,6 +28,8 @@ class AFdInfo
 		virtual	int		writeEvent(FdTable & fd_table) = 0;
 		virtual	int		readEvent(FdTable & fd_table) = 0;
 		virtual void	closeEvent(FdTable & fd_table); // Make pure virtual later
+		virtual void	exceptionEvent(FdTable & fd_table);
+
 		virtual	void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 		virtual	void	update(FdTable & fd_table);
 

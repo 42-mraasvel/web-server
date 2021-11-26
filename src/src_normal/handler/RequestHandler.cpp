@@ -8,13 +8,7 @@ _interface_addr(interface),
 _request(NULL),
 _parser(config_map) {}
 
-RequestHandler::~RequestHandler() {
-	while (!_requests.empty())
-	{
-		RequestPointer x = _requests.front();
-		_requests.pop();
-	}
-}
+RequestHandler::~RequestHandler() {}
 
 int RequestHandler::parse(std::string const & buffer)
 {

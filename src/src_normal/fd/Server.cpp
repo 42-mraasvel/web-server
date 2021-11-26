@@ -53,7 +53,13 @@ int Server::readEvent(FdTable & fd_table)
 		syscallError(_FUNC_ERR("fcntl"));
 	}
 
-	return initClient(client_address, connection_fd, fd_table);
+	try {
+		return initClient(client_address, connection_fd, fd_table);
+	} catch (std::exception const & e) {
+		close(connection_fd);
+		throw;
+	}
+	return OK;
 }
 
 int	Server::initClient(sockaddr_in address, int connection_fd, FdTable & fd_table)

@@ -475,6 +475,16 @@ bool CgiHandler::isExecutionError() const
 		|| (_sender && _sender->getFlag() == AFdInfo::ERROR);
 }
 
+int CgiHandler::getErrorCode() const
+{
+	if (_reader && _reader->getFlag() == AFdInfo::ERROR)
+	{
+		return _reader->getStatusCode();
+	}
+	
+	return _sender->getStatusCode();
+}
+
 void CgiHandler::setMessageBody(std::string & response_body)
 {
 	if (response_body.size() == 0)
@@ -567,7 +577,7 @@ void CgiHandler::update()
 
 	if (isExecutionError())
 	{
-		finishCgi(CgiHandler::ERROR, _reader->getStatusCode());
+		finishCgi(CgiHandler::ERROR, getErrorCode());
 		return;
 	}
 

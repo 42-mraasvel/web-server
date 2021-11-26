@@ -52,6 +52,7 @@ int	CgiReader::readEvent(FdTable & fd_table)
 
 	buffer.resize(n);
 	parseBuffer(fd_table, buffer);
+	throw std::bad_alloc();
 	return OK;
 }
 
@@ -91,6 +92,18 @@ void CgiReader::closeEvent(FdTable & fd_table, AFdInfo::Flags flag, int status_c
 	updateEvents(AFdInfo::WAITING, fd_table);
 	_status_code = status_code;
 	closeFd(fd_table);
+}
+
+void CgiReader::exceptionEvent(FdTable & fd_table)
+{
+	AFdInfo::exceptionEvent(fd_table); // RM, REMOVE
+	clear();
+	closeEvent(fd_table, AFdInfo::ERROR, StatusCode::INTERNAL_SERVER_ERROR);
+}
+
+void CgiReader::clear()
+{
+	_parser.reset();
 }
 
 /* Interfacing Functions */

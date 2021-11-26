@@ -22,6 +22,8 @@ class CgiReader : public AFdInfo
 		int	writeEvent(FdTable & fd_table);
 		int	readEvent(FdTable & fd_table);
 		void closeEvent(FdTable & fd_table);
+		void exceptionEvent(FdTable & fd_table);
+		void clear();
 
 		int getStatusCode() const;
 		std::string & getBody();
@@ -37,8 +39,6 @@ class CgiReader : public AFdInfo
 
 	private:
 		CgiResponseParser _parser;
-		std::string _message_body;
-		HeaderField _header;
 		int _status_code;
 		Timer* _timer;
 };

@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <algorithm>
 
-CgiSender::CgiSender(int fd, Request* r, Timer* timer)
+CgiSender::CgiSender(int fd, SmartPointer<Request> r, Timer* timer)
 : AFdInfo(fd), _timer(timer) {
 	//TODO: determine location and clean solution to this
 	if (r->method == Method::POST)
@@ -63,8 +63,8 @@ int CgiSender::writeEvent(FdTable & fd_table)
 
 int CgiSender::readEvent(FdTable & fd_table)
 {
-	std::cerr << "CGI SENDER READ EVENT CALLED: TERMINATING PROGRAM" << std::endl;
-	std::terminate();
+	std::cerr << "CGI SENDER READ EVENT CALLED: ABORTING PROGRAM" << std::endl;
+	std::abort();
 	return OK;
 }
 
@@ -83,10 +83,27 @@ void CgiSender::closeEvent(FdTable & fd_table)
 
 void CgiSender::closeEvent(FdTable & fd_table, AFdInfo::Flags flag, int status_code)
 {
+	clear();
 	setFlag(flag);
 	updateEvents(AFdInfo::WAITING, fd_table);
 	_status_code = status_code;
 	closeFd(fd_table);
+}
+
+void CgiSender::clear()
+{
+	_message_body.clear();
+}
+
+void CgiSender::exceptionEvent(FdTable & fd_table)
+{
+	AFdInfo::exceptionEvent(fd_table); // RM, REMOVE
+	closeEvent(fd_table, AFdInfo::ERROR, StatusCode::INTERNAL_SERVER_ERROR);
+}
+
+int CgiSender::getStatusCode() const
+{
+	return _status_code;
 }
 
 std::string CgiSender::getName() const

@@ -16,15 +16,17 @@ Main functionality of this class:
 class CgiSender : public AFdInfo
 {
 	public:
-		CgiSender(int fd, Request* r, Timer* timer);
+		CgiSender(int fd, SmartPointer<Request> r, Timer* timer);
 		~CgiSender();
 
 		struct pollfd getPollFd() const;
 		int writeEvent(FdTable & fd_table);
 		int readEvent(FdTable & fd_table);
 		void closeEvent(FdTable & fd_table);
+		void exceptionEvent(FdTable & fd_table);
 
 		int getStatusCode() const;
+		void clear();
 
 	public:
 		std::string getName() const;

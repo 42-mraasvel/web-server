@@ -1,6 +1,6 @@
 from sys import stdin
 import os
-from requests_toolbelt.multipart import decoder
+# from requests_toolbelt.multipart import decoder
 import sys
 
 def printHeader(header):
@@ -37,8 +37,13 @@ def postRequestImage(multipart_string):
 		pass
 	file.close()
 
+def postRawData(content):
+	with open ('./posting/post', 'wb') as f:
+		f.write(content)
+
 def executeRequest(content):
-	postRequestImage(content)
+	postRawData(content)
+	# postRequestImage(content)
 
 # 1. Read until EOF
 # 2. Print basic response

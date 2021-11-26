@@ -65,6 +65,12 @@ void	AFdInfo::closeEvent(FdTable & fd_table)
 	fd_table[_index].first.fd = -1;
 }
 
+void	AFdInfo::exceptionEvent(FdTable & fd_table)
+{
+	printf("%sException Event%s: %s\n",
+		RED_BOLD, RESET_COLOR, getName().c_str());
+}
+
 /* Destruction */
 
 void AFdInfo::setToErase()

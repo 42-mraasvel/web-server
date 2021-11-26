@@ -78,6 +78,7 @@ class CgiHandler: public iHandler
 
 	/* Update Functionality */
 		bool isExecutionError() const;
+		int getErrorCode() const;
 		int cleanCgi();
 		int killCgi(int* status);
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "utility/SmartPointer.hpp"
+#include <poll.h>
 #include <vector>
 #include <utility>
 
