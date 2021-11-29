@@ -16,7 +16,8 @@ _request_handler(client, interface, config_map),
 _request(NULL),
 _new_response(NULL),
 _response(NULL),
-_close_connection(false)
+_close_connection(false),
+_unsafe_request_count(0)
 {
 	printf("%s-- NEW CLIENT -- %s\n", RED_BOLD, RESET_COLOR);
 	printf("Client: [%s]:[%d]\n", client.first.c_str(), client.second);
@@ -51,12 +52,6 @@ int	Client::readEvent(FdTable & fd_table)
 	if (parseRequest() == ERR)
 	{
 		return ERR;
-	}
-	while (retrieveRequest())
-	{
-		_request->print();
-		processRequest(fd_table);
-		resetRequest();
 	}
 	return OK;
 }
@@ -103,10 +98,8 @@ bool	Client::retrieveRequest()
 
 void	Client::processRequest(FdTable & fd_table)
 {
-	if (!_new_response)
-	{
-		initResponse(*_request);
-	}
+	increUnsafe(_request->method);
+	initResponse(*_request);
 	_new_response->executeRequest(fd_table, *_request);
 }
 
@@ -135,6 +128,7 @@ int	Client::writeEvent(FdTable & fd_table)
 		processResponse();
 		if (_response->isComplete())
 		{
+			decreUnsafe(_response->getMethod());
 			_close_connection = _response->getCloseConnectionFlag();
 			resetResponse();
 		}
@@ -242,8 +236,25 @@ void	Client::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
 	fd_table[_index].first.events = updated_events | POLLIN;
 }
 
+bool Client::canExecuteRequest() const
+{
+	return !_unsafe_request_count
+		&& !(!_request_handler.isNextRequestSafe() && _response_queue.size() > 0);
+}
+
+void Client::executeRequests(FdTable & fd_table)
+{
+	while (canExecuteRequest() && retrieveRequest())
+	{
+		_request->print();
+		processRequest(fd_table);
+		resetRequest();
+	}
+}
+
 void	Client::update(FdTable & fd_table)
 {
+	executeRequests(fd_table);
 	for (ResponseQueue::iterator it = _response_queue.begin(); it != _response_queue.end(); ++it)
 	{
 		(*it)->update(fd_table);
@@ -275,4 +286,25 @@ bool	Client::isResponseReadyToWrite() const
 std::string Client::getName() const
 {
 	return "Client";
+}
+
+bool	Client::isMethodSafe(Method::Type const & method) const
+{
+	return method == Method::GET;
+}
+
+void	Client::increUnsafe(Method::Type const & method)
+{
+	if (!isMethodSafe(method))
+	{
+		_unsafe_request_count++;
+	}
+}
+
+void	Client::decreUnsafe(Method::Type const & method)
+{
+	if (!isMethodSafe(method))
+	{
+		_unsafe_request_count--;
+	}
 }

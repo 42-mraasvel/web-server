@@ -31,6 +31,7 @@ class RequestHandler
 
 		int parse(std::string const & buffer);
 		RequestPointer getNextRequest();
+		bool isNextRequestSafe() const;
 
 	private:
 

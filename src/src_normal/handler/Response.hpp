@@ -76,12 +76,13 @@ class Response
 	/* utility */
 	public:
 		typedef HeaderField::const_iterator	header_iterator;
-		bool				getCloseConnectionFlag() const;
-		int					getStatusCode() const;
-		std::string const &	getString() const;
-		void				clearString();
-		bool				isComplete() const;
-		bool				isReadyToWrite() const;
+		bool					getCloseConnectionFlag() const;
+		int						getStatusCode() const;
+		std::string const &		getString() const;
+		Method::Type const &	getMethod() const;
+		void					clearString();
+		bool					isComplete() const;
+		bool					isReadyToWrite() const;
 	private:
 		typedef	std::vector<std::string>::const_iterator		method_iterator;
 		void				markComplete(int code);

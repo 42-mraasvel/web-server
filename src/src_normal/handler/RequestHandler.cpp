@@ -58,6 +58,12 @@ RequestHandler::RequestPointer RequestHandler::getNextRequest()
 	return r;
 }
 
+bool RequestHandler::isNextRequestSafe() const
+{
+	return _requests.empty()
+		|| _requests.front()->method == Method::GET;
+}
+
 void RequestHandler::newRequest()
 {
 	_request = RequestPointer(new Request(_client_addr, _interface_addr));

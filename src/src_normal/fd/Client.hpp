@@ -9,6 +9,7 @@
 #include "handler/Response.hpp"
 #include "parser/Request.hpp"
 #include "utility/Timer.hpp"
+#include "webserver/MethodType.hpp"
 
 class File;
 
@@ -58,7 +59,13 @@ class Client : public AFdInfo
 		typedef std::deque< ResponsePointer >	ResponseQueue;
 		void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 		void	update(FdTable & fd_table);
-	
+	private:
+		bool	isMethodSafe(Method::Type const & method) const;
+		void	increUnsafe(Method::Type const & method);
+		void	decreUnsafe(Method::Type const & method);
+		bool	canExecuteRequest() const;
+		void	executeRequests(FdTable & fd_table);
+
 	/* Debugging */
 	public:
 		std::string getName() const;
@@ -75,4 +82,5 @@ class Client : public AFdInfo
 		std::string				_response_string;
 		bool					_close_connection;
 		Timer					_timer;
+		int						_unsafe_request_count;
 };
