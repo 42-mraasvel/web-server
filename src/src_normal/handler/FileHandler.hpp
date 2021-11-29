@@ -10,6 +10,9 @@ class File;
 class FileHandler: public iHandler
 {
 	public:
+		typedef SmartPointer<File> FilePointer;
+
+	public:
 		FileHandler();
 		~FileHandler();
 
@@ -66,7 +69,8 @@ class FileHandler: public iHandler
 		std::string     		_absolute_file_path;
 		std::string				_message_body;
 
-		File*           _file;
+
+		FilePointer		_file;
 		int             _status_code;
 
 		bool			_is_error;

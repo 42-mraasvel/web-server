@@ -12,8 +12,8 @@ Config::address_map* createAddressMap();
 	{
 
 	Config::server_block_vector createServerBlockVector();
-	ServerBlock* createServerBlock();
-	LocationBlock* createLocationBlock();
+	SmartPointer<ServerBlock> createServerBlock();
+	SmartPointer<LocationBlock> createLocationBlock();
 
 	}
 

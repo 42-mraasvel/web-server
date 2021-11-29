@@ -10,19 +10,16 @@
 Webserver::Webserver(Config::address_map map): _config_map(map)
 {}
 
-int Webserver::initServer(ConfigServer const & conf)
+int Webserver::initServer(std::pair<std::string, int> ip_host_pair)
 {
-	ConfigServer::const_iterator port_it;
-	for (port_it = conf.begin(); port_it != conf.end(); ++port_it)
+	//TODO:fix
+	Server *new_server = new Server();
+	if (new_server->setupServer(ip_host_pair.second, &_config_map) == ERR)
 	{
-		Server *new_server = new Server();
-		if (new_server->setupServer(*port_it, &_config_map) == ERR)
-		{
-			delete new_server;
-			return ERR;
-		}
-		_fd_table.insertFd(new_server);
+		delete new_server;
+		return ERR;
 	}
+	_fd_table.insertFd(new_server);
 	return OK;
 }
 
@@ -31,15 +28,13 @@ TODO: close FD after failure
 */
 int	Webserver::init(Config const & config)
 {
-
 	printf("Hardcoding: 8080\n");
-	Server* new_server = new Server();
+	SmartPointer<Server> new_server(new Server());
 	if (new_server->setupServer(8080, &_config_map) == ERR)
 	{
-		delete new_server;
 		return ERR;
 	}
-	_fd_table.insertFd(new_server);
+	_fd_table.insertFd(SmartPointer<AFdInfo>(new_server));
 	return OK;
 }
 
@@ -50,10 +45,6 @@ bool Webserver::shouldExecuteFd(const FdTable::pair_t& fd)
 
 bool Webserver::shouldCloseFd(const FdTable::pair_t & fd)
 {
-	if (fd.first.revents & (POLLERR | POLLNVAL))
-	{
-		return true;
-	}
 	//TODO: test on mac if this is how it functions as well
 	return (fd.first.revents & (POLLERR | POLLNVAL)) ||
 		((fd.first.revents & POLLHUP) && !(fd.first.revents & POLLIN));
@@ -138,6 +129,15 @@ int	Webserver::run()
 			printf(YELLOW_BOLD "Poll returns: " RESET_COLOR "%d\n", ready);
 			print();
 			dispatchFd(ready);
+		}
+		else
+		{
+			#ifdef __APPLE__
+			#ifdef LEAK_CHECK
+			//RM, REMOVE
+			system("leaks debug.out");
+			#endif /* LEAK_CHECK */
+			#endif /* __APPLE__ */
 		}
 	}
 

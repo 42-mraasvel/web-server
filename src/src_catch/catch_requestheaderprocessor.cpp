@@ -26,10 +26,9 @@ TEST_CASE("Close Connection", "[request-header-processor]")
 	for (const std::string& input : inputs)
 	{
 		handler.parse(input);
-		Request* r = handler.getNextRequest();
-		REQUIRE(r != NULL);
+		SmartPointer<Request> r(handler.getNextRequest());
+		REQUIRE(r != SmartPointer<Request>(NULL));
 		REQUIRE(r->close_connection == true);
-		delete r;
 	}
 }
 

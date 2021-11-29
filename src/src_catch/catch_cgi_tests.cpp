@@ -5,17 +5,8 @@
 #include "config/ConfigLocation.hpp"
 #include <poll.h>
 
-	std::string											_path;
-	std::string											_root;
-	std::pair<int, std::string>							_return;
-	std::vector<std::string>							_index;
-	std::vector<std::string>							_allowed_methods;
-	std::vector<std::pair<std::string, std::string> >	_cgi;
-	bool												_autoindex_status;
-	location_flag										_location_flag;
-
-static LocationBlock* generateCgiBlock() {
-	LocationBlock* x = new LocationBlock;
+static SmartPointer<LocationBlock> generateCgiBlock() {
+	SmartPointer<LocationBlock> x(new LocationBlock);
 
 	x->_path = "/";
 	x->_root = "./page_sample";

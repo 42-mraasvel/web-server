@@ -4,6 +4,11 @@
 struct ConfigInfo
 {
 	public:
+
+		typedef ConfigServer::server_pointer server_block_pointer;
+		typedef ConfigLocation::location_pointer location_block_pointer;
+
+	public:
 		enum ConfigResult
 		{
 			LOCATION_RESOLVED,
@@ -17,8 +22,8 @@ struct ConfigInfo
 		ConfigInfo& operator=(ConfigInfo const & rhs);
 
 		ConfigResult	result;
-		ServerBlock*	resolved_server;
-		LocationBlock*	resolved_location;
+		server_block_pointer	resolved_server;
+		location_block_pointer	resolved_location;
 		std::string		resolved_target;
 		std::string		resolved_file_path;
 		std::string		resolved_path_info;

@@ -29,7 +29,6 @@ Client::~Client()
 	{
 		Response*	temp = _response_queue.front();
 		_response_queue.pop_front();
-		delete temp;
 	}
 }
 
@@ -113,13 +112,12 @@ void	Client::processRequest(FdTable & fd_table)
 
 void	Client::initResponse(Request const & request)
 {
-	_new_response = new Response(request);
+	_new_response = ResponsePointer(new Response(request));
 	_response_queue.push_back(_new_response);
 }
 
 void	Client::resetRequest()
 {
-	delete _request;
 	_request = NULL;
 	_new_response = NULL;
 }
@@ -198,7 +196,6 @@ void	Client::closeConnection()
 
 void	Client::resetResponse()
 {
-	delete _response;
 	_response_queue.pop_front();
 	_response = NULL;
 }
@@ -247,7 +244,7 @@ void	Client::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
 
 void	Client::update(FdTable & fd_table)
 {
-	for (ResponseQueue::const_iterator it = _response_queue.begin(); it != _response_queue.end(); ++it)
+	for (ResponseQueue::iterator it = _response_queue.begin(); it != _response_queue.end(); ++it)
 	{
 		(*it)->update(fd_table);
 	}

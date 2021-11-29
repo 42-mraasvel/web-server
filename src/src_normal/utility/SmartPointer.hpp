@@ -2,6 +2,8 @@
 
 # include <map>
 # include <cstddef>
+# include <limits>
+# include <cassert>
 
 namespace _SmartPointerDetail_
 {
@@ -84,12 +86,29 @@ class SmartPointer
 			return const_smart_pointer(p);
 		}
 
+		operator const void*() const {
+			return reinterpret_cast<const void *>(p);
+		}
+
+		bool operator !() const {
+			return !p;
+		}
+
+		operator pointer() {
+			return p;
+		}
+
+		// operator const_pointer() const {
+		// 	return p;
+		// }
+
 	private:
 
 		void incrementReference() const {
 			if (p == NULL) {
 				return;
 			}
+			assert(getCount() < std::numeric_limits<unsigned int>::max());
 			_SmartPointerDetail_::_reference_tracker[(void*)(p)] += 1;
 		}
 

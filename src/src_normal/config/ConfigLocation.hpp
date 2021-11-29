@@ -2,6 +2,8 @@
 #include <vector>
 #include <map>
 #include <string>
+#include "utility/SmartPointer.hpp"
+
 
 enum location_flag {NONE, EQUAL};
 
@@ -21,6 +23,7 @@ typedef struct s_LocationBlock
 class ConfigLocation
 {
 	public:
+		typedef SmartPointer<LocationBlock> location_pointer;
 		ConfigLocation(std::string path);
 		void	addRoot(std::string root);
 		void	addClientBodySize(size_t client_body_size);
@@ -31,7 +34,7 @@ class ConfigLocation
 		void	addReturn(int code, std::string path);
 		void	addLocationFlag(location_flag flag);
 	// Utility
-		LocationBlock* getLocationBlock();
+		location_pointer getLocationBlock();
 		void	initLocationBlock();
 
 	private:
@@ -44,7 +47,7 @@ class ConfigLocation
 		bool						_autoindex_status;
 		std::pair<int, std::string>	_return;
 		location_flag				_location_flag;
-		LocationBlock				*_location_block;
+		location_pointer	_location_block;
 
 	/* Debugging */
 	public:

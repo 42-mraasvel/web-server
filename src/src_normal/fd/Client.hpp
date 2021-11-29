@@ -17,6 +17,8 @@ class Client : public AFdInfo
 	public:
 		typedef	ConfigResolver::MapType		MapType;
 		typedef	ConfigResolver::AddressType	AddressType;
+		typedef RequestHandler::RequestPointer RequestPointer;
+		typedef SmartPointer<Response> ResponsePointer;
 
 	public:
 		Client(int fd, AddressType client, AddressType interface, MapType const * config_map);
@@ -53,7 +55,7 @@ class Client : public AFdInfo
 	/* utility */
 	public:
 		typedef HeaderField::iterator header_iterator;
-		typedef std::deque< Response * >	ResponseQueue;
+		typedef std::deque< ResponsePointer >	ResponseQueue;
 		void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 		void	update(FdTable & fd_table);
 	
@@ -66,10 +68,10 @@ class Client : public AFdInfo
 	private:
 		MapType const * 		_config_map;
 		RequestHandler			_request_handler;
-		Request*				_request;
-		Response*				_new_response;
+		RequestPointer			_request;
+		ResponsePointer			_new_response;
 		ResponseQueue			_response_queue;
-		Response*				_response;
+		ResponsePointer			_response;
 		std::string				_response_string;
 		bool					_close_connection;
 		Timer					_timer;

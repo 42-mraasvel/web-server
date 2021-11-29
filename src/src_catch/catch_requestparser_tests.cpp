@@ -16,9 +16,8 @@
 
 bool checkNextRequest(RequestHandler& x, Request::RequestStatus expected)
 {
-	Request* r = x.getNextRequest();
+	SmartPointer<Request> r(x.getNextRequest());
 	bool result = r != NULL && r->status == expected;
-	delete r;
 	return result;
 }
 
@@ -45,7 +44,7 @@ void printRequest(const std::string& name, const Request& y) {
 
 bool checkNextRequest(RequestHandler& x, const Request& y, bool print = false)
 {
-	Request* r = x.getNextRequest();
+	SmartPointer<Request> r(x.getNextRequest());
 	if (r == NULL) {
 		return false;
 	}
@@ -63,7 +62,6 @@ bool checkNextRequest(RequestHandler& x, const Request& y, bool print = false)
 		r->header_fields.size() == y.header_fields.size() &&
 		std::equal(r->header_fields.begin(), r->header_fields.end(), y.header_fields.begin()) &&
 		r->message_body == y.message_body;
-	delete r;
 	return result;
 }
 
@@ -178,7 +176,7 @@ TEST_CASE("Parser: Invalid Request-Lines", "[request-handler]")
 		parser.parse(inputs[i] + EOHEADER);
 		REQUIRE(checkNextRequest(parser, Request::BAD_REQUEST));
 	}
-	REQUIRE(parser.getNextRequest() == NULL);
+	REQUIRE(parser.getNextRequest() == SmartPointer<Request>(NULL));
 }
 
 // TEST_CASE("Parser: stress testing no header end", "[request-parser]")
@@ -198,7 +196,7 @@ TEST_CASE("Parser: valid request-lines", "[request-handler]")
 		"GET /1234/1234/?a%ad HTTP/1.1",
 	};
 
-	ConfigResolver::MapType* m = testing::createAddressMap();
+	ConfigResolver::MapType* m(testing::createAddressMap());
 	RequestHandler parser(testing::createAddress(), testing::createAddress(), m);
 	const std::string header = "Host: localhost" EOHEADER;
 
@@ -279,7 +277,7 @@ TEST_CASE("Parser: basic valid header-fields", "[request-handler]")
 
 		REQUIRE(checkNextRequest(parser, example));
 	}
-	REQUIRE(parser.getNextRequest() == NULL);
+	REQUIRE(parser.getNextRequest() == SmartPointer<Request>(NULL));
 }
 
 TEST_CASE("Parser: multiple header-fields", "[request-handler]")
@@ -317,7 +315,7 @@ TEST_CASE("Parser: multiple header-fields", "[request-handler]")
 	parser.parse(request);
 
 	REQUIRE(checkNextRequest(parser, example));
-	REQUIRE(parser.getNextRequest() == NULL);
+	REQUIRE(parser.getNextRequest() == SmartPointer<Request>(NULL));
 }
 
 TEST_CASE("parser: chunked", "[request-handler]")
@@ -383,9 +381,8 @@ TEST_CASE("parser: chunked invalid", "[request-handler]")
 	RequestHandler parser(testing::createAddress(), testing::createAddress(), m);
 	for (std::size_t i = 0; i < ARRAY_SIZE(inputs); ++i) {
 		parser.parse(prefix + inputs[i]);
-		Request* r = parser.getNextRequest();
-		REQUIRE(r != NULL);
+		SmartPointer<Request> r = parser.getNextRequest();
+		REQUIRE(r != SmartPointer<Request>(NULL));
 		REQUIRE(r->status == Request::BAD_REQUEST);
-		delete r;
 	}
 }

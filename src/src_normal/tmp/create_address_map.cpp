@@ -29,9 +29,9 @@ Config::address_map* createAddressMap()
 		return blocks;
 	}
 
-	ServerBlock* createServerBlock()
+	SmartPointer<ServerBlock> createServerBlock()
 	{
-		ServerBlock* block = new ServerBlock;
+		SmartPointer<ServerBlock> block(new ServerBlock);
 
 		block->_client_body_size = std::numeric_limits<std::size_t>::max();
 		block->_locations.push_back(createLocationBlock());
@@ -41,9 +41,9 @@ Config::address_map* createAddressMap()
 		return block;
 	}
 
-	LocationBlock* createLocationBlock()
+	SmartPointer<LocationBlock> createLocationBlock()
 	{
-		LocationBlock* location = new LocationBlock;
+		SmartPointer<LocationBlock> location(new LocationBlock);
 
 		location->_allowed_methods.push_back("GET");
 		location->_allowed_methods.push_back("POST");

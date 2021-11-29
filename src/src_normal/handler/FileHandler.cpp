@@ -114,8 +114,8 @@ bool	FileHandler::openFile(FdTable & fd_table)
 		return false;
 	}
 	printf(BLUE_BOLD "Open File:" RESET_COLOR " %s: [%d]\n", _absolute_file_path.c_str(), file_fd);
-	_file = new File(file_fd);
-	fd_table.insertFd(_file);
+	_file = FilePointer(new File(file_fd));
+	fd_table.insertFd(SmartPointer<AFdInfo>(_file));
 	return true;
 }
 
