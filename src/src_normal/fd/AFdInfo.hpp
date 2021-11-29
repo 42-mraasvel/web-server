@@ -25,8 +25,8 @@ class AFdInfo
 	public:
 		virtual	~AFdInfo();
 		virtual struct pollfd getPollFd() const = 0;
-		virtual	int		writeEvent(FdTable & fd_table) = 0;
-		virtual	int		readEvent(FdTable & fd_table) = 0;
+		virtual	void	writeEvent(FdTable & fd_table) = 0;
+		virtual	void	readEvent(FdTable & fd_table) = 0;
 		virtual void	closeEvent(FdTable & fd_table); // Make pure virtual later
 		virtual void	exceptionEvent(FdTable & fd_table);
 

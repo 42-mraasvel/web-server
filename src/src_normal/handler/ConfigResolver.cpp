@@ -2,7 +2,7 @@
 #include "settings.hpp"
 #include "utility/utility.hpp"
 #include "parser/Request.hpp"
-#include "cgi/CgiHandler.hpp"
+#include "handler/CgiHandler.hpp"
 #include <iostream>
 #include <unistd.h>
 

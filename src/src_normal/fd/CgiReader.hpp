@@ -1,8 +1,8 @@
 #pragma once
 
-#include "fd/AFdInfo.hpp"
+#include "AFdInfo.hpp"
 #include "parser/HeaderField.hpp"
-#include "CgiResponseParser.hpp"
+#include "cgi/CgiResponseParser.hpp"
 
 class Timer;
 
@@ -19,8 +19,8 @@ class CgiReader : public AFdInfo
 		~CgiReader();
 
 		struct pollfd getPollFd() const;
-		int	writeEvent(FdTable & fd_table);
-		int	readEvent(FdTable & fd_table);
+		void writeEvent(FdTable & fd_table);
+		void readEvent(FdTable & fd_table);
 		void closeEvent(FdTable & fd_table);
 		void exceptionEvent(FdTable & fd_table);
 		void clear();

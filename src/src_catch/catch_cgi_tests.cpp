@@ -1,7 +1,7 @@
 #include "catch.hpp"
 #include "settings.hpp"
 #include "utility/utility.hpp"
-#include "cgi/CgiHandler.hpp"
+#include "handler/CgiHandler.hpp"
 #include "config/ConfigLocation.hpp"
 #include <poll.h>
 

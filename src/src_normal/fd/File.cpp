@@ -21,7 +21,7 @@ struct pollfd	File::getPollFd() const
 	return temp;
 }
 
-int File::readEvent(FdTable & fd_table)
+void File::readEvent(FdTable & fd_table)
 {
 	std::string buffer;
 	buffer.resize(BUFFER_SIZE, '\0');
@@ -30,7 +30,7 @@ int File::readEvent(FdTable & fd_table)
 	{
 		perror("read");
 		markError(fd_table);
-		return ERR;
+		return;
 	}
 	if (getFlag() == AFdInfo::ACTIVE)
 	{
@@ -42,24 +42,22 @@ int File::readEvent(FdTable & fd_table)
 	{
 		markFinished(fd_table, AFdInfo::COMPLETE);
 	}
-	return OK;
 }
 
-int File::writeEvent(FdTable & fd_table)
+void File::writeEvent(FdTable & fd_table)
 {
 	size_t	size = std::min((size_t)BUFFER_SIZE, _content.size());
 	if (write(_fd, _content.c_str(), size) == ERR)
 	{
 		perror("write");
 		markError(fd_table);
-		return ERR;
+		return;
 	}
 	_content.erase(0, size);
 	if (_content.empty())
 	{
 		markFinished(fd_table, AFdInfo::COMPLETE);
 	}
-	return OK;
 }
 
 void File::exceptionEvent(FdTable & fd_table)

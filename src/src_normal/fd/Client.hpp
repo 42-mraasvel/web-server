@@ -28,7 +28,7 @@ class Client : public AFdInfo
 
 	/* read */
 	public:
-		int	readEvent(FdTable & fd_table);
+		void	readEvent(FdTable & fd_table);
 	private:
 		int		parseRequest();
 		int			readRequest(std::string & buffer);
@@ -43,7 +43,7 @@ class Client : public AFdInfo
 
 	/* write*/
 	public:
-		int	writeEvent(FdTable & fd_table);
+		void	writeEvent(FdTable & fd_table);
 	private:
 		bool	retrieveResponse();
 		void	processResponse();

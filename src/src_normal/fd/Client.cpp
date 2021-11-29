@@ -39,14 +39,10 @@ struct pollfd	Client::getPollFd() const
 /****** readEvent ******/
 /***********************/
 
-int	Client::readEvent(FdTable & fd_table)
+void	Client::readEvent(FdTable & fd_table)
 {
 	_timer.reset();
-	if (parseRequest() == ERR)
-	{
-		return ERR;
-	}
-	return OK;
+	parseRequest();
 }
 
 int	Client::parseRequest()
@@ -112,7 +108,7 @@ void	Client::resetRequest()
 /****** writeEvent ******/
 /************************/
 
-int	Client::writeEvent(FdTable & fd_table)
+void	Client::writeEvent(FdTable & fd_table)
 {
 	_timer.reset();
 	while (_response_string.size() < BUFFER_SIZE
@@ -129,11 +125,10 @@ int	Client::writeEvent(FdTable & fd_table)
 	if (sendResponseString() == ERR)
 	{
 		closeConnection();
-		return ERR;
+		return;
 	}
 	removeWriteEvent(fd_table);
 	evaluateConnection();
-	return OK;
 }
 
 bool	Client::retrieveResponse()
@@ -216,7 +211,7 @@ void	Client::exceptionEvent(FdTable & fd_table)
 {
 	AFdInfo::exceptionEvent(fd_table); // RM, REMOVE, just for printing purposes
 	_response_queue.clear();
-	// TODO
+	_request_handler.clear();
 	closeConnection();
 }
 

@@ -34,7 +34,7 @@ struct pollfd CgiSender::getPollFd() const
 	return pfd;
 }
 
-int CgiSender::writeEvent(FdTable & fd_table)
+void CgiSender::writeEvent(FdTable & fd_table)
 {
 	_timer->reset();
 
@@ -45,7 +45,8 @@ int CgiSender::writeEvent(FdTable & fd_table)
 		if (n == ERR)
 		{
 			closeEvent(fd_table, AFdInfo::ERROR, StatusCode::INTERNAL_SERVER_ERROR);
-			return syscallError(_FUNC_ERR("write"));
+			syscallError(_FUNC_ERR("write"));
+			return;
 		}
 		_message_body.erase(0, n);
 		printf("%s: [%d]: Sent: %ld bytes\n",
@@ -58,14 +59,12 @@ int CgiSender::writeEvent(FdTable & fd_table)
 			getName().c_str(), getFd());
 		closeEvent(fd_table);
 	}
-	return OK;
 }
 
-int CgiSender::readEvent(FdTable & fd_table)
+void CgiSender::readEvent(FdTable & fd_table)
 {
-	std::cerr << "CGI SENDER READ EVENT CALLED: ABORTING PROGRAM" << std::endl;
+	std::cerr << RED_BOLD "CGI SENDER READ EVENT CALLED: ABORTING PROGRAM" RESET_COLOR << std::endl;
 	std::abort();
-	return OK;
 }
 
 void CgiSender::closeEvent(FdTable & fd_table)

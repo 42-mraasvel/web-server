@@ -10,8 +10,8 @@ class File : public AFdInfo
 		File(int fd);
 		struct pollfd	getPollFd() const;
 
-		int	readEvent(FdTable & fd_table);
-		int	writeEvent(FdTable & fd_table);
+		void	readEvent(FdTable & fd_table);
+		void	writeEvent(FdTable & fd_table);
 		void exceptionEvent(FdTable & fd_table);
 
 		std::string	const &	getContent() const;

@@ -5,7 +5,7 @@
 #include "RequestValidator.hpp"
 #include "ConfigResolver.hpp"
 #include "FileHandler.hpp"
-#include "cgi/CgiHandler.hpp"
+#include "handler/CgiHandler.hpp"
 
 class Response
 {

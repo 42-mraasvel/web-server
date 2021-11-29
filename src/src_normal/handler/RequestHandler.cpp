@@ -58,6 +58,14 @@ bool RequestHandler::isNextRequestSafe() const
 		|| _requests.front()->method == Method::GET;
 }
 
+void RequestHandler::clear()
+{
+	while (!_requests.empty())
+	{
+		_requests.pop();
+	}
+}
+
 void RequestHandler::newRequest()
 {
 	_request = RequestPointer(new Request(_client_addr, _interface_addr));

@@ -2,8 +2,6 @@
 #include "settings.hpp"
 #include "utility/utility.hpp"
 #include "utility/macros.hpp"
-#include "CgiSender.hpp"
-#include "CgiReader.hpp"
 #include "utility/status_codes.hpp"
 #include <libgen.h>
 #include <signal.h>

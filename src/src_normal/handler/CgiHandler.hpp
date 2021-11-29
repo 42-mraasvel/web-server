@@ -3,9 +3,9 @@
 # include "parser/Request.hpp"
 # include "parser/HeaderField.hpp"
 # include "fd/FdTable.hpp"
-# include "CgiSender.hpp"
-# include "CgiReader.hpp"
-# include "handler/iHandler.hpp"
+# include "fd/CgiSender.hpp"
+# include "fd/CgiReader.hpp"
+# include "iHandler.hpp"
 # include "utility/Timer.hpp"
 
 # include <vector>

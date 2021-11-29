@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <cstring>
+#include <cstdlib>
 
 int		Server::setupServer(int port, Config::address_map* config_map)
 {
@@ -38,7 +39,7 @@ int		Server::setupServer(int port, Config::address_map* config_map)
 	return OK;
 }
 
-int Server::readEvent(FdTable & fd_table)
+void Server::readEvent(FdTable & fd_table)
 {
 	sockaddr_in	client_address;
 	socklen_t	address_len = sizeof(client_address);
@@ -46,23 +47,24 @@ int Server::readEvent(FdTable & fd_table)
 	if (connection_fd == ERR)
 	{
 		syscallError(_FUNC_ERR("accept"));
-		return ERR;
+		return;
 	}
 	if (fcntl(connection_fd, F_SETFL, O_NONBLOCK) == ERR)
 	{
 		syscallError(_FUNC_ERR("fcntl"));
+		close(connection_fd);
+		return;
 	}
 
 	try
 	{
-		return initClient(client_address, connection_fd, fd_table);
+		initClient(client_address, connection_fd, fd_table);
 	}
 	catch (std::exception const & e)
 	{
 		close(connection_fd);
 		throw;
 	}
-	return OK;
 }
 
 int	Server::initClient(sockaddr_in address, int connection_fd, FdTable & fd_table)
@@ -120,10 +122,10 @@ int	Server::convertIP(sockaddr_in address, std::string & ip)
 	return OK;
 }
 
-int Server::writeEvent(FdTable & fd_table)
+void Server::writeEvent(FdTable & fd_table)
 {
-	std::cerr << RED_BOLD "Server write event detected!!" RESET_COLOR << std::endl;
-	return ERR;
+	std::cerr << RED_BOLD "SERVER WRITE EVENT: ABORTING" RESET_COLOR << std::endl;
+	std::abort();
 }
 
 struct pollfd Server::getPollFd() const
