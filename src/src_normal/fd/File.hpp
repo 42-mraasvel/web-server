@@ -14,13 +14,16 @@ class File : public AFdInfo
 		int	writeEvent(FdTable & fd_table);
 		void exceptionEvent(FdTable & fd_table);
 
-
 		std::string	const &	getContent() const;
 		void				appendContent(std::string & content);
 
 	/* Debugging */
 	public:
 		std::string getName() const;
+	
+	private:
+		void markError(FdTable & fd_table);
+		void markFinished(FdTable & fd_table, AFdInfo::Flags flag);
 
 	private:
 		std::string	_content;

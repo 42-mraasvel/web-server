@@ -29,8 +29,7 @@ int File::readEvent(FdTable & fd_table)
 	if (ret == ERR)
 	{
 		perror("read");
-		this->updateEvents(AFdInfo::WAITING, fd_table);
-		setFlag(AFdInfo::ERROR);
+		markError(fd_table);
 		return ERR;
 	}
 	if (getFlag() == AFdInfo::ACTIVE)
@@ -41,8 +40,7 @@ int File::readEvent(FdTable & fd_table)
 	_content.append(buffer);
 	if (ret < BUFFER_SIZE) // read EOF
 	{
-		this->updateEvents(AFdInfo::WAITING, fd_table);
-		setFlag(AFdInfo::COMPLETE);
+		markFinished(fd_table, AFdInfo::COMPLETE);
 	}
 	return OK;
 }
@@ -53,15 +51,13 @@ int File::writeEvent(FdTable & fd_table)
 	if (write(_fd, _content.c_str(), size) == ERR)
 	{
 		perror("write");
-		this->updateEvents(AFdInfo::WAITING, fd_table);
-		setFlag(AFdInfo::ERROR);
+		markError(fd_table);
 		return ERR;
 	}
 	_content.erase(0, size);
 	if (_content.empty())
 	{
-		this->updateEvents(AFdInfo::WAITING, fd_table);
-		setFlag(AFdInfo::COMPLETE);
+		markFinished(fd_table, AFdInfo::COMPLETE);
 	}
 	return OK;
 }
@@ -69,8 +65,7 @@ int File::writeEvent(FdTable & fd_table)
 void File::exceptionEvent(FdTable & fd_table)
 {
 	AFdInfo::exceptionEvent(fd_table); // RM, REMOVE
-	this->updateEvents(AFdInfo::WAITING, fd_table);
-	setFlag(AFdInfo::ERROR);
+	markError(fd_table);
 }
 
 std::string const &	File::getContent() const
@@ -94,4 +89,16 @@ void	File::appendContent(std::string & content)
 std::string File::getName() const
 {
 	return "File";
+}
+
+void File::markError(FdTable & fd_table)
+{
+	_content.clear();
+	markFinished(fd_table, AFdInfo::ERROR);
+}
+
+void File::markFinished(FdTable & fd_table, AFdInfo::Flags flag)
+{
+	setFlag(flag);
+	updateEvents(AFdInfo::WAITING, fd_table);
 }

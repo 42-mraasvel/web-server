@@ -53,9 +53,12 @@ int Server::readEvent(FdTable & fd_table)
 		syscallError(_FUNC_ERR("fcntl"));
 	}
 
-	try {
+	try
+	{
 		return initClient(client_address, connection_fd, fd_table);
-	} catch (std::exception const & e) {
+	}
+	catch (std::exception const & e)
+	{
 		close(connection_fd);
 		throw;
 	}

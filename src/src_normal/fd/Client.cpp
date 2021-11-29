@@ -178,6 +178,7 @@ void	Client::closeConnection()
 {
 	std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
 	_flag = AFdInfo::TO_ERASE;
+	// TODO: close the connection only in the update after a certain amount of time has elapsed: remove READING from events
 	_close_connection = true;
 }
 

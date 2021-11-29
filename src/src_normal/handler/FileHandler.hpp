@@ -45,7 +45,7 @@ class FileHandler: public iHandler
 
 	/* Client::writeEvent */
 	public:
-        void    setSpecificHeaderField(HeaderField & header_field);
+		void	setSpecificHeaderField(HeaderField & header_field);
 	private:
 		void		setContentType(HeaderField & header_field) const;
 

@@ -84,9 +84,12 @@ int	Webserver::dispatchFd(int ready)
 	{
 		if (shouldExecuteFd(_fd_table[i].second))
 		{
-			try {
+			try
+			{
 				executeFd(_fd_table[i].first.revents, _fd_table[i].second);
-			} catch (std::exception const & e) {
+			}
+			catch (std::exception const & e)
+			{
 				fprintf(stderr, "%sEXCEPTION%s: [%s]\n",
 					RED_BOLD, RESET_COLOR, e.what());
 				_fd_table[i].second->exceptionEvent(_fd_table);
@@ -101,9 +104,12 @@ void	Webserver::scanFdTable()
 {
 	for (std::size_t i = 0; i < _fd_table.size(); ++i)
 	{
-		try {
+		try
+		{
 			_fd_table[i].second->update(_fd_table);
-		} catch (std::exception const & e) {
+		}
+		catch (std::exception const & e)
+		{
 			fprintf(stderr, "%sUPDATE EXCEPTION%s: [%s]\n",
 				RED_BOLD, RESET_COLOR, e.what());
 			_fd_table[i].second->exceptionEvent(_fd_table);
@@ -144,7 +150,7 @@ int	Webserver::run()
 		else if (ready > 0)
 		{
 			printf(YELLOW_BOLD "Poll returns: " RESET_COLOR "%d\n", ready);
-			print();
+			// print();
 			dispatchFd(ready);
 		}
 		else
