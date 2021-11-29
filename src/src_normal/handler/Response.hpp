@@ -5,7 +5,7 @@
 #include "RequestValidator.hpp"
 #include "ConfigResolver.hpp"
 #include "FileHandler.hpp"
-#include "cgi/CgiHandler.hpp"
+#include "handler/CgiHandler.hpp"
 
 class Response
 {
@@ -105,6 +105,7 @@ class Response
 		bool				_header_part_set;
 		Chunk				_encoding;
 		bool				_close_connection;
+		bool				_error_page_attempted;
 
 		/* strings to send out */
 		std::string			_string_to_send;
@@ -118,6 +119,4 @@ class Response
 		FileHandler			_file_handler;
 		CgiHandler			_cgi_handler;
 		iHandler*			_handler;
-
-
 };

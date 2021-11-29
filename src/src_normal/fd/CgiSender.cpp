@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <algorithm>
 
-CgiSender::CgiSender(int fd, Request* r, Timer* timer)
+CgiSender::CgiSender(int fd, SmartPointer<Request> r, Timer* timer)
 : AFdInfo(fd), _timer(timer) {
 	//TODO: determine location and clean solution to this
 	if (r->method == Method::POST)
@@ -34,7 +34,7 @@ struct pollfd CgiSender::getPollFd() const
 	return pfd;
 }
 
-int CgiSender::writeEvent(FdTable & fd_table)
+void CgiSender::writeEvent(FdTable & fd_table)
 {
 	_timer->reset();
 
@@ -45,7 +45,8 @@ int CgiSender::writeEvent(FdTable & fd_table)
 		if (n == ERR)
 		{
 			closeEvent(fd_table, AFdInfo::ERROR, StatusCode::INTERNAL_SERVER_ERROR);
-			return syscallError(_FUNC_ERR("write"));
+			syscallError(_FUNC_ERR("write"));
+			return;
 		}
 		_message_body.erase(0, n);
 		printf("%s: [%d]: Sent: %ld bytes\n",
@@ -58,14 +59,12 @@ int CgiSender::writeEvent(FdTable & fd_table)
 			getName().c_str(), getFd());
 		closeEvent(fd_table);
 	}
-	return OK;
 }
 
-int CgiSender::readEvent(FdTable & fd_table)
+void CgiSender::readEvent(FdTable & fd_table)
 {
-	std::cerr << "CGI SENDER READ EVENT CALLED: TERMINATING PROGRAM" << std::endl;
-	std::terminate();
-	return OK;
+	std::cerr << RED_BOLD "CGI SENDER READ EVENT CALLED: ABORTING PROGRAM" RESET_COLOR << std::endl;
+	std::abort();
 }
 
 void CgiSender::closeEvent(FdTable & fd_table)
@@ -83,10 +82,27 @@ void CgiSender::closeEvent(FdTable & fd_table)
 
 void CgiSender::closeEvent(FdTable & fd_table, AFdInfo::Flags flag, int status_code)
 {
+	clear();
 	setFlag(flag);
 	updateEvents(AFdInfo::WAITING, fd_table);
 	_status_code = status_code;
 	closeFd(fd_table);
+}
+
+void CgiSender::clear()
+{
+	_message_body.clear();
+}
+
+void CgiSender::exceptionEvent(FdTable & fd_table)
+{
+	AFdInfo::exceptionEvent(fd_table); // RM, REMOVE
+	closeEvent(fd_table, AFdInfo::ERROR, StatusCode::INTERNAL_SERVER_ERROR);
+}
+
+int CgiSender::getStatusCode() const
+{
+	return _status_code;
 }
 
 std::string CgiSender::getName() const

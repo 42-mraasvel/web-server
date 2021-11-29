@@ -2,8 +2,6 @@
 #include "settings.hpp"
 #include "utility/utility.hpp"
 #include "utility/macros.hpp"
-#include "CgiSender.hpp"
-#include "CgiReader.hpp"
 #include "utility/status_codes.hpp"
 #include <libgen.h>
 #include <signal.h>
@@ -291,10 +289,13 @@ int CgiHandler::initializeCgiReader(int* cgi_fds, FdTable& fd_table)
 
 
 
-	try {
+	try
+	{
 		_reader = SmartPointer<CgiReader>(new CgiReader(fds[0], &_timer));
 		fd_table.insertFd(SmartPointer<AFdInfo>(_reader));
-	} catch (...) {
+	}
+	catch (...)
+	{
 		WebservUtility::closePipe(fds);
 		_reader = NULL;
 		throw;
@@ -322,10 +323,13 @@ int CgiHandler::initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request& r)
 	}
 
 	/* Exception safe code */
-	try {
+	try
+	{
 		_sender = SmartPointer<CgiSender>(new CgiSender(fds[1], &r, &_timer));
 		fd_table.insertFd(SmartPointer<AFdInfo>(_sender));
-	} catch (...) {
+	}
+	catch (...)
+	{
 		WebservUtility::closePipe(fds);
 		WebservUtility::closePipe(cgi_fds);
 		_sender = NULL;
@@ -475,6 +479,16 @@ bool CgiHandler::isExecutionError() const
 		|| (_sender && _sender->getFlag() == AFdInfo::ERROR);
 }
 
+int CgiHandler::getErrorCode() const
+{
+	if (_reader && _reader->getFlag() == AFdInfo::ERROR)
+	{
+		return _reader->getStatusCode();
+	}
+	
+	return _sender->getStatusCode();
+}
+
 void CgiHandler::setMessageBody(std::string & response_body)
 {
 	if (response_body.size() == 0)
@@ -567,7 +581,7 @@ void CgiHandler::update()
 
 	if (isExecutionError())
 	{
-		finishCgi(CgiHandler::ERROR, _reader->getStatusCode());
+		finishCgi(CgiHandler::ERROR, getErrorCode());
 		return;
 	}
 
@@ -575,7 +589,12 @@ void CgiHandler::update()
 	{
 		// TODO: if sending a CHUNKED Message, then we should APPEND only if it's actively reading
 		// HeaderField should just be swapped once it's parsed in that case (add HEADER_COMPLETE)
-		_message_body.swap(_reader->getBody());
+		if (_message_body.size() == 0) {
+			_message_body.swap(_reader->getBody());
+		} else {
+			_message_body.append(_reader->getBody());
+			_reader->getBody().clear();
+		}
 		_header.swap(_reader->getHeader());
 		_reader->setToErase();
 		_reader = NULL;
@@ -597,6 +616,23 @@ void CgiHandler::update()
 		printf("%sCgiHandler%s: TIMEOUT\n", RED_BOLD, RESET_COLOR); 
 		finishCgi(CgiHandler::ERROR, StatusCode::GATEWAY_TIMEOUT);
 	}
+}
+
+void CgiHandler::exceptionEvent()
+{
+	clear();
+	finishCgi(CgiHandler::ERROR, StatusCode::INTERNAL_SERVER_ERROR);
+	fprintf(stderr, "%sEXCEPTION%s: CgiHandler\n", RED_BOLD, RESET_COLOR);
+}
+
+void CgiHandler::clear()
+{
+	_root_dir.clear();;
+	_script.clear();
+	_target.clear();
+	_meta_variables.clear();;
+	_message_body.clear();
+	_header.clear();
 }
 
 int CgiHandler::checkStatusField() const
@@ -685,7 +721,7 @@ void CgiHandler::destroyFds()
 		_sender->setToErase();
 		_sender = NULL;
 	}
-	
+
 	if (_reader)
 	{
 		_reader->setToErase();

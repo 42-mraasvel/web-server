@@ -6,6 +6,7 @@
 #include <poll.h>
 #include <cassert>
 #include <unistd.h>
+#include <cstdlib>
 
 CgiReader::CgiReader(int fd, Timer* timer)
 : AFdInfo(fd), _timer(timer) {}
@@ -22,16 +23,15 @@ struct pollfd CgiReader::getPollFd() const
 	return pfd;
 }
 
-int	CgiReader::writeEvent(FdTable & fd_table)
+void CgiReader::writeEvent(FdTable & fd_table)
 {
 	fprintf(stderr, "[" RED_BOLD "ERROR" RESET_COLOR "] "
 		"CgiReader::writeEvent() called: "
-		RED_BOLD "TERMINATING PROGRAM" RESET_COLOR "\n");
-	std::terminate();
-	return OK;
+		RED_BOLD "ABORING PROGRAM" RESET_COLOR "\n");
+	std::abort();
 }
 
-int	CgiReader::readEvent(FdTable & fd_table)
+void CgiReader::readEvent(FdTable & fd_table)
 {
 	_timer->reset();
 
@@ -42,17 +42,16 @@ int	CgiReader::readEvent(FdTable & fd_table)
 	{
 		syscallError(_FUNC_ERR("read"));
 		closeEvent(fd_table, AFdInfo::ERROR, StatusCode::INTERNAL_SERVER_ERROR);
-		return ERR;
+		return;
 	}
 	else if (n == 0)
 	{
 		closeEvent(fd_table);
-		return OK;
+		return;
 	}
 
 	buffer.resize(n);
 	parseBuffer(fd_table, buffer);
-	return OK;
 }
 
 void CgiReader::parseBuffer(FdTable & fd_table, std::string const & buffer)
@@ -91,6 +90,18 @@ void CgiReader::closeEvent(FdTable & fd_table, AFdInfo::Flags flag, int status_c
 	updateEvents(AFdInfo::WAITING, fd_table);
 	_status_code = status_code;
 	closeFd(fd_table);
+}
+
+void CgiReader::exceptionEvent(FdTable & fd_table)
+{
+	AFdInfo::exceptionEvent(fd_table); // RM, REMOVE
+	clear();
+	closeEvent(fd_table, AFdInfo::ERROR, StatusCode::INTERNAL_SERVER_ERROR);
+}
+
+void CgiReader::clear()
+{
+	_parser.reset();
 }
 
 /* Interfacing Functions */

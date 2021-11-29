@@ -8,13 +8,7 @@ _interface_addr(interface),
 _request(NULL),
 _parser(config_map) {}
 
-RequestHandler::~RequestHandler() {
-	while (!_requests.empty())
-	{
-		RequestPointer x = _requests.front();
-		_requests.pop();
-	}
-}
+RequestHandler::~RequestHandler() {}
 
 int RequestHandler::parse(std::string const & buffer)
 {
@@ -62,6 +56,14 @@ bool RequestHandler::isNextRequestSafe() const
 {
 	return _requests.empty()
 		|| _requests.front()->method == Method::GET;
+}
+
+void RequestHandler::clear()
+{
+	while (!_requests.empty())
+	{
+		_requests.pop();
+	}
 }
 
 void RequestHandler::newRequest()

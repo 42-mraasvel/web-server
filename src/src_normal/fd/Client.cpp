@@ -24,14 +24,7 @@ _unsafe_request_count(0)
 	printf("Interface: [%s]:[%d]\n", interface.first.c_str(), interface.second);
 }
 
-Client::~Client()
-{
-	while (!_response_queue.empty())
-	{
-		Response*	temp = _response_queue.front();
-		_response_queue.pop_front();
-	}
-}
+Client::~Client() {}
 
 struct pollfd	Client::getPollFd() const
 {
@@ -46,14 +39,10 @@ struct pollfd	Client::getPollFd() const
 /****** readEvent ******/
 /***********************/
 
-int	Client::readEvent(FdTable & fd_table)
+void	Client::readEvent(FdTable & fd_table)
 {
 	_timer.reset();
-	if (parseRequest() == ERR)
-	{
-		return ERR;
-	}
-	return OK;
+	parseRequest();
 }
 
 int	Client::parseRequest()
@@ -119,7 +108,7 @@ void	Client::resetRequest()
 /****** writeEvent ******/
 /************************/
 
-int	Client::writeEvent(FdTable & fd_table)
+void	Client::writeEvent(FdTable & fd_table)
 {
 	_timer.reset();
 	while (_response_string.size() < BUFFER_SIZE
@@ -136,11 +125,10 @@ int	Client::writeEvent(FdTable & fd_table)
 	if (sendResponseString() == ERR)
 	{
 		closeConnection();
-		return ERR;
+		return;
 	}
 	removeWriteEvent(fd_table);
 	evaluateConnection();
-	return OK;
 }
 
 bool	Client::retrieveResponse()
@@ -185,6 +173,7 @@ void	Client::closeConnection()
 {
 	std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
 	_flag = AFdInfo::TO_ERASE;
+	// TODO: close the connection only in the update after a certain amount of time has elapsed: remove READING from events
 	_close_connection = true;
 }
 
@@ -212,6 +201,18 @@ int	Client::sendResponseString()
 void	Client::removeWriteEvent(FdTable & fd_table)
 {
 	updateEvents(AFdInfo::READING, fd_table);
+}
+
+/****************************/
+/****** exceptionEvent ******/
+/****************************/
+
+void	Client::exceptionEvent(FdTable & fd_table)
+{
+	AFdInfo::exceptionEvent(fd_table); // RM, REMOVE, just for printing purposes
+	_response_queue.clear();
+	_request_handler.clear();
+	closeConnection();
 }
 
 /*********************/
@@ -259,6 +260,7 @@ void	Client::update(FdTable & fd_table)
 	{
 		(*it)->update(fd_table);
 	}
+
 	if (!_response_string.empty()
 		|| isResponseReadyToWrite())
 	{
@@ -271,7 +273,7 @@ void	Client::update(FdTable & fd_table)
 	}
 	else if (_timer.elapsed() >= TIMEOUT)
 	{
-		printf("%sClient%s: TIMEOUT\n", RED_BOLD, RESET_COLOR);
+		printf("%sClient%s: [%d]: TIMEOUT\n", RED_BOLD, RESET_COLOR, getFd());
 		closeConnection();
 	}
 }

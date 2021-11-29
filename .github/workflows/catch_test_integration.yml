@@ -1,8 +1,7 @@
 name: Catch CI tests
 
 on:
-  push:
-    branches: [ main ]
+
   pull_request:
     branches: [ main ]
 

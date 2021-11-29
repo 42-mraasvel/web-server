@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <cstring>
+#include <cstdlib>
 
 int		Server::setupServer(int port, Config::address_map* config_map)
 {
@@ -38,7 +39,7 @@ int		Server::setupServer(int port, Config::address_map* config_map)
 	return OK;
 }
 
-int Server::readEvent(FdTable & fd_table)
+void Server::readEvent(FdTable & fd_table)
 {
 	sockaddr_in	client_address;
 	socklen_t	address_len = sizeof(client_address);
@@ -46,14 +47,24 @@ int Server::readEvent(FdTable & fd_table)
 	if (connection_fd == ERR)
 	{
 		syscallError(_FUNC_ERR("accept"));
-		return ERR;
+		return;
 	}
 	if (fcntl(connection_fd, F_SETFL, O_NONBLOCK) == ERR)
 	{
 		syscallError(_FUNC_ERR("fcntl"));
+		close(connection_fd);
+		return;
 	}
 
-	return initClient(client_address, connection_fd, fd_table);
+	try
+	{
+		initClient(client_address, connection_fd, fd_table);
+	}
+	catch (std::exception const & e)
+	{
+		close(connection_fd);
+		throw;
+	}
 }
 
 int	Server::initClient(sockaddr_in address, int connection_fd, FdTable & fd_table)
@@ -86,23 +97,16 @@ This gives you the IP:PORT the client connected to, useful for INADDR_ANY (0.0.0
 */
 int Server::getSocketAddress(int sockfd, Config::ip_host_pair & dst)
 {
-	sockaddr_in addr;
-	socklen_t len = sizeof(addr);
-	memset(&addr, 0, len);
-	if (getsockname(sockfd, reinterpret_cast<sockaddr *> (&addr), &len) == ERR)
+	sockaddr_in interface_addr;
+	socklen_t len = sizeof(interface_addr);
+	memset(&interface_addr, 0, len);
+	if (getsockname(sockfd, reinterpret_cast<sockaddr *> (&interface_addr), &len) == ERR)
 	{
 		return syscallError(_FUNC_ERR("getsockname"));
 	}
 
-	char ip[16];
-	if (inet_ntop(AF_INET, &(addr.sin_addr), ip, sizeof(ip)) == NULL)
-	{
-		return syscallError(_FUNC_ERR("inet_ntop"));
-	}
-
-	dst.first = std::string(ip);
-	dst.second = ntohs(addr.sin_port);
-	return OK;
+	dst.second = ntohs(interface_addr.sin_port);
+	return convertIP(interface_addr, dst.first);
 }
 
 int	Server::convertIP(sockaddr_in address, std::string & ip)
@@ -118,10 +122,10 @@ int	Server::convertIP(sockaddr_in address, std::string & ip)
 	return OK;
 }
 
-int Server::writeEvent(FdTable & fd_table)
+void Server::writeEvent(FdTable & fd_table)
 {
-	std::cerr << RED_BOLD "Server write event detected!!" RESET_COLOR << std::endl;
-	return ERR;
+	std::cerr << RED_BOLD "SERVER WRITE EVENT: ABORTING" RESET_COLOR << std::endl;
+	std::abort();
 }
 
 struct pollfd Server::getPollFd() const

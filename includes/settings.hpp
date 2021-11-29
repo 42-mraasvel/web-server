@@ -3,7 +3,7 @@
 #define ERR -1
 
 #define BACKLOG 10 //TODO: check later
-#define POLL_TIMEOUT 10000 // 10 seconds
+#define POLL_TIMEOUT 2500 // 2.5 seconds
 #define TIMEOUT 60 // 60 second timeout for now
 #define CRLF "\r\n"
 #define NEWLINE CRLF

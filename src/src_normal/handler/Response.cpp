@@ -23,6 +23,7 @@ _status(START),
 _header_part_set(false),
 _encoding(UNDEFINED),
 _close_connection(request.close_connection),
+_error_page_attempted(false),
 _is_cgi(false),
 _handler(&_file_handler)
 {
@@ -359,7 +360,13 @@ void	Response::update(FdTable & fd_table)
 {
 	if (_status != COMPLETE)
 	{
-		_handler->update();
+		try {
+			_handler->update();
+		} catch (std::exception const & e) {
+			fprintf(stderr, "%sUPDATE RESPONSE EXCEPTION%s: [%s]\n",
+				RED_BOLD, RESET_COLOR, e.what());
+			_handler->exceptionEvent();
+		}
 		if (_handler->isError())
 		{
 			markComplete(_handler->getStatusCode());
@@ -422,17 +429,7 @@ void	Response::setMessageBody(FdTable & fd_table)
 		}
 		else if (_message_body.empty())
 		{
-			if (isErrorPageRedirected(fd_table))
-			{
-				_status = START;
-				_encoding = UNDEFINED;
-				if (_is_cgi)
-				{
-					_is_cgi = false;
-					_handler = &_file_handler;
-				}
-			}
-			else
+			if (!_error_page_attempted && !isErrorPageRedirected(fd_table))
 			{
 				setOtherErrorPage();
 			}
@@ -474,8 +471,13 @@ bool	Response::isErrorPageRedirected(FdTable & fd_table)
 	ConfigResolver	error_page_resolver(_config_info.resolved_server);
 	if (error_page_resolver.resolveErrorPage(_status_code) == OK)
 	{
-		if(_file_handler.redirectErrorPage(fd_table, error_page_resolver.getConfigInfo().resolved_file_path, _status_code) == OK)
+		if (_file_handler.redirectErrorPage(fd_table, error_page_resolver.getConfigInfo().resolved_file_path, _status_code) == OK)
 		{
+			_status = START;
+			_encoding = UNDEFINED;
+			_error_page_attempted = true;
+			_is_cgi = false;
+			_handler = &_file_handler;
 			return true;
 		}
 	}

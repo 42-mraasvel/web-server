@@ -10,14 +10,7 @@ AFdInfo::AFdInfo(): _fd(-1) {}
 AFdInfo::AFdInfo(int fd): _fd(fd) {}
 
 AFdInfo::~AFdInfo() {
-	if (_fd != -1)
-	{
-		if (close(_fd) == ERR)
-		{
-			syscallError(_FUNC_ERR("close"));
-		}
-		_fd = -1;
-	}
+	closeFd();
 }
 
 int	AFdInfo::getFd() const
@@ -65,6 +58,12 @@ void	AFdInfo::closeEvent(FdTable & fd_table)
 	fd_table[_index].first.fd = -1;
 }
 
+void	AFdInfo::exceptionEvent(FdTable & fd_table)
+{
+	printf("%sException Event%s: %s\n",
+		RED_BOLD, RESET_COLOR, getName().c_str());
+}
+
 /* Destruction */
 
 void AFdInfo::setToErase()
@@ -81,7 +80,7 @@ void AFdInfo::closeFd()
 		{
 			syscallError(_FUNC_ERR("close"));
 		}
-		printf(BLUE_BOLD "Close File:" RESET_COLOR " [%d]\n", _fd);
+		printf(BLUE_BOLD "Close Fd:" RESET_COLOR " [%d]\n", _fd);
 		_fd = -1;
 	}
 }

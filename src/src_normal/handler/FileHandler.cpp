@@ -2,6 +2,7 @@
 #include "FileHandler.hpp"
 #include "fd/File.hpp"
 #include "utility/status_codes.hpp"
+#include "utility/utility.hpp"
 #include "parser/HeaderField.hpp"
 #include "MediaType.hpp"
 #include <unistd.h>
@@ -30,11 +31,16 @@ FileHandler::~FileHandler()
 int	FileHandler::executeRequest(FdTable & fd_table, Request & request)
 {
 	_method = request.method;
+	if (!WebservUtility::isFileExist(_absolute_file_path))
+	{
+		markError(StatusCode::NOT_FOUND);
+		return ERR;
+	}
 	if (createFile(fd_table) == ERR)
 	{
 		return ERR;
 	}
-	if(executeFile(request) == ERR)
+	if (executeFile(request) == ERR)
 	{
 		deleteFile();
 		return ERR;
@@ -114,7 +120,15 @@ bool	FileHandler::openFile(FdTable & fd_table)
 		return false;
 	}
 	printf(BLUE_BOLD "Open File:" RESET_COLOR " %s: [%d]\n", _absolute_file_path.c_str(), file_fd);
-	_file = FilePointer(new File(file_fd));
+	try
+	{
+		_file = FilePointer(new File(file_fd));
+	}
+	catch (...)
+	{
+		close(file_fd);
+		throw;
+	}
 	fd_table.insertFd(SmartPointer<AFdInfo>(_file));
 	return true;
 }
@@ -184,9 +198,7 @@ void	FileHandler::update()
 
 	if (isFileError())
 	{
-		deleteFile();
-		_status_code = StatusCode::INTERNAL_SERVER_ERROR;
-		_is_error = true;
+		markError(StatusCode::INTERNAL_SERVER_ERROR);
 		return ;
 	}
 
@@ -198,6 +210,12 @@ void	FileHandler::update()
 		_is_complete = true;
 		return ;
 	}
+}
+
+void	FileHandler::exceptionEvent()
+{
+	markError(StatusCode::INTERNAL_SERVER_ERROR);
+	fprintf(stderr, "%sEXCEPTION%s: FileHandler\n", RED_BOLD, RESET_COLOR);
 }
 
 int	FileHandler::redirectErrorPage(FdTable & fd_table, std::string const & file_path, int status_code)
@@ -332,11 +350,17 @@ bool	FileHandler::isFileReading() const
 void	FileHandler::deleteFile()
 {
 	_file->setToErase();
-	_file = NULL;		
+	_file = NULL;
 }
 
 void	FileHandler::markError(int status_code)
 {
 	_status_code = status_code;
 	_is_error = true;
+	_message_body.clear();
+	_absolute_file_path.clear();
+	if (_file)
+	{
+		deleteFile();
+	}
 }

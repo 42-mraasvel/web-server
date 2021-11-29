@@ -3,9 +3,9 @@
 # include "parser/Request.hpp"
 # include "parser/HeaderField.hpp"
 # include "fd/FdTable.hpp"
-# include "CgiSender.hpp"
-# include "CgiReader.hpp"
-# include "handler/iHandler.hpp"
+# include "fd/CgiSender.hpp"
+# include "fd/CgiReader.hpp"
+# include "iHandler.hpp"
 # include "utility/Timer.hpp"
 
 # include <vector>
@@ -37,6 +37,7 @@ class CgiHandler: public iHandler
 
 		int		executeRequest(FdTable& fd_table, Request& request);
 		void	update();
+		void	exceptionEvent();
 		bool	isComplete() const;
 		bool	isError() const;
 		void	setMessageBody(std::string & response_body);
@@ -78,12 +79,14 @@ class CgiHandler: public iHandler
 
 	/* Update Functionality */
 		bool isExecutionError() const;
+		int getErrorCode() const;
 		int cleanCgi();
 		int killCgi(int* status);
 
 	/* Destruction */
 
 		void destroyFds();
+		void clear();
 
 	private:
 		Status		_status;

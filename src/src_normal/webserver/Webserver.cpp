@@ -38,16 +38,41 @@ int	Webserver::init(Config const & config)
 	return OK;
 }
 
-bool Webserver::shouldExecuteFd(const FdTable::pair_t& fd)
+bool Webserver::shouldExecuteFd(const FdTable::AFdPointer afd)
 {
-	return fd.second->getFlag() != AFdInfo::TO_ERASE;
+	return afd->getFlag() != AFdInfo::TO_ERASE;
 }
 
-bool Webserver::shouldCloseFd(const FdTable::pair_t & fd)
+bool Webserver::shouldCloseFd(short revents) const
 {
 	//TODO: test on mac if this is how it functions as well
-	return (fd.first.revents & (POLLERR | POLLNVAL)) ||
-		((fd.first.revents & POLLHUP) && !(fd.first.revents & POLLIN));
+	return (revents & (POLLERR | POLLNVAL)) ||
+		((revents & POLLHUP) && !(revents & POLLIN));
+}
+
+void Webserver::executeFd(short revents, FdTable::AFdPointer afd)
+{
+	if (shouldCloseFd(revents))
+	{
+		printf(BLUE_BOLD "Close Event:" RESET_COLOR " %s: [%d]\n",
+			afd->getName().c_str(), afd->getFd());
+		afd->closeEvent(_fd_table);
+		return;
+	}
+
+	if (revents & POLLIN)
+	{
+		printf(BLUE_BOLD "Read event:" RESET_COLOR " %s: [%d]\n",
+			afd->getName().c_str(), afd->getFd());
+		afd->readEvent(_fd_table);
+	}
+
+	if (revents & POLLOUT)
+	{
+		printf(BLUE_BOLD "Write event:" RESET_COLOR " %s: [%d]\n",
+			afd->getName().c_str(), afd->getFd());
+		afd->writeEvent(_fd_table);
+	}
 }
 
 //TODO: evaluate 'ready'
@@ -57,28 +82,17 @@ int	Webserver::dispatchFd(int ready)
 	std::size_t i = 0;
 	for (std::size_t i = 0; i < _fd_table.size(); ++i)
 	{
-		if (shouldExecuteFd(_fd_table[i]))
+		if (shouldExecuteFd(_fd_table[i].second))
 		{
-			if (shouldCloseFd(_fd_table[i]))
+			try
 			{
-				printf(BLUE_BOLD "Close Event:" RESET_COLOR " %s: [%d]\n",
-					_fd_table[i].second->getName().c_str(), _fd_table[i].first.fd);
-				_fd_table[i].second->closeEvent(_fd_table);
-				continue;
+				executeFd(_fd_table[i].first.revents, _fd_table[i].second);
 			}
-			if (_fd_table[i].first.revents & POLLIN)
+			catch (std::exception const & e)
 			{
-				printf(BLUE_BOLD "Read event:" RESET_COLOR " %s: [%d]\n",
-					_fd_table[i].second->getName().c_str(), _fd_table[i].first.fd);
-				if (_fd_table[i].second->readEvent(_fd_table) == ERR)
-					return ERR;
-			}
-			if (_fd_table[i].first.revents & POLLOUT)
-			{
-				printf(BLUE_BOLD "Write event:" RESET_COLOR " %s: [%d]\n",
-					_fd_table[i].second->getName().c_str(), _fd_table[i].first.fd);
-				if(_fd_table[i].second->writeEvent(_fd_table) == ERR)
-					return ERR;
+				fprintf(stderr, "%sEXCEPTION%s: [%s]\n",
+					RED_BOLD, RESET_COLOR, e.what());
+				_fd_table[i].second->exceptionEvent(_fd_table);
 			}
 		}
 	}
@@ -90,7 +104,16 @@ void	Webserver::scanFdTable()
 {
 	for (std::size_t i = 0; i < _fd_table.size(); ++i)
 	{
-		_fd_table[i].second->update(_fd_table);
+		try
+		{
+			_fd_table[i].second->update(_fd_table);
+		}
+		catch (std::exception const & e)
+		{
+			fprintf(stderr, "%sUPDATE EXCEPTION%s: [%s]\n",
+				RED_BOLD, RESET_COLOR, e.what());
+			_fd_table[i].second->exceptionEvent(_fd_table);
+		}
 	}
 
 	std::size_t i = 0;
@@ -127,7 +150,7 @@ int	Webserver::run()
 		else if (ready > 0)
 		{
 			printf(YELLOW_BOLD "Poll returns: " RESET_COLOR "%d\n", ready);
-			print();
+			// print();
 			dispatchFd(ready);
 		}
 		else
