@@ -1,9 +1,17 @@
 ------------------
 --     NOW      --
 ------------------
->> 100 continue no follow response?
+- ResponseHandler instead of response, turn response into a struct
+- Upload: check directory given by configuration for POST requests
+- Post request without CGI
 
->> close in stage
+- Client::update(): don't execute requests if the FdTable is too full
+- Server::Update() can remove the POLLIN event if there are too many open connections
+    - Either don't accept or deny the FdTable insertion and close connection
+    - FD_TABLE_MAX_SIZE
+- Client::closeConnection(): wait a certain amount of time before closing the connection
+    - So that the client can finish reading the response
+    - Use timeout to check this
 
 ------------------
 --    LATER     --

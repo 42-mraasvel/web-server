@@ -14,7 +14,6 @@ Client::Client(int fd, AddressType client,
 AFdInfo(fd),
 _request_handler(client, interface, config_map),
 _request(NULL),
-_new_response(NULL),
 _response(NULL),
 _close_connection(false),
 _unsafe_request_count(0)
@@ -75,46 +74,92 @@ int	Client::readRequest(std::string & buffer)
 	return OK;
 }
 
+/*************************/
+/****** updateEvent ******/
+/*************************/
+
+void	Client::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
+{
+	short int updated_events;
+
+	switch (type)
+	{
+		case AFdInfo::READING:
+			updated_events = POLLIN;
+			break;
+		case AFdInfo::WRITING:
+			updated_events = POLLOUT;
+			break;
+		case AFdInfo::WAITING:
+			updated_events = 0;
+			break;
+	}
+	fd_table[_index].first.events = updated_events | POLLIN;
+}
+
+void	Client::update(FdTable & fd_table)
+{
+	executeRequests(fd_table);
+
+	_response_handler.updateResponseQueue(fd_table);
+
+	if (!_response_string.empty()
+		|| _response_handler.canClientWrite())
+	{
+		updateEvents(AFdInfo::WRITING, fd_table);
+	}
+
+	if (!_response_handler.isResponseQueueEmpty())
+	{
+		_timer.reset();
+	}
+	else if (_timer.elapsed() >= TIMEOUT)
+	{
+		printf("%sClient%s: [%d]: TIMEOUT\n", RED_BOLD, RESET_COLOR, getFd());
+		closeConnection();
+	}
+}
+
+void Client::executeRequests(FdTable & fd_table)
+{
+	while (canExecuteRequest() && retrieveRequest())
+	{
+		_request->print();
+		increUnsafe(_request->method);
+		_response_handler.processRequest(fd_table, *_request);
+		resetRequest();
+	}
+}
+
+bool Client::canExecuteRequest() const
+{
+	return !_unsafe_request_count
+		&& !(!_request_handler.isNextRequestSafe() && !_response_handler.isResponseQueueEmpty());
+}
+
 bool	Client::retrieveRequest()
 {
 	_request = _request_handler.getNextRequest();
-	if (!_request)
-	{
-		return false;
-	}
-	return true;
-}
-
-void	Client::processRequest(FdTable & fd_table)
-{
-	increUnsafe(_request->method);
-	initResponse(*_request);
-	_new_response->executeRequest(fd_table, *_request);
-}
-
-void	Client::initResponse(Request const & request)
-{
-	_new_response = ResponsePointer(new Response(request));
-	_response_queue.push_back(_new_response);
+	return _request;
 }
 
 void	Client::resetRequest()
 {
 	_request = NULL;
-	_new_response = NULL;
 }
 
 /************************/
 /****** writeEvent ******/
 /************************/
 
+// TODO: to discuss: should we move this working _response to ResponseHandler??
 void	Client::writeEvent(FdTable & fd_table)
 {
 	_timer.reset();
 	while (_response_string.size() < BUFFER_SIZE
 			&& retrieveResponse())
 	{
-		processResponse();
+		_response->generateResponse(_response_string);
 		if (_response->isComplete())
 		{
 			decreUnsafe(_response->getMethod());
@@ -139,26 +184,10 @@ bool	Client::retrieveResponse()
 		{
 			return false;
 		}
-		if (_response_queue.empty())
-		{
-			return false;
-		}
-		_response = _response_queue.front();
-		return true;
+		_response = _response_handler.getNextResponse();
+		return _response;
 	}
 	return _response->isComplete() || _response->isReadyToWrite();
-}
-
-void	Client::processResponse()
-{
-	_response->generateResponse();
-	appendResponseString();
-}
-
-void	Client::appendResponseString()
-{
-	_response_string.append(_response->getString());
-	_response->clearString();
 }
 
 void	Client::evaluateConnection()
@@ -169,17 +198,8 @@ void	Client::evaluateConnection()
 	}
 }
 
-void	Client::closeConnection()
-{
-	std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
-	_flag = AFdInfo::TO_ERASE;
-	// TODO: close the connection only in the update after a certain amount of time has elapsed: remove READING from events
-	_close_connection = true;
-}
-
 void	Client::resetResponse()
 {
-	_response_queue.pop_front();
 	_response = NULL;
 }
 
@@ -210,7 +230,7 @@ void	Client::removeWriteEvent(FdTable & fd_table)
 void	Client::exceptionEvent(FdTable & fd_table)
 {
 	AFdInfo::exceptionEvent(fd_table); // RM, REMOVE, just for printing purposes
-	_response_queue.clear();
+	_response_handler.clear();
 	_request_handler.clear();
 	closeConnection();
 }
@@ -218,76 +238,13 @@ void	Client::exceptionEvent(FdTable & fd_table)
 /*********************/
 /****** utility ******/
 /*********************/
-void	Client::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
+
+void	Client::closeConnection()
 {
-	short int updated_events;
-
-	switch (type)
-	{
-		case AFdInfo::READING:
-			updated_events = POLLIN;
-			break;
-		case AFdInfo::WRITING:
-			updated_events = POLLOUT;
-			break;
-		case AFdInfo::WAITING:
-			updated_events = 0;
-			break;
-	}
-	fd_table[_index].first.events = updated_events | POLLIN;
-}
-
-bool Client::canExecuteRequest() const
-{
-	return !_unsafe_request_count
-		&& !(!_request_handler.isNextRequestSafe() && _response_queue.size() > 0);
-}
-
-void Client::executeRequests(FdTable & fd_table)
-{
-	while (canExecuteRequest() && retrieveRequest())
-	{
-		_request->print();
-		processRequest(fd_table);
-		resetRequest();
-	}
-}
-
-void	Client::update(FdTable & fd_table)
-{
-	executeRequests(fd_table);
-	for (ResponseQueue::iterator it = _response_queue.begin(); it != _response_queue.end(); ++it)
-	{
-		(*it)->update(fd_table);
-	}
-
-	if (!_response_string.empty()
-		|| isResponseReadyToWrite())
-	{
-		updateEvents(AFdInfo::WRITING, fd_table);
-	}
-
-	if (!_response_queue.empty())
-	{
-		_timer.reset();
-	}
-	else if (_timer.elapsed() >= TIMEOUT)
-	{
-		printf("%sClient%s: [%d]: TIMEOUT\n", RED_BOLD, RESET_COLOR, getFd());
-		closeConnection();
-	}
-}
-
-bool	Client::isResponseReadyToWrite() const
-{
-	return !_response_queue.empty()
-			&& (_response_queue.front()->isComplete()
-				|| _response_queue.front()->isReadyToWrite());
-}
-
-std::string Client::getName() const
-{
-	return "Client";
+	std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
+	_flag = AFdInfo::TO_ERASE;
+	// TODO: close the connection only in the update after a certain amount of time has elapsed: remove READING from events
+	_close_connection = true;
 }
 
 bool	Client::isMethodSafe(Method::Type const & method) const
@@ -310,3 +267,13 @@ void	Client::decreUnsafe(Method::Type const & method)
 		_unsafe_request_count--;
 	}
 }
+
+/***********************/
+/****** debugging ******/
+/***********************/
+
+std::string Client::getName() const
+{
+	return "Client";
+}
+
