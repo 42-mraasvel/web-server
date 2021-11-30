@@ -22,11 +22,12 @@ Parsing Specific Defines
 /*
 Response Specific Defines
 */
-#define MAX_FD_SIZE 50 // TODO: evaluate later
+#define FD_TABLE_MAX_SIZE 50 // TODO: evaluate later
 #define BUFFER_SIZE 4096 // TODO: evaluate later
 #define CHUNK_THRESHOLD 2048 // TODO: evaluate later
 #define CHUNK_TAIL "0" CRLF CRLF
 #define RETRY_AFTER_SECONDS 30
+#define CLOSE_CONNECTION_DELAY 30 // TODO: evaluate later
 
 /*
 Printing

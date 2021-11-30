@@ -80,5 +80,6 @@ class Client : public AFdInfo
 		std::string				_response_string;
 		bool					_close_connection;
 		Timer					_timer;
+		Timer					_close_connection_timer;
 		int						_unsafe_request_count;
 };

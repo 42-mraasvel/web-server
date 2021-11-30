@@ -15,6 +15,7 @@ class Server : public AFdInfo
 		int	setupServer(int port, Config::address_map* config_map);
 		void readEvent(FdTable & fd_table);
 		void writeEvent(FdTable & fd_table);
+		void update(FdTable & fd_table);
 		struct pollfd getPollFd() const;
 	private:
 		int	initClient(sockaddr_in address, int connection_fd, FdTable & fd_table);

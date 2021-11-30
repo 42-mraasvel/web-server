@@ -135,7 +135,7 @@ bool Client::canExecuteRequest(int fd_table_size) const
 {
 	return !_unsafe_request_count
 		&& !(!_request_handler.isNextRequestSafe() && !_response_handler.isResponseQueueEmpty())
-		&& fd_table_size < MAX_FD_SIZE;
+		&& fd_table_size < FD_TABLE_MAX_SIZE;
 }
 
 bool	Client::retrieveRequest()
