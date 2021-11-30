@@ -11,6 +11,10 @@
 #include <time.h>
 #include <algorithm>
 
+ResponseHandler::ResponseHandler():
+_response(NULL)
+{}
+
 /*********************************************/
 /****** (Client::update) execute request *****/
 /*********************************************/
@@ -45,8 +49,12 @@ ResponseHandler::ResponsePointer	ResponseHandler::getNextResponse()
 		return NULL;
 	}
 	ResponsePointer	r = _response_queue.front();
-	_response_queue.pop_front();
 	return r;
+}
+
+void	ResponseHandler::popQueue()
+{
+	_response_queue.pop_front();
 }
 
 /******************************/

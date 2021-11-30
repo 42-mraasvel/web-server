@@ -201,6 +201,7 @@ void	Client::evaluateConnection()
 void	Client::resetResponse()
 {
 	_response = NULL;
+	_response_handler.popQueue();
 }
 
 int	Client::sendResponseString()

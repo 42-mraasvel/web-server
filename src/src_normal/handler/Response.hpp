@@ -33,6 +33,9 @@ class Response
 		Method::Type	getMethod() const;
 		bool			getCloseConnectionFlag() const;
 
+	// TODO: to delete
+		void	print() const;
+
 	private:
 		ResponseGenerator	_generator;
 		ResponseProcessor	_processor;
