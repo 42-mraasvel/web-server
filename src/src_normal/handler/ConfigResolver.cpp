@@ -252,9 +252,9 @@ ConfigInfo::location_block_pointer	ConfigResolver::resolveLocationResult(Method:
 	}
 	if (info.result != ConfigInfo::NOT_FOUND)
 	{
-		if (CgiHandler::isCgi(target, location->_cgi))
+		if (CgiHandler::isCgi(info.resolved_target, location->_cgi))
 		{
-			CgiHandler::resolveCgiTarget(target, location->_cgi, info);
+			CgiHandler::resolveCgiTarget(info.resolved_target, location->_cgi, info);
 		}
 		info.resolved_file_path = location->_root + info.resolved_target;
 	}
