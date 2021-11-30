@@ -252,10 +252,6 @@ ConfigInfo::location_block_pointer	ConfigResolver::resolveLocationResult(Method:
 	}
 	if (info.result != ConfigInfo::NOT_FOUND)
 	{
-		if (CgiHandler::isCgi(info.resolved_target, location->_cgi))
-		{
-			CgiHandler::resolveCgiTarget(info.resolved_target, location->_cgi, info);
-		}
 		info.resolved_file_path = location->_root + info.resolved_target;
 	}
 	return location;
@@ -267,7 +263,7 @@ ConfigInfo::location_block_pointer	ConfigResolver::resolveLocation(std::string c
 
 	if (!target.empty() && isMatchLocation(target, locations, it_matched))
 	{
-		if (isTargetDirectory(target) && !CgiHandler::isCgi(target, (*it_matched)->_cgi))
+		if (isTargetDirectory(target))
 		{
 			return resolveIndex(it_matched, target, locations);
 		}

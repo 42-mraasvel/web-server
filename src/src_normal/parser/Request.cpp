@@ -165,8 +165,6 @@ static void printConfigInfo(const ConfigInfo& info)
 	}
 	printf("Resolved Target: %s\n", info.resolved_target.c_str());
 	printf("Resolved File Path: %s\n", info.resolved_file_path.c_str());
-	printf("Resolved CGI Script: %s\n", info.resolved_cgi_script.c_str());
-	printf("Resolved Path Info: %s\n", info.resolved_path_info.c_str());
 	printVector("  -- ALLOWED METHODS --", info.resolved_location->_allowed_methods);
 	printVector("  -- INDEX --", info.resolved_location->_index);
 	printf("  -- CGI --\n");
