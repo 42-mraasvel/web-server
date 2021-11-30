@@ -78,6 +78,7 @@ void CgiHandler::resolveCgiTarget(std::string const & target, CgiVectorType cons
 	std::size_t end = target.find("/", index + 1);
 	info.resolved_target = target.substr(0, end);
 	if (end != std::string::npos) {
+		// TODO: default value maybe should be "/" (if empty) ?
 		info.resolved_path_info = target.substr(end);
 	}
 }
@@ -102,6 +103,8 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 
 	if (!scriptCanBeExecuted())
 	{
+		fprintf(stderr, "%sCgiHandler%s: Cgi Script: %s: cannot be executed\n",
+			RED_BOLD, RESET_COLOR, _script.c_str());
 		finishCgi(ERROR, StatusCode::BAD_GATEWAY);
 		return ERR;
 	}
@@ -115,6 +118,7 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 	}
 
 	/* 3. Fork */
+	print();
 	if (forkCgi(fds, fd_table) == ERR)
 	{
 		finishCgi(ERROR, StatusCode::INTERNAL_SERVER_ERROR);
@@ -143,7 +147,6 @@ bool CgiHandler::scriptCanBeExecuted()
 /* Setting up the meta-variables (environment) */
 
 /*
-Already known: PATH_INFO
 
 To Generate:
 
@@ -155,6 +158,7 @@ To Generate:
 
 Easy Copy:
 
+	PATH_INFO
 	QUERY_STRING: present in the request
 	REMOTE_ADDR: IPv4 address of client
 	REQUEST_METHOD: from Request
@@ -175,9 +179,10 @@ Hardcoded:
 void CgiHandler::generateMetaVariables(const Request& request)
 {
 	/* To Generate */
-	// TODO: REMOTE_HOST, PATH_TRANSLATED [OPTIONAL]
-	_meta_variables.push_back(MetaVariableType("PATH_INFO", request.config_info.resolved_path_info));
+	// TODO: REMOTE_HOST [OPTIONAL]
 	metaVariableContent(request);
+	_meta_variables.push_back(MetaVariableType("PATH_INFO", request.config_info.resolved_path_info));
+	_meta_variables.push_back(MetaVariableType("PATH_TRANSLATED", _root_dir + request.config_info.resolved_path_info));
 
 	_meta_variables.push_back(MetaVariableType("SCRIPT_NAME", request.config_info.resolved_target));
 	// TODO: SERVER_NAME: Check SERVER_NAMES in the ResolvedServer: use Host to determine this
@@ -640,6 +645,7 @@ int CgiHandler::checkStatusField() const
 	HeaderField::const_pair_type status = _header.get("Status");
 	if (status.second)
 	{
+		printf("Cgi returned StatusCode: %s\n", status.first->second.c_str());
 		return WebservUtility::strtol(status.first->second);
 	}
 	return StatusCode::STATUS_OK;
