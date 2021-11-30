@@ -48,14 +48,16 @@ class Client : public AFdInfo
 	public:
 		void	writeEvent(FdTable & fd_table);
 	private:
-		bool	retrieveResponse();
-		void	evaluateConnection();
-		void	resetResponse();
-		int		sendResponseString();
-		void	removeWriteEvent(FdTable & fd_table);
+		bool		retrieveResponse();
+		void		evaluateConnection();
+		void		resetResponse();
+		int			sendResponseString();
+		void		removeWriteEvent(FdTable & fd_table);
+
 	/* Exception */
 	public:
 		void	exceptionEvent(FdTable & fd_table);
+
 	/* utility */
 	public:
 		typedef HeaderField::iterator header_iterator;
