@@ -183,7 +183,7 @@ void CgiHandler::generateMetaVariables(const Request& request)
 	metaVariableContent(request);
 	metaVariablePathInfo(request);
 
-	_meta_variables.push_back(MetaVariableType("SCRIPT_NAME", request.config_info.resolved_target));
+	// _meta_variables.push_back(MetaVariableType("SCRIPT_NAME", _script));
 	// TODO: SERVER_NAME: Check SERVER_NAMES in the ResolvedServer: use Host to determine this
 	// Right now it's the IP of the interface the client connected with
 	_meta_variables.push_back(MetaVariableType("SERVER_NAME", request.interface_addr.first));
