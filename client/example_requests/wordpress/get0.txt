@@ -1,3 +1,3 @@
-GET /wordpress/ HTTP/1.1
+GET /wordpress/index.py HTTP/1.1
 host: localhost:8080
 

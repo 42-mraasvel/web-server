@@ -14,7 +14,7 @@
 // Configuration syntax: CGI .py /usr/bin/python3
 
 CgiHandler::CgiHandler()
-: _status(CgiHandler::INACTIVE), _status_code(StatusCode::STATUS_OK), _sender(NULL), _reader(NULL), _cgi_pid(-1) {}
+: _status(CgiHandler::INACTIVE), _status_code(0), _sender(NULL), _reader(NULL), _cgi_pid(-1) {}
 
 CgiHandler::~CgiHandler()
 {
