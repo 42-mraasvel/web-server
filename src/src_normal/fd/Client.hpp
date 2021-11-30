@@ -40,7 +40,7 @@ class Client : public AFdInfo
 		void	update(FdTable & fd_table);
 	private:
 		void		executeRequests(FdTable & fd_table);
-		bool			canExecuteRequest() const;
+		bool			canExecuteRequest(int fd_table_size) const;
 		bool			retrieveRequest();
 		void			resetRequest();
 

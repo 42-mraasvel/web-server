@@ -122,7 +122,7 @@ void	Client::update(FdTable & fd_table)
 
 void Client::executeRequests(FdTable & fd_table)
 {
-	while (canExecuteRequest() && retrieveRequest())
+	while (canExecuteRequest(fd_table.size()) && retrieveRequest())
 	{
 		_request->print();
 		increUnsafe(_request->method);
@@ -131,10 +131,11 @@ void Client::executeRequests(FdTable & fd_table)
 	}
 }
 
-bool Client::canExecuteRequest() const
+bool Client::canExecuteRequest(int fd_table_size) const
 {
 	return !_unsafe_request_count
-		&& !(!_request_handler.isNextRequestSafe() && !_response_handler.isResponseQueueEmpty());
+		&& !(!_request_handler.isNextRequestSafe() && !_response_handler.isResponseQueueEmpty())
+		&& fd_table_size < MAX_FD_SIZE;
 }
 
 bool	Client::retrieveRequest()

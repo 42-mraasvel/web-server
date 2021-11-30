@@ -142,11 +142,14 @@ void	ResponseProcessor::updateResponse(FdTable & fd_table, std::string & message
 			markComplete(_handler->getStatusCode());
 		}
 	}
+
 	setMessageBody(fd_table, message_body);
+	
 	if (_handler->isComplete())
 	{
 		markComplete(_handler->getStatusCode());
 	}
+
 	setEncoding(message_body);
 }
 
@@ -187,19 +190,21 @@ bool	ResponseProcessor::isReadyToBeChunked(std::string const & message_body) con
 
 void	ResponseProcessor::setMessageBody(FdTable & fd_table, std::string & message_body)
 {
-	if (_info.status == ResponseInfo::COMPLETE && !StatusCode::isStatusCodeNoMessageBody(_info.status_code))
+	if (_info.status == ResponseInfo::COMPLETE && 	!StatusCode::isStatusCodeNoMessageBody(_info.status_code))
 	{
 		if (_info.config_info.result == ConfigInfo::REDIRECT)
 		{
 			processRedirectResponse(message_body);
 		}
-		else if (_info.config_info.result == ConfigInfo::AUTO_INDEX_ON && _info.status_code == StatusCode::STATUS_OK)
+		else if (_info.config_info.result == ConfigInfo::AUTO_INDEX_ON
+				&& _info.status_code == StatusCode::STATUS_OK)
 		{
 			processAutoIndex(message_body);
 		}
 		else if (message_body.empty())
 		{
-			if (!_info.error_page_attempted && !isErrorPageRedirected(fd_table))
+			if (!_info.error_page_attempted
+				&& !isErrorPageRedirected(fd_table))
 			{
 				setOtherErrorPage(message_body);
 			}

@@ -17,12 +17,12 @@ Config Specific Defines
 /*
 Parsing Specific Defines
 */
-
 #define MAX_HEADER_SIZE 8192 // TODO: evaluate [RFC7230] : Section 3.1.1. (page 22)
 
 /*
 Response Specific Defines
 */
+#define MAX_FD_SIZE 50 // TODO: evaluate later
 #define BUFFER_SIZE 4096 // TODO: evaluate later
 #define CHUNK_THRESHOLD 2048 // TODO: evaluate later
 #define CHUNK_TAIL "0" CRLF CRLF

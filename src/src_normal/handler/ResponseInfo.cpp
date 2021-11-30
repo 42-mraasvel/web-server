@@ -19,10 +19,8 @@ request_target(request.request_target),
 config_info(request.config_info),
 http_version(setHttpVersion(request.minor_version)),
 close_connection(request.close_connection),
-
 status(START),
 status_code(0),
-
 is_cgi(false),
 error_page_attempted(false),
 encoding(UNDEFINED)

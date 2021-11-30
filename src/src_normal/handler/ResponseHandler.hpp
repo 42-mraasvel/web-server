@@ -23,7 +23,8 @@ class ResponseHandler
 	/* Client::writeEvent() */
 	public:
 		ResponsePointer	getNextResponse();
-		void	popQueue();
+		void			popQueue();
+
 	/* utility */
 	public:
 		bool	isResponseQueueEmpty() const;

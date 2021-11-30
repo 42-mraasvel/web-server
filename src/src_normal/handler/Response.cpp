@@ -60,8 +60,3 @@ bool			Response::getCloseConnectionFlag() const
 {
 	return _processor.getInfo().close_connection;
 }
-
-void		Response::print() const
-{
-	printf(RED_BOLD "Response is: %s\n" RESET_COLOR, _processor.getInfo().request_target.c_str());
-}

@@ -12,7 +12,7 @@ class ResponseProcessor
 	public:
 		ResponseProcessor(Request const & request);
 
-	/* Client::update() - dispatchRequest */
+	/* Client::update() - executeRequest */
 	public:
 		void	executeRequest(FdTable & fd_table, Request & request);
 	private:

@@ -29,10 +29,9 @@ struct ResponseInfo
 	std::string 		http_version;
 	bool				close_connection;
 
-	/* info */
+	/* other info */
 	Status				status;
 	int					status_code;
-
 	std::string			effective_request_uri;
 	bool				is_cgi;
 	bool				error_page_attempted;

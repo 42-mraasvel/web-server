@@ -15,10 +15,6 @@ class	FdTable;
 class Response
 {
 	public:
-		typedef HeaderField::const_iterator	header_iterator;
-		typedef	std::vector<std::string>::const_iterator		method_iterator;
-
-	public:
 		Response(Request const & request);
 
 	public:
@@ -26,15 +22,11 @@ class Response
 		void	update(FdTable & fd_table);
 		void	generateResponse(std::string & append_to);
 
-	/* utility */
-	public:
 		bool	isReadyToWrite() const;
 		bool	isComplete() const;
+
 		Method::Type	getMethod() const;
 		bool			getCloseConnectionFlag() const;
-
-	// TODO: to delete
-		void	print() const;
 
 	private:
 		ResponseGenerator	_generator;
