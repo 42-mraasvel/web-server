@@ -150,7 +150,7 @@ int	Webserver::run()
 		else if (ready > 0)
 		{
 			printf(YELLOW_BOLD "Poll returns: " RESET_COLOR "%d\n", ready);
-			// print();
+			print();
 			dispatchFd(ready);
 		}
 		else

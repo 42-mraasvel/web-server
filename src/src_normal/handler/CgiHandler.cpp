@@ -62,7 +62,7 @@ bool CgiHandler::isCgi(Request const & request)
 	return isCgi(request.config_info.resolved_target, request.config_info.resolved_location->_cgi);
 }
 
-void CgiHandler::resolveCgiTarget(std::string const & target, CgiVectorType const & cgi,
+void CgiHandler::resolveCgiTarget(std::string const target, CgiVectorType const & cgi,
 						ConfigInfo& info)
 {
 	std::size_t index = 0;
@@ -181,8 +181,7 @@ void CgiHandler::generateMetaVariables(const Request& request)
 	/* To Generate */
 	// TODO: REMOTE_HOST [OPTIONAL]
 	metaVariableContent(request);
-	_meta_variables.push_back(MetaVariableType("PATH_INFO", request.config_info.resolved_path_info));
-	_meta_variables.push_back(MetaVariableType("PATH_TRANSLATED", _root_dir + request.config_info.resolved_path_info));
+	metaVariablePathInfo(request);
 
 	_meta_variables.push_back(MetaVariableType("SCRIPT_NAME", request.config_info.resolved_target));
 	// TODO: SERVER_NAME: Check SERVER_NAMES in the ResolvedServer: use Host to determine this
@@ -194,9 +193,9 @@ void CgiHandler::generateMetaVariables(const Request& request)
 	_meta_variables.push_back(MetaVariableType(
 		"QUERY_STRING", request.query.c_str()));
 	_meta_variables.push_back(
-		MetaVariableType("REQUEST_METHOD", request.getMethodString().c_str()));
+		MetaVariableType("REQUEST_METHOD", request.getMethodString()));
 	_meta_variables.push_back(
-		MetaVariableType("SERVER_PROTOCOL", request.getProtocolString().c_str()));
+		MetaVariableType("SERVER_PROTOCOL", "HTTP/1.1"));
 	_meta_variables.push_back(MetaVariableType(
 		"REMOTE_ADDR", request.address.first));
 	_meta_variables.push_back(MetaVariableType(
@@ -208,6 +207,9 @@ void CgiHandler::generateMetaVariables(const Request& request)
 	/* Hardcoded */
 	_meta_variables.push_back(MetaVariableType("SERVER_SOFTWARE", "Plebserv Remastered"));
 	_meta_variables.push_back(MetaVariableType("GATEWAY_INTERFACE", "CGI/1.1"));
+
+	/* Other */
+	_meta_variables.push_back(MetaVariableType("REQUEST_URI", request.config_info.resolved_target));
 }
 
 void CgiHandler::metaVariableContent(const Request& request)
@@ -224,6 +226,17 @@ void CgiHandler::metaVariableContent(const Request& request)
 	{
 		_meta_variables.push_back(MetaVariableType("CONTENT_TYPE", p.first->second));
 	}
+}
+
+void CgiHandler::metaVariablePathInfo(const Request& request)
+{
+	_meta_variables.push_back(MetaVariableType("PATH_INFO", request.config_info.resolved_target));
+	_meta_variables.push_back(MetaVariableType("PATH_TRANSLATED", _root_dir + request.config_info.resolved_target));
+
+	// _meta_variables.push_back(MetaVariableType("PATH_INFO", request.config_info.resolved_path_info));
+	// if (request.config_info.resolved_path_info.size() > 0) {
+	// 	_meta_variables.push_back(MetaVariableType("PATH_TRANSLATED", _root_dir + request.config_info.resolved_path_info));
+	// }
 }
 
 void CgiHandler::metaVariableHeader(const Request& request)
