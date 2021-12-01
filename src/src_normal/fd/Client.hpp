@@ -43,16 +43,19 @@ class Client : public AFdInfo
 		bool			canExecuteRequest(int fd_table_size) const;
 		bool			retrieveRequest();
 		void			resetRequest();
+		void		generateResponse();
+		bool			retrieveResponse();
+		void			resetResponse();
+		void		checkTimeOut();
+
 
 	/* write*/
 	public:
 		void	writeEvent(FdTable & fd_table);
 	private:
-		bool		retrieveResponse();
-		void		evaluateConnection();
-		void		resetResponse();
 		int			sendResponseString();
 		void		removeWriteEvent(FdTable & fd_table);
+		void		evaluateConnection();
 
 	/* Exception */
 	public:

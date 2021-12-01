@@ -103,26 +103,24 @@ void	Client::update(FdTable & fd_table)
 
 	_response_handler.updateResponseQueue(fd_table);
 
-	if (!_response_string.empty()
-		|| _response_handler.canClientWrite())
+	generateResponse();
+
+	if (!_response_string.empty())
 	{
 		updateEvents(AFdInfo::WRITING, fd_table);
 	}
+	else
+	{
+		updateEvents(AFdInfo::READING, fd_table);
+	}
 
-	if (!_response_handler.isResponseQueueEmpty())
-	{
-		_timer.reset();
-	}
-	else if (_timer.elapsed() >= TIMEOUT)
-	{
-		printf("%sClient%s: [%d]: TIMEOUT\n", RED_BOLD, RESET_COLOR, getFd());
-		closeConnection();
-	}
+	checkTimeOut();
 }
 
 void Client::executeRequests(FdTable & fd_table)
 {
-	while (canExecuteRequest(fd_table.size()) && retrieveRequest())
+	while (canExecuteRequest(fd_table.size())
+			&& retrieveRequest())
 	{
 		_request->print();
 		increUnsafe(_request->method);
@@ -134,8 +132,9 @@ void Client::executeRequests(FdTable & fd_table)
 bool Client::canExecuteRequest(int fd_table_size) const
 {
 	return !_unsafe_request_count
-		&& !(!_request_handler.isNextRequestSafe() && !_response_handler.isResponseQueueEmpty())
-		&& fd_table_size < FD_TABLE_MAX_SIZE;
+			&& !(!_request_handler.isNextRequestSafe()
+				&& !_response_handler.isResponseQueueEmpty())
+			&& fd_table_size < FD_TABLE_MAX_SIZE;
 }
 
 bool	Client::retrieveRequest()
@@ -149,14 +148,8 @@ void	Client::resetRequest()
 	_request = NULL;
 }
 
-/************************/
-/****** writeEvent ******/
-/************************/
-
-// TODO: to discuss: should we move this working _response to ResponseHandler??
-void	Client::writeEvent(FdTable & fd_table)
+void	Client::generateResponse()
 {
-	_timer.reset();
 	while (_response_string.size() < BUFFER_SIZE
 			&& retrieveResponse())
 	{
@@ -168,13 +161,6 @@ void	Client::writeEvent(FdTable & fd_table)
 			resetResponse();
 		}
 	}
-	if (sendResponseString() == ERR)
-	{
-		closeConnection();
-		return;
-	}
-	removeWriteEvent(fd_table);
-	evaluateConnection();
 }
 
 bool	Client::retrieveResponse()
@@ -191,18 +177,38 @@ bool	Client::retrieveResponse()
 	return _response->isComplete() || _response->isReadyToWrite();
 }
 
-void	Client::evaluateConnection()
-{
-	if (_close_connection && _response_string.empty())
-	{
-		closeConnection();
-	}
-}
-
 void	Client::resetResponse()
 {
 	_response = NULL;
 	_response_handler.popQueue();
+}
+
+void	Client::checkTimeOut()
+{
+	if (!_response_handler.isResponseQueueEmpty())
+	{
+		_timer.reset();
+	}
+	else if (_timer.elapsed() >= TIMEOUT)
+	{
+		printf("%sClient%s: [%d]: TIMEOUT\n", RED_BOLD, RESET_COLOR, getFd());
+		closeConnection();
+	}
+}
+
+/************************/
+/****** writeEvent ******/
+/************************/
+
+void	Client::writeEvent(FdTable & fd_table)
+{
+	_timer.reset();
+	if (sendResponseString() == ERR)
+	{
+		closeConnection();
+		return;
+	}
+	evaluateConnection();
 }
 
 int	Client::sendResponseString()
@@ -220,9 +226,12 @@ int	Client::sendResponseString()
 	return OK;
 }
 
-void	Client::removeWriteEvent(FdTable & fd_table)
+void	Client::evaluateConnection()
 {
-	updateEvents(AFdInfo::READING, fd_table);
+	if (_close_connection && _response_string.empty())
+	{
+		closeConnection();
+	}
 }
 
 /****************************/
