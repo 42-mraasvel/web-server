@@ -25,6 +25,11 @@ class CgiHandler: public iHandler
 			ERROR,
 			COMPLETE
 		};
+
+	private:
+		CgiHandler(CgiHandler const & rhs);
+		CgiHandler & operator=(CgiHandler const & rhs);
+
 	public:
 		CgiHandler();
 		~CgiHandler();

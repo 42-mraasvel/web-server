@@ -15,6 +15,10 @@ class File;
 
 class Client : public AFdInfo
 {
+	private:
+		Client(Client const & rhs);
+		Client & operator=(Client const & rhs);
+
 	public:
 		typedef	ConfigResolver::MapType		MapType;
 		typedef	ConfigResolver::AddressType	AddressType;

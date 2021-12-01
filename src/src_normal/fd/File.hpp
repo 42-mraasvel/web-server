@@ -6,6 +6,10 @@ class Client;
 
 class File : public AFdInfo
 {
+	private:
+		File(File const & rhs);
+		File & operator=(File const & rhs);
+
 	public:
 		File(int fd);
 		struct pollfd	getPollFd() const;

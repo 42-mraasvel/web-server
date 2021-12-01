@@ -15,6 +15,10 @@ Main functionality of this class:
 
 class CgiSender : public AFdInfo
 {
+	private:
+		CgiSender(CgiSender const & rhs);
+		CgiSender & operator=(CgiSender const & rhs);
+
 	public:
 		CgiSender(int fd, SmartPointer<Request> r, Timer* timer);
 		~CgiSender();
