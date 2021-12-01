@@ -47,7 +47,7 @@ bool additionOverflow(std::size_t x, std::size_t y);
 
 bool	isFileExist(std::string const & file_path);
 int 	list_directory(std::string const & directory, std::string const & path, std::string & content);
-
+std::string trimPort(std::string const & str);
 /* TODO: RM DEBUGGING */
 	void printStrings(char **strings, FILE* stream);
 

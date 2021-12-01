@@ -58,6 +58,7 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 	printf(YELLOW_BOLD "-- Executing CGI --" RESET_COLOR "\n");
 
 	/* 1. Preparation */
+	_status = CgiHandler::INCOMPLETE;
 	setInfo(request.config_info);
 	generateMetaVariables(request);
 
@@ -643,7 +644,7 @@ int CgiHandler::killCgi(int* status)
 
 bool CgiHandler::isComplete() const
 {
-	return _sender == NULL && _reader == NULL;
+	return _status != CgiHandler::INACTIVE && _sender == NULL && _reader == NULL;
 }
 
 bool CgiHandler::isError() const
