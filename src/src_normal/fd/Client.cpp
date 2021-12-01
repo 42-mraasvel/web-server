@@ -16,6 +16,7 @@ _request_handler(client, interface, config_map),
 _request(NULL),
 _response(NULL),
 _close_connection(false),
+_close_timer_set(false),
 _unsafe_request_count(0)
 {
 	printf("%s-- NEW CLIENT -- %s\n", RED_BOLD, RESET_COLOR);
@@ -78,41 +79,20 @@ int	Client::readRequest(std::string & buffer)
 /****** updateEvent ******/
 /*************************/
 
-void	Client::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
-{
-	short int updated_events;
-
-	switch (type)
-	{
-		case AFdInfo::READING:
-			updated_events = POLLIN;
-			break;
-		case AFdInfo::WRITING:
-			updated_events = POLLOUT;
-			break;
-		case AFdInfo::WAITING:
-			updated_events = 0;
-			break;
-	}
-	fd_table[_index].first.events = updated_events | POLLIN;
-}
-
 void	Client::update(FdTable & fd_table)
 {
+	if (_flag == AFdInfo::TO_ERASE)
+	{
+		return ;
+	}
+
 	executeRequests(fd_table);
 
 	_response_handler.updateResponseQueue(fd_table);
 
 	generateResponse();
 
-	if (!_response_string.empty())
-	{
-		updateEvents(AFdInfo::WRITING, fd_table);
-	}
-	else
-	{
-		updateEvents(AFdInfo::READING, fd_table);
-	}
+	resetEvents(fd_table);
 
 	checkTimeOut();
 }
@@ -131,7 +111,8 @@ void Client::executeRequests(FdTable & fd_table)
 
 bool Client::canExecuteRequest(int fd_table_size) const
 {
-	return !_unsafe_request_count
+	return !_close_connection
+			&& !_unsafe_request_count
 			&& !(!_request_handler.isNextRequestSafe()
 				&& !_response_handler.isResponseQueueEmpty())
 			&& fd_table_size < FD_TABLE_MAX_SIZE;
@@ -183,8 +164,33 @@ void	Client::resetResponse()
 	_response_handler.popQueue();
 }
 
+void	Client::resetEvents(FdTable & fd_table)
+{
+	if (_flag == AFdInfo::TO_ERASE)
+	{
+		updateEvents(AFdInfo::WAITING, fd_table);
+	}
+	else if (_close_connection)
+	{
+		removeEvents(AFdInfo::READING, fd_table);
+	}
+	if (!_response_string.empty())
+	{
+		addEvents(AFdInfo::WRITING, fd_table);
+	}
+	else
+	{
+		removeEvents(AFdInfo::WRITING, fd_table);
+	}
+}
+
 void	Client::checkTimeOut()
 {
+	if (_close_timer_set && _timer.elapsed() >= CLOSE_CONNECTION_DELAY)
+	{
+		closeConnection();
+		return ;
+	}
 	if (!_response_handler.isResponseQueueEmpty())
 	{
 		_timer.reset();
@@ -208,7 +214,7 @@ void	Client::writeEvent(FdTable & fd_table)
 		closeConnection();
 		return;
 	}
-	evaluateConnection();
+	evaluateConnection(fd_table);
 }
 
 int	Client::sendResponseString()
@@ -226,11 +232,12 @@ int	Client::sendResponseString()
 	return OK;
 }
 
-void	Client::evaluateConnection()
+void	Client::evaluateConnection(FdTable & fd_table)
 {
 	if (_close_connection && _response_string.empty())
 	{
-		closeConnection();
+		_timer.reset();
+		_close_timer_set = true;
 	}
 }
 
@@ -255,7 +262,6 @@ void	Client::closeConnection()
 	std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
 	_flag = AFdInfo::TO_ERASE;
 	// TODO: close the connection only in the update after a certain amount of time has elapsed: remove READING from events
-	_close_connection = true;
 }
 
 bool	Client::isMethodSafe(Method::Type const & method) const

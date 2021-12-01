@@ -36,7 +36,6 @@ class Client : public AFdInfo
 
 	/* update */
 	public:
-		void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 		void	update(FdTable & fd_table);
 	private:
 		void		executeRequests(FdTable & fd_table);
@@ -46,6 +45,7 @@ class Client : public AFdInfo
 		void		generateResponse();
 		bool			retrieveResponse();
 		void			resetResponse();
+		void		resetEvents(FdTable & fd_table);
 		void		checkTimeOut();
 
 
@@ -55,7 +55,7 @@ class Client : public AFdInfo
 	private:
 		int			sendResponseString();
 		void		removeWriteEvent(FdTable & fd_table);
-		void		evaluateConnection();
+		void		evaluateConnection(FdTable & fd_table);
 
 	/* Exception */
 	public:
@@ -82,7 +82,7 @@ class Client : public AFdInfo
 		ResponsePointer			_response;
 		std::string				_response_string;
 		bool					_close_connection;
+		bool					_close_timer_set;
 		Timer					_timer;
-		Timer					_close_connection_timer;
 		int						_unsafe_request_count;
 };

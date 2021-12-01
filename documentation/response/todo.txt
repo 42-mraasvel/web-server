@@ -5,8 +5,6 @@ v- ResponseHandler instead of response, turn response into a struct
 v- Post request without CGI
 v- Client::update(): don't execute requests if the FdTable is too full
 v- Server::Update() can remove the POLLIN event if there are too many open connections
-    ???- Either don't accept or deny the FdTable insertion and close connection
-    - FD_TABLE_MAX_SIZE
 
 - Upload: check directory given by configuration for POST requests
 
