@@ -28,7 +28,7 @@ TEST_CASE("Close Connection", "[request-header-processor]")
 		handler.parse(input);
 		SmartPointer<Request> r(handler.getNextRequest());
 		REQUIRE(r != SmartPointer<Request>(NULL));
-		REQUIRE(r->close_connection == true);
+	//	REQUIRE(r->close_connection == true); //to delete as the 'duplicate host' does not need to close connection)
 	}
 }
 

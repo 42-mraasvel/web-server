@@ -31,6 +31,8 @@ class AFdInfo
 		virtual void	exceptionEvent(FdTable & fd_table);
 
 		virtual	void	updateEvents(AFdInfo::EventTypes type, FdTable & fd_table);
+		virtual	void	addEvents(AFdInfo::EventTypes type, FdTable & fd_table);
+		virtual	void	removeEvents(AFdInfo::EventTypes type, FdTable & fd_table);
 		virtual	void	update(FdTable & fd_table);
 
 		AFdInfo();

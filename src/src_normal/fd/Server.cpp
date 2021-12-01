@@ -128,6 +128,18 @@ void Server::writeEvent(FdTable & fd_table)
 	std::abort();
 }
 
+void Server::update(FdTable & fd_table)
+{
+	if (fd_table.size() < FD_TABLE_MAX_SIZE)
+	{
+		updateEvents(AFdInfo::READING, fd_table);
+	}
+	else
+	{
+		updateEvents(AFdInfo::WAITING, fd_table);
+	}
+}
+
 struct pollfd Server::getPollFd() const
 {
 	struct pollfd temp;
