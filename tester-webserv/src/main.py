@@ -25,6 +25,7 @@ class HttpTester:
 		print("  ", self._uri)
 
 	def get(self):
+		print("Getting:", self._uri)
 		return requests.get(self._uri)
 
 if __name__ == '__main__':
@@ -34,7 +35,7 @@ if __name__ == '__main__':
 	http_tester = HttpTester(sys.argv[1])
 
 	http_tester.print()
-	
-	response = http_tester.get()
 
+	response = http_tester.get()
 	print(response)
+	response.close()
