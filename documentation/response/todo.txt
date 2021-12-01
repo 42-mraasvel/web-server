@@ -8,7 +8,7 @@ v- Server::Update() can remove the POLLIN event if there are too many open conne
 
 - Upload: check directory given by configuration for POST requests
 
-- Client::closeConnection(): wait a certain amount of time before closing the connection
+v- Client::closeConnection(): wait a certain amount of time before closing the connection
     - So that the client can finish reading the response
     - Use timeout to check this
 

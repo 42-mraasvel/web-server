@@ -81,11 +81,6 @@ int	Client::readRequest(std::string & buffer)
 
 void	Client::update(FdTable & fd_table)
 {
-	if (_flag == AFdInfo::TO_ERASE)
-	{
-		return ;
-	}
-
 	executeRequests(fd_table);
 
 	_response_handler.updateResponseQueue(fd_table);
