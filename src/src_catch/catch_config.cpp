@@ -9,10 +9,3 @@ TEST_CASE("Basic Config Parsing", "[config]")
     Config::address_map address_map = conf.getAddressMap();
     iterator it = address_map.begin();
 }
-
-
-
-
-
-
-

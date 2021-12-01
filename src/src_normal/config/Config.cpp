@@ -289,13 +289,21 @@ int	Config::parseServerName()
 int	Config::parseRoot()
 {
 	_token_index++;
+	std::string path;
 	if (_tokens[_token_index].compare(";"))
 	{
-		if (_tokens[_token_index].find_last_of("/") == _tokens[_token_index].size() - 1)
+		path = _tokens[_token_index];
+		if (path.find_last_of("/") == path.size() - 1)
 		{
 			configError("Root cannot be directory");
 		}
-		_servers[_server_amount].addRoot(_tokens[_token_index]);
+		if (path[0] != '/')
+		{
+			char real_path[4096];
+			realpath(path.c_str(),real_path);
+			path = real_path;
+		}
+		_servers[_server_amount].addRoot(path);
 	}
 	_token_index++;
 	return (OK);
@@ -400,6 +408,12 @@ int Config::parseCgi()
 	{
 		path = _tokens[_token_index];
 		_token_index++;
+	}
+	if (path[0] != '/')
+	{
+		char real_path[4096];
+		realpath(path.c_str(),real_path);
+		path = real_path;
 	}
 	_servers[_server_amount].addCgi(extention, path);
 	return (OK);
