@@ -1,3 +1,14 @@
 -- Main Concept --
 
 	1. Give the Host:Port as argument to the Tester
+
+	- Send all requests inside of a directory
+		- This can be done through arguments again, a simple script can find all the necessary requests
+	- Execute only a single request
+	- Functionality to specify options in terms of generating content and content-length
+		- This can be added in the parse_request.py::_ParseContent field
+
+-- API used --
+
+	https://docs.python-requests.org/en/latest/api/
+

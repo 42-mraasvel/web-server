@@ -1,8 +1,9 @@
 import sys
 import socket
 import requests
+import parse_request
 
-USAGE_ERR_STR = "Arguments: [Hostname/IP:Port]"
+USAGE_ERR_STR = "Arguments: [Hostname/IP:Port] [REQUEST_FILES]"
 RED_BOLD = "\033[1;31m"
 RESET_COLOR = "\033[0m"
 
@@ -29,13 +30,18 @@ class HttpTester:
 		return requests.get(self._uri)
 
 if __name__ == '__main__':
-	if len(sys.argv) != 2:
+	if len(sys.argv) <= 2:
 		exitError(USAGE_ERR_STR)
 
-	http_tester = HttpTester(sys.argv[1])
 
-	http_tester.print()
+	for file in sys.argv[2:]:
+		request = parse_request.RequestFromFile(file)
+		request.print()
 
-	response = http_tester.get()
-	print(response)
-	response.close()
+	# http_tester = HttpTester(sys.argv[1])
+
+	# http_tester.print()
+
+	# response = http_tester.get()
+	# print(response)
+	# response.close()
