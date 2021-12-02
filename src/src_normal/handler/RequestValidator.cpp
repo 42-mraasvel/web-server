@@ -78,8 +78,6 @@ bool	RequestValidator::isHostValid(Request const & request)
 	else if (request.minor_version >= 1)
 	{
 		generalError("%s: Version: %d\n", _FUNC_ERR("HOST REQUIRED").c_str(), request.minor_version);
-		//TODO: should the connection actually be closed in this case?
-		_close_connection = true;
 		_status_code = StatusCode::BAD_REQUEST;
 		return false;
 	}

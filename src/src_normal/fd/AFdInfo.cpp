@@ -28,23 +28,32 @@ void AFdInfo::setIndex(std::size_t index)
 	_index = index;
 }
 
-void	AFdInfo::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
+static short int	convertEventType(AFdInfo::EventTypes type)
 {
-	short int updated_events;
-
 	switch (type)
 	{
 		case AFdInfo::READING:
-			updated_events = POLLIN;
-			break;
+			return POLLIN;
 		case AFdInfo::WRITING:
-			updated_events = POLLOUT;
-			break;
+			return POLLOUT;
 		case AFdInfo::WAITING:
-			updated_events = 0;
-			break;
+			return 0;
 	}
-	fd_table[_index].first.events = updated_events;
+}
+
+void	AFdInfo::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
+{
+	fd_table[_index].first.events = convertEventType(type);
+}
+
+void	AFdInfo::addEvents(AFdInfo::EventTypes type, FdTable & fd_table)
+{
+	fd_table[_index].first.events |= convertEventType(type);
+}
+
+void	AFdInfo::removeEvents(AFdInfo::EventTypes type, FdTable & fd_table)
+{
+	fd_table[_index].first.events &= ~(convertEventType(type));
 }
 
 void	AFdInfo::update(FdTable & fd_table)

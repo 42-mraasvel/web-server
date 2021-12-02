@@ -104,6 +104,10 @@ void	Webserver::scanFdTable()
 {
 	for (std::size_t i = 0; i < _fd_table.size(); ++i)
 	{
+		if (_fd_table[i].second->getFlag() == AFdInfo::TO_ERASE)
+		{
+			continue;
+		}
 		try
 		{
 			_fd_table[i].second->update(_fd_table);
