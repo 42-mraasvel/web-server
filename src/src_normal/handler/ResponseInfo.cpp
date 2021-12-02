@@ -23,6 +23,7 @@ status(START),
 status_code(0),
 is_cgi(false),
 error_page_attempted(false),
-encoding(UNDEFINED)
+encoding(UNDEFINED),
+handler(&file_handler)
 {}
 

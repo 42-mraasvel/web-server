@@ -36,4 +36,10 @@ struct ResponseInfo
 	bool				is_cgi;
 	bool				error_page_attempted;
 	Encoding			encoding;
+
+	/* handler */
+	iHandler*		handler;
+	FileHandler		file_handler;
+	CgiHandler		cgi_handler;
+
 };
