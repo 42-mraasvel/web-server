@@ -1,5 +1,10 @@
 GET / HTTP/1.0
-   name   :   value  
+name:value
+host: localhost
+test: x
+host: localhost808
+content-length: 10
+transfer-encoding: chunked
 
 12341234
 

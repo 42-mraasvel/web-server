@@ -36,8 +36,18 @@ if __name__ == '__main__':
 
 	for file in sys.argv[2:]:
 		request = parse_request.RequestFromFile(file)
-		request.print()
 
+	request.print()
+
+	url = "http://" + sys.argv[1] + request.status_line['target']
+
+	print(url)
+
+	response = requests.request(request.status_line['method'], url, headers = request.header_fields, data = request.message_body)
+
+
+	print(response)
+	response.close()
 	# http_tester = HttpTester(sys.argv[1])
 
 	# http_tester.print()

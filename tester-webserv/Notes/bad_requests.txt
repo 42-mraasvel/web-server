@@ -1,0 +1,7 @@
+Unable to test in Python:
+
+	- HTTP version 1.0
+	- Duplicate header-fields
+	- Missing host field
+
+Test with Python:
