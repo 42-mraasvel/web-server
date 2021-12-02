@@ -14,6 +14,10 @@ Purpose of the class:
 */
 class CgiReader : public AFdInfo
 {
+	private:
+		CgiReader(CgiReader const & rhs);
+		CgiReader & operator=(CgiReader const & rhs);
+
 	public:
 		CgiReader(int fd, Timer* timer);
 		~CgiReader();

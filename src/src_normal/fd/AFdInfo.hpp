@@ -21,6 +21,10 @@ class AFdInfo
 			ERROR,
 			TO_ERASE
 		};
+	
+	private:
+		AFdInfo(AFdInfo const & rhs);
+		AFdInfo & operator=(AFdInfo const & rhs);
 
 	public:
 		virtual	~AFdInfo();

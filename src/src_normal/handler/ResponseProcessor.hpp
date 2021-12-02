@@ -9,6 +9,10 @@ class FdTable;
 
 class ResponseProcessor
 {
+	private:
+		ResponseProcessor(ResponseProcessor const & rhs);
+		ResponseProcessor & operator=(ResponseProcessor const & rhs);
+
 	public:
 		ResponseProcessor(Request const & request);
 
@@ -49,5 +53,4 @@ class ResponseProcessor
 		iHandler*		_handler;
 		FileHandler		_file_handler;
 		CgiHandler		_cgi_handler;
-
 };

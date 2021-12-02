@@ -91,13 +91,5 @@ std::string RequestHeaderProcessor::getHostString(HeaderField const & header)
 	{
 		return "";
 	}
-
-	/* Remove port from host string */
-	std::size_t n = host.first->second.rfind(":");
-	if (n != std::string::npos)
-	{
-		return host.first->second.substr(0, n);
-	}
-
-	return host.first->second;
+	return WebservUtility::trimPort(host.first->second);
 }

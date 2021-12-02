@@ -25,6 +25,11 @@ class CgiHandler: public iHandler
 			ERROR,
 			COMPLETE
 		};
+
+	private:
+		CgiHandler(CgiHandler const & rhs);
+		CgiHandler & operator=(CgiHandler const & rhs);
+
 	public:
 		CgiHandler();
 		~CgiHandler();
@@ -32,8 +37,6 @@ class CgiHandler: public iHandler
 	/* Main Interface Functions */
 		static bool isCgi(Request const & request);
 		static bool isCgi(std::string const & request_target, CgiVectorType const & cgi);
-		static void resolveCgiTarget(std::string const & target, CgiVectorType const & cgi,
-								ConfigInfo & info);
 
 		int		executeRequest(FdTable& fd_table, Request& request);
 		void	update();
@@ -55,8 +58,10 @@ class CgiHandler: public iHandler
 		bool scriptCanBeExecuted();
 
 		void setInfo(ConfigInfo const & info);
+		void resolveCgiScript(std::string const target, CgiVectorType const & cgi);
 		void generateMetaVariables(const Request& request);
 		void metaVariableContent(const Request& request);
+		void metaVariablePathInfo(const Request& request);
 		void metaVariableHeader(const Request& request);
 		MetaVariableType convertFieldToMeta(const std::string& key, const std::string& value) const;
 

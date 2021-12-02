@@ -33,8 +33,6 @@ TEST_CASE("IsCgi tests", "[cgi]")
 	REQUIRE(CgiHandler::isCgi(r) == true);
 	r.config_info.resolved_target = "/a/b/x.py";
 	REQUIRE(CgiHandler::isCgi(r) == true);
-	r.config_info.resolved_target = "/a/b/x.py/a/b/x";
-	REQUIRE(CgiHandler::isCgi(r) == true);
 	r.config_info.resolved_target = "/1234x.py";
 	REQUIRE(CgiHandler::isCgi(r) == true);
 	r.config_info.resolved_target = "/asdf/asdf/ads/fadsfx.py";
@@ -42,11 +40,6 @@ TEST_CASE("IsCgi tests", "[cgi]")
 	r.config_info.resolved_target = "/asdf/asdf/ads/.py";
 	REQUIRE(CgiHandler::isCgi(r) == true);
 	r.config_info.resolved_target = "/.py";
-	REQUIRE(CgiHandler::isCgi(r) == true);
-	r.config_info.resolved_target = "/.py/";
-	REQUIRE(CgiHandler::isCgi(r) == true);
-	r.config_info.resolved_target = "/.py/a";
-	REQUIRE(CgiHandler::isCgi(r) == true);
 
 /* False Tests */
 	r.config_info.resolved_target = "/";

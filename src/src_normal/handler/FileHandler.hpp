@@ -12,6 +12,10 @@ class FileHandler: public iHandler
 	public:
 		typedef SmartPointer<File> FilePointer;
 
+	private:
+		FileHandler(FileHandler const & rhs);
+		FileHandler & operator=(FileHandler const & rhs);
+
 	public:
 		FileHandler();
 		~FileHandler();

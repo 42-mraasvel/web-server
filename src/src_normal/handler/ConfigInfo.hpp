@@ -26,7 +26,4 @@ struct ConfigInfo
 		location_block_pointer	resolved_location;
 		std::string		resolved_target;
 		std::string		resolved_file_path;
-		std::string		resolved_path_info;
-		std::string		resolved_cgi_script;
-
 };
