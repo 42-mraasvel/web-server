@@ -273,7 +273,7 @@ bool	ResponseProcessor::isChunked() const
 	return _info.encoding == ResponseInfo::CHUNKED;
 }
 
-ResponseInfo	ResponseProcessor::getInfo() const
+ResponseInfo const &	ResponseProcessor::getInfo() const
 {
 	return _info;
 }

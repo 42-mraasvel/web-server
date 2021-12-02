@@ -27,3 +27,8 @@ encoding(UNDEFINED),
 handler(&file_handler)
 {}
 
+void	ResponseInfo::setStatus(ResponseInfo::Status new_status, int new_status_code)
+{
+	status = new_status;
+	status_code = new_status_code;
+}

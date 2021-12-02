@@ -1,21 +1,25 @@
 #pragma once
+#include <string>
 
 struct Request;
 
 struct ResponseInfo;
+
+class FdTable;
 
 class RequestExecutor
 {
 	public:
 		enum Status
 		{
-			OK,
+			NOT_COMPLETE,
 			BAD_REQUEST,
-			100_CONTINUE,
+			CONTINUE,
 			REDIRECT,
 			AUTO_INDEX_ON,
 			HANDLER_ERROR,
-			TARGET_ERROR
+			TARGET_NOT_FOUND,
+			TARGET_IS_DIRECTORY
 		};
 
 	public:
@@ -25,18 +29,17 @@ class RequestExecutor
 		RequestExecutor&	operator=(RequestExecutor const & rhs);
 
 	public:
-		void	executeRequest(FdTable & fd_table, Request & request);
+		void	executeRequest(FdTable & fd_table, Request & request, ResponseInfo & response);
 	private:
-		int		dispatchRequest(Request const & request);
-		int		dispatchConfigResult(Request const & request);
-		int				checkRequestTarget(Request const & request);
-		void				setEffectiveRequestURI(Request const & request, std::string const & resolved_target);
-		void				setAbsoluteFilePath(std::string const & resolved_file_path);
 		void	markStatus(Status status, int status_code);
+		bool	isRequestComplete(Request const & request);
+		bool	isLocationResolved(Request const & request);
+		bool	isRequestTargetValid(std::string const & target);
+		std::string	getEffectiveRequestURI(Request const & request);
+		void	setAbsoluteFilePath(Request const & request, ResponseInfo & response);
 
 	private:
-		int 	_status_code;
-		Status	_status;
-		bool	_is_cgi;
+		int 		_status_code;
+		Status		_status;
 
 };

@@ -41,7 +41,7 @@ class ResponseProcessor
 	/* utility */
 	public:
 		bool			isChunked() const;
-		ResponseInfo	getInfo() const;
+		ResponseInfo const &	getInfo() const;
 		iHandler*		getHandler() const;
 	private:
 		void	markComplete(int code);

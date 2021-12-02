@@ -2,6 +2,8 @@
 #include <string>
 #include "webserver/MethodType.hpp"
 #include "ConfigInfo.hpp"
+#include "FileHandler.hpp"
+#include "CgiHandler.hpp"
 
 struct Request;
 
@@ -21,6 +23,9 @@ struct ResponseInfo
 		NOT_CHUNKED,
 		CHUNKED
 	};
+
+	public:
+		void	setStatus(Status new_status, int new_status_code);
 
 	/* request related info */
 	Method::Type		method;
