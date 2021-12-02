@@ -2,8 +2,9 @@ import sys
 import socket
 import requests
 import parse_request
+import TestCase
 
-USAGE_ERR_STR = "Arguments: [Hostname/IP:Port] [REQUEST_FILES]"
+USAGE_ERR_STR = "Arguments: [Hostname/IP:Port]"
 RED_BOLD = "\033[1;31m"
 RESET_COLOR = "\033[0m"
 
@@ -12,46 +13,28 @@ def exitError(message):
 	print(RED_BOLD + "ERROR:" + RESET_COLOR, message, file = sys.stderr)
 	exit(1)
 
-class HttpTester:
-	_uri = str()
+def SimpleTestCase():
+	testcase = TestCase.TestCase()
 
-	def __init__(self, host):
-		self._uri = self.createUri(host)
+	# Request
+	testcase.request.method = 'GET'
+	testcase.request.request_target = '/'
+	testcase.request.authority = 'localhost:8080'
+	testcase.request.header['name'] = 'field'
+	testcase.request.body = '1234'
+	testcase.request.header['content-length'] = len(testcase.request.body)
 
-	def createUri(self, host):
-		return "http://" + host
+	# Response
+	testcase.response.status_code = 200
+	return testcase
 
-	def print(self):
-		print("-- HttpTester --")
-		print("  ", self._uri)
+def ExecuteTestCase(testcase):
+	testcase.print()
 
-	def get(self):
-		print("Getting:", self._uri)
-		return requests.get(self._uri)
 
 if __name__ == '__main__':
-	if len(sys.argv) <= 2:
+	if len(sys.argv) != 2:
 		exitError(USAGE_ERR_STR)
 
-
-	for file in sys.argv[2:]:
-		request = parse_request.RequestFromFile(file)
-
-	request.print()
-
-	url = "http://" + sys.argv[1] + request.status_line['target']
-
-	print(url)
-
-	response = requests.request(request.status_line['method'], url, headers = request.header_fields, data = request.message_body)
-
-
-	print(response)
-	response.close()
-	# http_tester = HttpTester(sys.argv[1])
-
-	# http_tester.print()
-
-	# response = http_tester.get()
-	# print(response)
-	# response.close()
+	testcase = SimpleTestCase()
+	ExecuteTestCase(testcase)

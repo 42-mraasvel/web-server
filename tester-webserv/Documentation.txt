@@ -9,3 +9,7 @@
 
 	https://docs.python-requests.org/en/latest/api/
 
+-- Dependencies --
+
+	- Requests module
+		`python -m pip install requests`
