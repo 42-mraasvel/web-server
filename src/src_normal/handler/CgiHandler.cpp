@@ -441,26 +441,6 @@ int CgiHandler::getErrorCode() const
 	return _sender->getStatusCode();
 }
 
-// TODO aileen: shall we delete this?
-//void CgiHandler::setMessageBody(std::string & response_body)
-//{
-//	if (response_body.size() == 0)
-//	{
-//		response_body.swap(_message_body);
-//	}
-//	else
-//	{
-//		response_body.append(_message_body);
-//		_message_body.clear();
-//	}
-//
-//	if (_reader && _reader->getBody().size() > 0)
-//	{
-//		response_body.append(_reader->getBody());
-//		_reader->getBody().clear();
-//	}
-//}
-
 /*
 This function should only be called once
 */
@@ -539,22 +519,9 @@ void CgiHandler::update(std::string & response_body)
 		return;
 	}
 
-	if (_reader && _reader->getFlag() == AFdInfo::COMPLETE)
+	if (_reader)
 	{
-		// TODO: if sending a CHUNKED Message, then we should APPEND only if it's actively reading
-		// HeaderField should just be swapped once it's parsed in that case (add HEADER_COMPLETE)
-		if (response_body.size() == 0)
-		{
-			response_body.swap(_reader->getBody());
-		}
-		else
-		{
-			response_body.append(_reader->getBody());
-			_reader->getBody().clear();
-		}
-		_header.swap(_reader->getHeader());
-		_reader->setToErase();
-		_reader = NULL;
+		evaluateReader(response_body);
 	}
 
 	if (_sender && _sender->getFlag() == AFdInfo::COMPLETE)
@@ -575,6 +542,27 @@ void CgiHandler::update(std::string & response_body)
 	}
 }
 
+void CgiHandler::evaluateReader(std::string & response_body)
+{
+	if (_reader->getBody().size() > 0)
+	{
+		if (response_body.size() == 0)
+		{
+			response_body.swap(_reader->getBody());
+		}
+		else
+		{
+			response_body.append(_reader->getBody());
+			_reader->getBody().clear();
+		}
+	}
+	if (_reader->getFlag() == AFdInfo::COMPLETE)
+	{
+		_reader->setToErase();
+		_reader = NULL;
+	}
+}
+
 void CgiHandler::exceptionEvent()
 {
 	clear();
@@ -588,7 +576,6 @@ void CgiHandler::clear()
 	_script.clear();
 	_target.clear();
 	_meta_variables.clear();;
-	_message_body.clear();
 	_header.clear();
 }
 

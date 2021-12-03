@@ -82,6 +82,7 @@ class CgiHandler: public iHandler
 		bool skippedHeaderField(std::string const & key) const;
 
 	/* Update Functionality */
+		void evaluateReader(std::string & response_body);
 		bool isExecutionError() const;
 		int getErrorCode() const;
 		int cleanCgi();
@@ -95,7 +96,6 @@ class CgiHandler: public iHandler
 	private:
 		Status		_status;
 		int			_status_code;
-		std::string _message_body;
 		HeaderField _header;
 
 	private:

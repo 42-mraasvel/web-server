@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 #include "parser/HeaderField.hpp"
 
 struct	Response;
