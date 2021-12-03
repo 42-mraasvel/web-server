@@ -1,42 +1,39 @@
 def printHeader(header):
 	if not header:
 		return
-	print(' -- header fields --')
+	print(' -- HEADER FIELDS --')
 	for key in header:
 		print(key, ": ", header[key], sep = "")
 
 def printBody(body):
 	if not body:
 		return
+	print(' -- MESSAGE BODY --')
 	if len(body) < 10000:
 		print(body)
 	else:
-		print('body too big to print')
+		print('Body Size:', len(body))
 
 class Request:
-	method = str()
-	target = str()
-	authority = str()
-	headers = dict()
-	body = str()
+	def __init__(self):
+		self.method = str()
+		self.target = str()
+		self.headers = dict()
+		self.body = bytes()
 
 	def print(self):
 		print(' -- Request -- ')
 		print('method:', self.method)
 		print('request_target:', self.target)
-		print('authority:', self.authority)
 		printHeader(self.headers)
 		printBody(self.body)
 
 class Response:
-	status_code = int()
-	headers = dict()
-	expect_body = bool()
-	body = bytes()
-
 	def __init__(self):
-		self.status_code = 0
+		self.status_code = int(0)
+		self.headers = dict()
 		self.expect_body = False
+		self.body = bytes()
 
 	def print(self):
 		print(' -- Response --')
@@ -46,9 +43,16 @@ class Response:
 		printBody(self.body)
 
 class TestCase:
-	request = Request()
-	response = Response()
-	tag = str()
+	def __init__(self, request = None, response = None, tag = None):
+		self.tag = tag
+		self.request = request
+		self.response = response
+		if tag is None:
+			self.tag = str()
+		if request is None:
+			self.request = Request()
+		if response is None:
+			self.response = Response()
 
 	def print(self):
 		self.request.print()

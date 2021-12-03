@@ -1,7 +1,0 @@
-Method: GET
-Target: /
-Version: HTTP/1.1
-StatusExpect: 200
-RequestBody: filename
-MatchBody: filename
-header: 'name:value'

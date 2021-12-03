@@ -5,6 +5,10 @@
 	- Request TestCase class
 	- Write testcases in the code itself by form of a class, similar to catch
 
+-- Configuration --
+
+	Location block for '/' that has ServerRoot as it's root directory
+
 -- API used --
 
 	https://docs.python-requests.org/en/latest/api/
