@@ -1,6 +1,8 @@
 -- Usage --
 
-	./run.sh [authority] ; authority = host [ ':' port ]
+	./run.sh [authority] [TAGS]
+		- authority = host [ ':' port ]
+		- TAGS = names of the TestCases to execute (all if missing)
 
 -- Webserver's Configuration --
 
