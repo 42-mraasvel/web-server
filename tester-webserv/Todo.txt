@@ -1,6 +1,6 @@
 -- TODO --
 
-	- Write info about FAILED request to a LOGFILE
 	- Way to input TestCases easily (list of testcases)
 	- If a response is invalid, the other request should still be executed
 	- Valid Test: what to print (statuscode + method?)
+	- Support both file input and regular functions (to make TestCase objects)

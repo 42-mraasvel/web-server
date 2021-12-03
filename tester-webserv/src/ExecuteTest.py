@@ -1,4 +1,5 @@
 import Error
+import Logger
 import requests
 
 GREEN_BOLD = "\033[32m"
@@ -11,13 +12,17 @@ def execute(testcases = [], authority = 'localhost:8080'):
 		response = sendRequest(testcase.request, authority)
 		message = evaluateResponse(response, testcase.response)
 		if message is not None:
-			Error.putMsg(str(index + 1) + ": " + message)
+			failMsg(message, index, testcase)
 		else:
-			validMsg(testcase)
+			passMsg(testcase, index)
 		response.close()
 
-def validMsg(testcase):
-	print(GREEN_BOLD + 'PASS' + RESET_COLOR + ':', \
+def failMsg(message, index, testcase):
+	Error.putFail(str(index + 1) + ": " + message)
+	Logger.log(testcase.getLogString())
+
+def passMsg(testcase, index):
+	print(GREEN_BOLD + 'PASS' + RESET_COLOR + ': ' + str(index + 1) + ":", \
 		testcase.request.method, "with status code:", testcase.response.status_code)
 
 # Send the request

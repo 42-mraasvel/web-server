@@ -1,18 +1,20 @@
-def printHeader(header):
+def getHeaderList(header):
+	data = []
 	if not header:
-		return
-	print(' -- HEADER FIELDS --')
+		return data
+	data.append('  -- HEADER FIELDS --')
 	for key in header:
-		print(key, ": ", header[key], sep = "")
+		data.append(key + ": " + header[key])
+	return data
 
-def printBody(body):
-	if not body:
-		return
-	print(' -- MESSAGE BODY --')
-	if len(body) < 10000:
-		print(body)
+def getBodyList(body):
+	data = []
+	data.append('  -- MESSAGE BODY --')
+	if not body or len(body) > 10000 or type(body) == bytes:
+		data.append('Body Size: ' + str(len(body)))
 	else:
-		print('Body Size:', len(body))
+		data.append(body)
+	return data
 
 class Request:
 	def __init__(self):
@@ -22,11 +24,17 @@ class Request:
 		self.body = bytes()
 
 	def print(self):
-		print(' -- Request -- ')
-		print('method:', self.method)
-		print('request_target:', self.target)
-		printHeader(self.headers)
-		printBody(self.body)
+		for line in self.getLogList():
+			print(line)
+	
+	def getLogList(self):
+		data = []
+		data.append('-- Request -- ')
+		data.append('method: ' + self.method)
+		data.append('request_target: ' + self.target)
+		data += getHeaderList(self.headers)
+		data += getBodyList(self.body)
+		return data
 
 class Response:
 	def __init__(self):
@@ -36,11 +44,17 @@ class Response:
 		self.body = bytes()
 
 	def print(self):
-		print(' -- Response --')
-		print('Status Code:', self.status_code)
-		print('Expect Body:', self.expect_body)
-		printHeader(self.headers)
-		printBody(self.body)
+		for line in self.getLogList():
+			print(line)
+
+	def getLogList(self):
+		data = []
+		data.append('-- Response --')
+		data.append('Status Code: ' + str(self.status_code))
+		data.append('Expect Body: ' + str(self.expect_body))
+		data += getHeaderList(self.headers)
+		data += getBodyList(self.body)
+		return data
 
 class TestCase:
 	def __init__(self, request = None, response = None, tag = None):
@@ -57,3 +71,13 @@ class TestCase:
 	def print(self):
 		self.request.print()
 		self.response.print()
+	
+	def getLogString(self):
+		lines = self.request.getLogList() + self.response.getLogList()
+		result = str()
+		for line in lines:
+			if line[0] == ' ' or line[0] == '-':
+				result += line + "\n"
+			else:
+				result += "\t" + line + "\n"
+		return result

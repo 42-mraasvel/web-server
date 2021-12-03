@@ -6,6 +6,9 @@ RESET_COLOR = "\033[0m"
 
 def putMsg(message):
 	print(RED_BOLD + "ERROR" + RESET_COLOR + ':', message, file = sys.stderr)
+
+def putFail(message):
+	print(RED_BOLD + "FAIL" + RESET_COLOR + ':', message, file = sys.stderr)
 	Logger.log(message + "\n")
 
 def exitError(message):

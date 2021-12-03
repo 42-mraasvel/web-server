@@ -1,6 +1,4 @@
 import sys
-import copy
-import TestCase
 import ExecuteTest
 import Error
 import Logger
@@ -14,10 +12,8 @@ def startup():
 if __name__ == '__main__':
 	if len(sys.argv) != 2:
 		Error.exitError(USAGE_ERR_STR)
-	
 	startup()
 	authority = sys.argv[1]
+
 	testcases = GenerateTestCases.generate()
-
 	ExecuteTest.execute(testcases, authority)
-

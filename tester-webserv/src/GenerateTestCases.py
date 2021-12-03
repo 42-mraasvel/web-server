@@ -4,15 +4,26 @@ def generate():
 	testcases = []
 
 	testcases.append(simpleTestCase())
+	testcases.append(invalidTestCase())
 	testcases.append(secondTestCase())
 	testcases.append(invalidTestCase())
-	testcases.append(invalidTestCase())
-	testcases.append(invalidTestCase())
+	testcases.append(invalidTestCase2())
+	testcases.append(invalidTestCase3())
 	return testcases
 
 def invalidTestCase():
 	testcase = simpleTestCase()
 	testcase.response.status_code = 201
+	return testcase
+
+def invalidTestCase2():
+	testcase = simpleTestCase()
+	testcase.response.headers['Connection'] = 'keep-aliv'
+	return testcase
+
+def invalidTestCase3():
+	testcase = simpleTestCase()
+	testcase.response.body = "blabla"
 	return testcase
 
 def secondTestCase():
