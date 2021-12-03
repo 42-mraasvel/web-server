@@ -14,7 +14,7 @@
 // Configuration syntax: CGI .py /usr/bin/python3
 
 CgiHandler::CgiHandler()
-: _status(CgiHandler::INACTIVE), _status_code(StatusCode::STATUS_OK), _sender(NULL), _reader(NULL), _cgi_pid(-1) {}
+: _status(CgiHandler::INACTIVE), _status_code(0), _sender(NULL), _reader(NULL), _cgi_pid(-1) {}
 
 CgiHandler::~CgiHandler()
 {
@@ -22,30 +22,11 @@ CgiHandler::~CgiHandler()
 	cleanCgi();
 }
 
-static std::size_t findCgiComponent(std::string const & request_target, std::string const & extension)
-{
-	std::size_t index = 0;
-	while (true)
-	{
-		std::size_t end = request_target.find("/", index + 1);
-		if (WebservUtility::stringEndsWith(request_target, extension, index, end))
-		{
-			return index;
-		}
-		else if (end == std::string::npos)
-		{
-			break;
-		}
-		index = end;
-	}
-	return std::string::npos;
-}
-
 bool CgiHandler::isCgi(std::string const & request_target, CgiVectorType const & cgi)
 {
 	for (CgiVectorType::const_iterator it = cgi.begin(); it != cgi.end(); ++it)
 	{
-		if (findCgiComponent(request_target, it->first) != std::string::npos)
+		if (WebservUtility::stringEndsWith(request_target, it->first))
 		{
 			return true;
 		}
@@ -60,26 +41,6 @@ bool CgiHandler::isCgi(Request const & request)
 		return false;
 	}
 	return isCgi(request.config_info.resolved_target, request.config_info.resolved_location->_cgi);
-}
-
-void CgiHandler::resolveCgiTarget(std::string const & target, CgiVectorType const & cgi,
-						ConfigInfo& info)
-{
-	std::size_t index = 0;
-	for (CgiVectorType::const_iterator it = cgi.begin(); it != cgi.end(); ++it)
-	{
-		index = findCgiComponent(target, it->first);
-		if (index != std::string::npos)
-		{
-			info.resolved_cgi_script = it->second;
-			break;
-		}
-	}
-	std::size_t end = target.find("/", index + 1);
-	info.resolved_target = target.substr(0, end);
-	if (end != std::string::npos) {
-		info.resolved_path_info = target.substr(end);
-	}
 }
 
 /*
@@ -97,11 +58,14 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 	printf(YELLOW_BOLD "-- Executing CGI --" RESET_COLOR "\n");
 
 	/* 1. Preparation */
+	_status = CgiHandler::INCOMPLETE;
 	setInfo(request.config_info);
 	generateMetaVariables(request);
 
 	if (!scriptCanBeExecuted())
 	{
+		fprintf(stderr, "%sCgiHandler%s: Cgi Script: %s: cannot be executed\n",
+			RED_BOLD, RESET_COLOR, _script.c_str());
 		finishCgi(ERROR, StatusCode::BAD_GATEWAY);
 		return ERR;
 	}
@@ -115,6 +79,7 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 	}
 
 	/* 3. Fork */
+	print();
 	if (forkCgi(fds, fd_table) == ERR)
 	{
 		finishCgi(ERROR, StatusCode::INTERNAL_SERVER_ERROR);
@@ -132,7 +97,20 @@ void CgiHandler::setInfo(ConfigInfo const & info)
 {
 	_root_dir = info.resolved_location->_root;
 	_target = info.resolved_file_path;
-	_script = info.resolved_cgi_script;
+	resolveCgiScript(info.resolved_target, info.resolved_location->_cgi);
+}
+
+void CgiHandler::resolveCgiScript(std::string const target, CgiVectorType const & cgi)
+{
+	std::size_t index = 0;
+	for (CgiVectorType::const_iterator it = cgi.begin(); it != cgi.end(); ++it)
+	{
+		if (WebservUtility::stringEndsWith(target, it->first))
+		{
+			_script = it->second;
+			break;
+		}
+	}
 }
 
 bool CgiHandler::scriptCanBeExecuted()
@@ -143,66 +121,34 @@ bool CgiHandler::scriptCanBeExecuted()
 /* Setting up the meta-variables (environment) */
 
 /*
-Already known: PATH_INFO
+	CONTENT_LENGTH		From Request Body
+	CONTENT_TYPE		From Request Header
+	GATEWAY_INTERFACE	Defaults to `CGI/1.1`
+	PATH_INFO			(/index.php)
+	PATH_TRANSLATED		Request-Target translated to a local URI (/var/www/html/index.php)
+	QUERY_STRING		Query part of the request-target (/index.php?1=2&x=y) => 1=2&x=y
+	REMOTE_ADDR			IPv4 address of the connected client
+	REQUEST_METHOD		GET | POST | DELETE
+	SERVER_NAME			IPv4 address the client used to connect to the server
+	SERVER_PORT			Port client used to connect to the server
+	SERVER_PROTOCOL		`HTTP/1.1`
+	SERVER_SOFTWARE		Name of the server
 
-To Generate:
-
-	Content-Length, Content-Type (message-body related)
-	[OPTIONAL] PATH_TRANSLATED: Extract from PATH_INFO
-	[OPTIONAL] REMOTE_HOST: Hostname of client
-	SCRIPT_NAME: _target ? OR fullpath of the CGI itself?
-	SERVER_NAME: What the client connected to, using Host field or default
-
-Easy Copy:
-
-	QUERY_STRING: present in the request
-	REMOTE_ADDR: IPv4 address of client
-	REQUEST_METHOD: from Request
-	SERVER_PORT: from Client or Server parent class
-	SERVER_PROTOCOL: from request
-
-Header-Fields:
-
-	PROTOCOL_SPECIFIC_META_VARIABLES
-	HTTP_*
-	From HeaderField of the request
-
-Hardcoded:
-
-	GATEWAY_INTERFACE = CGI/1.1
-	SERVER_SOFTWARE = custom server name ("Plebserv Reforged")
+	HTTP_* fields		All other header-fields given by the Request
 */
 void CgiHandler::generateMetaVariables(const Request& request)
 {
-	/* To Generate */
-	// TODO: REMOTE_HOST, PATH_TRANSLATED [OPTIONAL]
-	_meta_variables.push_back(MetaVariableType("PATH_INFO", request.config_info.resolved_path_info));
 	metaVariableContent(request);
-
-	_meta_variables.push_back(MetaVariableType("SCRIPT_NAME", request.config_info.resolved_target));
-	// TODO: SERVER_NAME: Check SERVER_NAMES in the ResolvedServer: use Host to determine this
-	// Right now it's the IP of the interface the client connected with
-	_meta_variables.push_back(MetaVariableType("SERVER_NAME", request.interface_addr.first));
-
-
-	/* Easy Copy */
-	_meta_variables.push_back(MetaVariableType(
-		"QUERY_STRING", request.query.c_str()));
-	_meta_variables.push_back(
-		MetaVariableType("REQUEST_METHOD", request.getMethodString().c_str()));
-	_meta_variables.push_back(
-		MetaVariableType("SERVER_PROTOCOL", request.getProtocolString().c_str()));
-	_meta_variables.push_back(MetaVariableType(
-		"REMOTE_ADDR", request.address.first));
-	_meta_variables.push_back(MetaVariableType(
-		"SERVER_PORT", WebservUtility::itoa(request.interface_addr.second)));
-
-	/* Header-Fields */
-	metaVariableHeader(request);
-
-	/* Hardcoded */
-	_meta_variables.push_back(MetaVariableType("SERVER_SOFTWARE", "Plebserv Remastered"));
 	_meta_variables.push_back(MetaVariableType("GATEWAY_INTERFACE", "CGI/1.1"));
+	metaVariablePathInfo(request);
+	_meta_variables.push_back(MetaVariableType("QUERY_STRING", request.query.c_str()));
+	_meta_variables.push_back(MetaVariableType("REMOTE_ADDR", request.address.first));
+	_meta_variables.push_back(MetaVariableType("REQUEST_METHOD", request.getMethodString()));
+	_meta_variables.push_back(MetaVariableType("SERVER_NAME", request.interface_addr.first));
+	_meta_variables.push_back(MetaVariableType("SERVER_PORT", WebservUtility::itoa(request.interface_addr.second)));
+	_meta_variables.push_back(MetaVariableType("SERVER_PROTOCOL", "HTTP/1.1"));
+	_meta_variables.push_back(MetaVariableType("SERVER_SOFTWARE", "Plebserv Remastered"));
+	metaVariableHeader(request);
 }
 
 void CgiHandler::metaVariableContent(const Request& request)
@@ -212,13 +158,20 @@ void CgiHandler::metaVariableContent(const Request& request)
 		return;
 	}
 
-	_meta_variables.push_back(
-		MetaVariableType("CONTENT_LENGTH", WebservUtility::itoa(request.message_body.size())));
+	_meta_variables.push_back(MetaVariableType("CONTENT_LENGTH", WebservUtility::itoa(request.message_body.size())));
 	HeaderField::const_pair_type p = request.header_fields.get("content-type");
 	if (p.second)
 	{
 		_meta_variables.push_back(MetaVariableType("CONTENT_TYPE", p.first->second));
 	}
+}
+
+void CgiHandler::metaVariablePathInfo(const Request& request)
+{
+	//TODO: test with the executable on intra, since the subj states full path should be given
+	_meta_variables.push_back(MetaVariableType("PATH_INFO", request.config_info.resolved_target));
+	// _meta_variables.push_back(MetaVariableType("PATH_INFO", _root_dir + request.config_info.resolved_target));
+	_meta_variables.push_back(MetaVariableType("PATH_TRANSLATED", _root_dir + request.config_info.resolved_target));
 }
 
 void CgiHandler::metaVariableHeader(const Request& request)
@@ -356,7 +309,6 @@ int CgiHandler::forkCgi(int* cgi_fds, FdTable& fd_table)
 		}
 		exit(executeChildProcess());
 	}
-	sleep(1);
 	return OK;
 }
 
@@ -489,29 +441,10 @@ int CgiHandler::getErrorCode() const
 	return _sender->getStatusCode();
 }
 
-void CgiHandler::setMessageBody(std::string & response_body)
-{
-	if (response_body.size() == 0)
-	{
-		response_body.swap(_message_body);
-	}
-	else
-	{
-		response_body.append(_message_body);
-		_message_body.clear();
-	}
-
-	if (_reader && _reader->getBody().size() > 0)
-	{
-		response_body.append(_reader->getBody());
-		_reader->getBody().clear();
-	}
-}
-
 /*
 This function should only be called once
 */
-void CgiHandler::setSpecificHeaderField(HeaderField & header_field)
+void CgiHandler::setSpecificHeaderField(HeaderField & header_field, bool content_type_fixed)
 {
 	if (_reader && _header.size() == 0)
 	{
@@ -571,7 +504,7 @@ TODO: ERROR handling
 	- Sender has not completely finished writing it's content (POLLERR + closeEvent())
 		: Example: reader has finished reading a valid response, but the sender is still not done and the CGI exited
 */
-void CgiHandler::update()
+void CgiHandler::update(std::string & response_body)
 {
 	//return if already finished communicating with CGI
 	if (isComplete() || isError())
@@ -585,19 +518,9 @@ void CgiHandler::update()
 		return;
 	}
 
-	if (_reader && _reader->getFlag() == AFdInfo::COMPLETE)
+	if (_reader)
 	{
-		// TODO: if sending a CHUNKED Message, then we should APPEND only if it's actively reading
-		// HeaderField should just be swapped once it's parsed in that case (add HEADER_COMPLETE)
-		if (_message_body.size() == 0) {
-			_message_body.swap(_reader->getBody());
-		} else {
-			_message_body.append(_reader->getBody());
-			_reader->getBody().clear();
-		}
-		_header.swap(_reader->getHeader());
-		_reader->setToErase();
-		_reader = NULL;
+		evaluateReader(response_body);
 	}
 
 	if (_sender && _sender->getFlag() == AFdInfo::COMPLETE)
@@ -618,6 +541,27 @@ void CgiHandler::update()
 	}
 }
 
+void CgiHandler::evaluateReader(std::string & response_body)
+{
+	if (_reader->getBody().size() > 0)
+	{
+		if (response_body.size() == 0)
+		{
+			response_body.swap(_reader->getBody());
+		}
+		else
+		{
+			response_body.append(_reader->getBody());
+			_reader->getBody().clear();
+		}
+	}
+	if (_reader->getFlag() == AFdInfo::COMPLETE)
+	{
+		_reader->setToErase();
+		_reader = NULL;
+	}
+}
+
 void CgiHandler::exceptionEvent()
 {
 	clear();
@@ -631,7 +575,6 @@ void CgiHandler::clear()
 	_script.clear();
 	_target.clear();
 	_meta_variables.clear();;
-	_message_body.clear();
 	_header.clear();
 }
 
@@ -640,6 +583,7 @@ int CgiHandler::checkStatusField() const
 	HeaderField::const_pair_type status = _header.get("Status");
 	if (status.second)
 	{
+		printf("Cgi returned StatusCode: %s\n", status.first->second.c_str());
 		return WebservUtility::strtol(status.first->second);
 	}
 	return StatusCode::STATUS_OK;
@@ -691,7 +635,7 @@ int CgiHandler::killCgi(int* status)
 
 bool CgiHandler::isComplete() const
 {
-	return _sender == NULL && _reader == NULL;
+	return _status != CgiHandler::INACTIVE && _sender == NULL && _reader == NULL;
 }
 
 bool CgiHandler::isError() const

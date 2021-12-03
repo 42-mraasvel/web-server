@@ -24,6 +24,9 @@ class RequestHandler
 		typedef	ConfigResolver::MapType		MapType;
 		typedef	ConfigResolver::AddressType	AddressType;
 
+	private:
+		RequestHandler(const RequestHandler& rhs);
+		RequestHandler& operator=(const RequestHandler& rhs);
 
 	public:
 		RequestHandler(AddressType client, AddressType interface, MapType const * config_map);

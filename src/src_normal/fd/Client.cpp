@@ -1,8 +1,10 @@
 #include "Client.hpp"
 #include "settings.hpp"
-#include "File.hpp"
 #include "utility/utility.hpp"
 #include "utility/status_codes.hpp"
+#include "File.hpp"
+#include "handler/Response.hpp"
+
 #include <poll.h>
 #include <fcntl.h>
 #include <cstdlib>
@@ -85,7 +87,7 @@ void	Client::update(FdTable & fd_table)
 
 	_response_handler.updateResponseQueue(fd_table);
 
-	generateResponse();
+	generateResponseString();
 
 	resetEvents(fd_table);
 
@@ -124,16 +126,22 @@ void	Client::resetRequest()
 	_request = NULL;
 }
 
-void	Client::generateResponse()
+static void	appendString(std::string & from, std::string & to)
+{
+	to.append(from);
+	from.clear();
+}
+
+void	Client::generateResponseString()
 {
 	while (_response_string.size() < BUFFER_SIZE
 			&& retrieveResponse())
 	{
-		_response->generateResponse(_response_string);
-		if (_response->isComplete())
+		appendString(_response->string_to_send, _response_string);
+		if (_response->status == Response::COMPLETE)
 		{
-			decreUnsafe(_response->getMethod());
-			_close_connection = _response->getCloseConnectionFlag();
+			decreUnsafe(_response->method);
+			_close_connection = _response->close_connection;
 			resetResponse();
 		}
 	}
@@ -150,7 +158,7 @@ bool	Client::retrieveResponse()
 		_response = _response_handler.getNextResponse();
 		return _response;
 	}
-	return _response->isComplete() || _response->isReadyToWrite();
+	return !_response->string_to_send.empty();
 }
 
 void	Client::resetResponse()
@@ -256,7 +264,6 @@ void	Client::closeConnection()
 {
 	std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
 	_flag = AFdInfo::TO_ERASE;
-	// TODO: close the connection only in the update after a certain amount of time has elapsed: remove READING from events
 }
 
 bool	Client::isMethodSafe(Method::Type const & method) const

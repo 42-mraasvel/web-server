@@ -1,62 +1,69 @@
 #include "Response.hpp"
-#include "settings.hpp"
-#include "utility/utility.hpp"
-#include "fd/FdTable.hpp"
 #include "parser/Request.hpp"
 
+static std::string	setHttpVersion(int minor_version)
+{
+	if (minor_version == 0)
+	{
+		return "HTTP/1.0";
+	}
+	else
+	{
+		return "HTTP/1.1";
+	}
+}
+
 Response::Response(Request const & request):
-_processor(request)
+method(request.method),
+request_target(request.request_target),
+config_info(request.config_info),
+http_version(setHttpVersion(request.minor_version)),
+close_connection(request.close_connection),
+status(START),
+status_code(0),
+is_cgi(false),
+error_page_attempted(false),
+encoding(UNDEFINED),
+handler(&file_handler),
+header_part_set(false)
 {}
 
-/******************************/
-/****** Client::update() ******/
-/******************************/
-
-void	Response::executeRequest(FdTable & fd_table, Request & request)
+void	Response::markComplete(int new_status_code)
 {
-	_processor.executeRequest(fd_table, request);
+	status = COMPLETE;
+	status_code = new_status_code;
 }
 
-void	Response::update(FdTable & fd_table)
+void	Response::setCgi()
 {
-	_processor.updateResponse(fd_table, _generator.message_body);
+	is_cgi = true;
+	handler = &cgi_handler;
 }
 
-
-/*********************************/
-/****** Client::writeEvent() *****/
-/*********************************/
-
-void	Response::generateResponse(std::string & append_to)
+void	Response::unsetCgi()
 {
-	_generator.generateResponse(_processor.getInfo(), _processor.getHandler());
-	_generator.appendString(append_to);
+	is_cgi = false;
+	handler = &file_handler;
 }
 
-/******************************/
-/****** utility - public ******/
-/******************************/
+void	Response::resetErrorPageRedirection()
+{
+	status = Response::START;
+	encoding = Response::UNDEFINED;
+	error_page_attempted = true;
+	unsetCgi();
+}
 
 bool	Response::isReadyToWrite() const
 {
-	if (_processor.isChunked())
+	if (status == COMPLETE)
 	{
-		return !_generator.message_body.empty() || _processor.getHandler()->isReadyToWrite();
+		return true;
+	}
+	else if (encoding == CHUNKED && !message_body.empty())
+	{
+		return true;
 	}
 	return false;
-}
 
-bool	Response::isComplete() const
-{
-	return _processor.getInfo().status == ResponseInfo::COMPLETE;
-}
-
-Method::Type	Response::getMethod() const
-{
-	return _processor.getInfo().method;
-}
-
-bool			Response::getCloseConnectionFlag() const
-{
-	return _processor.getInfo().close_connection;
 }

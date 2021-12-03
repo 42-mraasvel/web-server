@@ -243,6 +243,7 @@ ConfigInfo::server_block_pointer	ConfigResolver::resolveDefaultHost(ServerVector
 ConfigInfo::location_block_pointer	ConfigResolver::resolveLocationResult(Method::Type const & method, std::string const & target, LocationVectorType const & locations)
 {
 	info.resolved_target = target;
+	_auto_index_on = false;
 	ConfigInfo::location_block_pointer	location = resolveLocation(target, locations);
 	info.result = getResult(location);
 	if (info.result == ConfigInfo::AUTO_INDEX_ON && method != Method::GET)
@@ -252,10 +253,6 @@ ConfigInfo::location_block_pointer	ConfigResolver::resolveLocationResult(Method:
 	}
 	if (info.result != ConfigInfo::NOT_FOUND)
 	{
-		if (CgiHandler::isCgi(target, location->_cgi))
-		{
-			CgiHandler::resolveCgiTarget(target, location->_cgi, info);
-		}
 		info.resolved_file_path = location->_root + info.resolved_target;
 	}
 	return location;
@@ -267,7 +264,7 @@ ConfigInfo::location_block_pointer	ConfigResolver::resolveLocation(std::string c
 
 	if (!target.empty() && isMatchLocation(target, locations, it_matched))
 	{
-		if (isTargetDirectory(target) && !CgiHandler::isCgi(target, (*it_matched)->_cgi))
+		if (isTargetDirectory(target))
 		{
 			return resolveIndex(it_matched, target, locations);
 		}

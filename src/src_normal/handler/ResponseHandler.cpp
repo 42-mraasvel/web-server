@@ -2,7 +2,10 @@
 #include "settings.hpp"
 #include "utility/utility.hpp"
 #include "utility/status_codes.hpp"
+#include "fd/AFdInfo.hpp"
 #include "parser/Request.hpp"
+#include "RequestExecutor.hpp"
+
 #include <unistd.h>
 #include <cstdlib>
 #include <fcntl.h>
@@ -11,36 +14,23 @@
 #include <time.h>
 #include <algorithm>
 
-ResponseHandler::ResponseHandler():
-_response(NULL)
-{}
-
-/*********************************************/
-/****** (Client::update) execute request *****/
-/*********************************************/
+ResponseHandler::ResponseHandler() {}
 
 void	ResponseHandler::processRequest(FdTable & fd_table, Request & request)
 {
 	ResponsePointer	r = ResponsePointer(new Response(request));
 	_response_queue.push_back(r);
-	r->executeRequest(fd_table, request);
+	RequestExecutor	executor;
+	executor.executeRequest(fd_table, request, *r);
 }
-
-/*******************************************/
-/****** Client::update() update queue ******/
-/*******************************************/
 
 void	ResponseHandler::updateResponseQueue(FdTable & fd_table)
 {
 	for (ResponseQueue::iterator it = _response_queue.begin(); it != _response_queue.end(); ++it)
 	{
-		(*it)->update(fd_table);
+		_updator.update(fd_table, *(*it));
 	}
 }
-
-/****************************************************/
-/****** (Client::writeEvent) generate response ******/
-/***************************************************/
 
 ResponseHandler::ResponsePointer	ResponseHandler::getNextResponse()
 {
@@ -57,20 +47,9 @@ void	ResponseHandler::popQueue()
 	_response_queue.pop_front();
 }
 
-/******************************/
-/****** utility - public ******/
-/******************************/
-
 bool	ResponseHandler::isResponseQueueEmpty() const
 {
 	return _response_queue.empty();
-}
-
-bool	ResponseHandler::canClientWrite() const
-{
-	return !_response_queue.empty()
-			&& (_response_queue.front()->isComplete()
-				|| _response_queue.front()->isReadyToWrite());
 }
 
 void	ResponseHandler::clear()

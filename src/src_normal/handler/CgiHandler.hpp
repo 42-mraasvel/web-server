@@ -25,6 +25,11 @@ class CgiHandler: public iHandler
 			ERROR,
 			COMPLETE
 		};
+
+	private:
+		CgiHandler(CgiHandler const & rhs);
+		CgiHandler & operator=(CgiHandler const & rhs);
+
 	public:
 		CgiHandler();
 		~CgiHandler();
@@ -32,18 +37,15 @@ class CgiHandler: public iHandler
 	/* Main Interface Functions */
 		static bool isCgi(Request const & request);
 		static bool isCgi(std::string const & request_target, CgiVectorType const & cgi);
-		static void resolveCgiTarget(std::string const & target, CgiVectorType const & cgi,
-								ConfigInfo & info);
 
 		int		executeRequest(FdTable& fd_table, Request& request);
-		void	update();
+		void	update(std::string & response_body);
 		void	exceptionEvent();
 		bool	isComplete() const;
 		bool	isError() const;
-		void	setMessageBody(std::string & response_body);
 		int		getStatusCode() const;
 		bool	isReadyToWrite() const;
-		void	setSpecificHeaderField(HeaderField & header_field);
+		void	setSpecificHeaderField(HeaderField & header_field, bool content_type_fixed);
 
 	/* Debugging */
 	public:
@@ -55,8 +57,10 @@ class CgiHandler: public iHandler
 		bool scriptCanBeExecuted();
 
 		void setInfo(ConfigInfo const & info);
+		void resolveCgiScript(std::string const target, CgiVectorType const & cgi);
 		void generateMetaVariables(const Request& request);
 		void metaVariableContent(const Request& request);
+		void metaVariablePathInfo(const Request& request);
 		void metaVariableHeader(const Request& request);
 		MetaVariableType convertFieldToMeta(const std::string& key, const std::string& value) const;
 
@@ -78,6 +82,7 @@ class CgiHandler: public iHandler
 		bool skippedHeaderField(std::string const & key) const;
 
 	/* Update Functionality */
+		void evaluateReader(std::string & response_body);
 		bool isExecutionError() const;
 		int getErrorCode() const;
 		int cleanCgi();
@@ -91,7 +96,6 @@ class CgiHandler: public iHandler
 	private:
 		Status		_status;
 		int			_status_code;
-		std::string _message_body;
 		HeaderField _header;
 
 	private:

@@ -165,8 +165,6 @@ static void printConfigInfo(const ConfigInfo& info)
 	}
 	printf("Resolved Target: %s\n", info.resolved_target.c_str());
 	printf("Resolved File Path: %s\n", info.resolved_file_path.c_str());
-	printf("Resolved CGI Script: %s\n", info.resolved_cgi_script.c_str());
-	printf("Resolved Path Info: %s\n", info.resolved_path_info.c_str());
 	printVector("  -- ALLOWED METHODS --", info.resolved_location->_allowed_methods);
 	printVector("  -- INDEX --", info.resolved_location->_index);
 	printf("  -- CGI --\n");
@@ -191,12 +189,12 @@ void Request::print() const
 	printf("Status: %s\n", getStatusString().c_str());
 	printf("StatusCode: %d\n", status_code);
 	printf("Address: '%s:%d'\n", address.first.c_str(), address.second);
-	printf(" %s- HEADER FIELDS -%s\n", GREEN_BOLD, RESET_COLOR);
+	printf(" %s- Header Field -%s\n", GREEN_BOLD, RESET_COLOR);
 	for (header_field_t::const_iterator it = header_fields.begin(); it != header_fields.end(); ++it)
 	{
 		printf("  %s: %s\r\n", it->first.c_str(), it->second.c_str());
 	}
-	printf(GREEN_BOLD " - MESSAGE BODY -" RESET_COLOR "\r\n");
+	printf(GREEN_BOLD " - Message Body -" RESET_COLOR "\r\n");
 	printf("Body-Size(%lu)\n", message_body.size());
 	if (message_body.size() <= 8192) {
 		printf("%s\r\n", message_body.c_str());
@@ -205,6 +203,15 @@ void Request::print() const
 	else {
 		printf("body too large to print\n");
 	}
-
+	printf(GREEN_BOLD " - Other feature -" RESET_COLOR "\r\n");
+	if (close_connection)
+	{
+		printf("Close_connection: yes\n");
+	}
+	else
+	{
+		printf("Close_connection: no\n");
+	}
+	printf(GREEN_BOLD "------------------------" RESET_COLOR "\r\n");
 	// printConfigInfo(config_info);
 }

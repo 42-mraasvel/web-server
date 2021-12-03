@@ -11,8 +11,6 @@ class AFdInfo
 			WAITING,
 			READING
 		};
-		//TODO: change from FILE_x to just x: COMPLETE, ERROR, START etc, use it for CGI as well
-		//Also make flag private and create a getter/setter
 		enum Flags
 		{
 			ACTIVE,
@@ -21,6 +19,10 @@ class AFdInfo
 			ERROR,
 			TO_ERASE
 		};
+	
+	private:
+		AFdInfo(AFdInfo const & rhs);
+		AFdInfo & operator=(AFdInfo const & rhs);
 
 	public:
 		virtual	~AFdInfo();

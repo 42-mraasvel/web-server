@@ -3,7 +3,7 @@
 #define ERR -1
 
 #define BACKLOG 10 //TODO: check later
-#define POLL_TIMEOUT 2500 // 2.5 seconds
+#define POLL_TIMEOUT 10000 // 10 seconds
 #define TIMEOUT 60 // 60 second timeout for now
 #define CRLF "\r\n"
 #define NEWLINE CRLF
@@ -27,7 +27,7 @@ Response Specific Defines
 #define CHUNK_THRESHOLD 2048 // TODO: evaluate later
 #define CHUNK_TAIL "0" CRLF CRLF
 #define RETRY_AFTER_SECONDS 30
-#define CLOSE_CONNECTION_DELAY 30 // TODO: evaluate later
+#define CLOSE_CONNECTION_DELAY 5 // TODO: evaluate later
 
 /*
 Printing

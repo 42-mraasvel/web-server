@@ -3,6 +3,7 @@
 #include "AFdInfo.hpp"
 #include <poll.h>
 
+FdTable::FdTable() {}
 FdTable::~FdTable() {}
 
 void	FdTable::insertFd(AFdPointer info)

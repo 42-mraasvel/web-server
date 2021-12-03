@@ -31,11 +31,6 @@ FileHandler::~FileHandler()
 int	FileHandler::executeRequest(FdTable & fd_table, Request & request)
 {
 	_method = request.method;
-	if (!WebservUtility::isFileExist(_absolute_file_path))
-	{
-		markError(StatusCode::NOT_FOUND);
-		return ERR;
-	}
 	if (createFile(fd_table) == ERR)
 	{
 		return ERR;
@@ -56,7 +51,7 @@ int	FileHandler::executeRequest(FdTable & fd_table, Request & request)
 int	FileHandler::createFile(FdTable & fd_table)
 {
 	setFileParameter();
-	if (!isFileAuthorized() || !openFile(fd_table))
+	if (!isFileValid() || !isFileAuthorized() || !openFile(fd_table))
 	{
 		return ERR;
 	}
@@ -78,11 +73,11 @@ void	FileHandler::setFileParameter()
 			return ;
 		case Method::POST:
 			_access_flag = W_OK;
-			_open_flag = O_CREAT | O_WRONLY | O_APPEND;
+			_open_flag = O_CREAT | O_WRONLY;
 			_file_event = AFdInfo::WRITING;
 			if (_status_code == 0)
 			{
-				_status_code = StatusCode::CREATED;
+				_status_code = StatusCode::NO_CONTENT;
 			}
 			return ;
 		case Method::DELETE:
@@ -94,15 +89,32 @@ void	FileHandler::setFileParameter()
 				_status_code = StatusCode::NO_CONTENT;
 			}
 			return ;
-		case Method::OTHER:
 		default:
 			return;
 	}
 }
 
+bool	FileHandler::isFileValid()
+{
+	if (!WebservUtility::isFileExist(_absolute_file_path))
+	{
+		if (_method == Method::POST)
+		{
+			_status_code = StatusCode::CREATED;
+			return true;
+		}
+		else
+		{
+			markError(StatusCode::NOT_FOUND);
+			return false;
+		}
+	}
+	return true;
+}
+
 bool	FileHandler::isFileAuthorized()
 {
-	if (access(_absolute_file_path.c_str(), _access_flag) == ERR)
+	if (_method != Method::POST && access(_absolute_file_path.c_str(), _access_flag) == ERR)
 	{
 		markError(StatusCode::FORBIDDEN);
 		return false;
@@ -159,7 +171,7 @@ int	FileHandler::executeGet()
 
 int	FileHandler::executePost(Request & request)
 {
-	_file->appendContent(request.message_body);
+	_file->appendFromContent(request.message_body);
 	return OK;
 }
 
@@ -189,7 +201,7 @@ void	FileHandler::updateFileEvent(FdTable & fd_table)
 /****** update *****/
 /*******************/
 
-void	FileHandler::update()
+void	FileHandler::update(std::string & response_body)
 {
 	if (isError())
 	{
@@ -202,7 +214,11 @@ void	FileHandler::update()
 		return ;
 	}
 
-	_file->appendContent(_message_body);
+	if (_method == Method::GET && _file
+		&& (_file->getFlag() == AFdInfo::START || _file->getFlag() == AFdInfo::COMPLETE))
+	{
+		_file->appendToContent(response_body);
+	}
 
 	if (isFileComplete())
 	{
@@ -220,62 +236,28 @@ void	FileHandler::exceptionEvent()
 
 int	FileHandler::redirectErrorPage(FdTable & fd_table, std::string const & file_path, int status_code)
 {
-	_absolute_file_path = file_path;
-	_status_code = status_code;
+	resetHandler(file_path, status_code);
 	Request	error_page_request;
 	error_page_request.method = Method::GET;
 	return executeRequest(fd_table, error_page_request);
 }
 
-/**************************************/
-/****** update - set message body *****/
-/**************************************/
-
-void	FileHandler::setMessageBody(std::string & message_body)
+void	FileHandler::resetHandler(std::string const & file_path, int status_code)
 {
-	switch (_method)
-	{
-		case Method::GET:
-			return setMessageBodyGet(message_body);
-		case Method::POST:
-			return setMessageBodyPost();
-		case Method::DELETE:
-			return setMessageBodyDelete();
-		default:
-			return ;
-	}
-}
-
-void	FileHandler::setMessageBodyGet(std::string & message_body)
-{
-	if (message_body.size() == 0)
-	{
-		message_body.swap(_message_body);
-	}
-	else
-	{
-		message_body.append(_message_body);
-		_message_body.clear();
-	}
-}
-
-void	FileHandler::setMessageBodyPost()
-{
-	return ;
-}
-
-void	FileHandler::setMessageBodyDelete()
-{
-	return ;
+	_absolute_file_path = file_path;
+	_status_code = status_code;
+	_is_error = false;
+	_is_complete = false;
+	_file = NULL;
 }
 
 /******************************/
 /****** set header field ******/
 /******************************/
 
-void    FileHandler::setSpecificHeaderField(HeaderField & header_field)
+void    FileHandler::setSpecificHeaderField(HeaderField & header_field, bool content_type_fixed)
 {
-	if (!header_field.contains("Content-Type"))
+	if (!content_type_fixed)
 	{
 		setContentType(header_field);
 	}
@@ -287,10 +269,6 @@ void	FileHandler::setContentType(HeaderField & header_field) const
 	{
 		header_field["Content-Type"] = MediaType::getMediaType(_absolute_file_path);
 		return ;
-	}
-	if (!_message_body.empty())
-	{
-		header_field["Content-Type"] = "text/plain;charset=UTF-8";
 	}
 }
 
@@ -357,7 +335,6 @@ void	FileHandler::markError(int status_code)
 {
 	_status_code = status_code;
 	_is_error = true;
-	_message_body.clear();
 	_absolute_file_path.clear();
 	if (_file)
 	{
