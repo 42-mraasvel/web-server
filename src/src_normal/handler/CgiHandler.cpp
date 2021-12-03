@@ -504,7 +504,6 @@ TODO: ERROR handling
 	- Sender has not completely finished writing it's content (POLLERR + closeEvent())
 		: Example: reader has finished reading a valid response, but the sender is still not done and the CGI exited
 */
-// TODO: aileen: added response_body to directly copy content to
 void CgiHandler::update(std::string & response_body)
 {
 	//return if already finished communicating with CGI
