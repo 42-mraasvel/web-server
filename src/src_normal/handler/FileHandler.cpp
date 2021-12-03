@@ -237,7 +237,8 @@ int	FileHandler::redirectErrorPage(FdTable & fd_table, std::string const & file_
 
 void    FileHandler::setSpecificHeaderField(HeaderField & header_field)
 {
-	if (!header_field.contains("Content-Type"))
+	if (!header_field.contains("Content-Type")
+		|| header_field.find("Content-type")->second != "text/html")
 	{
 		setContentType(header_field);
 	}
@@ -249,10 +250,6 @@ void	FileHandler::setContentType(HeaderField & header_field) const
 	{
 		header_field["Content-Type"] = MediaType::getMediaType(_absolute_file_path);
 		return ;
-	}
-	if (!_message_body.empty())
-	{
-		header_field["Content-Type"] = "text/plain;charset=UTF-8";
 	}
 }
 
@@ -319,7 +316,6 @@ void	FileHandler::markError(int status_code)
 {
 	_status_code = status_code;
 	_is_error = true;
-	_message_body.clear();
 	_absolute_file_path.clear();
 	if (_file)
 	{

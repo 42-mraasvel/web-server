@@ -184,10 +184,14 @@ void	ResponseGenerator::setContentLength(Response & response)
 
 void	ResponseGenerator::setContentType(Response & response)
 {
-	if (response.config_info.result == ConfigInfo::AUTO_INDEX_ON)
+	if (response.config_info.result == ConfigInfo::AUTO_INDEX_ON
+		&& response.status_code == StatusCode::STATUS_OK)
 	{
 		response.header_fields["Content-Type"] = "text/html";
-		return ;
+	}
+	else if (!response.message_body.empty())
+	{
+		response.header_fields["Content-Type"] = "text/plain;charset=UTF-8";
 	}
 }
 

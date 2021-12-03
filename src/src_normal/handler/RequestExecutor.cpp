@@ -80,13 +80,25 @@ bool	RequestExecutor::isLocationResolved(Request const & request)
 			markStatus(REDIRECT, request.config_info.resolved_location->_return.first);
 			return false ;
 		case ConfigInfo::AUTO_INDEX_ON:
-			markStatus(AUTO_INDEX_ON, StatusCode::STATUS_OK);
+			checkAutoIndexDirectory(request.config_info.resolved_file_path);
 			return false ;
 		case ConfigInfo::LOCATION_RESOLVED:
 			return true;
 		default :
 			//assert(); // TODO: check with maarten how to do;
 			return true;
+	}
+}
+
+void	RequestExecutor::checkAutoIndexDirectory(std::string const & target)
+{
+	if (!WebservUtility::isFileExist(target))
+	{
+		markStatus(TARGET_NOT_FOUND, StatusCode::NOT_FOUND);
+	}
+	else
+	{
+		markStatus(AUTO_INDEX_ON, StatusCode::STATUS_OK);
 	}
 }
 

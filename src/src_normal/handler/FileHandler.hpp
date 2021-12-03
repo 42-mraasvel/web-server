@@ -22,17 +22,17 @@ class FileHandler: public iHandler
 
 	/* Client::readEvent */
 	public:
-		int			executeRequest(FdTable & fd_table, Request & request);
+		int		executeRequest(FdTable & fd_table, Request & request);
 	private:
-		int			createFile(FdTable & fd_table);
-		void    	setFileParameter();
-		bool		isFileAuthorized();
-		bool		openFile(FdTable & fd_table);
-		int 		executeFile(Request & request);
-		int 		executeGet();
-		int 		executePost(Request & request);
-		int 		executeDelete();
-		void		updateFileEvent(FdTable & fd_table);
+		int		createFile(FdTable & fd_table);
+		void    setFileParameter();
+		bool	isFileAuthorized();
+		bool	openFile(FdTable & fd_table);
+		int 	executeFile(Request & request);
+		int 	executeGet();
+		int 	executePost(Request & request);
+		int 	executeDelete();
+		void	updateFileEvent(FdTable & fd_table);
 
 	/* update */
 	public:
@@ -50,16 +50,16 @@ class FileHandler: public iHandler
 
 	/* utility */
 	public:
-		void    setAbsoluteFilePath(std::string const & path);
-		std::string    getAbsoluteFilePath() const;
-		int		getStatusCode() const;
-		bool	isReadyToWrite() const;
-		bool	isFileError() const;
-		bool	isFileComplete() const;
-		bool	isFileReading() const;
-	private:
-		void    deleteFile();
-		void	markError(int status_code);
+		void    	setAbsoluteFilePath(std::string const & path);
+		std::string	getAbsoluteFilePath() const;
+		int			getStatusCode() const;
+		bool		isReadyToWrite() const;
+		bool		isFileError() const;
+		bool		isFileComplete() const;
+		bool		isFileReading() const;
+	private:	
+		void    	deleteFile();
+		void		markError(int status_code);
 
 	private:
 		Method::Type      		_method;
@@ -67,8 +67,6 @@ class FileHandler: public iHandler
 		int             		_open_flag;
 		AFdInfo::EventTypes		_file_event;
 		std::string     		_absolute_file_path;
-		std::string				_message_body;
-
 
 		FilePointer		_file;
 		int             _status_code;
