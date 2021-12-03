@@ -45,7 +45,7 @@ class CgiHandler: public iHandler
 		bool	isError() const;
 		int		getStatusCode() const;
 		bool	isReadyToWrite() const;
-		void	setSpecificHeaderField(HeaderField & header_field);
+		void	setSpecificHeaderField(HeaderField & header_field, bool content_type_fixed);
 
 	/* Debugging */
 	public:

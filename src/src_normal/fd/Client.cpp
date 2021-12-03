@@ -189,6 +189,10 @@ void	Client::resetEvents(FdTable & fd_table)
 
 void	Client::checkTimeOut()
 {
+	if (_close_timer_set)
+	{
+		printf("time elapsed is: %f\n",_timer.elapsed());
+	}
 	if (_close_timer_set && _timer.elapsed() >= CLOSE_CONNECTION_DELAY)
 	{
 		closeConnection();

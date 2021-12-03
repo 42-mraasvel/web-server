@@ -28,9 +28,10 @@ void	RequestExecutor::executeRequest(FdTable & fd_table, Request & request, Resp
 		determineIsCgi(request, response);
 		if (isLocationResolved(request))
 		{
-			setAbsoluteFilePath(request, response);
-			if (isRequestTargetValid(request.config_info.resolved_file_path))
+			if ((request.method == Method::POST && !response.is_cgi)
+				|| isRequestTargetValid(request.config_info.resolved_file_path))
 			{
+				setAbsoluteFilePath(request, response);
 				if (response.handler->executeRequest(fd_table, request) == ERR)
 				{
 					markStatus(HANDLER_ERROR, response.handler->getStatusCode());

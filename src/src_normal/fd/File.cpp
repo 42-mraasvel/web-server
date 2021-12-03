@@ -71,16 +71,29 @@ std::string const &	File::getContent() const
 	return _content;
 }
 
-void	File::appendContent(std::string & content)
+void	File::appendToContent(std::string & to)
 {
-	if (content.size() == 0)
+	if (to.size() == 0)
 	{
-		content.swap(_content);
+		to.swap(_content);
 	}
 	else
 	{
-		content.append(_content);
+		to.append(_content);
 		_content.clear();
+	}
+}
+
+void	File::appendFromContent(std::string & from)
+{
+	if (_content.size() == 0)
+	{
+		_content.swap(from);
+	}
+	else
+	{
+		_content.append(from);
+		from.clear();
 	}
 }
 

@@ -19,7 +19,8 @@ class File : public AFdInfo
 		void exceptionEvent(FdTable & fd_table);
 
 		std::string	const &	getContent() const;
-		void				appendContent(std::string & content);
+		void				appendToContent(std::string & to);
+		void				appendFromContent(std::string & from);
 
 	/* Debugging */
 	public:

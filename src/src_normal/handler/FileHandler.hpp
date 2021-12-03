@@ -24,6 +24,7 @@ class FileHandler: public iHandler
 	public:
 		int		executeRequest(FdTable & fd_table, Request & request);
 	private:
+		bool	isFileValid();
 		int		createFile(FdTable & fd_table);
 		void    setFileParameter();
 		bool	isFileAuthorized();
@@ -41,10 +42,11 @@ class FileHandler: public iHandler
 		bool	isComplete() const;
 		bool	isError() const;
 		int		redirectErrorPage(FdTable & fd_table, std::string const & file_path, int status_code);
+		void	resetHandler(std::string const & file_path, int status_code);
 
 	/* Client::writeEvent */
 	public:
-		void	setSpecificHeaderField(HeaderField & header_field);
+		void	setSpecificHeaderField(HeaderField & header_field, bool content_type_fixed);
 	private:
 		void		setContentType(HeaderField & header_field) const;
 
