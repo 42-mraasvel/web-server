@@ -80,7 +80,7 @@ class TestCase:
 	
 	def getLogString(self):
 		lines = self.request.getLogList() + self.response.getLogList()
-		result = str()
+		result = 'TestCase: \'{}\'\n'.format(self.tag)
 		for line in lines:
 			if line[0] == ' ' or line[0] == '-':
 				result += line + "\n"

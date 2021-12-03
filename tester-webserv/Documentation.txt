@@ -44,6 +44,12 @@
 		To add new testcases:
 			testcases.append(createNewTestcase())
 		All testcases in this list will then be executed
+	
+	-- Adding TestCases from a file --
+
+		- Can write a file `x.txt + x.txt.response` (see examples)
+		- This will be parsed automatically and added as TestCase
+		- Beware that you need 2 newlines to end a header field (otherwise it won't be parsed)
 
 -- API used --
 

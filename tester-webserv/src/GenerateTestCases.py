@@ -1,11 +1,12 @@
 import TestCase
+import ParseTestCase
 
 #
 # MAIN GENERATE FUNCTION
 # Append new TestCases to the `testcases` list to execute them
 #
 def generate():
-	testcases = []
+	testcases = ParseTestCase.testCaseFromFiles()
 
 	testcases.append(simpleTestCase())
 	testcases.append(secondTestCase())
