@@ -2,160 +2,157 @@
 #include "settings.hpp"
 #include "utility/utility.hpp"
 #include "utility/status_codes.hpp"
+#include "Response.hpp"
 #include "FileHandler.hpp"
 #include "CgiHandler.hpp"
 
 ResponseGenerator::ResponseGenerator():
-_status_code(0),
-_header_part_set(false)
+_content_type_fixed(false)
 {}
 
-/***********************************************/
-/****** (Client::write) generate responses *****/
-/***********************************************/
-
-void	ResponseGenerator::generateResponse(ResponseInfo const & info, iHandler* handler)
+void	ResponseGenerator::generateString(Response & response)
 {
-	if (info.encoding == ResponseInfo::CHUNKED)
+	evaluateEncoding(response);
+
+	switch(response.encoding)
 	{
-		doChunked(info, handler);
+		case Response::CHUNKED:
+			return generateChunkedResponse(response);
+		case Response::NOT_CHUNKED:
+			return generateUnchunkedResponse(response);
+		default :
+			return ;
 	}
-	else
+}
+
+void	ResponseGenerator::evaluateEncoding(Response & response)
+{
+	if (response.encoding == Response::UNDEFINED)
 	{
-		if (info.status == ResponseInfo::COMPLETE)
+		if (response.status != Response::COMPLETE)
 		{
-			noChunked(info, handler);
+			if (isReadyToBeChunked(response))
+			{
+				response.encoding = Response::CHUNKED;
+			}
+		}
+		else
+		{
+			if (isReadyToBeChunked(response))
+			{
+				response.encoding = Response::CHUNKED;
+			}
+			else
+			{
+				response.encoding = Response::NOT_CHUNKED;
+			}
 		}
 	}
 }
 
-void	ResponseGenerator::noChunked(ResponseInfo const & info, iHandler* handler)
+bool	ResponseGenerator::isReadyToBeChunked(Response const & response) const
 {
-	setHeaderPart(info, handler);
-	_string_to_send.append(message_body);
-	message_body.clear();
+	return response.http_version == "HTTP/1.1"
+				&& response.message_body.size() >= CHUNK_THRESHOLD;
 }
 
-void	ResponseGenerator::doChunked(ResponseInfo const & info, iHandler* handler)
+void	ResponseGenerator::generateUnchunkedResponse(Response & response)
 {
-	if (!_header_part_set)
-	{
-		setHeaderPart(info, handler);
-	}
-	if (_header_part_set)
-	{
-		encodeMessageBody(info.status);
-		_string_to_send.append(message_body);
-		message_body.clear();
-	}
+	setHeaderPart(response);
+	appendMessageBody(response);
 }
 
-void	ResponseGenerator::encodeMessageBody(ResponseInfo::Status status)
+void	ResponseGenerator::generateChunkedResponse(Response & response)
 {
-	if (!message_body.empty())
+	if (!response.header_part_set)
 	{
-		std::string chunk_size = WebservUtility::itoa(message_body.size(), 16) + NEWLINE;
-		message_body.insert(0, chunk_size);
-		message_body.append(NEWLINE);
-	}
-	if (status == ResponseInfo::COMPLETE)
-	{
-		message_body.append(CHUNK_TAIL);
-	}
-}
-
-void	ResponseGenerator::setHeaderPart(ResponseInfo const & info, iHandler* handler)
-{
-	setStatusCode(info, handler);
-	setStringStatusLine(info.http_version);
-	setHeaderField(info, handler);
-	setStringHeaderField();
-	_string_to_send = _string_status_line + NEWLINE
-					+ _string_header_field + NEWLINE;
-
-	_header_part_set = true;
-}
-
-void	ResponseGenerator::setStatusCode(ResponseInfo const & info, iHandler* handler)
-{
-	if (info.status != ResponseInfo::COMPLETE)
-	{
-		_status_code = handler->getStatusCode();
+		response.status_code = response.handler->getStatusCode();
+		setHeaderPart(response);
 	}
 	else
 	{
-		_status_code = info.status_code;
+		encodeMessageBody(response);
+		appendMessageBody(response);
 	}
 }
 
-void	ResponseGenerator::setStringStatusLine(std::string const & http_version)
+void	ResponseGenerator::setHeaderPart(Response & response)
 {
-	_string_status_line = http_version + " "
-							+ WebservUtility::itoa(_status_code) + " "
-							+ StatusCode::getStatusMessage(_status_code);
+	setStringStatusLine(response);
+	setHeaderField(response);
+	setStringHeaderField(response);
+	response.string_to_send = response.string_status_line + NEWLINE
+							+ response.string_header_field + NEWLINE;
+	response.header_part_set = true;
 }
 
-void	ResponseGenerator::setHeaderField(ResponseInfo const & info, iHandler* handler)
+void	ResponseGenerator::setStringStatusLine(Response & response)
 {
-	setDate();
-	setConnection(info.close_connection);
-	setLocation(info);
-	setRetryAfter();
-	setAllow(info.config_info);
-	setTransferEncodingOrContentLength(info.encoding);
-	setContentType(info.config_info.result);
-	handler->setSpecificHeaderField(_header_fields);
+	response.string_status_line = response.http_version + " "
+							+ WebservUtility::itoa(response.status_code) + " "
+							+ StatusCode::getStatusMessage(response.status_code);
 }
 
-void	ResponseGenerator::setDate()
+void	ResponseGenerator::setHeaderField(Response & response)
+{
+	setDate(response);
+	setConnection(response);
+	setLocation(response);
+	setRetryAfter(response);
+	setAllow(response);
+	setTransferEncodingOrContentLength(response);
+	setContentType(response);
+	response.handler->setSpecificHeaderField(response.header_fields, _content_type_fixed);
+}
+
+void	ResponseGenerator::setDate(Response & response)
 {
 	char		buf[1000];
 	time_t		now = time(0);
 	struct tm	tm = *gmtime(&now);
 	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", &tm);
 	
-	_header_fields["Data"] = std::string(buf);
+	response.header_fields["Data"] = std::string(buf);
 }
 
-void	ResponseGenerator::setConnection(bool close_connection)
+void	ResponseGenerator::setConnection(Response & response)
 {
-	if (close_connection)
+	if (response.close_connection)
 	{
-		_header_fields["Connection"] = "close";
+		response.header_fields["Connection"] = "close";
 	}
 	else
 	{
-		_header_fields["Connection"] = "keep-alive";
+		response.header_fields["Connection"] = "keep-alive";
 	}
 }
 
-void	ResponseGenerator::setLocation(ResponseInfo const & info)
+void	ResponseGenerator::setLocation(Response & response)
 {
-	if (_status_code == StatusCode::CREATED)
+	if (response.status_code == StatusCode::CREATED)
 	{
-		// TODO: to check with Maarten how CGI is set?
-		_header_fields["Location"] = info.request_target;
+		response.header_fields["Location"] = response.request_target;
 	}
-	else if (StatusCode::isStatusCode3xx(_status_code))
+	else if (StatusCode::isStatusCode3xx(response.status_code))
 	{
-		_header_fields["Location"] = info.effective_request_uri;
-	}
-}
-
-void	ResponseGenerator::setRetryAfter()
-{
-	if (StatusCode::isStatusCode3xx(_status_code))
-	{
-		_header_fields["Retry-After"] = WebservUtility::itoa(RETRY_AFTER_SECONDS);
+		response.header_fields["Location"] = response.effective_request_uri;
 	}
 }
 
-void	ResponseGenerator::setAllow(ConfigInfo const & config_info)
+void	ResponseGenerator::setRetryAfter(Response & response)
 {
-	if (_status_code == StatusCode::METHOD_NOT_ALLOWED && config_info.resolved_location)
+	if (StatusCode::isStatusCode3xx(response.status_code))
+	{
+		response.header_fields["Retry-After"] = WebservUtility::itoa(RETRY_AFTER_SECONDS);
+	}
+}
+
+void	ResponseGenerator::setAllow(Response & response)
+{
+	if (response.status_code == StatusCode::METHOD_NOT_ALLOWED && response.config_info.resolved_location)
 	{
 		std::string	value;
-		for (method_type::const_iterator it = config_info.resolved_location->_allowed_methods.begin(); it != config_info.resolved_location->_allowed_methods.end(); ++it)
+		for (method_type::const_iterator it = response.config_info.resolved_location->_allowed_methods.begin(); it != response.config_info.resolved_location->_allowed_methods.end(); ++it)
 		{
 			value.append(*it + ", ");
 		}
@@ -163,49 +160,68 @@ void	ResponseGenerator::setAllow(ConfigInfo const & config_info)
 		{
 			value.erase(value.size() - 2, 2);
 		}
-		_header_fields["Allow"] = value;
+		response.header_fields["Allow"] = value;
 	}
 }
 
-void	ResponseGenerator::setTransferEncodingOrContentLength(ResponseInfo::Encoding encoding)
+void	ResponseGenerator::setTransferEncodingOrContentLength(Response & response)
 {
-	if (encoding == ResponseInfo::CHUNKED)
+	if (response.encoding == Response::CHUNKED)
 	{
-		_header_fields["Transfer-Encoding"] = "chunked";
+		response.header_fields["Transfer-Encoding"] = "chunked";
 	}
 	else
 	{
-		setContentLength();
+		setContentLength(response);
 	}
 }
 
-void	ResponseGenerator::setContentLength()
+void	ResponseGenerator::setContentLength(Response & response)
 {
-	if (!StatusCode::isStatusCodeNoMessageBody(_status_code))
+	if (!StatusCode::isStatusCodeNoMessageBody(response.status_code))
 	{
-		_header_fields["Content-Length"] = WebservUtility::itoa(message_body.size());
+		response.header_fields["Content-Length"] = WebservUtility::itoa(response.message_body.size());
 	}
 }
 
-void	ResponseGenerator::setContentType(ConfigInfo::ConfigResult result)
+void	ResponseGenerator::setContentType(Response & response)
 {
-	if (result == ConfigInfo::AUTO_INDEX_ON)
+	if (response.config_info.result == ConfigInfo::AUTO_INDEX_ON
+		&& response.status_code == StatusCode::STATUS_OK)
 	{
-		_header_fields["Content-Type"] = "text/html";
-		return ;
+		response.header_fields["Content-Type"] = "text/html";
+		_content_type_fixed = true;
 	}
-}
-
-void	ResponseGenerator::setStringHeaderField()
-{
-	for (header_iterator i = _header_fields.begin(); i !=_header_fields.end(); ++i)
+	else if (!response.message_body.empty())
 	{
-		_string_header_field += (i->first + ": " + i->second + NEWLINE);
+		response.header_fields["Content-Type"] = "text/plain;charset=UTF-8";
 	}
 }
 
-void	ResponseGenerator::appendString(std::string & append_to)
+void	ResponseGenerator::setStringHeaderField(Response & response)
 {
-	append_to.append(_string_to_send);
-	_string_to_send.clear();
+	for (header_iterator i = response.header_fields.begin(); i != response.header_fields.end(); ++i)
+	{
+		response.string_header_field += (i->first + ": " + i->second + NEWLINE);
+	}
+}
+
+void	ResponseGenerator::appendMessageBody(Response & response)
+{
+	response.string_to_send.append(response.message_body);
+	response.message_body.clear();
+}
+
+void	ResponseGenerator::encodeMessageBody(Response & response)
+{
+	if (!response.message_body.empty())
+	{
+		std::string chunk_size = WebservUtility::itoa(response.message_body.size(), 16) + NEWLINE;
+		response.message_body.insert(0, chunk_size);
+		response.message_body.append(NEWLINE);
+	}
+	if (response.status == Response::COMPLETE)
+	{
+		response.message_body.append(CHUNK_TAIL);
+	}
 }

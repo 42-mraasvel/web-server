@@ -1,10 +1,11 @@
 #pragma once
 #include <string>
 #include <deque>
-#include "fd/AFdInfo.hpp"
 #include "Response.hpp"
+#include "ResponseUpdator.hpp"
 
 struct	Request;
+class	FdTable;
 
 class ResponseHandler
 {
@@ -14,11 +15,16 @@ class ResponseHandler
 
 	public:
 		ResponseHandler();
+	private:
+		ResponseHandler(ResponseHandler const & src);
+		ResponseHandler const &	operator=(ResponseHandler const & rhs);
 
 	/* Client::update() */
 	public:
 		void	processRequest(FdTable & fd_table, Request & request);
 		void	updateResponseQueue(FdTable & fd_table);
+	private:
+		void	updateResponse(FdTable & fd_table, Response & response);
 
 	/* Client::writeEvent() */
 	public:
@@ -28,10 +34,9 @@ class ResponseHandler
 	/* utility */
 	public:
 		bool	isResponseQueueEmpty() const;
-		bool	canClientWrite() const;
 		void	clear();
 
 	private:
 		ResponseQueue		_response_queue;
-		ResponsePointer		_response;
+		ResponseUpdator		_updator;
 };

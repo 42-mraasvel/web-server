@@ -46,7 +46,7 @@ class Client : public AFdInfo
 		bool			canExecuteRequest(int fd_table_size) const;
 		bool			retrieveRequest();
 		void			resetRequest();
-		void		generateResponse();
+		void		generateResponseString();
 		bool			retrieveResponse();
 		void			resetResponse();
 		void		resetEvents(FdTable & fd_table);

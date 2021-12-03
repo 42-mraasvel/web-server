@@ -27,7 +27,7 @@ Response Specific Defines
 #define CHUNK_THRESHOLD 2048 // TODO: evaluate later
 #define CHUNK_TAIL "0" CRLF CRLF
 #define RETRY_AFTER_SECONDS 30
-#define CLOSE_CONNECTION_DELAY 30 // TODO: evaluate later
+#define CLOSE_CONNECTION_DELAY 5 // TODO: evaluate later
 
 /*
 Printing

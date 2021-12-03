@@ -1,21 +1,16 @@
 ------------------
 --     NOW      --
 ------------------
-v- ResponseHandler instead of response, turn response into a struct
-v- Post request without CGI
-v- Client::update(): don't execute requests if the FdTable is too full
-v- Server::Update() can remove the POLLIN event if there are too many open connections
-
 - Upload: check directory given by configuration for POST requests
 
-v- Client::closeConnection(): wait a certain amount of time before closing the connection
-    - So that the client can finish reading the response
-    - Use timeout to check this
+- ConfigResolver TODO (to discuss with maarten)
+- ResponseUpdator TODO (to check if the redirect_text needs to be absolute form??)
+
+
 
 ------------------
 --    LATER     --
 ------------------
->> exception handling (Allocation error);
 >> automate the test for response correctness
 
 >> Range Request
@@ -28,22 +23,12 @@ std::cout << RED_BOLD << " " << RESET_COLOR << std::endl;
 ------------------------------------
 --    MAARTEN BENJAMIN RAASVELDT  --
 ------------------------------------
->> to check for Host (400 Bad Request):
-    - A server MUST respond with a 400 (Bad Request) status code to any HTTP/1.1 request message that lacks a Host header field and to any request message that contains more than one Host hea
-    - return 400 if invalid port number in Host
-    - eliminate valid port number (so the host )
->> to mark close connection flag:
-    - transfer encoding (see note on request part)
-    - When Content-Length is valid, but the sender closes the connection or the recipient times out before complete message_body received, the recipient MUST consider the message to be incomplete and close the connection.
 >> An origin server MAY respond with a status code of 415 (Unsupported Media Type) if a representation in the request message has a content coding that is not acceptable.
 
 ---------------
 --    NIELS  --
 ---------------
 >> Index in location block cannot be a directory.
->> Location "=" should be before the path
-(not necessary) >> error_page multiple error_code??
-
 
 ----------------
 --    Agreed  --

@@ -39,14 +39,13 @@ class CgiHandler: public iHandler
 		static bool isCgi(std::string const & request_target, CgiVectorType const & cgi);
 
 		int		executeRequest(FdTable& fd_table, Request& request);
-		void	update();
+		void	update(std::string & response_body);
 		void	exceptionEvent();
 		bool	isComplete() const;
 		bool	isError() const;
-		void	setMessageBody(std::string & response_body);
 		int		getStatusCode() const;
 		bool	isReadyToWrite() const;
-		void	setSpecificHeaderField(HeaderField & header_field);
+		void	setSpecificHeaderField(HeaderField & header_field, bool content_type_fixed);
 
 	/* Debugging */
 	public:
@@ -83,6 +82,7 @@ class CgiHandler: public iHandler
 		bool skippedHeaderField(std::string const & key) const;
 
 	/* Update Functionality */
+		void evaluateReader(std::string & response_body);
 		bool isExecutionError() const;
 		int getErrorCode() const;
 		int cleanCgi();
@@ -96,7 +96,6 @@ class CgiHandler: public iHandler
 	private:
 		Status		_status;
 		int			_status_code;
-		std::string _message_body;
 		HeaderField _header;
 
 	private:
