@@ -6,15 +6,25 @@ GREEN_BOLD = "\033[32m"
 RESET_COLOR = "\033[0m"
 
 # Expect: list of testcases
-def execute(testcases = [], authority = 'localhost:8080'):
+def execute(testcases = [], authority = 'localhost:8080', tags = []):
+	passed = 0
+	failed = 0
 	for index, testcase in enumerate(testcases):
+		if tags and testcase.tag not in tags:
+			continue
 		response = sendRequest(testcase.request, authority)
 		message = evaluateResponse(response, testcase.response, testcase.evaluator)
 		if message is not None:
+			failed += 1
 			failMsg(message, index, testcase)
 		else:
+			passed += 1
 			passMsg(testcase, index)
 		response.close()
+	endMessage(passed, failed)
+
+def endMessage(passed, failed):
+	print("Executed: {} testcases: PASS({}) PASS({})".format(passed + failed, passed, failed))
 
 def failMsg(message, index, testcase):
 	Error.putFail(str(index + 1) + ": " + testcase.tag + ": " + message)

@@ -47,7 +47,7 @@
 	
 	-- Adding TestCases from a file --
 
-		- Can write a file `x.txt + x.txt.response` (see examples)
+		- Can write a file `x.txt + x.txt.response` inside of the `Requests` directory (see examples)
 		- This will be parsed automatically and added as TestCase
 		- Beware that you need 2 newlines to end a header field (otherwise it won't be parsed)
 
