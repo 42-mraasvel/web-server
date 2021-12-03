@@ -8,6 +8,9 @@
 #include <cstring>
 #include <cstdlib>
 
+Server::Server() {}
+Server::~Server() {}
+
 int		Server::setupServer(int port, Config::address_map* config_map)
 {
 	this->_fd = socket(AF_INET, SOCK_STREAM, 0);

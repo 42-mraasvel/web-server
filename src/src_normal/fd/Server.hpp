@@ -11,7 +11,14 @@
 //(first one is the default, rest is based on hostname resolution)
 class Server : public AFdInfo
 {
+	private:
+		Server(Server const & rhs);
+		Server & operator=(Server const & rhs);
+
 	public:
+		Server();
+		~Server();
+
 		int	setupServer(int port, Config::address_map* config_map);
 		void readEvent(FdTable & fd_table);
 		void writeEvent(FdTable & fd_table);

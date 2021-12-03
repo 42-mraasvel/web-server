@@ -94,7 +94,7 @@ void	ResponseProcessor::setEffectiveRequestURI(Request const & request, std::str
 	std::string host;
 	if (request.header_fields.contains("host"))
 	{
-		host = request.header_fields.find("host")->second;
+		host = WebservUtility::trimPort(request.header_fields.find("host")->second);
 	}
 	else
 	{
