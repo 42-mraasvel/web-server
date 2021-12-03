@@ -7,10 +7,9 @@ RESET_COLOR = "\033[0m"
 
 # Expect: list of testcases
 def execute(testcases = [], authority = 'localhost:8080'):
-
 	for index, testcase in enumerate(testcases):
 		response = sendRequest(testcase.request, authority)
-		message = evaluateResponse(response, testcase.response)
+		message = evaluateResponse(response, testcase.response, testcase.evaluator)
 		if message is not None:
 			failMsg(message, index, testcase)
 		else:
@@ -31,14 +30,18 @@ def sendRequest(request, authority):
 	return requests.request(request.method, uri, headers = request.headers, data = request.body)
 
 # Evaluate the response
-def evaluateResponse(response, expected):
+def evaluateResponse(response, expected, custom_evaluator):
 	x = evaluateStatusCode(response.status_code, expected.status_code)
 	if x is not None:
 		return x
 	x = evaluateHeaders(response.headers, expected.headers)
 	if x is not None:
 		return x
-	return evaluateBody(response.content, expected.body, expected.expect_body)
+	x = evaluateBody(response.content, expected.body, expected.expect_body)
+	if x is not None:
+		return x
+	return custom_evaluator(response)
+	
 
 # evaluateXXX: Should return a tuple (Got, Expected)
 # None if everything was as expected

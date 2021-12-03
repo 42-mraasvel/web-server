@@ -1,29 +1,33 @@
 import TestCase
 
+#
+# MAIN GENERATE FUNCTION
+# Append new TestCases to the `testcases` list to execute them
+#
 def generate():
 	testcases = []
 
 	testcases.append(simpleTestCase())
-	testcases.append(invalidTestCase())
 	testcases.append(secondTestCase())
-	testcases.append(invalidTestCase())
-	testcases.append(invalidTestCase2())
-	testcases.append(invalidTestCase3())
+	testcases.append(failingTestCase())
+	testcases.append(exampleCustomEvaluation())
 	return testcases
 
-def invalidTestCase():
+#
+# Example testcases
+#
+def failingTestCase():
 	testcase = simpleTestCase()
 	testcase.response.status_code = 201
 	return testcase
 
-def invalidTestCase2():
-	testcase = simpleTestCase()
-	testcase.response.headers['Connection'] = 'keep-aliv'
-	return testcase
+def failingEvaluation(response):
+	return "Custom evaluation failed string"
+	return None # Return None to validate the response
 
-def invalidTestCase3():
+def exampleCustomEvaluation():
 	testcase = simpleTestCase()
-	testcase.response.body = "blabla"
+	testcase.evaluator = failingEvaluation
 	return testcase
 
 def secondTestCase():

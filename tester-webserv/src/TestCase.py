@@ -56,17 +56,23 @@ class Response:
 		data += getBodyList(self.body)
 		return data
 
+def defaultResponseEvaluator(response):
+	return None
+
 class TestCase:
-	def __init__(self, request = None, response = None, tag = None):
+	def __init__(self, request = None, response = None, tag = None, evaluator = None):
 		self.tag = tag
 		self.request = request
 		self.response = response
+		self.evaluator = evaluator
 		if tag is None:
 			self.tag = str()
 		if request is None:
 			self.request = Request()
 		if response is None:
 			self.response = Response()
+		if evaluator is None:
+			self.evaluator = defaultResponseEvaluator
 
 	def print(self):
 		self.request.print()
