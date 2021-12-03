@@ -39,11 +39,10 @@ class CgiHandler: public iHandler
 		static bool isCgi(std::string const & request_target, CgiVectorType const & cgi);
 
 		int		executeRequest(FdTable& fd_table, Request& request);
-		void	update();
+		void	update(std::string & response_body);
 		void	exceptionEvent();
 		bool	isComplete() const;
 		bool	isError() const;
-		void	setMessageBody(std::string & response_body);
 		int		getStatusCode() const;
 		bool	isReadyToWrite() const;
 		void	setSpecificHeaderField(HeaderField & header_field);

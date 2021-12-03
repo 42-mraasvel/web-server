@@ -3,7 +3,7 @@
 
 struct Request;
 
-struct ResponseInfo;
+struct Response;
 
 class FdTable;
 
@@ -12,7 +12,7 @@ class RequestExecutor
 	public:
 		enum Status
 		{
-			NOT_COMPLETE,
+			START,
 			BAD_REQUEST,
 			CONTINUE,
 			REDIRECT,
@@ -29,17 +29,18 @@ class RequestExecutor
 		RequestExecutor&	operator=(RequestExecutor const & rhs);
 
 	public:
-		void	executeRequest(FdTable & fd_table, Request & request, ResponseInfo & response);
+		void	executeRequest(FdTable & fd_table, Request & request, Response & response);
 	private:
 		void	markStatus(Status status, int status_code);
 		bool	isRequestComplete(Request const & request);
+		void	determineIsCgi(Request & request, Response & response);
 		bool	isLocationResolved(Request const & request);
 		bool	isRequestTargetValid(std::string const & target);
 		std::string	getEffectiveRequestURI(Request const & request);
-		void	setAbsoluteFilePath(Request const & request, ResponseInfo & response);
+		void	setAbsoluteFilePath(Request const & request, Response & response);
 
 	private:
-		int 		_status_code;
 		Status		_status;
+		int 		_status_code;
 
 };

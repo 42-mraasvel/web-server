@@ -189,7 +189,7 @@ void	FileHandler::updateFileEvent(FdTable & fd_table)
 /****** update *****/
 /*******************/
 
-void	FileHandler::update()
+void	FileHandler::update(std::string & response_body)
 {
 	if (isError())
 	{
@@ -202,7 +202,11 @@ void	FileHandler::update()
 		return ;
 	}
 
-	_file->appendContent(_message_body);
+	if (_method == Method::GET && _file
+		&& (_file->getFlag() == AFdInfo::START || _file->getFlag() == AFdInfo::COMPLETE))
+	{
+		_file->appendContent(response_body);
+	}
 
 	if (isFileComplete())
 	{
@@ -225,48 +229,6 @@ int	FileHandler::redirectErrorPage(FdTable & fd_table, std::string const & file_
 	Request	error_page_request;
 	error_page_request.method = Method::GET;
 	return executeRequest(fd_table, error_page_request);
-}
-
-/**************************************/
-/****** update - set message body *****/
-/**************************************/
-
-void	FileHandler::setMessageBody(std::string & message_body)
-{
-	switch (_method)
-	{
-		case Method::GET:
-			return setMessageBodyGet(message_body);
-		case Method::POST:
-			return setMessageBodyPost();
-		case Method::DELETE:
-			return setMessageBodyDelete();
-		default:
-			return ;
-	}
-}
-
-void	FileHandler::setMessageBodyGet(std::string & message_body)
-{
-	if (message_body.size() == 0)
-	{
-		message_body.swap(_message_body);
-	}
-	else
-	{
-		message_body.append(_message_body);
-		_message_body.clear();
-	}
-}
-
-void	FileHandler::setMessageBodyPost()
-{
-	return ;
-}
-
-void	FileHandler::setMessageBodyDelete()
-{
-	return ;
 }
 
 /******************************/

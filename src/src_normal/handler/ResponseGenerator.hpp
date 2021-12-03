@@ -1,50 +1,43 @@
 #pragma once
 #include <string>
 #include "parser/HeaderField.hpp"
-#include "ResponseInfo.hpp"
-#include "ConfigInfo.hpp"
 
-class iHandler;
+struct	Response;
 
 class ResponseGenerator
 {
-	public:
+	private:
 		typedef HeaderField::const_iterator		header_iterator;
 		typedef	std::vector< std::string>		method_type;
 
 	public:
 		ResponseGenerator();
-
-	/* Client::writeEvent() */
-	public:
-		void	generateResponse(ResponseInfo const & info, iHandler* handler);
 	private:
-		void		noChunked(ResponseInfo const & info, iHandler* handler);
-		void		doChunked(ResponseInfo const & info, iHandler* handler);
-		void		encodeMessageBody(ResponseInfo::Status status);
-		void		setHeaderPart(ResponseInfo const & info, iHandler* handler);
-		void			setStatusCode(ResponseInfo const & info, iHandler* handler);
-		void			setStringStatusLine(std::string const & http_version);
-		void			setHeaderField(ResponseInfo const & info, iHandler* handler);
-		void				setDate();
-		void				setConnection(bool close_connection);
-		void				setLocation(ResponseInfo const & info);
-		void				setRetryAfter();
-		void				setAllow(ConfigInfo const & config_info);
-		void				setTransferEncodingOrContentLength(ResponseInfo::Encoding encoding);
-		void					setContentLength();
-		void				setContentType(ConfigInfo::ConfigResult result);
-		void			setStringHeaderField();
-	public:
-		void	appendString(std::string & append_to);
+		ResponseGenerator(ResponseGenerator const & src);
+		ResponseGenerator const & 	operator=(ResponseGenerator const & rhs);
 
 	public:
-		std::string			message_body;
+		void	generateString(Response & response);
 	private:
-		int					_status_code;
-		HeaderField			_header_fields;
-		bool				_header_part_set;
-		std::string			_string_to_send;
-		std::string			_string_status_line;
-		std::string 		_string_header_field;
+		void	evaluateEncoding(Response & response);
+		bool		isReadyToBeChunked(Response const & response) const;
+
+		void	generateChunkedResponse(Response & response);
+		void	generateUnchunkedResponse(Response & response);
+
+		void	setHeaderPart(Response & response);
+		void		setStringStatusLine(Response & response);
+		void		setHeaderField(Response & response);
+		void			setDate(Response & response);
+		void			setConnection(Response & response);
+		void			setLocation(Response & response);
+		void			setRetryAfter(Response & response);
+		void			setAllow(Response & response);
+		void			setTransferEncodingOrContentLength(Response & response);
+		void				setContentLength(Response & response);
+		void			setContentType(Response & response);
+		void		setStringHeaderField(Response & response);
+
+		void	appendMessageBody(Response & response);
+		void	encodeMessageBody(Response & response);
 };

@@ -243,6 +243,7 @@ ConfigInfo::server_block_pointer	ConfigResolver::resolveDefaultHost(ServerVector
 ConfigInfo::location_block_pointer	ConfigResolver::resolveLocationResult(Method::Type const & method, std::string const & target, LocationVectorType const & locations)
 {
 	info.resolved_target = target;
+	_auto_index_on = false;
 	ConfigInfo::location_block_pointer	location = resolveLocation(target, locations);
 	info.result = getResult(location);
 	if (info.result == ConfigInfo::AUTO_INDEX_ON && method != Method::GET)

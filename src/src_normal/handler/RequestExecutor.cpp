@@ -4,15 +4,15 @@
 #include "utility/utility.hpp"
 #include "fd/FdTable.hpp"
 #include "parser/Request.hpp"
-#include "ResponseInfo.hpp"
+#include "Response.hpp"
 #include "CgiHandler.hpp"
 #include "FileHandler.hpp"
 
 #include <dirent.h>
 
 RequestExecutor::RequestExecutor():
-_status_code(0),
-_status(RequestExecutor::NOT_COMPLETE)
+_status(RequestExecutor::START),
+_status_code(0)
 {}
 
 void    RequestExecutor::markStatus(RequestExecutor::Status status, int status_code)
@@ -21,13 +21,14 @@ void    RequestExecutor::markStatus(RequestExecutor::Status status, int status_c
 	_status_code = status_code;
 }
 
-void	RequestExecutor::executeRequest(FdTable & fd_table, Request & request, ResponseInfo & response)
+void	RequestExecutor::executeRequest(FdTable & fd_table, Request & request, Response & response)
 {
 	if (isRequestComplete(request))
 	{
-		response.is_cgi = CgiHandler::isCgi(request);
+		determineIsCgi(request, response);
 		if (isLocationResolved(request))
 		{
+			setAbsoluteFilePath(request, response);
 			if (isRequestTargetValid(request.config_info.resolved_file_path))
 			{
 				if (response.handler->executeRequest(fd_table, request) == ERR)
@@ -36,13 +37,12 @@ void	RequestExecutor::executeRequest(FdTable & fd_table, Request & request, Resp
 				}
 			}
 			response.effective_request_uri = getEffectiveRequestURI(request);
-			setAbsoluteFilePath(request, response);
 		}
 	}
 
-	if (_status != NOT_COMPLETE)
+	if (_status != START)
 	{
-		response.setStatus(ResponseInfo::COMPLETE, _status_code);
+		response.markComplete(_status_code);
 	}
 }
 
@@ -64,6 +64,14 @@ bool	RequestExecutor::isRequestComplete(Request const & request)
 	}
 }
 
+void	RequestExecutor::determineIsCgi(Request & request, Response & response)
+{
+	if (CgiHandler::isCgi(request))
+	{
+		response.setCgi();
+	}
+}
+
 bool	RequestExecutor::isLocationResolved(Request const & request)
 {
 	switch(request.config_info.result)
@@ -77,7 +85,7 @@ bool	RequestExecutor::isLocationResolved(Request const & request)
 		case ConfigInfo::LOCATION_RESOLVED:
 			return true;
 		default :
-			//assert(); //TODO: check with maarten how to do;
+			//assert(); // TODO: check with maarten how to do;
 			return true;
 	}
 }
@@ -87,16 +95,16 @@ bool	RequestExecutor::isRequestTargetValid(std::string const & target)
 	if (!WebservUtility::isFileExist(target))
 	{
 		markStatus(TARGET_NOT_FOUND, StatusCode::NOT_FOUND);
-		return ERR;
+		return false;
 	}
 	DIR*	dir = opendir(target.c_str());
 	if (dir != NULL)
 	{
 		markStatus(TARGET_IS_DIRECTORY, StatusCode::MOVED_PERMANENTLY);
 		closedir(dir);
-		return ERR;
+		return false;
 	}
-	return OK;
+	return true;
 }
 
 std::string	RequestExecutor::getEffectiveRequestURI(Request const & request)
@@ -127,7 +135,7 @@ std::string	RequestExecutor::getEffectiveRequestURI(Request const & request)
 	return URI_scheme + authority + resolved_target;
 }
 
-void	RequestExecutor::setAbsoluteFilePath(Request const & request, ResponseInfo & response)
+void	RequestExecutor::setAbsoluteFilePath(Request const & request, Response & response)
 {
 	if (!response.is_cgi)
 	{

@@ -441,24 +441,25 @@ int CgiHandler::getErrorCode() const
 	return _sender->getStatusCode();
 }
 
-void CgiHandler::setMessageBody(std::string & response_body)
-{
-	if (response_body.size() == 0)
-	{
-		response_body.swap(_message_body);
-	}
-	else
-	{
-		response_body.append(_message_body);
-		_message_body.clear();
-	}
-
-	if (_reader && _reader->getBody().size() > 0)
-	{
-		response_body.append(_reader->getBody());
-		_reader->getBody().clear();
-	}
-}
+// TODO aileen: shall we delete this?
+//void CgiHandler::setMessageBody(std::string & response_body)
+//{
+//	if (response_body.size() == 0)
+//	{
+//		response_body.swap(_message_body);
+//	}
+//	else
+//	{
+//		response_body.append(_message_body);
+//		_message_body.clear();
+//	}
+//
+//	if (_reader && _reader->getBody().size() > 0)
+//	{
+//		response_body.append(_reader->getBody());
+//		_reader->getBody().clear();
+//	}
+//}
 
 /*
 This function should only be called once
@@ -523,7 +524,8 @@ TODO: ERROR handling
 	- Sender has not completely finished writing it's content (POLLERR + closeEvent())
 		: Example: reader has finished reading a valid response, but the sender is still not done and the CGI exited
 */
-void CgiHandler::update()
+// TODO: aileen: added response_body to directly copy content to
+void CgiHandler::update(std::string & response_body)
 {
 	//return if already finished communicating with CGI
 	if (isComplete() || isError())
@@ -541,10 +543,13 @@ void CgiHandler::update()
 	{
 		// TODO: if sending a CHUNKED Message, then we should APPEND only if it's actively reading
 		// HeaderField should just be swapped once it's parsed in that case (add HEADER_COMPLETE)
-		if (_message_body.size() == 0) {
-			_message_body.swap(_reader->getBody());
-		} else {
-			_message_body.append(_reader->getBody());
+		if (response_body.size() == 0)
+		{
+			response_body.swap(_reader->getBody());
+		}
+		else
+		{
+			response_body.append(_reader->getBody());
 			_reader->getBody().clear();
 		}
 		_header.swap(_reader->getHeader());

@@ -1,35 +1,63 @@
 #pragma once
-#include "utility/SmartPointer.hpp"
 #include <string>
-#include <vector>
-#include "parser/HeaderField.hpp"
 #include "webserver/MethodType.hpp"
-#include "ConfigResolver.hpp"
-#include "ResponseGenerator.hpp"
-#include "ResponseProcessor.hpp"
+#include "ConfigInfo.hpp"
+#include "FileHandler.hpp"
+#include "CgiHandler.hpp"
 
-struct	Request;
+struct Request;
 
-class	FdTable;
-
-class Response
+struct Response
 {
-	public:
-		Response(Request const & request);
+	Response(Request const & request);
+	
+	enum Status
+	{
+		START,
+		COMPLETE
+	};
+
+	enum Encoding
+	{
+		UNDEFINED,
+		NOT_CHUNKED,
+		CHUNKED
+	};
 
 	public:
-		void	executeRequest(FdTable & fd_table, Request & request);
-		void	update(FdTable & fd_table);
-		void	generateResponse(std::string & append_to);
-
+		void	markComplete(int new_status_code);
+		void	setCgi();
+		void	unsetCgi();
+		void	resetErrorPageRedirection();
 		bool	isReadyToWrite() const;
-		bool	isComplete() const;
 
-		Method::Type	getMethod() const;
-		bool			getCloseConnectionFlag() const;
+	/* request related info */
+	Method::Type		method;
+	std::string			request_target;
+	ConfigInfo			config_info;
+	std::string 		http_version;
+	bool				close_connection;
 
-	private:
-		ResponseGenerator	_generator;
-		ResponseProcessor	_processor;
+	/* other info */
+	Status				status;
+	int					status_code;
+	std::string			effective_request_uri;
+	bool				is_cgi;
+	bool				error_page_attempted;
+	Encoding			encoding;
+
+	/* handler */
+	iHandler*		handler;
+	FileHandler		file_handler;
+	CgiHandler		cgi_handler;
+
+	/* content */
+	HeaderField			header_fields;
+	bool				header_part_set;
+	std::string			string_to_send;
+	std::string			string_status_line;
+	std::string 		string_header_field;
+	std::string			message_body;
+
 
 };

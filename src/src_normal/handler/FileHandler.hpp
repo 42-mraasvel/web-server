@@ -36,16 +36,11 @@ class FileHandler: public iHandler
 
 	/* update */
 	public:
-		void	update();
+		void	update(std::string & response_body);
 		void	exceptionEvent();
 		bool	isComplete() const;
 		bool	isError() const;
 		int		redirectErrorPage(FdTable & fd_table, std::string const & file_path, int status_code);
-		void	setMessageBody(std::string & message_body);
-	private:
-		void		setMessageBodyGet(std::string & message_body);
-		void		setMessageBodyPost();
-		void		setMessageBodyDelete();
 
 	/* Client::writeEvent */
 	public:
