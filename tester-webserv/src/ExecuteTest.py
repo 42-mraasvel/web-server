@@ -17,7 +17,7 @@ def execute(testcases = [], authority = 'localhost:8080'):
 		response.close()
 
 def failMsg(message, index, testcase):
-	Error.putFail(str(index + 1) + ": " + message)
+	Error.putFail(str(index + 1) + ": " + testcase.tag + ": " + message)
 	Logger.log(testcase.getLogString())
 
 def passMsg(testcase, index):

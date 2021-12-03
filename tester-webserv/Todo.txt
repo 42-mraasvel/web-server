@@ -1,3 +1,4 @@
 -- TODO --
 
 	- Support both file input and regular functions (to make TestCase objects)
+	- Execute only testcase tags given as argument

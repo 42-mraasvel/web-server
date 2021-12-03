@@ -18,6 +18,7 @@ def generate():
 #
 def failingTestCase():
 	testcase = simpleTestCase()
+	testcase.tag = "FailingTag"
 	testcase.response.status_code = 201
 	return testcase
 
@@ -57,5 +58,4 @@ def simpleTestCase():
 	with open('../page_sample/index.html', 'rb') as f:
 		response.body = f.read()
 
-	tag = "First"
-	return TestCase.TestCase(request, response, tag)
+	return TestCase.TestCase(request, response)

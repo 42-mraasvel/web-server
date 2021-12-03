@@ -1,13 +1,49 @@
--- Main Concept --
+-- Usage --
 
-	1. Give the Host:Port as argument to the Tester
+	./run.sh [authority] ; authority = host [ ':' port ]
 
-	- Request TestCase class
-	- Write testcases in the code itself by form of a class, similar to catch
-
--- Configuration --
+-- Webserver's Configuration --
 
 	Location block for '/' that has ServerRoot as it's root directory
+
+-- Adding New Testcases --
+
+	-- TestCase Class Members --
+
+		- TestCase (class):
+			request (class):
+				method (string)
+				target (string, request_target)
+				headers (dictionary)
+				body (bytes, NOT string)
+
+			response (class):
+				status_code (int)
+					- used as expected status code (IF NOT 0)
+				headers (dict)
+					- each key:value pair will be checked if present in the response headers
+				expect_body (boolean)
+					- True: will compare body, False: won't compare body
+				body (bytes)
+					- Compared to the response body
+
+			tag (string)
+				- string variable representing the tag (for printing and specifying which case to execute)
+	
+			evaluator (function pointer)
+				- custom input function to evaluate the response
+				- prototype: def evaluator(response):
+				- return: `None` on PASS, string specifying reason on FAIL
+
+	FILE: `src/GenerateTestCases.py`
+	FUNCTION: `generate()`
+
+	Description:
+
+		This function returns a list of TestCases
+		To add new testcases:
+			testcases.append(createNewTestcase())
+		All testcases in this list will then be executed
 
 -- API used --
 
@@ -15,5 +51,6 @@
 
 -- Dependencies --
 
+	- python3
 	- Requests module
 		`python -m pip install requests`
