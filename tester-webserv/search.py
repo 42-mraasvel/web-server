@@ -1,9 +1,9 @@
 import sys
 import re
+import os
 
-PREFIX = 'testCase'
-SUBDIR = 'TestCaseGeneration'
-
+SUBDIR = ""
+PREFIX = ""
 
 #
 # from <SUBDIR.subdir.subdir> import <file>
@@ -20,16 +20,23 @@ def findFunctions(args):
 			for line in f.readlines():
 				x = re.search(regex_search, line)
 				if x:
-					if arg in map:
-						map[arg].append(x.group(1))
+					key = os.path.splitext(arg)[0]
+					if key in map:
+						map[key].append(x.group(1))
 					else:
-						map[arg] = [x.group(1)]
+						map[key] = [x.group(1)]
 	return map
 
+# from SUBDIR.subdir.subdir import basename(file) (no extension)
 def printImportMessage(key):
-	pass
+	dir = os.path.dirname(key)
+	filename = os.path.basename(key)
+	print("from", dir[dir.find(SUBDIR):].replace('/', '.'), "import", filename)
 
 def printFunctionCalls(key, functions):
+	import_name = os.path.basename(key)
+	for function in functions:
+		print("\ttestcases.append(", import_name, ".", function, "())", sep = "")
 	pass
 
 def generateCode(map):
@@ -42,5 +49,7 @@ def generateCode(map):
 		printFunctionCalls(key, map[key])
 	print("\treturn testcases")
 
-map = findFunctions(sys.argv[1:])
+SUBDIR = sys.argv[1]
+PREFIX = sys.argv[2]
+map = findFunctions(sys.argv[3:])
 generateCode(map)

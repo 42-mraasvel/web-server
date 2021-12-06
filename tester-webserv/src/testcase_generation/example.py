@@ -1,23 +1,25 @@
+import TestCase
+
 #
 # Example testcases
 #
 def testCaseFailingTestCase():
-	testcase = simpleTestCase()
+	testcase = testCaseSimpleTestCase()
 	testcase.tag = "FailingTag"
 	testcase.response.status_code = 201
 	return testcase
 
-def testCaseFailingEvaluation(response):
+def failingEvaluation(response):
 	return "Custom evaluation failed string"
 	return None # Return None to validate the response
 
 def testCaseExampleCustomEvaluation():
-	testcase = simpleTestCase()
+	testcase = testCaseSimpleTestCase()
 	testcase.evaluator = failingEvaluation
 	return testcase
 
 def testCaseSecondTestCase():
-	testcase = simpleTestCase()
+	testcase = testCaseSimpleTestCase()
 	testcase.tag = 'Second'
 	testcase.request.body = 'Test'
 	testcase.request.headers['REQUEST'] = 'SECOND'
