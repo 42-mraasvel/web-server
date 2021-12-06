@@ -33,7 +33,7 @@ std::cout << RED_BOLD << " " << RESET_COLOR << std::endl;
 
 >> Config:
     - Server Block
-        - [error_page] code(*1) uri (i.e. error_page 404 /error/404.html
+        - [error_page] code(*1) uri (note: only accept uri which will lead to internal redirect. not accepting URL. i.e. error_page 404 /error/404.html)
     - Location Block
         - [optional modifier]
             - only accept "="
