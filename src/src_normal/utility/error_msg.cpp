@@ -1,5 +1,6 @@
 #include "settings.hpp"
 #include <cstdio>
+#include <cstdlib>
 
 /*
 Wrapper for calling perror and returning ERR code
@@ -20,4 +21,15 @@ int generalError(const char* format, ...)
 	va_end(vp);
 #endif
 	return ERR;
+}
+
+void abortProgram()
+{
+	std::abort();
+}
+
+void abortProgram(std::string const & message)
+{
+	std::cerr << RED_BOLD "Aborting: " << message << RESET_COLOR << std::endl;
+	abortProgram();
 }

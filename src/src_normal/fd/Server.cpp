@@ -5,13 +5,14 @@
 #include <iostream>
 #include <unistd.h>
 #include <fcntl.h>
+#include <arpa/inet.h>
 #include <cstring>
 #include <cstdlib>
 
 Server::Server() {}
 Server::~Server() {}
 
-int		Server::setupServer(int port, Config::address_map* config_map)
+int		Server::setupServer(Config::ip_host_pair ip_host_pair, Config::address_map* config_map)
 {
 	this->_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->_fd == ERR)
@@ -21,8 +22,8 @@ int		Server::setupServer(int port, Config::address_map* config_map)
 	}
 	sockaddr_in	address;
 	address.sin_family = AF_INET;
-	address.sin_port = htons(port);
-	address.sin_addr.s_addr = htonl(INADDR_ANY);
+	address.sin_port = htons(ip_host_pair.second);
+	address.sin_addr.s_addr = inet_addr(ip_host_pair.first.c_str());
 	if (bind(this->_fd, reinterpret_cast<sockaddr *>(&address), sizeof(address)) == ERR)
 	{
 		perror("Bind Error");
@@ -37,7 +38,7 @@ int		Server::setupServer(int port, Config::address_map* config_map)
 	{
 		perror("fcntl");
 	}
-	_port = port; //TODO: to evaluate later
+	_port = ip_host_pair.second; //TODO: to evaluate later
 	_config_map = config_map;
 	return OK;
 }

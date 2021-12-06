@@ -119,6 +119,7 @@ class SmartPointer
 			_SmartPointerDetail_::_reference_tracker[(void*)(p)] -= 1;
 			if (getCount() == 0) {
 				delete p;
+				_SmartPointerDetail_::_reference_tracker.erase((void*)p);
 			}
 		}
 

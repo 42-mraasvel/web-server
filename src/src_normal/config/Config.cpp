@@ -180,8 +180,7 @@ int	Config::parseServer()
 		}
 		else
 		{
-			std::cout << RED_BOLD "Config Error: '" << _tokens[_token_index] << "' is not a valid configuration" RESET_COLOR << std::endl;
-			exit(1);
+			abortProgram("Config Error: '" + _tokens[_token_index] + "' is not a valid configuration");
 		}
 		checkExpectedSyntax(";");
 		_token_index++;
@@ -233,6 +232,10 @@ int	Config::parseLocation()
 		else if (_tokens[_token_index].compare("return") == 0)
 		{
 			parseReturn();
+		}
+		else if (_tokens[_token_index].compare("upload_store") == 0)
+		{
+			parseUploadStore();
 		}
 		checkExpectedSyntax(";");
 		_token_index++;
@@ -289,13 +292,21 @@ int	Config::parseServerName()
 int	Config::parseRoot()
 {
 	_token_index++;
+	std::string path;
 	if (_tokens[_token_index].compare(";"))
 	{
-		if (_tokens[_token_index].find_last_of("/") == _tokens[_token_index].size() - 1)
+		path = _tokens[_token_index];
+		if (path.find_last_of("/") == path.size() - 1)
 		{
 			configError("Root cannot be directory");
 		}
-		_servers[_server_amount].addRoot(_tokens[_token_index]);
+		if (path[0] != '/')
+		{
+			char real_path[4096];
+			realpath(path.c_str(),real_path);
+			path = real_path;
+		}
+		_servers[_server_amount].addRoot(path);
 	}
 	_token_index++;
 	return (OK);
@@ -401,9 +412,36 @@ int Config::parseCgi()
 		path = _tokens[_token_index];
 		_token_index++;
 	}
+	if (path[0] != '/')
+	{
+		char real_path[4096];
+		realpath(path.c_str(),real_path);
+		path = real_path;
+	}
 	_servers[_server_amount].addCgi(extention, path);
 	return (OK);
 }
+
+
+int Config::parseUploadStore()
+{
+	_token_index++;
+	std::string path;
+	if (_tokens[_token_index].compare(";") != 0)
+	{
+		path = _tokens[_token_index];
+		_token_index++;
+	}
+	if (path[0] != '/')
+	{
+		char real_path[4096];
+		realpath(path.c_str(),real_path);
+		path = real_path;
+	}
+	_servers[_server_amount].addUploadStore(path);
+	return (OK);
+}
+
 
 int	Config::parseIndex()
 {
@@ -444,8 +482,7 @@ int	Config::checkExpectedSyntax(std::string str)
 {
 	if (_tokens[_token_index].compare(str) != 0)
 	{
-		std::cerr << RED_BOLD "Config Error: expected " << str << " instead of " << _tokens[_token_index] << RESET_COLOR << std::endl;
-		exit(1);
+		abortProgram("Config Error: expected " + str + " instead of " + _tokens[_token_index]);
 	}
 	return (OK);
 }
@@ -455,8 +492,7 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2)
 	if (_tokens[_token_index].compare(str1) != 0 
 		&& _tokens[_token_index].compare(str2) != 0)
 	{
-		std::cerr << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
-		exit(1);
+		abortProgram("Config Error: expected " + str1 + " or " + str2 + " instead of " + _tokens[_token_index]);
 	}
 	return (OK);
 }
