@@ -16,16 +16,22 @@ use warnings;
 # 	testcases.append(testCaseSampleTestCase())
 # 	return testcases
 
+my $PREFIX = 'testCase';
+
 # returns a list like `testCaseFunctionName`
 # from line `def testCaseFunctionName(...):`
 sub getFunctionNames {
 	my @function_names;
-
+	my $regex_string = '/^def\s*(.*)\(.*\)/';
 
 	for (@_) {
 		open(my $FH, '<', $_) or die "$!\n";
-		push(@function_names, $_);
-
+		while (<$FH>) {
+			# print "$_";
+			if ($_ =~ /^def\s*($PREFIX.*)\(.*\)/) {
+				push(@function_names, $1);
+			}
+		}
 		close($FH) or die "$!\n";
 	}
 
@@ -34,16 +40,18 @@ sub getFunctionNames {
 
 my @function_names = getFunctionNames(@ARGV);
 
-for (@function_names) {
-	print "$_\n";
-}
 
 # my $test_function_prefix = "testCase";
-# print "import ParseTestCase\n";
+print "import ParseTestCase\n";
 
-# # from TestCaseGeneration import test
+# USE the FILE BASENAME for `BASEFILENAME`
+# # from TestCaseGeneration import BASEFILENAME
 
-# print "def generate():\n";
-# print "\ttestcases = ParseTestCase.testCaseFromFiles()\n";
+print "def generate():\n";
+print "\ttestcases = ParseTestCase.testCaseFromFiles()\n";
+for (@function_names) {
+	print "\ttestcases.append($_())\n";
+}
 
-# print "\treturn testcases\n";
+
+print "\treturn testcases\n";
