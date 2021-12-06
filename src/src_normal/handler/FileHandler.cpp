@@ -301,11 +301,6 @@ int	FileHandler::getStatusCode() const
 	return _status_code;
 }
 
-bool	FileHandler::isReadyToWrite() const
-{
-	return isFileError() || isFileComplete();
-}
-
 bool	FileHandler::isFileError() const
 {
 	return _file && _file->getFlag() == AFdInfo::ERROR;
@@ -314,11 +309,6 @@ bool	FileHandler::isFileError() const
 bool	FileHandler::isFileComplete() const
 {
 	return _file && _file->getFlag() == AFdInfo::COMPLETE;
-}
-
-bool	FileHandler::isFileReading() const
-{
-	return _file && _file->getFlag() == AFdInfo::START && !_file->getContent().empty();
 }
 
 /*******************************/

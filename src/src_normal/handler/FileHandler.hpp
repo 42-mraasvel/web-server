@@ -55,10 +55,8 @@ class FileHandler: public iHandler
 		void    	setAbsoluteFilePath(std::string const & path);
 		std::string	getAbsoluteFilePath() const;
 		int			getStatusCode() const;
-		bool		isReadyToWrite() const;
 		bool		isFileError() const;
 		bool		isFileComplete() const;
-		bool		isFileReading() const;
 	private:	
 		void    	deleteFile();
 		void		markError(int status_code);

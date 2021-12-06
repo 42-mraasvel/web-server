@@ -60,8 +60,8 @@ bool	RequestExecutor::isRequestComplete(Request const & request)
 		case Request::COMPLETE:
 			return true;
 		default :
-			//assert(); //TODO: check with maarten how to do;
-			return true;
+			abortProgram("RequestExecutor invalid request status!");
+			return false;
 	}
 }
 
@@ -86,8 +86,8 @@ bool	RequestExecutor::isLocationResolved(Request const & request)
 		case ConfigInfo::LOCATION_RESOLVED:
 			return true;
 		default :
-			//assert(); // TODO: check with maarten how to do;
-			return true;
+			abortProgram("RequestExecutor invalid config result!");
+			return false;
 	}
 }
 

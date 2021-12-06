@@ -643,10 +643,10 @@ bool CgiHandler::isError() const
 	return _status == CgiHandler::ERROR;
 }
 
-bool CgiHandler::isReadyToWrite() const
-{
-	return isComplete() || isError();
-}
+//bool CgiHandler::isReadyToWrite() const // TODO: to delte
+//{
+//	return isComplete() || isError();
+//}
 
 void CgiHandler::finishCgi(Status status, int code)
 {
