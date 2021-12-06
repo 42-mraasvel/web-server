@@ -16,10 +16,10 @@ class Server : public AFdInfo
 		Server & operator=(Server const & rhs);
 
 	public:
+
 		Server();
 		~Server();
-
-		int	setupServer(int port, Config::address_map* config_map);
+		int	setupServer(Config::ip_host_pair ip_host_pair, Config::address_map* config_map);
 		void readEvent(FdTable & fd_table);
 		void writeEvent(FdTable & fd_table);
 		void update(FdTable & fd_table);

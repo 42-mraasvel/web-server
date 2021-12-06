@@ -65,6 +65,11 @@ void	ConfigServer::addLocationFlag(location_flag flag)
 	_locations[_locations.size() - 1].addLocationFlag(flag);
 }
 
+void	ConfigServer::addUploadStore(std::string path)
+{
+	_locations[_locations.size() - 1].addUploadStore(path);
+}
+
 int	ConfigServer::emptyAddress()
 {
 	return _ports.empty();

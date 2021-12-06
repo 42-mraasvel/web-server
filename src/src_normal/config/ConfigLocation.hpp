@@ -17,6 +17,7 @@ typedef struct s_LocationBlock
 	std::vector<std::pair<std::string, std::string> >	_cgi;
 	bool												_autoindex_status;
 	location_flag										_location_flag;
+	std::string											_upload_store;
 
 }				LocationBlock;
 
@@ -33,6 +34,7 @@ class ConfigLocation
 		void	addCgi(std::string extention, std::string path);
 		void	addReturn(int code, std::string path);
 		void	addLocationFlag(location_flag flag);
+		void	addUploadStore(std::string path);
 	// Utility
 		location_pointer getLocationBlock();
 		void	initLocationBlock();
@@ -48,6 +50,7 @@ class ConfigLocation
 		std::pair<int, std::string>	_return;
 		location_flag				_location_flag;
 		location_pointer	_location_block;
+		std::string			_upload_store;
 
 	/* Debugging */
 	public:

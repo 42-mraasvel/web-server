@@ -55,6 +55,8 @@ std::string trimPort(std::string const & str);
 
 int syscallError(const std::string& str);
 int generalError(const char* format, ...);
+void abortProgram();
+void abortProgram(std::string const & message);
 
 bool isSeperator(char x);
 bool isControl(char x);

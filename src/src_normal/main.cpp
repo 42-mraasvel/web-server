@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 		}
 		else if (argc == 1)
 		{
-			std::cout << RED_BOLD "Warning: No configuration file given, using default config" << std::endl;
+			std::cout << RED_BOLD "Warning: No configuration file given, using default config" << RESET_COLOR << std::endl;
 			configuration = "src/src_normal/config/resources/default.conf";
 		}
 		else
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 		Config config_file(configuration);
 		// config_file.print();
 		Webserver webserver(config_file.getAddressMap());
-		if (webserver.init(config_file))
+		if (webserver.init() == ERR)
 			return (1);
 		webserver.print();
 		webserver.run();

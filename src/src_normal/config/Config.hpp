@@ -43,6 +43,7 @@ class Config
 		int	parseIndex();
 		int	parseRoot();
 		int parseReturn();
+		int parseUploadStore();
 		
 		int	checkExpectedSyntax(std::string str);
 		int	checkExpectedSyntax(std::string str1, std::string str2);

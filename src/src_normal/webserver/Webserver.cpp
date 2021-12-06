@@ -7,35 +7,49 @@
 #include <unistd.h>
 #include <cstdlib> // REMOVE, RM
 
-Webserver::Webserver(Config::address_map map): _config_map(map)
+Webserver::Webserver(address_map map): _config_map(map)
 {}
 
-int Webserver::initServer(std::pair<std::string, int> ip_host_pair)
+int Webserver::initServer(ip_host_pair iphost)
 {
-	//TODO:fix
-	Server *new_server = new Server();
-	if (new_server->setupServer(ip_host_pair.second, &_config_map) == ERR)
+	SmartPointer<Server> new_server(new Server());
+	if (new_server->setupServer(iphost, &_config_map) == ERR)
 	{
-		delete new_server;
 		return ERR;
 	}
-	_fd_table.insertFd(new_server);
+	_fd_table.insertFd(SmartPointer<AFdInfo>(new_server));
 	return OK;
 }
 
 /*
 TODO: close FD after failure
 */
-int	Webserver::init(Config const & config)
+int	Webserver::init()
 {
-	printf("Hardcoding: 8080\n");
-	SmartPointer<Server> new_server(new Server());
-	if (new_server->setupServer(8080, &_config_map) == ERR)
+	for (Config::const_iterator_map it = _config_map.begin(); it != _config_map.end(); ++it)
 	{
-		return ERR;
+		if (shouldInitialize(it->first))
+		{
+			printf("Initiailizing: %s:%d\n", it->first.first.c_str(), it->first.second);
+			if (initServer(it->first) == ERR)
+			{
+				return ERR;
+			}
+		}
 	}
-	_fd_table.insertFd(SmartPointer<AFdInfo>(new_server));
 	return OK;
+}
+
+bool Webserver::shouldInitialize(ip_host_pair const & iphost) const
+{
+	if (iphost.first != "0.0.0.0")
+	{
+		if (_config_map.count(ip_host_pair("0.0.0.0", iphost.second)) != 0)
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 bool Webserver::shouldExecuteFd(const FdTable::AFdPointer afd)

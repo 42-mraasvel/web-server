@@ -46,6 +46,11 @@ void ConfigLocation::addLocationFlag(location_flag flag)
 	this->_location_flag = flag;
 }
 
+void ConfigLocation::addUploadStore(std::string path)
+{
+	this->_upload_store = path;
+}
+
 ConfigLocation::location_pointer ConfigLocation::getLocationBlock()
 {
 	initLocationBlock();
@@ -63,4 +68,5 @@ void ConfigLocation::initLocationBlock()
 	_location_block->_autoindex_status = _autoindex_status;
 	_location_block->_return = _return;
 	_location_block->_location_flag = _location_flag;
+	_location_block->_upload_store = _upload_store;
 }
