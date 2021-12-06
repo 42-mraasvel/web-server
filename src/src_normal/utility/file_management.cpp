@@ -4,7 +4,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "settings.hpp"
-#include <errno.h>
 
 namespace WebservUtility
 {

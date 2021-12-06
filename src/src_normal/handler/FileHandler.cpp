@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <cstdlib>
+#include <errno.h>
 
 FileHandler::FileHandler():
 _file(NULL),
