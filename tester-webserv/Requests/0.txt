@@ -1,0 +1,7 @@
+GET / HTTP/1.1
+KEY: VALUE
+  FILE  :  GET.txt 
+Host: localhost:8080
+Content-Length: 9
+
+12341234
