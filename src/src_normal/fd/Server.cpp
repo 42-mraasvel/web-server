@@ -6,8 +6,13 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
+#include <cstring>
+#include <cstdlib>
 
-int		Server::setupServer(std::pair<std::string, int> ip_host_pair)
+Server::Server() {}
+Server::~Server() {}
+
+int		Server::setupServer(Config::ip_host_pair ip_host_pair, Config::address_map* config_map)
 {
 	this->_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->_fd == ERR)
@@ -33,7 +38,7 @@ int		Server::setupServer(std::pair<std::string, int> ip_host_pair)
 	{
 		perror("fcntl");
 	}
-	_port = port; //TODO: to evaluate later
+	_port = ip_host_pair.second; //TODO: to evaluate later
 	_config_map = config_map;
 	return OK;
 }

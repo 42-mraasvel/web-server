@@ -13,14 +13,12 @@ Webserver::Webserver(Config::address_map map): _config_map(map)
 int Webserver::initServer(std::pair<std::string, int> ip_host_pair)
 {
 	//TODO:fix
-	Server *new_server = new Server();
-	if (new_server->setupServer(ip_host_pair) == ERR)
-
+	SmartPointer<Server> new_server = new Server();
+	if (new_server->setupServer(ip_host_pair, &_config_map) == ERR)
 	{
-		delete new_server;
 		return ERR;
 	}
-	_fd_table.insertFd(new_server);
+	_fd_table.insertFd(SmartPointer<AFdInfo>(new_server));
 	return OK;
 }
 
@@ -30,12 +28,10 @@ TODO: close FD after failure
 int	Webserver::init(Config const & config)
 {
 	printf("Hardcoding: 8080\n");
-	SmartPointer<Server> new_server(new Server());
-	if (new_server->setupServer(8080, &_config_map) == ERR)
+	if (initServer(Config::ip_host_pair("0.0.0.0", 8080)) == ERR)
 	{
 		return ERR;
 	}
-	_fd_table.insertFd(SmartPointer<AFdInfo>(new_server));
 	return OK;
 }
 

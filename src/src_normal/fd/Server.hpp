@@ -19,7 +19,7 @@ class Server : public AFdInfo
 
 		Server();
 		~Server();
-		int	setupServer((std::pair<std::string, int> ip_host_pair));
+		int	setupServer(Config::ip_host_pair ip_host_pair, Config::address_map* config_map);
 		void readEvent(FdTable & fd_table);
 		void writeEvent(FdTable & fd_table);
 		void update(FdTable & fd_table);
