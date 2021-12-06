@@ -127,11 +127,9 @@ void	Config::printLocationBlock(ConfigLocation::location_pointer location) const
 		std::cout << "EQUAL";
 	}
 	std::cout << std::endl;
+	std::cout << "\t  Upload_store: ";
+	std::cout << location->_upload_store << std::endl;
 }
-
-
-
-
 
 
 /* Debugging */

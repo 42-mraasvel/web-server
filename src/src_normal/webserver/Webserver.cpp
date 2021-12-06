@@ -10,7 +10,7 @@
 int Webserver::initServer(std::pair<std::string, int> ip_host_pair)
 {
 	Server *new_server = new Server();
-	if (new_server->setupServer(ip_host_pair.second) == ERR)
+	if (new_server->setupServer(ip_host_pair) == ERR)
 	{
 		delete new_server;
 		return ERR;

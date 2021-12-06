@@ -234,6 +234,10 @@ int	Config::parseLocation()
 		{
 			parseReturn();
 		}
+		else if (_tokens[_token_index].compare("upload_store") == 0)
+		{
+			parseUploadStore();
+		}
 		checkExpectedSyntax(";");
 		_token_index++;
 	}
@@ -418,6 +422,27 @@ int Config::parseCgi()
 	_servers[_server_amount].addCgi(extention, path);
 	return (OK);
 }
+
+
+int Config::parseUploadStore()
+{
+	_token_index++;
+	std::string path;
+	if (_tokens[_token_index].compare(";") != 0)
+	{
+		path = _tokens[_token_index];
+		_token_index++;
+	}
+	if (path[0] != '/')
+	{
+		char real_path[4096];
+		realpath(path.c_str(),real_path);
+		path = real_path;
+	}
+	_servers[_server_amount].addUploadStore(path);
+	return (OK);
+}
+
 
 int	Config::parseIndex()
 {

@@ -35,6 +35,7 @@ class ConfigServer
 		void	addAddress(std::string host, int port);
 		void	addReturn(int code, std::string path);
 		void	addLocationFlag(location_flag flag);
+		void	addUploadStore(std::string path);
 		int		emptyAddress();
 
 	// getters

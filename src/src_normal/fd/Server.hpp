@@ -8,7 +8,7 @@
 class Server : public AFdInfo
 {
 	public:
-		int	setupServer(int port);
+		int	setupServer(std::pair<std::string, int> ip_host_pair);
 		int	readEvent(FdTable & fd_table);
 		int	writeEvent(FdTable & fd_table);
 		struct pollfd getPollFd() const;
