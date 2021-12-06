@@ -180,8 +180,7 @@ int	Config::parseServer()
 		}
 		else
 		{
-			std::cout << RED_BOLD "Config Error: '" << _tokens[_token_index] << "' is not a valid configuration" RESET_COLOR << std::endl;
-			exit(1);
+			abortProgram("Config Error: '" + _tokens[_token_index] + "' is not a valid configuration");
 		}
 		checkExpectedSyntax(";");
 		_token_index++;
@@ -483,8 +482,7 @@ int	Config::checkExpectedSyntax(std::string str)
 {
 	if (_tokens[_token_index].compare(str) != 0)
 	{
-		std::cerr << RED_BOLD "Config Error: expected " << str << " instead of " << _tokens[_token_index] << RESET_COLOR << std::endl;
-		exit(1);
+		abortProgram("Config Error: expected " + str + " instead of " + _tokens[_token_index]);
 	}
 	return (OK);
 }
@@ -494,8 +492,7 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2)
 	if (_tokens[_token_index].compare(str1) != 0 
 		&& _tokens[_token_index].compare(str2) != 0)
 	{
-		std::cerr << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
-		exit(1);
+		abortProgram("Config Error: expected " + str1 + " or " + str2 + " instead of " + _tokens[_token_index]);
 	}
 	return (OK);
 }

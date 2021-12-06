@@ -21,3 +21,14 @@ int generalError(const char* format, ...)
 #endif
 	return ERR;
 }
+
+void abortProgram()
+{
+	std::abort();
+}
+
+void abortProgram(std::string const & message)
+{
+	std::cerr << RED_BOLD "Aborting: " << message << RESET_COLOR << std::endl;
+	abortProgram();
+}
