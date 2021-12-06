@@ -1,11 +1,20 @@
 #include "settings.hpp"
 #include "FileHandler.hpp"
 #include "fd/File.hpp"
+#include "utility/status_codes.hpp"
+#include "utility/utility.hpp"
+#include "parser/HeaderField.hpp"
+#include "MediaType.hpp"
 #include <unistd.h>
 #include <fcntl.h>
 #include <cstdlib>
 
-FileHandler::FileHandler(MethodType method): _method(method), _file(NULL) {}
+FileHandler::FileHandler():
+_file(NULL),
+_status_code(0),
+_is_error(false),
+_is_complete(false)
+{}
 
 FileHandler::~FileHandler()
 {
@@ -21,11 +30,12 @@ FileHandler::~FileHandler()
 
 int	FileHandler::executeRequest(FdTable & fd_table, Request & request)
 {
+	_method = request.method;
 	if (createFile(fd_table) == ERR)
 	{
 		return ERR;
 	}
-	if(executeFile(request) == ERR)
+	if (executeFile(request) == ERR)
 	{
 		deleteFile();
 		return ERR;
@@ -41,7 +51,7 @@ int	FileHandler::executeRequest(FdTable & fd_table, Request & request)
 int	FileHandler::createFile(FdTable & fd_table)
 {
 	setFileParameter();
-	if (!isFileAccessible() || !openFile(fd_table))
+	if (!isFileValid() || !isFileAuthorized() || !openFile(fd_table))
 	{
 		return ERR;
 	}
@@ -52,62 +62,61 @@ void	FileHandler::setFileParameter()
 {
 	switch(_method)
 	{
-		case GET:
+		case Method::GET:
 			_access_flag = R_OK;
 			_open_flag = O_RDONLY;
 			_file_event = AFdInfo::READING;
-			_status_code = 200;
+			if (_status_code == 0)
+			{
+				_status_code = StatusCode::STATUS_OK;
+			}
 			return ;
-		case POST:
+		case Method::POST:
 			_access_flag = W_OK;
-			_open_flag = O_CREAT | O_WRONLY | O_APPEND;
+			_open_flag = O_CREAT | O_WRONLY;
 			_file_event = AFdInfo::WRITING;
-			_status_code = 201;
+			if (_status_code == 0)
+			{
+				_status_code = StatusCode::NO_CONTENT;
+			}
 			return ;
-		case DELETE:
+		case Method::DELETE:
 			_access_flag = W_OK;
 			_open_flag = O_WRONLY;
 			_file_event = AFdInfo::WAITING;
-			_status_code = 204;
+			if (_status_code == 0)
+			{
+				_status_code = StatusCode::NO_CONTENT;
+			}
 			return ;
-		case OTHER:
 		default:
 			return;
 	}
 }
 
-bool	FileHandler::isFileAccessible()
+bool	FileHandler::isFileValid()
 {
-	if (_method == GET || _method == DELETE)
+	if (!WebservUtility::isFileExist(_absolute_file_path))
 	{
-		return isFileExist() && isFileAuthorized();
-	}
-	if (_method == POST)
-	{
-		if (access(_absolute_file_path.c_str(), F_OK) == OK)
+		if (_method == Method::POST)
 		{
-			_status_code = 204; /* NO CONTENT */
-			return isFileAuthorized();
+			_status_code = StatusCode::CREATED;
+			return true;
 		}
-	}
-	return true;
-}
-
-bool	FileHandler::isFileExist()
-{
-	if (access(_absolute_file_path.c_str(), F_OK) == ERR)
-	{
-		_status_code = 404; /* NOTFOUND */
-		return false;
+		else
+		{
+			markError(StatusCode::NOT_FOUND);
+			return false;
+		}
 	}
 	return true;
 }
 
 bool	FileHandler::isFileAuthorized()
 {
-	if (access(_absolute_file_path.c_str(), _access_flag) == ERR)
+	if (_method != Method::POST && access(_absolute_file_path.c_str(), _access_flag) == ERR)
 	{
-		_status_code = 403; /* FORBIDDEN */
+		markError(StatusCode::FORBIDDEN);
 		return false;
 	}
 	return true;
@@ -119,12 +128,20 @@ bool	FileHandler::openFile(FdTable & fd_table)
 	if (file_fd == ERR)
 	{
 		perror("open");
-		_status_code = 500; /* INTERNAL SERVER ERROR */
+		markError(StatusCode::INTERNAL_SERVER_ERROR);
 		return false;
 	}
-	printf(BLUE_BOLD "Open File:" RESET_COLOR " [%d]\n", file_fd);
-	_file = new File(file_fd);
-	fd_table.insertFd(_file);
+	printf(BLUE_BOLD "Open File:" RESET_COLOR " %s: [%d]\n", _absolute_file_path.c_str(), file_fd);
+	try
+	{
+		_file = FilePointer(new File(file_fd));
+	}
+	catch (...)
+	{
+		close(file_fd);
+		throw;
+	}
+	fd_table.insertFd(SmartPointer<AFdInfo>(_file));
 	return true;
 }
 
@@ -136,11 +153,11 @@ int	FileHandler::executeFile(Request & request)
 {
 	switch (_method)
 	{
-		case GET:
+		case Method::GET:
 			return executeGet();
-		case POST:
+		case Method::POST:
 			return executePost(request);
-		case DELETE:
+		case Method::DELETE:
 			return executeDelete();
 		default:
 			return OK;
@@ -154,7 +171,7 @@ int	FileHandler::executeGet()
 
 int	FileHandler::executePost(Request & request)
 {
-	_file->swapContent(request.message_body);
+	_file->appendFromContent(request.message_body);
 	return OK;
 }
 
@@ -163,11 +180,11 @@ int	FileHandler::executeDelete()
 	if (remove(_absolute_file_path.c_str()) == ERR)
 	{
 		perror("remove");
-		_status_code = 500; /* INTERNAL SERVER ERROR */
+		markError(StatusCode::INTERNAL_SERVER_ERROR);
 		return ERR;
 	}
 	printf(BLUE_BOLD "Delete File:" RESET_COLOR " [%s]\n", _absolute_file_path.c_str());
-	_file->flag = AFdInfo::FILE_COMPLETE;
+	_file->setFlag(AFdInfo::COMPLETE);
 	return OK;
 }
 
@@ -180,76 +197,103 @@ void	FileHandler::updateFileEvent(FdTable & fd_table)
 	_file->updateEvents(_file_event, fd_table);
 }
 
-/********************************************/
-/****** generate response - evaluateion *****/
-/********************************************/
+/*******************/
+/****** update *****/
+/*******************/
 
-bool	FileHandler::evaluateExecutionError()
+void	FileHandler::update(std::string & response_body)
 {
+	if (isError())
+	{
+		return ;
+	}
+
 	if (isFileError())
 	{
-		deleteFile();
-		return true;
+		markError(StatusCode::INTERNAL_SERVER_ERROR);
+		return ;
 	}
-	return false;
-}
 
-bool	FileHandler::evaluateExecutionCompletion()
-{
+	if (_method == Method::GET && _file
+		&& (_file->getFlag() == AFdInfo::START || _file->getFlag() == AFdInfo::COMPLETE))
+	{
+		_file->appendToContent(response_body);
+	}
+
 	if (isFileComplete())
 	{
 		deleteFile();
-		return true;
+		_is_complete = true;
+		return ;
 	}
-	return false;
 }
 
-/*********************************************/
-/****** generate response - message body *****/
-/*********************************************/
-
-void	FileHandler::setMessageBody(std::string & message_body, std::string const & effective_request_uri)
+void	FileHandler::exceptionEvent()
 {
-	switch (_method)
+	markError(StatusCode::INTERNAL_SERVER_ERROR);
+	fprintf(stderr, "%sEXCEPTION%s: FileHandler\n", RED_BOLD, RESET_COLOR);
+}
+
+int	FileHandler::redirectErrorPage(FdTable & fd_table, std::string const & file_path, int status_code)
+{
+	resetHandler(file_path, status_code);
+	Request	error_page_request;
+	error_page_request.method = Method::GET;
+	return executeRequest(fd_table, error_page_request);
+}
+
+void	FileHandler::resetHandler(std::string const & file_path, int status_code)
+{
+	_absolute_file_path = file_path;
+	_status_code = status_code;
+	_is_error = false;
+	_is_complete = false;
+	_file = NULL;
+}
+
+/******************************/
+/****** set header field ******/
+/******************************/
+
+void    FileHandler::setSpecificHeaderField(HeaderField & header_field, bool content_type_fixed)
+{
+	if (!content_type_fixed)
 	{
-		case GET:
-			return setMessageBodyGet(message_body);
-		case POST:
-			return setMessageBodyPost(message_body, effective_request_uri);
-		case DELETE:
-			return setMessageBodyDelete(message_body);
-		default:
-			return ;
+		setContentType(header_field);
 	}
 }
 
-void	FileHandler::setMessageBodyGet(std::string & message_body)
+void	FileHandler::setContentType(HeaderField & header_field) const
 {
-	message_body.append(_file->getContent());
-	_file->clearContent();
-}
-
-void	FileHandler::setMessageBodyPost(std::string & message_body, std::string const & effective_request_uri)
-{
-	if (_status_code == 201)
+	if (_method == Method::GET && !_absolute_file_path.empty())
 	{
-		message_body = "New content created!\n" + effective_request_uri + "\n";
+		header_field["Content-Type"] = MediaType::getMediaType(_absolute_file_path);
+		return ;
 	}
-	return ;
-}
-
-void	FileHandler::setMessageBodyDelete(std::string & message_body)
-{
-	return ;
 }
 
 /******************************/
 /****** utility - public ******/
 /******************************/
 
+bool	FileHandler::isComplete() const
+{
+	return _is_complete;
+}
+
+bool	FileHandler::isError() const
+{
+	return _is_error;
+}
+
 void    FileHandler::setAbsoluteFilePath(std::string const & path)
 {
 	_absolute_file_path = path;
+}
+
+std::string    FileHandler::getAbsoluteFilePath() const
+{
+	return _absolute_file_path;
 }
 
 int	FileHandler::getStatusCode() const
@@ -257,36 +301,24 @@ int	FileHandler::getStatusCode() const
 	return _status_code;
 }
 
-bool	FileHandler::isChunked(std::string const & http_version) const
+bool	FileHandler::isReadyToWrite() const
 {
-	if (http_version == "HTTP/1.1"
-		&& _method == GET)
-	{
-		return _file
-			&& _file->flag != AFdInfo::FILE_ERROR
-			&& _file->getContent().size() >= BUFFER_SIZE;
-	}
-	return false;
-}
-
-bool	FileHandler::isFileReadyForResponse() const
-{
-	return isFileError() || isFileComplete() || isFileReading();
+	return isFileError() || isFileComplete();
 }
 
 bool	FileHandler::isFileError() const
 {
-	return _file && _file->flag == AFdInfo::FILE_ERROR;
+	return _file && _file->getFlag() == AFdInfo::ERROR;
 }
 
 bool	FileHandler::isFileComplete() const
 {
-	return _file && _file->flag == AFdInfo::FILE_COMPLETE;
+	return _file && _file->getFlag() == AFdInfo::COMPLETE;
 }
 
 bool	FileHandler::isFileReading() const
 {
-	return _file && _file->flag == AFdInfo::FILE_START && !_file->getContent().empty();
+	return _file && _file->getFlag() == AFdInfo::START && !_file->getContent().empty();
 }
 
 /*******************************/
@@ -295,6 +327,17 @@ bool	FileHandler::isFileReading() const
 
 void	FileHandler::deleteFile()
 {
-	_file->flag = AFdInfo::TO_ERASE;
-	_file = NULL;		
+	_file->setToErase();
+	_file = NULL;
+}
+
+void	FileHandler::markError(int status_code)
+{
+	_status_code = status_code;
+	_is_error = true;
+	_absolute_file_path.clear();
+	if (_file)
+	{
+		deleteFile();
+	}
 }

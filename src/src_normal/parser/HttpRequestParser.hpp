@@ -4,6 +4,7 @@
 # include "HeaderFieldParser.hpp"
 # include "ContentParser.hpp"
 # include "ChunkedParser.hpp"
+# include "handler/RequestHeaderProcessor.hpp"
 # include <string>
 
 struct Request;
@@ -15,8 +16,10 @@ sets index to buffer.size() if incomplete request
 */
 class HttpRequestParser
 {
-	private:
+	public:
+		typedef	ConfigResolver::MapType		MapType;
 
+	private:
 		enum State
 		{
 			PARSE_REQUEST_LINE,
@@ -28,8 +31,7 @@ class HttpRequestParser
 		};
 
 	public:
-
-		HttpRequestParser();
+		HttpRequestParser(MapType const * config_map);
 
 		int parse(std::string const & buffer, std::size_t & index, Request& request);
 
@@ -55,7 +57,7 @@ class HttpRequestParser
 			std::size_t & index, Request & request);
 
 	/* HeaderFields */
-		int checkHeaderFields(HeaderField const & request);
+		int processRequestHeader(Request & request);
 		int checkContentType(HeaderField const & header);
 		int parseContentLength(std::string const & value);
 		int parseTransferEncoding(std::string const & value);
@@ -69,4 +71,6 @@ class HttpRequestParser
 		HeaderFieldParser _header_parser;
 		ContentParser _content_parser;
 		ChunkedParser _chunked_content_parser;
+
+		RequestHeaderProcessor _header_processor;
 };

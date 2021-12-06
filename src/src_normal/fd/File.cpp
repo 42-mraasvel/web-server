@@ -9,7 +9,7 @@
 
 File::File(int fd): AFdInfo(fd)
 {
-	flag = AFdInfo::ACTIVE;
+	setFlag(AFdInfo::ACTIVE);
 }
 
 struct pollfd	File::getPollFd() const
@@ -21,7 +21,7 @@ struct pollfd	File::getPollFd() const
 	return temp;
 }
 
-int File::readEvent(FdTable & fd_table)
+void File::readEvent(FdTable & fd_table)
 {
 	std::string buffer;
 	buffer.resize(BUFFER_SIZE, '\0');
@@ -29,41 +29,41 @@ int File::readEvent(FdTable & fd_table)
 	if (ret == ERR)
 	{
 		perror("read");
-		this->updateEvents(AFdInfo::WAITING, fd_table);
-		flag = AFdInfo::FILE_ERROR;
-		return ERR;
+		markError(fd_table);
+		return;
 	}
-	if (flag == AFdInfo::ACTIVE)
+	if (getFlag() == AFdInfo::ACTIVE)
 	{
-		flag = AFdInfo::FILE_START;
+		setFlag(AFdInfo::START);
 	}
 	buffer.resize(ret);
 	_content.append(buffer);
 	if (ret < BUFFER_SIZE) // read EOF
 	{
-		this->updateEvents(AFdInfo::WAITING, fd_table);
-		flag = AFdInfo::FILE_COMPLETE;
+		markFinished(fd_table, AFdInfo::COMPLETE);
 	}
-	return OK;
 }
 
-int File::writeEvent(FdTable & fd_table)
+void File::writeEvent(FdTable & fd_table)
 {
 	size_t	size = std::min((size_t)BUFFER_SIZE, _content.size());
 	if (write(_fd, _content.c_str(), size) == ERR)
 	{
 		perror("write");
-		this->updateEvents(AFdInfo::WAITING, fd_table);
-		flag = AFdInfo::FILE_ERROR;
-		return ERR;
+		markError(fd_table);
+		return;
 	}
 	_content.erase(0, size);
 	if (_content.empty())
 	{
-		this->updateEvents(AFdInfo::WAITING, fd_table);
-		flag = AFdInfo::FILE_COMPLETE;
+		markFinished(fd_table, AFdInfo::COMPLETE);
 	}
-	return OK;
+}
+
+void File::exceptionEvent(FdTable & fd_table)
+{
+	AFdInfo::exceptionEvent(fd_table); // RM, REMOVE
+	markError(fd_table);
 }
 
 std::string const &	File::getContent() const
@@ -71,22 +71,45 @@ std::string const &	File::getContent() const
 	return _content;
 }
 
-void	File::setContent(std::string const & content)
+void	File::appendToContent(std::string & to)
 {
-	_content = content;
+	if (to.size() == 0)
+	{
+		to.swap(_content);
+	}
+	else
+	{
+		to.append(_content);
+		_content.clear();
+	}
 }
 
-void	File::clearContent()
+void	File::appendFromContent(std::string & from)
 {
-	_content.clear();
-}
-
-void	File::swapContent(std::string & content)
-{
-	_content.swap(content);
+	if (_content.size() == 0)
+	{
+		_content.swap(from);
+	}
+	else
+	{
+		_content.append(from);
+		from.clear();
+	}
 }
 
 std::string File::getName() const
 {
 	return "File";
+}
+
+void File::markError(FdTable & fd_table)
+{
+	_content.clear();
+	markFinished(fd_table, AFdInfo::ERROR);
+}
+
+void File::markFinished(FdTable & fd_table, AFdInfo::Flags flag)
+{
+	setFlag(flag);
+	updateEvents(AFdInfo::WAITING, fd_table);
 }

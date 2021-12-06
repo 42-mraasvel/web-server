@@ -6,6 +6,9 @@
 #include "webserver/Webserver.hpp"
 #include "color.hpp"
 #include "config/Config.hpp"
+#include "utility/SmartPointer.hpp"
+#include "handler/RequestHandler.hpp"
+#include "tmp/create_address_map.hpp"
 
 #ifndef USING_CATCH
 int main(int argc, char **argv)
@@ -28,8 +31,8 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 		Config config_file(configuration);
-		config_file.print();
-		Webserver webserver;
+		// config_file.print();
+		Webserver webserver(config_file.getAddressMap());
 		if (webserver.init(config_file))
 			return (1);
 		webserver.print();

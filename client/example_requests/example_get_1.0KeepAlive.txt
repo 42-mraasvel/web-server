@@ -1,0 +1,4 @@
+GET /test.txt HTTP/1.0
+Host: localhost
+Connection: Keep-alive
+

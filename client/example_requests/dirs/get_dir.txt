@@ -1,0 +1,4 @@
+GET /dir HTTP/1.0
+Host: 127.0.0.1:8080
+connection: keep-alive
+

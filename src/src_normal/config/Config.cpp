@@ -13,7 +13,7 @@ Config::Config(std::string const & config_file): _file_name(config_file), _serve
 {
 	this->parser();
 	initAddressMap();
-	printAddressMap();
+	// printAddressMap();
 }
 
 // check for leaks
@@ -346,10 +346,10 @@ int	Config::parseClientBodySize()
 			}
 		}
 	}
-	size_t size = WebservUtility::strtoul(client_body_size);
+	std::size_t size = WebservUtility::strtoul(client_body_size);
 	if (size == 0)
 	{
-		size - std::numeric_limits<std::size_t>::max();
+		size = std::numeric_limits<std::size_t>::max();
 	}
 	_servers[_server_amount].addClientBodySize(size);
 	_token_index++;
@@ -361,7 +361,7 @@ int	Config::parseAllowedMethods()
 	_token_index++;
 	while (_tokens[_token_index].compare(";") != 0)
 	{
-		if (checkExpectedSyntax("GET", "POST", "DELETE"))
+		if (checkExpectedSyntax("GET", "POST", "DELETE") == OK)
 		{
 			_servers[_server_amount].addAllowedMethods(_tokens[_token_index]);
 		}
@@ -373,7 +373,7 @@ int	Config::parseAllowedMethods()
 int	Config::parseAutoindex()
 {
 	_token_index++;
-	if (checkExpectedSyntax("on", "off"))
+	if (checkExpectedSyntax("on", "off") == OK)
 	{
 		_servers[_server_amount].addAutoIndex(_tokens[_token_index].compare("off"));
 	}
