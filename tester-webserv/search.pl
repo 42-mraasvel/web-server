@@ -1,57 +1,69 @@
 use strict;
 use warnings;
-# Prefix for a function:
-# Generates python file to dynamically add testcases to the generator
-# 
-# 
-
-# 1. All files given as arguments through Makefile
-# 2. Each file is scanned for def PREFIXfunctionName(): (regex match)
-# 3. Add each function string to a list
-# 4. Generate the appropriate imports and function calls
-
-
-# def generate():
-# 	testcases = ParseTestCase.testCaseFromFiles()
-# 	testcases.append(testCaseSampleTestCase())
-# 	return testcases
+use File::Basename;
 
 my $PREFIX = 'testCase';
+my $SUBDIR = 'TestCaseGeneration';
+
+# Import: TestCaseGeneration.subdir1.subdir2 import $BASEFILENAME
+sub getDirectory {
+	my $path = $_[0];
+	my $filename = $_[1];
+
+	$path =~ /.*\/($SUBDIR.*)\/$filename/;
+	my $dir = $1;
+	$dir =~ s/\//\./g;
+	return $dir;
+}
+
+sub printImports {
+	print "import ParseTestCase\n";
+	for (@_) {
+		my $path = $_;
+		my $filename = basename($_);
+		my $dirname = getDirectory($path, $filename);
+		print "from $dirname import $filename\n";
+	}
+}
+
+sub printFunction {
+	print "def generate():\n";
+	print "\ttestcases = ParseTestCase.testCaseFromFiles()\n";
+	for (@_) {
+		print "\ttestcases.append($_())\n";
+	}
+	print "\treturn testcases\n";
+}
 
 # returns a list like `testCaseFunctionName`
 # from line `def testCaseFunctionName(...):`
-sub getFunctionNames {
+sub generateCode {
 	my @function_names;
+	my @filenames;
 	my $regex_string = '/^def\s*(.*)\(.*\)/';
 
 	for (@_) {
-		open(my $FH, '<', $_) or die "$!\n";
+		my $filename = $_;
+		open(my $FH, '<', $filename) or die "$!\n";
 		while (<$FH>) {
 			# print "$_";
 			if ($_ =~ /^def\s*($PREFIX.*)\(.*\)/) {
-				push(@function_names, $1);
+				$filename =~ s/\.[^.]+$//;
+				print "FILENAME: $filename\n";
+				push(@function_names, basename($filename).".$1");
+				# add filename if it's not yet present
+				if (!(grep( /^$filename$/, @filenames))) {
+					push(@filenames, $filename);
+				}
 			}
 		}
 		close($FH) or die "$!\n";
 	}
 
-	return @function_names;
+	printImports(@filenames);
+	printFunction(@function_names);
+
 }
 
-my @function_names = getFunctionNames(@ARGV);
-
-
-# my $test_function_prefix = "testCase";
-print "import ParseTestCase\n";
-
-# USE the FILE BASENAME for `BASEFILENAME`
-# # from TestCaseGeneration import BASEFILENAME
-
-print "def generate():\n";
-print "\ttestcases = ParseTestCase.testCaseFromFiles()\n";
-for (@function_names) {
-	print "\ttestcases.append($_())\n";
-}
-
-
-print "\treturn testcases\n";
+exit if @ARGV == 0;
+generateCode(@ARGV);
