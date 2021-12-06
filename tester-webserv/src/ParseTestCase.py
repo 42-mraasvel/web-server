@@ -7,23 +7,23 @@ DIRECTORY = './Requests'
 def exitParseError(message):
 	Error.exitError('ParseTestCase: ' + message)
 
+def validExtension(ext):
+	return ext == '.txt' or ext == '.response'
+
 #
 # Returns list of testcases in the Directory `Requests`
 #
 def testCaseFromFiles():
 	testcases = []
-	files = os.listdir(DIRECTORY)
+	files = [os.path.join(dp, f) for dp, dn, filenames in os.walk(DIRECTORY) for f in filenames if validExtension(os.path.splitext(f)[1])]
 	for file in files:
 		if file.endswith('.txt'):
 			if file + '.response' not in files:
 				exitParseError('{}: no matching response file: {}.response'.format(file, file))
-			testcases.append(testCaseFromFile(makePath(file)))
+			testcases.append(testCaseFromFile(file))
 		elif not file.endswith('.txt.response'):
 			exitParseError('bad filename: {} expected: [.txt or .txt.response] '.format(file))
 	return testcases
-
-def makePath(file):
-	return DIRECTORY + '/' + file
 
 def testCaseFromFile(filename):
 	testcase = TestCase.TestCase(parseRequest(filename), parseResponse(filename + '.response'), filename)

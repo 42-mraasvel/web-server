@@ -1,5 +1,6 @@
 import TestCase
 import ParseTestCase
+from TestCaseGeneration import test
 
 #
 # MAIN GENERATE FUNCTION
@@ -11,6 +12,7 @@ def generate():
 	testcases.append(simpleTestCase())
 	testcases.append(secondTestCase())
 	testcases.append(failingTestCase())
+	testcases.append(test.testFunction())
 	testcases.append(exampleCustomEvaluation())
 	return testcases
 
