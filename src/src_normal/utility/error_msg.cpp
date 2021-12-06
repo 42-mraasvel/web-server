@@ -1,5 +1,6 @@
 #include "settings.hpp"
 #include <cstdio>
+#include <cstdlib>
 
 /*
 Wrapper for calling perror and returning ERR code
