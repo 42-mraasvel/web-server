@@ -4,5 +4,6 @@ Unable to test in Python:
 	- Duplicate header-fields
 	- Missing host field
 	- Expect: 100-continue
+	- Interface resolution (ServerBlock resolution based on IP:PORT specification, all requests go in through a single interface)
 
 Test with Python:
