@@ -1,6 +1,7 @@
 import ParseTestCase
 from testcase_generation import example
 from testcase_generation import example2
+
 def generate():
 	testcases = ParseTestCase.testCaseFromFiles()
 	testcases.append(example.testCaseFailingTestCase())

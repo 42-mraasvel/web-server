@@ -2,13 +2,6 @@ import sys
 import re
 import os
 
-SUBDIR = ""
-PREFIX = ""
-
-#
-# from <SUBDIR.subdir.subdir> import <file>
-#
-
 def findFunctions(args):
 	# map[filename].append(function_name)
 	map = dict()
@@ -31,7 +24,7 @@ def findFunctions(args):
 def printImportMessage(key):
 	dir = os.path.dirname(key)
 	filename = os.path.basename(key)
-	print("from", dir[dir.find(SUBDIR):].replace('/', '.'), "import", filename)
+	print("from", dir[dir.find(TESTDIR):].replace('/', '.'), "import", filename)
 
 def printFunctionCalls(key, functions):
 	import_name = os.path.basename(key)
@@ -43,13 +36,14 @@ def generateCode(map):
 	print("import ParseTestCase")
 	for key in map:
 		printImportMessage(key)
+	print()
 	print("def generate():")
 	print("\ttestcases = ParseTestCase.testCaseFromFiles()")
 	for key in map:
 		printFunctionCalls(key, map[key])
 	print("\treturn testcases")
 
-SUBDIR = sys.argv[1]
+TESTDIR = sys.argv[1]
 PREFIX = sys.argv[2]
 map = findFunctions(sys.argv[3:])
 generateCode(map)
