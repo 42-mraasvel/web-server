@@ -17,4 +17,23 @@ bool	isFileExist(std::string const & file_path)
 	return true;
 }
 
+
+/* 	path cannot be empty, and has to start with '/';
+	only create directory with "/" at the end
+*/
+// TODO: to make
+//	struct dirent *entry;
+//	DIR *dir = opendir(path.c_str());
+//	if (dir == NULL)
+//	{
+//	   return ERR;
+//	}
+int	createDirectories(std::string const & path)
+{
+	if (path.empty() || path[0] != '/')
+	{
+		return ERR;
+	}
+	return OK;
+}
 }

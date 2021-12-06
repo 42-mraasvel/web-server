@@ -2,7 +2,7 @@
 --     NOW      --
 ------------------
 - Upload: check directory given by configuration for POST requests
-
+    - POST request with '/' as target should be 400 BAD_REQUEST???
 - ConfigResolver TODO (to discuss with maarten)
 - ResponseUpdator TODO (to check if the redirect_text needs to be absolute form??)
 

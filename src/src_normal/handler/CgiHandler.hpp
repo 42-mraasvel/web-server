@@ -44,7 +44,6 @@ class CgiHandler: public iHandler
 		bool	isComplete() const;
 		bool	isError() const;
 		int		getStatusCode() const;
-//		bool	isReadyToWrite() const; // TODO: to delete
 		void	setSpecificHeaderField(HeaderField & header_field, bool content_type_fixed);
 
 	/* Debugging */

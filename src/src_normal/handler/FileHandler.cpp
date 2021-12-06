@@ -51,7 +51,7 @@ int	FileHandler::executeRequest(FdTable & fd_table, Request & request)
 int	FileHandler::createFile(FdTable & fd_table)
 {
 	setFileParameter();
-	if (!isFileValid() || !isFileAuthorized() || !openFile(fd_table))
+	if (!isFileValid() || !openFile(fd_table))
 	{
 		return ERR;
 	}
@@ -94,29 +94,53 @@ void	FileHandler::setFileParameter()
 	}
 }
 
+//TODO: to process status code
+//	if (_method == Method::POST)
+//	{
+//		_status_code = StatusCode::CREATED;
+//		if (isUploadPathCreated())
+//		{
+//			return false;
+//		}
+//		return true;
+//	}
+
 bool	FileHandler::isFileValid()
+{
+	if (_method != Method::POST)
+	{
+		return isFileExisted() && isFileAuthorized();
+	}
+	else
+	{
+		return isUploadPathCreated();
+	}
+}
+
+bool	FileHandler::isFileExisted()
 {
 	if (!WebservUtility::isFileExist(_absolute_file_path))
 	{
-		if (_method == Method::POST)
-		{
-			_status_code = StatusCode::CREATED;
-			return true;
-		}
-		else
-		{
-			markError(StatusCode::NOT_FOUND);
-			return false;
-		}
+		markError(StatusCode::NOT_FOUND);
+		return false;
 	}
 	return true;
 }
 
 bool	FileHandler::isFileAuthorized()
 {
-	if (_method != Method::POST && access(_absolute_file_path.c_str(), _access_flag) == ERR)
+	if (access(_absolute_file_path.c_str(), _access_flag) == ERR)
 	{
 		markError(StatusCode::FORBIDDEN);
+		return false;
+	}
+	return true;
+}
+
+bool	FileHandler::isUploadPathCreated()
+{
+	if (WebservUtility::createDirectories(_absolute_file_path) == ERR)
+	{
 		return false;
 	}
 	return true;
@@ -286,9 +310,17 @@ bool	FileHandler::isError() const
 	return _is_error;
 }
 
-void    FileHandler::setAbsoluteFilePath(std::string const & path)
+void    FileHandler::setAbsoluteFilePath(Request const & request)
 {
-	_absolute_file_path = path;
+	if (_method == Method::POST
+		&& !request.config_info.resolved_location->_upload_store.empty())
+	{
+		_absolute_file_path = request.config_info.resolved_location->_upload_store + request.config_info.resolved_target;
+	}
+	else
+	{
+		_absolute_file_path = request.config_info.resolved_file_path;
+	}
 }
 
 std::string    FileHandler::getAbsoluteFilePath() const
