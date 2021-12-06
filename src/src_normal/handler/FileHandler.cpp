@@ -94,17 +94,6 @@ void	FileHandler::setFileParameter()
 	}
 }
 
-//TODO: to process status code
-//	if (_method == Method::POST)
-//	{
-//		_status_code = StatusCode::CREATED;
-//		if (isUploadPathCreated())
-//		{
-//			return false;
-//		}
-//		return true;
-//	}
-
 bool	FileHandler::isFileValid()
 {
 	if (_method != Method::POST)
@@ -137,11 +126,35 @@ bool	FileHandler::isFileAuthorized()
 	return true;
 }
 
+static bool	isUploadPathValid(std::string const & path)
+{
+	return !(path.empty() || path[path.size() - 1] == '/' || path[0] != '/' || path.find("//") != std::string::npos);
+}
+
+/* upload path cannot end with "/" or contain "//" */
 bool	FileHandler::isUploadPathCreated()
 {
+	if (!isUploadPathValid(_absolute_file_path))
+	{
+		markError(StatusCode::BAD_REQUEST);
+		return false;
+	}
 	if (WebservUtility::createDirectories(_absolute_file_path) == ERR)
 	{
+		if (errno == EACCES)
+		{
+			markError(StatusCode::FORBIDDEN);
+		}
+		else
+		{
+			perror("create upload path");
+			markError(StatusCode::INTERNAL_SERVER_ERROR);
+		}
 		return false;
+	}
+	if (!WebservUtility::isFileExist(_absolute_file_path))
+	{
+		_status_code = StatusCode::CREATED;
 	}
 	return true;
 }
@@ -312,7 +325,7 @@ bool	FileHandler::isError() const
 
 void    FileHandler::setAbsoluteFilePath(Request const & request)
 {
-	if (_method == Method::POST
+	if (request.method == Method::POST
 		&& !request.config_info.resolved_location->_upload_store.empty())
 	{
 		_absolute_file_path = request.config_info.resolved_location->_upload_store + request.config_info.resolved_target;

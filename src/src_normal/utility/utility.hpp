@@ -46,6 +46,7 @@ const char*	ft_basename(const char* x);
 bool additionOverflow(std::size_t x, std::size_t y);
 
 bool	isFileExist(std::string const & file_path);
+bool	isDirectoryExist(std::string const & directory_path);
 int		createDirectories(std::string const & path);
 int 	list_directory(std::string const & directory, std::string const & path, std::string & content);
 std::string trimPort(std::string const & str);
