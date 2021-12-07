@@ -4,6 +4,7 @@ import requests
 from ResponseLogMessage import generateResponseLogMessage
 
 GREEN_BOLD = "\033[32m"
+RED_BOLD = "\033[1;31m"
 RESET_COLOR = "\033[0m"
 
 # Expect: list of testcases
@@ -23,9 +24,13 @@ def execute(testcases = [], authority = 'localhost:8080', tags = []):
 			passMsg(testcase, index)
 		response.close()
 	endMessage(passed, failed)
+	if failed != 0:
+		return 1
+	return 0
 
 def endMessage(passed, failed):
-	print("Executed: {} testcases: PASS({}) PASS({})".format(passed + failed, passed, failed))
+	print("Executed: {} testcases: {}PASS{}({}) {}FAIL{}({})".format(passed + failed, \
+	GREEN_BOLD, RESET_COLOR, passed, RED_BOLD, RESET_COLOR, failed))
 
 def failMsg(message, index, testcase, response):
 	Error.putFail(str(index + 1) + ": [" + testcase.tag + "]: " + message)

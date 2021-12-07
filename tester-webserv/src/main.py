@@ -18,4 +18,5 @@ if __name__ == '__main__':
 	tags = sys.argv[2:]
 
 	testcases = GenerateTestCases.generate()
-	ExecuteTest.execute(testcases, authority, tags)
+	exit_status = ExecuteTest.execute(testcases, authority, tags)
+	exit(exit_status)
