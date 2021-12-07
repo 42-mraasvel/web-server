@@ -172,15 +172,18 @@ bool	RequestValidator::isExpectationValid(Request const & request)
 
 bool	RequestValidator::isRequestValidPostConfig(Request const & request)
 {
-	return isMethodAllowed(request.method, request.config_info.resolved_location->_allowed_methods);
+	return isMethodAllowed(request);
 }
 
-bool	RequestValidator::isMethodAllowed(Method::Type const method, std::vector<std::string> const & allowed_methods)
+bool	RequestValidator::isMethodAllowed(Request const & request)
 {
-	if (!findMethodInConfig(method, allowed_methods))
+	if (request.config_info.result != ConfigInfo::REDIRECT)
 	{
-		_status_code = StatusCode::METHOD_NOT_ALLOWED;
-		return false;		
+		if (!findMethodInConfig(request.method, request.config_info.resolved_location->_allowed_methods))
+		{
+			_status_code = StatusCode::METHOD_NOT_ALLOWED;
+			return false;		
+		}
 	}
 	return true;
 }
