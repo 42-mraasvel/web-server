@@ -1,9 +1,17 @@
 -- General --
 
 	- HTTP Response Codes
+	- Method execution, response codes, body, etc
+	- Chunked
+	- Connection Management
+	- Response Header-Fields
+		- Content-Type
+	- Test with different settings.hpp files (BUFFER_SIZE, LIMITS)
+	- CaseSensitivity
 
 -- Server Block --
 
+	- Interface resolution
 	- Default host:port resolution
 		- Give an unknown server_name
 		- Resolved block should be block 1
@@ -21,9 +29,17 @@
 
 	- Location block resolution
 	- Method allowed (GET, POST, DELETE)
-	- HTTP redirections
-	- Root directory
+		- HeaderField (allowed: x)
+	- HTTP Redirections
+		- Location header-field
+		- Response Code (for different redirection types)
+		- Retry-After header-field
+	- Root Directory
 	- Auto Index
-	- Default file
+	- Default File
 	- CGI: executable to test in/output
+		- Header-Fields
+		- StatusCode
+		- Environment variables
 	- File uploading (POST)
+		- Check content and existance of file after uploading

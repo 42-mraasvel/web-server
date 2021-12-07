@@ -58,7 +58,6 @@ def evaluateResponse(response, expected, custom_evaluator):
 	if x is not None:
 		return x
 	return custom_evaluator(response)
-	
 
 # evaluateXXX: Should return a tuple (Got, Expected)
 # None if everything was as expected
