@@ -11,15 +11,12 @@
 #include <cstring>
 #include <sys/wait.h>
 
-// Configuration syntax: CGI .py /usr/bin/python3
-
 CgiHandler::CgiHandler()
 : _status(CgiHandler::INACTIVE), _status_code(0), _sender(NULL), _reader(NULL), _cgi_pid(-1) {}
 
 CgiHandler::~CgiHandler()
 {
 	destroyFds();
-	cleanCgi();
 }
 
 bool CgiHandler::isCgi(std::string const & request_target, CgiVectorType const & cgi)
@@ -55,148 +52,29 @@ bool CgiHandler::isCgi(Request const & request)
 */
 int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 {
-	printf(YELLOW_BOLD "-- Executing CGI --" RESET_COLOR "\n");
+	printf(YELLOW_BOLD "-- CGI Execution Start --" RESET_COLOR "\n");
 
 	/* 1. Preparation */
 	_status = CgiHandler::INCOMPLETE;
-	setInfo(request.config_info);
-	generateMetaVariables(request);
 
-	if (!scriptCanBeExecuted())
-	{
-		fprintf(stderr, "%sCgiHandler%s: Cgi Script: %s: cannot be executed\n",
-			RED_BOLD, RESET_COLOR, _script.c_str());
-		finishCgi(ERROR, StatusCode::BAD_GATEWAY);
-		return ERR;
-	}
-
-	/* 2. Open pipes, create FdClasses */
-	int fds[2] = {-1, -1};
-	if (initializeCgiConnection(fds, fd_table, request) == ERR)
+	int cgi_fds[2] = {-1, -1};
+	if (initializeCgiConnection(cgi_fds, fd_table, request) == ERR)
 	{
 		finishCgi(ERROR, StatusCode::INTERNAL_SERVER_ERROR);
 		return ERR;
 	}
 
-	/* 3. Fork */
-	print();
-	if (forkCgi(fds, fd_table) == ERR)
+	if (_executor.execute(fd_table, request, cgi_fds) == ERR)
 	{
-		finishCgi(ERROR, StatusCode::INTERNAL_SERVER_ERROR);
-		WebservUtility::closePipe(fds);
+		WebservUtility::closePipe(cgi_fds);
+		finishCgi(ERROR, _executor.getStatusCode());
 		return ERR;
 	}
 
-	WebservUtility::closePipe(fds);
-	_meta_variables.clear();
+	WebservUtility::closePipe(cgi_fds);
 	_timer.reset();
 	return OK;
 }
-
-void CgiHandler::setInfo(ConfigInfo const & info)
-{
-	_root_dir = info.resolved_location->_root;
-	_target = info.resolved_file_path;
-	resolveCgiScript(info.resolved_target, info.resolved_location->_cgi);
-}
-
-void CgiHandler::resolveCgiScript(std::string const target, CgiVectorType const & cgi)
-{
-	std::size_t index = 0;
-	for (CgiVectorType::const_iterator it = cgi.begin(); it != cgi.end(); ++it)
-	{
-		if (WebservUtility::stringEndsWith(target, it->first))
-		{
-			_script = it->second;
-			break;
-		}
-	}
-}
-
-bool CgiHandler::scriptCanBeExecuted()
-{
-	return access(_script.c_str(), X_OK) == 0;
-}
-
-/* Setting up the meta-variables (environment) */
-
-/*
-	CONTENT_LENGTH		From Request Body
-	CONTENT_TYPE		From Request Header
-	GATEWAY_INTERFACE	Defaults to `CGI/1.1`
-	PATH_INFO			(/index.php)
-	PATH_TRANSLATED		Request-Target translated to a local URI (/var/www/html/index.php)
-	QUERY_STRING		Query part of the request-target (/index.php?1=2&x=y) => 1=2&x=y
-	REMOTE_ADDR			IPv4 address of the connected client
-	REQUEST_METHOD		GET | POST | DELETE
-	SERVER_NAME			IPv4 address the client used to connect to the server
-	SERVER_PORT			Port client used to connect to the server
-	SERVER_PROTOCOL		`HTTP/1.1`
-	SERVER_SOFTWARE		Name of the server
-
-	HTTP_* fields		All other header-fields given by the Request
-*/
-void CgiHandler::generateMetaVariables(const Request& request)
-{
-	metaVariableContent(request);
-	_meta_variables.push_back(MetaVariableType("GATEWAY_INTERFACE", "CGI/1.1"));
-	metaVariablePathInfo(request);
-	_meta_variables.push_back(MetaVariableType("QUERY_STRING", request.query.c_str()));
-	_meta_variables.push_back(MetaVariableType("REMOTE_ADDR", request.address.first));
-	_meta_variables.push_back(MetaVariableType("REQUEST_METHOD", request.getMethodString()));
-	_meta_variables.push_back(MetaVariableType("SERVER_NAME", request.interface_addr.first));
-	_meta_variables.push_back(MetaVariableType("SERVER_PORT", WebservUtility::itoa(request.interface_addr.second)));
-	_meta_variables.push_back(MetaVariableType("SERVER_PROTOCOL", "HTTP/1.1"));
-	_meta_variables.push_back(MetaVariableType("SERVER_SOFTWARE", "Plebserv Remastered"));
-	metaVariableHeader(request);
-}
-
-void CgiHandler::metaVariableContent(const Request& request)
-{
-	if (request.message_body.size() == 0)
-	{
-		return;
-	}
-
-	_meta_variables.push_back(MetaVariableType("CONTENT_LENGTH", WebservUtility::itoa(request.message_body.size())));
-	HeaderField::const_pair_type p = request.header_fields.get("content-type");
-	if (p.second)
-	{
-		_meta_variables.push_back(MetaVariableType("CONTENT_TYPE", p.first->second));
-	}
-}
-
-void CgiHandler::metaVariablePathInfo(const Request& request)
-{
-	_meta_variables.push_back(MetaVariableType("PATH_INFO", request.config_info.resolved_target));
-	_meta_variables.push_back(MetaVariableType("PATH_TRANSLATED", _root_dir + request.config_info.resolved_target));
-}
-
-void CgiHandler::metaVariableHeader(const Request& request)
-{
-	for (HeaderField::const_iterator it = request.header_fields.begin();
-		it != request.header_fields.end(); ++it)
-	{
-		_meta_variables.push_back(convertFieldToMeta(it->first, it->second));
-	}
-}
-
-CgiHandler::MetaVariableType CgiHandler::convertFieldToMeta(
-		const std::string& key, const std::string& value) const
-{
-	std::string result;
-	for (std::size_t i = 0; i < key.size(); ++i)
-	{
-		if (key[i] == '-') {
-			result.push_back('_');
-		} else {
-			result.push_back(toupper(key[i]));
-		}
-	}
-	return MetaVariableType("HTTP_" + result, value);
-}
-
-/* Setting up FDs, pipes and connections to the CGI */
 
 /*
 Initializes the CgiReader, CgiSender classes
@@ -286,140 +164,6 @@ int CgiHandler::initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request& r)
 		_sender = NULL;
 		throw;
 	}
-	return OK;
-}
-
-/* Forking, Execve'ing */
-
-int CgiHandler::forkCgi(int* cgi_fds, FdTable& fd_table)
-{
-	_cgi_pid = fork();
-	if (_cgi_pid == ERR)
-	{
-		return syscallError(_FUNC_ERR("fork"));
-	}
-	else if (_cgi_pid == 0)
-	{
-		// We can exit because it's the child process
-		if (prepareCgi(cgi_fds, fd_table) == ERR)
-		{
-			exit(EXIT_FAILURE);
-		}
-		exit(executeChildProcess());
-	}
-	return OK;
-}
-
-/*
-1. Execve _target
-
-Executable name: defined in the CGI
-First argument: executable basename
-Second argument: _target
-*/
-int CgiHandler::executeChildProcess() const
-{
-	char* args[3];
-
-	if (prepareArguments(args) == ERR)
-	{
-		return ERR;
-	}
-	//TODO: DISCUSS: chdir into the target resource or root directory?
-	if (chdir(_root_dir.c_str()) == ERR)
-	{
-		return syscallError("chdir");
-	}
-
-	execve(_script.c_str(), args, WebservUtility::getEnvp());
-	// Execve only returns on ERROR
-	return syscallError(_FUNC_ERR("execve"));
-}
-
-int CgiHandler::prepareArguments(char *args[3]) const
-{
-	/*
-	First argument: executable basename
-	Second argument: _target
-	*/
-	args[0] = strdup(WebservUtility::ft_basename(_script.c_str()));
-	if (args[0] == NULL)
-	{
-		return ERR;
-	}
-	args[1] = realpath(_target.c_str(), NULL);
-	if (args[1] == NULL)
-	{
-		free(args[0]);
-		return ERR;
-	}
-	args[2] = NULL;
-	return OK;
-}
-
-/*
-1. Close all file descriptors in FdTable that are not needed for the child process
-2. Initialize environment
-3. Initialize stdin, stdout through dup2
-*/
-int CgiHandler::prepareCgi(int* cgi_fds, FdTable& fd_table) const
-{
-	if (closeAll(fd_table) == ERR)
-	{
-		return ERR;
-	}
-
-	if (setEnvironment() == ERR)
-	{
-		return ERR;
-	}
-
-	if (setRedirection(cgi_fds) == ERR)
-	{
-		return ERR;
-	}
-
-	return OK;
-}
-
-int CgiHandler::closeAll(FdTable& fd_table) const
-{
-	for (std::size_t i = 0; i < fd_table.size(); ++i)
-	{
-		if (close(fd_table[i].second->getFd()) == ERR)
-		{
-			syscallError(_FUNC_ERR("close"));
-		}
-	}
-	return OK;
-}
-
-int CgiHandler::setEnvironment() const
-{
-	for (MetaVariableContainerType::const_iterator it = _meta_variables.begin();
-		it != _meta_variables.end(); ++it)
-	{
-		if (setenv(it->first.c_str(), it->second.c_str(), true) == ERR)
-		{
-			return syscallError(_FUNC_ERR("setenv"));
-		}
-	}
-
-	return OK;
-}
-
-int CgiHandler::setRedirection(int* cgi_fds) const
-{
-	if (dup2(cgi_fds[0], STDIN_FILENO) == ERR)
-	{
-		return syscallError(_FUNC_ERR("dup2"));
-	}
-	if (dup2(cgi_fds[1], STDOUT_FILENO) == ERR)
-	{
-		return syscallError(_FUNC_ERR("dup2"));
-	}
-
-	WebservUtility::closePipe(cgi_fds);
 	return OK;
 }
 
@@ -557,18 +301,8 @@ void CgiHandler::evaluateReader(std::string & response_body)
 
 void CgiHandler::exceptionEvent()
 {
-	clear();
 	finishCgi(CgiHandler::ERROR, StatusCode::INTERNAL_SERVER_ERROR);
 	fprintf(stderr, "%sEXCEPTION%s: CgiHandler\n", RED_BOLD, RESET_COLOR);
-}
-
-void CgiHandler::clear()
-{
-	_root_dir.clear();;
-	_script.clear();
-	_target.clear();
-	_meta_variables.clear();;
-	_header.clear();
 }
 
 int CgiHandler::checkStatusField() const
@@ -580,47 +314,6 @@ int CgiHandler::checkStatusField() const
 		return WebservUtility::strtol(status.first->second);
 	}
 	return StatusCode::STATUS_OK;
-}
-
-int CgiHandler::cleanCgi()
-{
-	if (_cgi_pid == -1)
-	{
-		return OK;
-	}
-
-	int status;
-	if (killCgi(&status) == ERR)
-	{
-		return ERR;
-	}
-	_cgi_pid = -1;
-	return OK;
-}
-
-int CgiHandler::killCgi(int* status)
-{
-	printf(BLUE_BOLD "WaitEvent CGI:" RESET_COLOR " PID(%d)\n", _cgi_pid);
-	pid_t result = waitpid(_cgi_pid, status, WNOHANG);
-	if (result == ERR)
-	{
-		return syscallError(_FUNC_ERR("waitpid"));
-	}
-	else if (result == 0)
-	{
-		printf("  CGI is still alive and has to be killed: [%d]\n", _cgi_pid);
-		if (kill(_cgi_pid, SIGKILL) == ERR)
-		{
-			return syscallError(_FUNC_ERR("kill"));
-		}
-
-		printf("  Waiting for CGI after killing\n");
-		if (waitpid(_cgi_pid, status, 0) == ERR)
-		{
-			return syscallError(_FUNC_ERR("waitpid"));
-		}
-	}
-	return OK;
 }
 
 /* Utilities */
@@ -637,7 +330,7 @@ bool CgiHandler::isError() const
 
 void CgiHandler::finishCgi(Status status, int code)
 {
-	cleanCgi();
+	_executor.clear();
 	destroyFds();
 	_status = status;
 	_status_code = code;
@@ -665,15 +358,4 @@ void CgiHandler::destroyFds()
 int CgiHandler::getStatusCode() const
 {
 	return _status_code;
-}
-
-void CgiHandler::print() const {
-
-	printf("TARGET: %s\n", _target.c_str());
-	printf("SCRIPT: %s\n", _script.c_str());
-	for (MetaVariableContainerType::const_iterator it = _meta_variables.begin();
-		it != _meta_variables.end(); ++it)
-	{
-		printf("%s: %s\n", it->first.c_str(), it->second.c_str());
-	}
 }
