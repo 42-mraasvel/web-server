@@ -1,0 +1,29 @@
+-- General --
+
+	- HTTP Response Codes
+
+-- Server Block --
+
+	- Default host:port resolution
+		- Give an unknown server_name
+		- Resolved block should be block 1
+	- server_name resolution
+		- No server_name (host field) specified: should be block 1
+		- Give server_name for block 1, 2, 3, etc
+		- Resolved block should match
+	- Default error page
+		- Force a 404 error: Status Code and body should match the error page
+		- Error with nonexistant error page
+	- Client Max Body Size
+		- Specify a block with a small max body size: assert Status Code
+
+-- Location Block --
+
+	- Location block resolution
+	- Method allowed (GET, POST, DELETE)
+	- HTTP redirections
+	- Root directory
+	- Auto Index
+	- Default file
+	- CGI: executable to test in/output
+	- File uploading (POST)
