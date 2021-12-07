@@ -79,7 +79,7 @@ class TestCase:
 		self.response = response
 		self.evaluator = evaluator
 		if tag is None:
-			self.tag = "DEFAULT_TAG"
+			self.tag = ""
 		if name is None:
 			self.name = ""
 		if request is None:

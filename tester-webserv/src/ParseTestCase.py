@@ -26,7 +26,7 @@ def testCaseFromFiles():
 	return testcases
 
 def testCaseFromFile(filename):
-	testcase = TestCase.TestCase(parseRequest(filename), parseResponse(filename + '.response'), filename)
+	testcase = TestCase.TestCase(parseRequest(filename), parseResponse(filename + '.response'), filename, filename)
 	return testcase
 
 def parseRequest(filename):
