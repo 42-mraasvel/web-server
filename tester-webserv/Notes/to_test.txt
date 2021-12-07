@@ -35,8 +35,8 @@
 		- Response Code (for different redirection types)
 		- Retry-After header-field
 	- Root Directory
-	- Auto Index
-	- Default File
+	v- Auto Index
+	v- Default File
 	- CGI: executable to test in/output
 		- Header-Fields
 		- StatusCode

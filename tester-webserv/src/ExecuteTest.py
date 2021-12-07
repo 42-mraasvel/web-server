@@ -5,6 +5,12 @@ from ResponseLogMessage import generateResponseLogMessage
 
 GREEN_BOLD = "\033[32m"
 RED_BOLD = "\033[1;31m"
+MAGENTA_BOLD = "\033[1;35m"
+BLACK_BOLD  ="\033[1;30m"
+YELLOW_BOLD ="\033[1;33m"
+BLUE_BOLD   ="\033[1;34m"
+CYAN_BOLD   ="\033[1;36m"
+WHITE_BOLD  ="\033[1;37m"
 RESET_COLOR = "\033[0m"
 
 # Expect: list of testcases
@@ -29,8 +35,7 @@ def execute(testcases = [], authority = 'localhost:8080', tags = []):
 	return 0
 
 def endMessage(passed, failed):
-	print("Executed: {} testcases: {}PASS{}({}) {}FAIL{}({})".format(passed + failed, \
-	GREEN_BOLD, RESET_COLOR, passed, RED_BOLD, RESET_COLOR, failed))
+	print("{}\n ********  Testcases: TOTAL {}{}{} | {}PASS {}{}{} | {}FAIL {}{}{}  ********{}\n".format(MAGENTA_BOLD, RESET_COLOR, passed + failed, MAGENTA_BOLD, GREEN_BOLD, RESET_COLOR, passed, MAGENTA_BOLD, RED_BOLD, RESET_COLOR, failed, MAGENTA_BOLD, RESET_COLOR))
 
 def failMsg(message, index, testcase, response):
 	Error.putFail(str(index + 1) + ": [" + testcase.tag + "-" + testcase.name + "]: " + message)
@@ -54,6 +59,9 @@ def evaluateResponse(response, expected, custom_evaluator):
 	x = evaluateHeaders(response.headers, expected.headers)
 	if x is not None:
 		return x
+	x = evaluateNoBody(response.status_code, response.content)
+	if x is not None:
+		return x
 	x = evaluateBody(response.content, expected.body, expected.expect_body)
 	if x is not None:
 		return x
@@ -75,6 +83,12 @@ def evaluateHeaders(headers, exp_headers):
 			return createMessage('Header', 'NAME_NOT_PRESENT', key)
 		elif headers[key] != exp_headers[key]:
 			return createMessage('Header', key + ": " + headers[key], key + ": " + exp_headers[key])
+	return None
+
+def evaluateNoBody(status_code, content):
+	if (status_code >= 300 and status_code < 400) or status_code == 204 or status_code == 304:
+		if content:
+			return createMessage('Body', 'Message body present', 'No message body')
 	return None
 
 def evaluateBody(content, exp_content, should_cmp = True):
