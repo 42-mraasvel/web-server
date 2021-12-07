@@ -20,7 +20,7 @@ class FileHandler: public iHandler
 		FileHandler();
 		~FileHandler();
 
-	/* Client::readEvent */
+	/* Connection::readEvent */
 	public:
 		int		executeRequest(FdTable & fd_table, Request & request);
 	private:
@@ -46,7 +46,7 @@ class FileHandler: public iHandler
 		int		redirectErrorPage(FdTable & fd_table, std::string const & file_path, int status_code);
 		void	resetHandler(std::string const & file_path, int status_code);
 
-	/* Client::writeEvent */
+	/* Connection::writeEvent */
 	public:
 		void	setSpecificHeaderField(HeaderField & header_field, bool content_type_fixed);
 	private:

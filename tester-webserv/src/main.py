@@ -8,6 +8,7 @@ USAGE_ERR_STR = "Arguments: [Hostname/IP:Port] [TestCase TAGS]"
 
 def startup():
 	Logger.clearLog()
+	sys.path.insert(0, './TestCaseGeneration')
 
 if __name__ == '__main__':
 	if len(sys.argv) == 1:

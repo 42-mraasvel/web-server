@@ -58,6 +58,11 @@ bool RequestHandler::isNextRequestSafe() const
 		|| _requests.front()->method == Method::GET;
 }
 
+std::size_t RequestHandler::numRequests() const
+{
+	return _requests.size();
+}
+
 void RequestHandler::clear()
 {
 	while (!_requests.empty())

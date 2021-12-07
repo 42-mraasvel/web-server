@@ -13,11 +13,11 @@
 
 class File;
 
-class Client : public AFdInfo
+class Connection : public AFdInfo
 {
 	private:
-		Client(Client const & rhs);
-		Client & operator=(Client const & rhs);
+		Connection(Connection const & rhs);
+		Connection & operator=(Connection const & rhs);
 
 	public:
 		typedef	ConfigResolver::MapType		MapType;
@@ -27,8 +27,8 @@ class Client : public AFdInfo
 		
 
 	public:
-		Client(int fd, AddressType client, AddressType interface, MapType const * config_map);
-		~Client();
+		Connection(int fd, AddressType client, AddressType interface, MapType const * config_map);
+		~Connection();
 		struct pollfd getPollFd() const;
 
 	/* read */

@@ -1,4 +1,4 @@
-#include "Client.hpp"
+#include "Connection.hpp"
 #include "settings.hpp"
 #include "utility/utility.hpp"
 #include "utility/status_codes.hpp"
@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <iostream>
 
-Client::Client(int fd, AddressType client,
+Connection::Connection(int fd, AddressType client,
 	AddressType interface, Config::address_map const * config_map):
 AFdInfo(fd),
 _request_handler(client, interface, config_map),
@@ -22,13 +22,13 @@ _close_timer_set(false),
 _unsafe_request_count(0)
 {
 	printf("%s-- NEW CLIENT -- %s\n", RED_BOLD, RESET_COLOR);
-	printf("Client: [%s]:[%d]\n", client.first.c_str(), client.second);
+	printf("Connection: [%s]:[%d]\n", client.first.c_str(), client.second);
 	printf("Interface: [%s]:[%d]\n", interface.first.c_str(), interface.second);
 }
 
-Client::~Client() {}
+Connection::~Connection() {}
 
-struct pollfd	Client::getPollFd() const
+struct pollfd	Connection::getPollFd() const
 {
 	struct pollfd temp;
 	temp.fd = _fd;
@@ -41,13 +41,13 @@ struct pollfd	Client::getPollFd() const
 /****** readEvent ******/
 /***********************/
 
-void	Client::readEvent(FdTable & fd_table)
+void	Connection::readEvent(FdTable & fd_table)
 {
 	_timer.reset();
 	parseRequest();
 }
 
-int	Client::parseRequest()
+int	Connection::parseRequest()
 {
 	std::string	buffer;
 	if (readRequest(buffer) == ERR)
@@ -59,7 +59,7 @@ int	Client::parseRequest()
 	return OK;
 }
 
-int	Client::readRequest(std::string & buffer)
+int	Connection::readRequest(std::string & buffer)
 {
 	buffer.resize(BUFFER_SIZE, '\0');
 	ssize_t ret = recv(_fd, &buffer[0], BUFFER_SIZE, 0);
@@ -81,7 +81,7 @@ int	Client::readRequest(std::string & buffer)
 /****** updateEvent ******/
 /*************************/
 
-void	Client::update(FdTable & fd_table)
+void	Connection::update(FdTable & fd_table)
 {
 	executeRequests(fd_table);
 
@@ -94,7 +94,7 @@ void	Client::update(FdTable & fd_table)
 	checkTimeOut();
 }
 
-void Client::executeRequests(FdTable & fd_table)
+void Connection::executeRequests(FdTable & fd_table)
 {
 	while (canExecuteRequest(fd_table.size())
 			&& retrieveRequest())
@@ -106,22 +106,23 @@ void Client::executeRequests(FdTable & fd_table)
 	}
 }
 
-bool Client::canExecuteRequest(int fd_table_size) const
+bool Connection::canExecuteRequest(int fd_table_size) const
 {
 	return !_close_connection
 			&& !_unsafe_request_count
+			&& _response_handler.canExecuteRequest()
 			&& !(!_request_handler.isNextRequestSafe()
 				&& !_response_handler.isResponseQueueEmpty())
 			&& fd_table_size < FD_TABLE_MAX_SIZE;
 }
 
-bool	Client::retrieveRequest()
+bool	Connection::retrieveRequest()
 {
 	_request = _request_handler.getNextRequest();
 	return _request;
 }
 
-void	Client::resetRequest()
+void	Connection::resetRequest()
 {
 	_request = NULL;
 }
@@ -132,7 +133,7 @@ static void	appendString(std::string & from, std::string & to)
 	from.clear();
 }
 
-void	Client::generateResponseString()
+void	Connection::generateResponseString()
 {
 	while (_response_string.size() < BUFFER_SIZE
 			&& retrieveResponse())
@@ -147,7 +148,7 @@ void	Client::generateResponseString()
 	}
 }
 
-bool	Client::retrieveResponse()
+bool	Connection::retrieveResponse()
 {
 	if (!_response)
 	{
@@ -164,13 +165,13 @@ bool	Client::retrieveResponse()
 	return !_response->string_to_send.empty();
 }
 
-void	Client::resetResponse()
+void	Connection::resetResponse()
 {
 	_response = NULL;
 	_response_handler.popQueue();
 }
 
-void	Client::resetEvents(FdTable & fd_table)
+void	Connection::resetEvents(FdTable & fd_table)
 {
 	if (_flag == AFdInfo::TO_ERASE)
 	{
@@ -179,6 +180,17 @@ void	Client::resetEvents(FdTable & fd_table)
 	else if (_close_connection)
 	{
 		removeEvents(AFdInfo::READING, fd_table);
+	}
+	else
+	{
+		if (_request_handler.numRequests() >= REQUEST_QUEUE_THRESHOLD)
+		{
+			removeEvents(AFdInfo::READING, fd_table);
+		}
+		else
+		{
+			addEvents(AFdInfo::READING, fd_table);
+		}
 	}
 	if (!_response_string.empty())
 	{
@@ -190,7 +202,7 @@ void	Client::resetEvents(FdTable & fd_table)
 	}
 }
 
-void	Client::checkTimeOut()
+void	Connection::checkTimeOut()
 {
 	if (_close_timer_set && _timer.elapsed() >= CLOSE_CONNECTION_DELAY)
 	{
@@ -203,7 +215,7 @@ void	Client::checkTimeOut()
 	}
 	else if (_timer.elapsed() >= TIMEOUT)
 	{
-		printf("%sClient%s: [%d]: TIMEOUT\n", RED_BOLD, RESET_COLOR, getFd());
+		printf("%sConnection%s: [%d]: TIMEOUT\n", RED_BOLD, RESET_COLOR, getFd());
 		closeConnection();
 	}
 }
@@ -212,7 +224,7 @@ void	Client::checkTimeOut()
 /****** writeEvent ******/
 /************************/
 
-void	Client::writeEvent(FdTable & fd_table)
+void	Connection::writeEvent(FdTable & fd_table)
 {
 	_timer.reset();
 	if (sendResponseString() == ERR)
@@ -223,7 +235,7 @@ void	Client::writeEvent(FdTable & fd_table)
 	evaluateConnection(fd_table);
 }
 
-int	Client::sendResponseString()
+int	Connection::sendResponseString()
 {
 	if (!_response_string.empty())
 	{
@@ -238,7 +250,7 @@ int	Client::sendResponseString()
 	return OK;
 }
 
-void	Client::evaluateConnection(FdTable & fd_table)
+void	Connection::evaluateConnection(FdTable & fd_table)
 {
 	if (_close_connection && _response_string.empty())
 	{
@@ -251,7 +263,7 @@ void	Client::evaluateConnection(FdTable & fd_table)
 /****** exceptionEvent ******/
 /****************************/
 
-void	Client::exceptionEvent(FdTable & fd_table)
+void	Connection::exceptionEvent(FdTable & fd_table)
 {
 	AFdInfo::exceptionEvent(fd_table); // RM, REMOVE, just for printing purposes
 	_response_handler.clear();
@@ -263,18 +275,18 @@ void	Client::exceptionEvent(FdTable & fd_table)
 /****** utility ******/
 /*********************/
 
-void	Client::closeConnection()
+void	Connection::closeConnection()
 {
 	std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
 	_flag = AFdInfo::TO_ERASE;
 }
 
-bool	Client::isMethodSafe(Method::Type const & method) const
+bool	Connection::isMethodSafe(Method::Type const & method) const
 {
 	return method == Method::GET;
 }
 
-void	Client::increUnsafe(Method::Type const & method)
+void	Connection::increUnsafe(Method::Type const & method)
 {
 	if (!isMethodSafe(method))
 	{
@@ -282,7 +294,7 @@ void	Client::increUnsafe(Method::Type const & method)
 	}
 }
 
-void	Client::decreUnsafe(Method::Type const & method)
+void	Connection::decreUnsafe(Method::Type const & method)
 {
 	if (!isMethodSafe(method))
 	{
@@ -294,8 +306,8 @@ void	Client::decreUnsafe(Method::Type const & method)
 /****** debugging ******/
 /***********************/
 
-std::string Client::getName() const
+std::string Connection::getName() const
 {
-	return "Client";
+	return "Connection";
 }
 
