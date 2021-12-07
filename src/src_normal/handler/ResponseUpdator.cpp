@@ -16,7 +16,7 @@ void	ResponseUpdator::update(FdTable & fd_table, Response & response)
 		updateHandler(response);
 	}
 
-	if (response.status == Response::COMPLETE && 	!StatusCode::isStatusCodeNoMessageBody(response.status_code))
+	if (response.status == Response::COMPLETE && !StatusCode::isStatusCodeNoMessageBody(response.status_code))
 	{
 		setSpecialMessageBody(fd_table, response);
 	}

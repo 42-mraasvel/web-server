@@ -156,7 +156,10 @@ bool	Client::retrieveResponse()
 			return false;
 		}
 		_response = _response_handler.getNextResponse();
-		return _response;
+		if (!_response)
+		{
+			return false;
+		}
 	}
 	return !_response->string_to_send.empty();
 }

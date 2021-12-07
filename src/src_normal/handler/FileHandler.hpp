@@ -24,10 +24,12 @@ class FileHandler: public iHandler
 	public:
 		int		executeRequest(FdTable & fd_table, Request & request);
 	private:
-		bool	isFileValid();
 		int		createFile(FdTable & fd_table);
 		void    setFileParameter();
-		bool	isFileAuthorized();
+		bool	isFileValid();
+		bool		isFileExisted();
+		bool		isFileAuthorized();
+		bool		isUploadPathCreated();
 		bool	openFile(FdTable & fd_table);
 		int 	executeFile(Request & request);
 		int 	executeGet();
@@ -52,13 +54,11 @@ class FileHandler: public iHandler
 
 	/* utility */
 	public:
-		void    	setAbsoluteFilePath(std::string const & path);
+		void    	setAbsoluteFilePath(Request const & request);
 		std::string	getAbsoluteFilePath() const;
 		int			getStatusCode() const;
-		bool		isReadyToWrite() const;
 		bool		isFileError() const;
 		bool		isFileComplete() const;
-		bool		isFileReading() const;
 	private:	
 		void    	deleteFile();
 		void		markError(int status_code);

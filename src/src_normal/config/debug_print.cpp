@@ -226,6 +226,7 @@ void	ConfigLocation::print() const
 	printAutoIndex();
 	printAllowedMethods();
 	printCgi();
+	printUpload();
 }
 
 void	ConfigLocation::printPath() const
@@ -304,6 +305,15 @@ void ConfigLocation::printCgi() const
 	std::cout << ']' << std::endl;
 }
 
+void	ConfigLocation::printUpload() const
+{
+	std::cout << "  \t" WHITE_BOLD << "Upload_store:" RESET_COLOR " [";
+	if (!_upload_store.empty())
+	{	
+		std::cout << _upload_store;
+	}
+	std::cout << ']' << std::endl;
+}
 
 
 

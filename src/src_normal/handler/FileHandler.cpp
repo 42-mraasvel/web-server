@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <cstdlib>
+#include <errno.h>
 
 FileHandler::FileHandler():
 _file(NULL),
@@ -51,7 +52,7 @@ int	FileHandler::executeRequest(FdTable & fd_table, Request & request)
 int	FileHandler::createFile(FdTable & fd_table)
 {
 	setFileParameter();
-	if (!isFileValid() || !isFileAuthorized() || !openFile(fd_table))
+	if (!isFileValid() || !openFile(fd_table))
 	{
 		return ERR;
 	}
@@ -96,28 +97,65 @@ void	FileHandler::setFileParameter()
 
 bool	FileHandler::isFileValid()
 {
+	if (_method != Method::POST)
+	{
+		return isFileExisted() && isFileAuthorized();
+	}
+	else
+	{
+		return isUploadPathCreated();
+	}
+}
+
+bool	FileHandler::isFileExisted()
+{
 	if (!WebservUtility::isFileExist(_absolute_file_path))
 	{
-		if (_method == Method::POST)
-		{
-			_status_code = StatusCode::CREATED;
-			return true;
-		}
-		else
-		{
-			markError(StatusCode::NOT_FOUND);
-			return false;
-		}
+		markError(StatusCode::NOT_FOUND);
+		return false;
 	}
 	return true;
 }
 
 bool	FileHandler::isFileAuthorized()
 {
-	if (_method != Method::POST && access(_absolute_file_path.c_str(), _access_flag) == ERR)
+	if (access(_absolute_file_path.c_str(), _access_flag) == ERR)
 	{
 		markError(StatusCode::FORBIDDEN);
 		return false;
+	}
+	return true;
+}
+
+static bool	isUploadPathValid(std::string const & path)
+{
+	return !(path.empty() || path[path.size() - 1] == '/' || path[0] != '/' || path.find("//") != std::string::npos);
+}
+
+/* upload path cannot end with "/" or contain "//" */
+bool	FileHandler::isUploadPathCreated()
+{
+	if (!isUploadPathValid(_absolute_file_path))
+	{
+		markError(StatusCode::BAD_REQUEST);
+		return false;
+	}
+	if (WebservUtility::createDirectories(_absolute_file_path) == ERR)
+	{
+		if (errno == EACCES)
+		{
+			markError(StatusCode::FORBIDDEN);
+		}
+		else
+		{
+			perror("create upload path");
+			markError(StatusCode::INTERNAL_SERVER_ERROR);
+		}
+		return false;
+	}
+	if (!WebservUtility::isFileExist(_absolute_file_path))
+	{
+		_status_code = StatusCode::CREATED;
 	}
 	return true;
 }
@@ -286,9 +324,17 @@ bool	FileHandler::isError() const
 	return _is_error;
 }
 
-void    FileHandler::setAbsoluteFilePath(std::string const & path)
+void    FileHandler::setAbsoluteFilePath(Request const & request)
 {
-	_absolute_file_path = path;
+	if (request.method == Method::POST
+		&& !request.config_info.resolved_location->_upload_store.empty())
+	{
+		_absolute_file_path = request.config_info.resolved_location->_upload_store + request.config_info.resolved_target;
+	}
+	else
+	{
+		_absolute_file_path = request.config_info.resolved_file_path;
+	}
 }
 
 std::string    FileHandler::getAbsoluteFilePath() const
@@ -301,11 +347,6 @@ int	FileHandler::getStatusCode() const
 	return _status_code;
 }
 
-bool	FileHandler::isReadyToWrite() const
-{
-	return isFileError() || isFileComplete();
-}
-
 bool	FileHandler::isFileError() const
 {
 	return _file && _file->getFlag() == AFdInfo::ERROR;
@@ -314,11 +355,6 @@ bool	FileHandler::isFileError() const
 bool	FileHandler::isFileComplete() const
 {
 	return _file && _file->getFlag() == AFdInfo::COMPLETE;
-}
-
-bool	FileHandler::isFileReading() const
-{
-	return _file && _file->getFlag() == AFdInfo::START && !_file->getContent().empty();
 }
 
 /*******************************/

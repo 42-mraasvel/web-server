@@ -643,11 +643,6 @@ bool CgiHandler::isError() const
 	return _status == CgiHandler::ERROR;
 }
 
-bool CgiHandler::isReadyToWrite() const
-{
-	return isComplete() || isError();
-}
-
 void CgiHandler::finishCgi(Status status, int code)
 {
 	cleanCgi();
