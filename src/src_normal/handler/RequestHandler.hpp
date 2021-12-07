@@ -35,10 +35,10 @@ class RequestHandler
 		int parse(std::string const & buffer);
 		RequestPointer getNextRequest();
 		bool isNextRequestSafe() const;
+		std::size_t numRequests() const;
 		void clear();
 
 	private:
-
 		void newRequest();
 		void setErrorRequest();
 		void completeRequest();

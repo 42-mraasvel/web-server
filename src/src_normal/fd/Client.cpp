@@ -110,6 +110,7 @@ bool Client::canExecuteRequest(int fd_table_size) const
 {
 	return !_close_connection
 			&& !_unsafe_request_count
+			&& _response_handler.canExecuteRequest()
 			&& !(!_request_handler.isNextRequestSafe()
 				&& !_response_handler.isResponseQueueEmpty())
 			&& fd_table_size < FD_TABLE_MAX_SIZE;
@@ -179,6 +180,17 @@ void	Client::resetEvents(FdTable & fd_table)
 	else if (_close_connection)
 	{
 		removeEvents(AFdInfo::READING, fd_table);
+	}
+	else
+	{
+		if (_request_handler.numRequests() >= REQUEST_QUEUE_THRESHOLD)
+		{
+			removeEvents(AFdInfo::READING, fd_table);
+		}
+		else
+		{
+			addEvents(AFdInfo::READING, fd_table);
+		}
 	}
 	if (!_response_string.empty())
 	{
