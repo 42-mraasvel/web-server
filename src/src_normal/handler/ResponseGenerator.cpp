@@ -6,9 +6,7 @@
 #include "FileHandler.hpp"
 #include "CgiHandler.hpp"
 
-ResponseGenerator::ResponseGenerator():
-_content_type_fixed(false)
-{}
+ResponseGenerator::ResponseGenerator() {}
 
 void	ResponseGenerator::generateString(Response & response)
 {
@@ -102,7 +100,7 @@ void	ResponseGenerator::setHeaderField(Response & response)
 	setAllow(response);
 	setTransferEncodingOrContentLength(response);
 	setContentType(response);
-	response.handler->setSpecificHeaderField(response.header_fields, _content_type_fixed);
+	response.handler->setSpecificHeaderField(response.header_fields, response.content_type_fixed);
 }
 
 void	ResponseGenerator::setDate(Response & response)
@@ -190,7 +188,7 @@ void	ResponseGenerator::setContentType(Response & response)
 		&& response.status_code == StatusCode::STATUS_OK)
 	{
 		response.header_fields["Content-Type"] = "text/html";
-		_content_type_fixed = true;
+		response.content_type_fixed = true;
 	}
 	else if (!response.message_body.empty())
 	{

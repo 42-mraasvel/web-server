@@ -28,8 +28,7 @@ void	RequestExecutor::executeRequest(FdTable & fd_table, Request & request, Resp
 		determineIsCgi(request, response);
 		if (isLocationResolved(request))
 		{
-			if ((request.method == Method::POST && !response.is_cgi)
-				|| isRequestTargetValid(request.config_info.resolved_file_path))
+			if (isRequestTargetValid(response))
 			{
 				setAbsoluteFilePath(request, response);
 				if (response.handler->executeRequest(fd_table, request) == ERR)
@@ -60,8 +59,8 @@ bool	RequestExecutor::isRequestComplete(Request const & request)
 		case Request::COMPLETE:
 			return true;
 		default :
-			//assert(); //TODO: check with maarten how to do;
-			return true;
+			abortProgram("RequestExecutor invalid request status!");
+			return false;
 	}
 }
 
@@ -86,8 +85,8 @@ bool	RequestExecutor::isLocationResolved(Request const & request)
 		case ConfigInfo::LOCATION_RESOLVED:
 			return true;
 		default :
-			//assert(); // TODO: check with maarten how to do;
-			return true;
+			abortProgram("RequestExecutor invalid config result!");
+			return false;
 	}
 }
 
@@ -103,14 +102,18 @@ void	RequestExecutor::checkAutoIndexDirectory(std::string const & target)
 	}
 }
 
-bool	RequestExecutor::isRequestTargetValid(std::string const & target)
+bool	RequestExecutor::isRequestTargetValid(Response const & response)
 {
-	if (!WebservUtility::isFileExist(target))
+	if (response.method == Method::POST && !response.is_cgi)
+	{
+		return true;
+	}
+	if (!WebservUtility::isFileExist(response.config_info.resolved_file_path))
 	{
 		markStatus(TARGET_NOT_FOUND, StatusCode::NOT_FOUND);
 		return false;
 	}
-	DIR*	dir = opendir(target.c_str());
+	DIR*	dir = opendir(response.config_info.resolved_file_path.c_str());
 	if (dir != NULL)
 	{
 		markStatus(TARGET_IS_DIRECTORY, StatusCode::MOVED_PERMANENTLY);
@@ -152,6 +155,6 @@ void	RequestExecutor::setAbsoluteFilePath(Request const & request, Response & re
 {
 	if (!response.is_cgi)
 	{
-		response.file_handler.setAbsoluteFilePath(request.config_info.resolved_file_path);
+		response.file_handler.setAbsoluteFilePath(request);
 	}
 }
