@@ -6,6 +6,7 @@
 #include "fd/FdTable.hpp"
 #include "fd/AFdInfo.hpp"
 #include <sys/wait.h>
+#include <csignal>
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>

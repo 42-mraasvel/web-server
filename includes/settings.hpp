@@ -28,8 +28,8 @@ Response Specific Defines
 #define CHUNK_TAIL "0" CRLF CRLF
 #define RETRY_AFTER_SECONDS 30
 #define CLOSE_CONNECTION_DELAY 5 // TODO: evaluate later
-#define RESPONSE_QUEUE_MAX_SIZE 50 // Number of responses the client can execute concurrently
-#define REQUEST_QUEUE_THRESHOLD 50 // Number of requests in the queue that will prompt the client to stop reading in more
+#define RESPONSE_QUEUE_MAX_SIZE 50 // Number of responses the connection can execute concurrently
+#define REQUEST_QUEUE_THRESHOLD 50 // Number of requests in the queue that will prompt the connection to stop reading in more
 
 /*
 Printing

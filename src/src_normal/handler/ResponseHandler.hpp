@@ -19,14 +19,14 @@ class ResponseHandler
 		ResponseHandler(ResponseHandler const & src);
 		ResponseHandler& operator=(ResponseHandler const & rhs);
 
-	/* Client::update() */
+	/* Connection::update() */
 	public:
 		void		processRequest(FdTable & fd_table, Request & request);
 		void		updateResponseQueue(FdTable & fd_table);
 	private:
 		void		updateResponse(FdTable & fd_table, Response & response);
 
-	/* Client::writeEvent() */
+	/* Connection::writeEvent() */
 	public:
 		ResponsePointer	getNextResponse();
 		void			popQueue();

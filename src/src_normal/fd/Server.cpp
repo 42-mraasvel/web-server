@@ -1,6 +1,6 @@
 #include "Server.hpp"
 #include "settings.hpp"
-#include "Client.hpp"
+#include "Connection.hpp"
 #include <poll.h>
 #include <iostream>
 #include <unistd.h>
@@ -87,8 +87,8 @@ int	Server::initClient(sockaddr_in address, int connection_fd, FdTable & fd_tabl
 		return ERR;
 	}
 
-	SmartPointer<Client> client(new Client(connection_fd, address_output, interface_address, _config_map));
-	fd_table.insertFd(SmartPointer<AFdInfo>(client));
+	SmartPointer<Connection> connection(new Connection(connection_fd, address_output, interface_address, _config_map));
+	fd_table.insertFd(SmartPointer<AFdInfo>(connection));
 	return OK;
 }
 
