@@ -27,11 +27,11 @@ def endMessage(passed, failed):
 	print("Executed: {} testcases: PASS({}) PASS({})".format(passed + failed, passed, failed))
 
 def failMsg(message, index, testcase):
-	Error.putFail(str(index + 1) + ": " + testcase.tag + ": " + message)
+	Error.putFail(str(index + 1) + ": [" + testcase.tag + "]: " + message)
 	Logger.log(testcase.getLogString())
 
 def passMsg(testcase, index):
-	print(GREEN_BOLD + 'PASS' + RESET_COLOR + ': ' + str(index + 1) + ":", \
+	print(GREEN_BOLD + 'PASS' + RESET_COLOR + ': ' + str(index + 1) + ": [" + testcase.tag + "]:", \
 		testcase.request.method, "with status code:", testcase.response.status_code)
 
 # Send the request
