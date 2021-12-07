@@ -115,9 +115,6 @@ int CgiHandler::initializeCgiReader(int* cgi_fds, FdTable& fd_table)
 		WebservUtility::closePipe(fds);
 		return syscallError(_FUNC_ERR("fcntl"));
 	}
-
-
-
 	try
 	{
 		_reader = SmartPointer<CgiReader>(new CgiReader(fds[0], &_timer));
@@ -150,8 +147,6 @@ int CgiHandler::initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request& r)
 		WebservUtility::closePipe(fds);
 		return syscallError(_FUNC_ERR("fcntl"));
 	}
-
-	/* Exception safe code */
 	try
 	{
 		_sender = SmartPointer<CgiSender>(new CgiSender(fds[1], &r, &_timer));

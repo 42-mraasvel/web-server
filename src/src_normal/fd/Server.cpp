@@ -17,8 +17,7 @@ int		Server::setupServer(Config::ip_host_pair ip_host_pair, Config::address_map*
 	this->_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->_fd == ERR)
 	{
-		perror("Socket Error");
-		return ERR;
+		return syscallError(_FUNC_ERR("socket"));
 	}
 	sockaddr_in	address;
 	address.sin_family = AF_INET;
@@ -26,17 +25,15 @@ int		Server::setupServer(Config::ip_host_pair ip_host_pair, Config::address_map*
 	address.sin_addr.s_addr = inet_addr(ip_host_pair.first.c_str());
 	if (bind(this->_fd, reinterpret_cast<sockaddr *>(&address), sizeof(address)) == ERR)
 	{
-		perror("Bind Error");
-		return ERR;
+		return syscallError(_FUNC_ERR("bind"));
 	}
 	if (listen(this->_fd, BACKLOG) == ERR)
 	{
-		perror("Listen Error");
-		return ERR;
+		return syscallError(_FUNC_ERR("listen"));
 	}
-	if (fcntl(_fd, F_SETFL, O_NONBLOCK) == ERR)
+	if (WebservUtility::makeNonBlocking(_fd) == ERR)
 	{
-		perror("fcntl");
+		return syscallError(_FUNC_ERR("fcntl"));
 	}
 	_port = ip_host_pair.second; //TODO: to evaluate later
 	_config_map = config_map;

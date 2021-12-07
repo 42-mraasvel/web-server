@@ -169,6 +169,13 @@ bool	FileHandler::openFile(FdTable & fd_table)
 		markError(StatusCode::INTERNAL_SERVER_ERROR);
 		return false;
 	}
+	if (WebservUtility::makeNonBlocking(file_fd) == ERR)
+	{
+		syscallError(_FUNC_ERR("fcntl"));
+		close(file_fd);
+		markError(StatusCode::INTERNAL_SERVER_ERROR);
+		return false;
+	}
 	printf(BLUE_BOLD "Open File:" RESET_COLOR " %s: [%d]\n", _absolute_file_path.c_str(), file_fd);
 	try
 	{
