@@ -4,7 +4,7 @@ def getHeaderList(header):
 	data = []
 	if not header:
 		return data
-	data.append('  -- HEADER FIELDS --')
+	data.append("[INFO] [Header Fields]")
 	for key in header:
 		data.append('\t' + key + ": " + header[key])
 	return data
@@ -12,12 +12,12 @@ def getHeaderList(header):
 def decodeBody(body):
 	encoding = chardet.detect(body)['encoding']
 	if encoding != 'ascii':
-		return 'unknown encoding: ' + encoding
+		return '[WARNING] unknown encoding: ' + encoding
 	return body.decode(encoding)
 
 def getBodyList(body):
 	data = []
-	data.append('  -- MESSAGE BODY --')
+	data.append("[INFO] [Message Body]")
 	if not body or len(body) > 10000:
 		data.append('\tBody Size: ' + str(len(body)))
 	elif type(body) == bytes:
@@ -39,11 +39,12 @@ class Request:
 	
 	def getLogList(self):
 		data = []
-		data.append('-- Request -- ')
+		data.append('[INFO] Request:')
 		data.append('\tmethod: ' + self.method)
 		data.append('\trequest_target: ' + self.target)
 		data += getHeaderList(self.headers)
 		data += getBodyList(self.body)
+		data.append('')
 		return data
 
 class Response:
@@ -59,11 +60,12 @@ class Response:
 
 	def getLogList(self):
 		data = []
-		data.append('-- Expected Response --')
+		data.append('[INFO] Expected Response:')
 		data.append('\tStatus Code: ' + str(self.status_code))
 		data.append('\tExpect Body: ' + str(self.expect_body))
 		data += getHeaderList(self.headers)
 		data += getBodyList(self.body)
+		data.append('')
 		return data
 
 def defaultResponseEvaluator(response):
@@ -90,7 +92,7 @@ class TestCase:
 	
 	def getLogString(self):
 		lines = self.request.getLogList() + self.response.getLogList()
-		result = 'TestCase: \'{}\'\n'.format(self.tag)
+		result = '[INFO] TestCase Tag/Name: \'{}\'\n'.format(self.tag)
 		for line in lines:
 			result += line + "\n"
 		return result

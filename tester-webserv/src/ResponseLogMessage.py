@@ -4,10 +4,11 @@ from TestCase import getBodyList
 def generateResponseLogMessage(response):
 	lines = []
 
-	lines.append('-- Received Response --')
+	lines.append('[INFO] Received Response:')
 	lines.append('\tStatus Code: ' + str(response.status_code))
 	lines += getHeaderList(response.headers)
 	lines += getBodyList(response.content)
+	lines.append('')
 
 	result = str()
 	for line in lines:
