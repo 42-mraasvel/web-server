@@ -35,8 +35,8 @@ class RequestExecutor
 		bool	isRequestComplete(Request const & request);
 		void	determineIsCgi(Request & request, Response & response);
 		bool	isLocationResolved(Request const & request);
-		void	checkAutoIndexDirectory(std::string const & target);
-		bool	isRequestTargetValid(Response const & response);
+		void	checkAutoIndexDirectory(Request const & request);
+		bool	isRequestTargetValid(Response const & response, std::string const & request_target);
 		std::string	getEffectiveRequestURI(Request const & request);
 		void	setAbsoluteFilePath(Request const & request, Response & response);
 

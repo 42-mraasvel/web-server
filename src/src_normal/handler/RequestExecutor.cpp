@@ -28,7 +28,7 @@ void	RequestExecutor::executeRequest(FdTable & fd_table, Request & request, Resp
 		determineIsCgi(request, response);
 		if (isLocationResolved(request))
 		{
-			if (isRequestTargetValid(response))
+			if (isRequestTargetValid(response, request.request_target))
 			{
 				setAbsoluteFilePath(request, response);
 				if (response.handler->executeRequest(fd_table, request) == ERR)
@@ -80,7 +80,7 @@ bool	RequestExecutor::isLocationResolved(Request const & request)
 			markStatus(REDIRECT, request.config_info.resolved_location->_return.first);
 			return false ;
 		case ConfigInfo::AUTO_INDEX_ON:
-			checkAutoIndexDirectory(request.config_info.resolved_file_path);
+			checkAutoIndexDirectory(request);
 			return false ;
 		case ConfigInfo::LOCATION_RESOLVED:
 			return true;
@@ -90,9 +90,13 @@ bool	RequestExecutor::isLocationResolved(Request const & request)
 	}
 }
 
-void	RequestExecutor::checkAutoIndexDirectory(std::string const & target)
+void	RequestExecutor::checkAutoIndexDirectory(Request const & request)
 {
-	if (!WebservUtility::isFileExist(target))
+	if (request.method != Method::GET)
+	{
+		markStatus(BAD_REQUEST, StatusCode::BAD_REQUEST);
+	}
+	else if (!WebservUtility::isFileExist(request.config_info.resolved_file_path))
 	{
 		markStatus(TARGET_NOT_FOUND, StatusCode::NOT_FOUND);
 	}
@@ -101,9 +105,18 @@ void	RequestExecutor::checkAutoIndexDirectory(std::string const & target)
 		markStatus(AUTO_INDEX_ON, StatusCode::STATUS_OK);
 	}
 }
-
-bool	RequestExecutor::isRequestTargetValid(Response const & response)
+static bool	isTargetDirectory(std::string const & target)
 {
+	return target[target.size() - 1] == '/';
+}
+
+bool	RequestExecutor::isRequestTargetValid(Response const & response, std::string const & request_target)
+{
+	if (response.method != Method::GET && !response.is_cgi && isTargetDirectory(request_target))
+	{
+		markStatus(BAD_REQUEST, StatusCode::BAD_REQUEST);
+		return false;
+	}
 	if (response.method == Method::POST && !response.is_cgi)
 	{
 		return true;
