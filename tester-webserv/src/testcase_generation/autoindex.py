@@ -1,74 +1,112 @@
 import TestCase
 
-def testCaseInit():
-	# Request
-	request = TestCase.Request()
-	# Response
-	response = TestCase.Response()
-	return TestCase.TestCase(request, response)
+def defaultTestCase():
+	testcase = TestCase.TestCase()
+	testcase.tag = 'AutoIndex'
+	testcase.request.headers['Host'] = 'autoindex_server'
+	return testcase
 
-def testCaseAutoindexOn():
-	testcase = testCaseInit()
+def testCaseAutoindexOnGet():
 	# TestCase
-	testcase.tag = "AutoIndex"
-	testcase.name = "AutoIndexOn"
+	testcase = defaultTestCase()
+	testcase.name = "AutoindexOnGet"
 	# Request
 	testcase.request.method = 'GET'
-	testcase.request.target = '/auto_index/on/'
+	testcase.request.target = '/on/'
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('../page_sample/auto_index/index.html', 'rb') as f:
-		testcase.response.body = f.read()
-	return testcase
-
-def testCaseAutoindexOff():
-	testcase = testCaseInit()
-	# TestCase
-	testcase.tag = "AutoIndex"
-	testcase.name = "AutoIndexOn"
-	# Request
-	testcase.request.method = 'GET'
-	testcase.request.target = '/auto_index/off/'
-	# Response
-	testcase.response.status_code = 404
-	return testcase
-
-def testCaseAutoindexIndex():
-	testcase = testCaseInit()
-	# TestCase
-	testcase.tag = "AutoIndex"
-	testcase.name = "AutoIndexOff"
-	# Request
-	testcase.request.method = 'GET'
-	testcase.request.target = '/auto_index/index/'
-	# Response
-	testcase.response.status_code = 200
-	testcase.response.expect_body = True
-	with open('../page_sample/auto_index/index/index.html', 'rb') as f:
+	with open('./ServerRoot/auto_index/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	return testcase
 
 def testCaseAutoindexOnPost():
-	testcase = testCaseInit()
 	# TestCase
-	testcase.tag = "AutoIndex"
-	testcase.name = "AutoIndexPost"
+	testcase = defaultTestCase()
+	testcase.name = "AutoindexOnPost"
 	# Request
 	testcase.request.method = 'POST'
-	testcase.request.target = '/auto_index/on/'
+	testcase.request.target = '/on/'
+	# Response
+	testcase.response.status_code = 400
+	return testcase
+
+def testCaseAutoindexOnDelete():
+	# TestCase
+	testcase = defaultTestCase()
+	testcase.name = "AutoindexOnDelete"
+	# Request
+	testcase.request.method = 'DELETE'
+	testcase.request.target = '/on/'
+	# Response
+	testcase.response.status_code = 400
+	return testcase
+
+def testCaseAutoindexOffGet():
+	# TestCase
+	testcase = defaultTestCase()
+	testcase.name = "AutoindexOffGet"
+	# Request
+	testcase.request.method = 'GET'
+	testcase.request.target = '/off/'
 	# Response
 	testcase.response.status_code = 404
 	return testcase
 
-def testCaseAutoindexOffDelte():
-	testcase = testCaseInit()
-	testcase.name = "AutoIndexDelete"
+def testCaseAutoindexOffPost():
 	# TestCase
-	testcase.tag = "AutoIndex"
+	testcase = defaultTestCase()
+	testcase.name = "AutoindexOffPost"
 	# Request
-	testcase.request.method = 'DELETE'
-	testcase.request.target = '/auto_index/off/'
+	testcase.request.method = 'POST'
+	testcase.request.target = '/off/'
 	# Response
 	testcase.response.status_code = 404
+	return testcase
+
+def testCaseAutoindexOffDelete():
+	# TestCase
+	testcase = defaultTestCase()
+	testcase.name = "AutoindexOffDelete"
+	# Request
+	testcase.request.method = 'DELETE'
+	testcase.request.target = '/off/'
+	# Response
+	testcase.response.status_code = 404
+	return testcase
+
+def testCaseAutoindexIndexGet():
+	# TestCase
+	testcase = defaultTestCase()
+	testcase.name = "AutoindexIndexGet"
+	# Request
+	testcase.request.method = 'GET'
+	testcase.request.target = '/index/'
+	# Response
+	testcase.response.status_code = 200
+	testcase.response.expect_body = True
+	with open('./ServerRoot/auto_index/index/index.html', 'rb') as f:
+		testcase.response.body = f.read()
+	return testcase
+
+def testCaseAutoindexIndexPost():
+	# TestCase
+	testcase = defaultTestCase()
+	testcase.name = "AutoindexIndexPost"
+	# Request
+	testcase.request.method = 'POST'
+	testcase.request.target = '/index/'
+	# Response
+	testcase.response.status_code = 400
+	return testcase
+
+def testCaseAutoindexIndexDelete():
+	# TestCase
+	testcase = defaultTestCase()
+	testcase.name = "AutoindexIndexDelete"
+	# Request
+	testcase.request.method = 'DELETE'
+	testcase.request.target = '/index/'
+	# Response
+	testcase.response.status_code = 400
 	return testcase
