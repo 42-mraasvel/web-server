@@ -246,11 +246,6 @@ ConfigInfo::location_block_pointer	ConfigResolver::resolveLocationResult(Method:
 	_auto_index_on = false;
 	ConfigInfo::location_block_pointer	location = resolveLocation(target, locations);
 	info.result = getResult(location);
-	if (info.result == ConfigInfo::AUTO_INDEX_ON && method != Method::GET)
-	{
-		location = NULL;
-		info.result = ConfigInfo::NOT_FOUND;
-	}
 	if (info.result != ConfigInfo::NOT_FOUND)
 	{
 		info.resolved_file_path = location->_root + info.resolved_target;
