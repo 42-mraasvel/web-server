@@ -1,6 +1,7 @@
 import Error
 import Logger
 import requests
+from ResponseLogMessage import generateResponseLogMessage
 
 GREEN_BOLD = "\033[32m"
 RESET_COLOR = "\033[0m"
@@ -16,7 +17,7 @@ def execute(testcases = [], authority = 'localhost:8080', tags = []):
 		message = evaluateResponse(response, testcase.response, testcase.evaluator)
 		if message is not None:
 			failed += 1
-			failMsg(message, index, testcase)
+			failMsg(message, index, testcase, response)
 		else:
 			passed += 1
 			passMsg(testcase, index)
@@ -26,9 +27,10 @@ def execute(testcases = [], authority = 'localhost:8080', tags = []):
 def endMessage(passed, failed):
 	print("Executed: {} testcases: PASS({}) PASS({})".format(passed + failed, passed, failed))
 
-def failMsg(message, index, testcase):
+def failMsg(message, index, testcase, response):
 	Error.putFail(str(index + 1) + ": [" + testcase.tag + "]: " + message)
 	Logger.log(testcase.getLogString())
+	Logger.log(generateResponseLogMessage(response))
 
 def passMsg(testcase, index):
 	print(GREEN_BOLD + 'PASS' + RESET_COLOR + ': ' + str(index + 1) + ": [" + testcase.tag + "]:", \
@@ -75,5 +77,6 @@ def evaluateBody(content, exp_content, should_cmp = True):
 	if not should_cmp:
 		return None
 	if content != exp_content:
+		# return createMessage('Body', content, exp_content)
 		return createMessage('Body', 'Len: ' + str(len(content)), 'Len: ' + str(len(exp_content)))
 	return None

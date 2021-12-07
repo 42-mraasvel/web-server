@@ -9,7 +9,7 @@ def putMsg(message):
 
 def putFail(message):
 	print(RED_BOLD + "FAIL" + RESET_COLOR + ':', message, file = sys.stderr)
-	Logger.log(message + "\n")
+	Logger.log('[ERROR] ' + message + "\n")
 
 def exitError(message):
 	putMsg(message)

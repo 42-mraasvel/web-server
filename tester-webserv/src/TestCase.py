@@ -1,19 +1,29 @@
+import chardet
+
 def getHeaderList(header):
 	data = []
 	if not header:
 		return data
 	data.append('  -- HEADER FIELDS --')
 	for key in header:
-		data.append(key + ": " + header[key])
+		data.append('\t' + key + ": " + header[key])
 	return data
+
+def decodeBody(body):
+	encoding = chardet.detect(body)['encoding']
+	if encoding != 'ascii':
+		return 'unknown encoding: ' + encoding
+	return body.decode(encoding)
 
 def getBodyList(body):
 	data = []
 	data.append('  -- MESSAGE BODY --')
-	if not body or len(body) > 10000 or type(body) == bytes:
-		data.append('Body Size: ' + str(len(body)))
+	if not body or len(body) > 10000:
+		data.append('\tBody Size: ' + str(len(body)))
+	elif type(body) == bytes:
+		data.append(decodeBody(body))
 	else:
-		data.append(body)
+		data.append(str(body))
 	return data
 
 class Request:
@@ -30,8 +40,8 @@ class Request:
 	def getLogList(self):
 		data = []
 		data.append('-- Request -- ')
-		data.append('method: ' + self.method)
-		data.append('request_target: ' + self.target)
+		data.append('\tmethod: ' + self.method)
+		data.append('\trequest_target: ' + self.target)
 		data += getHeaderList(self.headers)
 		data += getBodyList(self.body)
 		return data
@@ -49,9 +59,9 @@ class Response:
 
 	def getLogList(self):
 		data = []
-		data.append('-- Response --')
-		data.append('Status Code: ' + str(self.status_code))
-		data.append('Expect Body: ' + str(self.expect_body))
+		data.append('-- Expected Response --')
+		data.append('\tStatus Code: ' + str(self.status_code))
+		data.append('\tExpect Body: ' + str(self.expect_body))
 		data += getHeaderList(self.headers)
 		data += getBodyList(self.body)
 		return data
@@ -82,8 +92,5 @@ class TestCase:
 		lines = self.request.getLogList() + self.response.getLogList()
 		result = 'TestCase: \'{}\'\n'.format(self.tag)
 		for line in lines:
-			if line[0] == ' ' or line[0] == '-':
-				result += line + "\n"
-			else:
-				result += "\t" + line + "\n"
+			result += line + "\n"
 		return result
