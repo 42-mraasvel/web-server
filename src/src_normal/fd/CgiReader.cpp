@@ -51,6 +51,7 @@ void CgiReader::readEvent(FdTable & fd_table)
 
 	buffer.resize(n);
 	parseBuffer(fd_table, buffer);
+	std::cout << buffer << std::endl;
 }
 
 void CgiReader::parseBuffer(FdTable & fd_table, std::string const & buffer)

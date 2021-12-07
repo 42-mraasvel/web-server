@@ -95,13 +95,7 @@ void HttpRequestParser::parseHeader(std::string const &buffer,
 	else if (_header_parser.isComplete())
 	{
 		request.header_fields.swap(_header_parser.getHeaderField());
-		try {
 		processRequestHeader(request);
-
-		} catch(...) {
-			printf("PROCESS REQUEST HANDLER THREW\n");
-			throw;
-		}
 	}
 }
 
@@ -199,7 +193,14 @@ int HttpRequestParser::parseContentLength(std::string const &value)
 	}
 
 	_content_parser.setContentLength(content_length);
-	setState(HttpRequestParser::PARSE_CONTENT);
+	if (content_length == 0)
+	{
+		setState(HttpRequestParser::COMPLETE);
+	}
+	else
+	{
+		setState(HttpRequestParser::PARSE_CONTENT);
+	}
 	return OK;
 }
 
