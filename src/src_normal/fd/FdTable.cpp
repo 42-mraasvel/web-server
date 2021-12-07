@@ -16,14 +16,12 @@ void	FdTable::insertFd(AFdPointer info)
 void	FdTable::eraseFd(std::size_t index)
 {
 /*
-TODO: call from webserver, which will also close the fd
 1. Assign last element to the to be deleted element
 2. Delete the last element
 Complexity: O(1)
 */
 	_pollfd_table[index] = _pollfd_table.back();
 	_pollfd_table.pop_back();
-	// TODO: close event monitoring
 	_fd_info_table.back()->setIndex(index);
 	_fd_info_table[index] = _fd_info_table.back();
 	_fd_info_table.pop_back();

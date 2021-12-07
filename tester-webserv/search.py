@@ -8,7 +8,6 @@ def findFunctions(args):
 
 	for arg in args:
 		with open(arg, 'r') as f:
-			# TODO: add ':$' at end
 			regex_search = '^def\s*(' + PREFIX + '.*)\(.*\):$'
 			for line in f.readlines():
 				x = re.search(regex_search, line)

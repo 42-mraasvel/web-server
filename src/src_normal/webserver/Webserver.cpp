@@ -21,9 +21,6 @@ int Webserver::initServer(ip_host_pair iphost)
 	return OK;
 }
 
-/*
-TODO: close FD after failure
-*/
 int	Webserver::init()
 {
 	for (Config::const_iterator_map it = _config_map.begin(); it != _config_map.end(); ++it)
@@ -59,7 +56,6 @@ bool Webserver::shouldExecuteFd(const FdTable::AFdPointer afd)
 
 bool Webserver::shouldCloseFd(short revents) const
 {
-	//TODO: test on mac if this is how it functions as well
 	return (revents & (POLLERR | POLLNVAL)) ||
 		((revents & POLLHUP) && !(revents & POLLIN));
 }
@@ -89,8 +85,6 @@ void Webserver::executeFd(short revents, FdTable::AFdPointer afd)
 	}
 }
 
-//TODO: evaluate 'ready'
-//TODO: add Multithreading
 int	Webserver::dispatchFd(int ready)
 {
 	std::size_t i = 0;
@@ -113,7 +107,6 @@ int	Webserver::dispatchFd(int ready)
 	return OK;
 }
 
-//TODO: scan for Timeout
 void	Webserver::scanFdTable()
 {
 	for (std::size_t i = 0; i < _fd_table.size(); ++i)

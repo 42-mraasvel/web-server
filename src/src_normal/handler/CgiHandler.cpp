@@ -168,9 +168,7 @@ void CgiHandler::metaVariableContent(const Request& request)
 
 void CgiHandler::metaVariablePathInfo(const Request& request)
 {
-	//TODO: test with the executable on intra, since the subj states full path should be given
 	_meta_variables.push_back(MetaVariableType("PATH_INFO", request.config_info.resolved_target));
-	// _meta_variables.push_back(MetaVariableType("PATH_INFO", _root_dir + request.config_info.resolved_target));
 	_meta_variables.push_back(MetaVariableType("PATH_TRANSLATED", _root_dir + request.config_info.resolved_target));
 }
 
@@ -327,7 +325,7 @@ int CgiHandler::executeChildProcess() const
 	{
 		return ERR;
 	}
-	// TODO: chdir into the target resource or root directory?
+	//TODO: DISCUSS: chdir into the target resource or root directory?
 	if (chdir(_root_dir.c_str()) == ERR)
 	{
 		return syscallError("chdir");
@@ -459,7 +457,7 @@ void CgiHandler::setSpecificHeaderField(HeaderField & header_field, bool content
 			continue;
 		}
 
-		//TODO: check if should be removed
+		//TODO: DISCUSS: check if should be removed
 		if (header_field.contains(it->first) && it->second != header_field[it->first])
 		{
 			fprintf(stderr, "  %sWARNING%s: %s:%d [%s]: Overwriting Field: %s: [%s] with [%s]\n",
@@ -498,11 +496,6 @@ Function's purpose:
 		IF exited AND sender is INCOMPLETE: BAD_GATEWAY
 	- Check if either Sender or Reader is complete: remove from table if so
 	- Set completion status if both are complete
-
-TODO: ERROR handling
-	- CGI program times out (inf loop, takes too long to produce content)
-	- Sender has not completely finished writing it's content (POLLERR + closeEvent())
-		: Example: reader has finished reading a valid response, but the sender is still not done and the CGI exited
 */
 void CgiHandler::update(std::string & response_body)
 {
@@ -601,7 +594,6 @@ int CgiHandler::cleanCgi()
 	{
 		return ERR;
 	}
-	// TODO: Check exit status, crash, signal etc
 	_cgi_pid = -1;
 	return OK;
 }
