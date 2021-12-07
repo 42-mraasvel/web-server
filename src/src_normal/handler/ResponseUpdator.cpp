@@ -49,7 +49,8 @@ void	ResponseUpdator::updateHandler(Response & response)
 
 void	ResponseUpdator::setSpecialMessageBody(FdTable & fd_table, Response & response)
 {
-	if (response.config_info.result == ConfigInfo::REDIRECT)
+	if (response.config_info.result == ConfigInfo::REDIRECT
+		&& response.status_code == response.config_info.resolved_location->_return.first)
 	{
 		processRedirectResponse(response);
 	}
@@ -73,7 +74,6 @@ void	ResponseUpdator::processRedirectResponse(Response & response)
 	std::string	redirect_text = response.config_info.resolved_location->_return.second;
 	if (StatusCode::isStatusCode3xx(response.status_code))
 	{
-		// TODO: to check if the redirect_text needs to be absolute form??
 		response.effective_request_uri = redirect_text;
 		response.message_body = "Redirect to " + redirect_text + "\n";
 	}
