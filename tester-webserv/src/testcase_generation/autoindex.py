@@ -11,6 +11,7 @@ def testCaseAutoindexOn():
 	testcase = testCaseInit()
 	# TestCase
 	testcase.tag = "AutoIndex"
+	testcase.name = "AutoIndexOn"
 	# Request
 	testcase.request.method = 'GET'
 	testcase.request.target = '/auto_index/on/'
@@ -25,6 +26,7 @@ def testCaseAutoindexOff():
 	testcase = testCaseInit()
 	# TestCase
 	testcase.tag = "AutoIndex"
+	testcase.name = "AutoIndexOn"
 	# Request
 	testcase.request.method = 'GET'
 	testcase.request.target = '/auto_index/off/'
@@ -36,6 +38,7 @@ def testCaseAutoindexIndex():
 	testcase = testCaseInit()
 	# TestCase
 	testcase.tag = "AutoIndex"
+	testcase.name = "AutoIndexOff"
 	# Request
 	testcase.request.method = 'GET'
 	testcase.request.target = '/auto_index/index/'
@@ -50,6 +53,7 @@ def testCaseAutoindexOnPost():
 	testcase = testCaseInit()
 	# TestCase
 	testcase.tag = "AutoIndex"
+	testcase.name = "AutoIndexPost"
 	# Request
 	testcase.request.method = 'POST'
 	testcase.request.target = '/auto_index/on/'
@@ -59,6 +63,7 @@ def testCaseAutoindexOnPost():
 
 def testCaseAutoindexOffDelte():
 	testcase = testCaseInit()
+	testcase.name = "AutoIndexDelete"
 	# TestCase
 	testcase.tag = "AutoIndex"
 	# Request
