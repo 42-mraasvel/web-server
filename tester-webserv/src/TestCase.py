@@ -72,13 +72,16 @@ def defaultResponseEvaluator(response):
 	return None
 
 class TestCase:
-	def __init__(self, request = None, response = None, tag = None, evaluator = None):
+	def __init__(self, request = None, response = None, tag = None, name = None, evaluator = None):
 		self.tag = tag
+		self.name = name
 		self.request = request
 		self.response = response
 		self.evaluator = evaluator
 		if tag is None:
 			self.tag = "DEFAULT_TAG"
+		if name is None:
+			self.name = ""
 		if request is None:
 			self.request = Request()
 		if response is None:

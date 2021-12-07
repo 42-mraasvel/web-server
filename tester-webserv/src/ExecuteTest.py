@@ -33,12 +33,12 @@ def endMessage(passed, failed):
 	GREEN_BOLD, RESET_COLOR, passed, RED_BOLD, RESET_COLOR, failed))
 
 def failMsg(message, index, testcase, response):
-	Error.putFail(str(index + 1) + ": [" + testcase.tag + "]: " + message)
+	Error.putFail(str(index + 1) + ": [" + testcase.tag + "-" + testcase.name + "]: " + message)
 	Logger.log(testcase.getLogString())
 	Logger.log(generateResponseLogMessage(response))
 
 def passMsg(testcase, index):
-	print(GREEN_BOLD + 'PASS' + RESET_COLOR + ': ' + str(index + 1) + ": [" + testcase.tag + "]:", \
+	print(GREEN_BOLD + 'PASS' + RESET_COLOR + ': ' + str(index + 1) + ": [" + testcase.tag + "-" + testcase.name + "]:", \
 		testcase.request.method, "with status code:", testcase.response.status_code)
 
 # Send the request
