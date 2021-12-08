@@ -1,5 +1,10 @@
 import TestCase
-from testcase_generation.Resolution.default  import defaultTestCase
+
+def defaultTestCase():
+	testcase = TestCase.TestCase()
+	testcase.tag = 'LocationBlock'
+	testcase.request.headers['Host'] = 'locationblock_index'
+	return testcase
 
 def testCaseAutoindexOnGet():
 	# TestCase
@@ -78,7 +83,7 @@ def testCaseAutoindexIndexGet():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/Resolution/auto_index/index/index.html', 'rb') as f:
+	with open('./ServerRoot/LocationBlock/auto_index/index/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	return testcase
 

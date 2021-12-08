@@ -1,5 +1,5 @@
 import TestCase
-from testcase_generation.locationblock.resolution import defaultTestCase
+from testcase_generation.LocationBlock.resolution import defaultTestCase
 
 def testCaseGetNotAllowed():
 	testcase = defaultTestCase()

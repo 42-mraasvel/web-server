@@ -4,7 +4,7 @@ def defaultTestCase():
 	testcase = TestCase.TestCase()
 	testcase.tag = 'LocationBlock'
 	testcase.request.method = 'GET'
-	testcase.request.headers['Host'] = 'ServerBlock'
+	testcase.request.headers['Host'] = 'LocationBlock'
 	return testcase
 
 def testCaseMatchSlash():
@@ -15,7 +15,7 @@ def testCaseMatchSlash():
 	testcase.request.target = '/'
 	# Response
 	testcase.response.status_code = 200
-	with open('./ServerRoot/ServerBlock/index.html', 'rb') as f:
+	with open('./ServerRoot/LocationBlock/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.expect_body = True
 	return testcase
@@ -27,7 +27,7 @@ def testCaseBlockOne():
 	testcase.request.target = '/block1/'
 	# Response
 	testcase.response.status_code = 200
-	with open('./ServerRoot/ServerBlock/block1/block1/index.html', 'rb') as f:
+	with open('./ServerRoot/LocationBlock/block1/block1/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.expect_body = True
 	return testcase
@@ -38,7 +38,7 @@ def testCaseBlockTwo():
 	testcase.request.target = '/block2/index.html'
 	# Response
 	testcase.response.status_code = 200
-	with open('./ServerRoot/ServerBlock/block2/block2/index.html', 'rb') as f:
+	with open('./ServerRoot/LocationBlock/block2/block2/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.expect_body = True
 	return testcase
