@@ -148,7 +148,7 @@ bool	FileHandler::isUploadPathCreated()
 		}
 		else
 		{
-			perror("create upload path");
+			syscallError(_FUNC_ERR("create upload path"));
 			markError(StatusCode::INTERNAL_SERVER_ERROR);
 		}
 		return false;

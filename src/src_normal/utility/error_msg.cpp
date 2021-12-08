@@ -1,6 +1,7 @@
 #include "settings.hpp"
 #include <cstdio>
 #include <cstdlib>
+#include <cstring> // Linux strerror
 #include <errno.h>
 
 /*
@@ -12,18 +13,6 @@ int syscallError(const std::string& str)
 	return ERR;
 }
 
-int generalError(const char* format, ...)
-{
-#ifdef PRINT_ERR
-	va_list vp;
-	va_start(vp, format);
-	fprintf(stderr, RED_BOLD "ERROR: " RESET_COLOR);
-	vfprintf(stderr, format, vp);
-	va_end(vp);
-#endif
-	return ERR;
-}
-
 void abortProgram()
 {
 	exit(1);
@@ -31,6 +20,6 @@ void abortProgram()
 
 void abortProgram(std::string const & message)
 {
-	std::cerr << RED_BOLD "Aborting: " << message << RESET_COLOR << std::endl;
+	PRINT_ERR << "Aborting: " << message << std::endl;
 	abortProgram();
 }

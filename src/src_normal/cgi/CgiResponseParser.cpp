@@ -67,7 +67,6 @@ int CgiResponseParser::parse(std::string const & buffer)
 			case CgiResponseParser::COMPLETE:
 				return OK;
 			case CgiResponseParser::ERROR:
-				std::cerr << "CgiResponseParser error: " << getStatusCode() << std::endl;
 				return ERR;
 		}
 	}

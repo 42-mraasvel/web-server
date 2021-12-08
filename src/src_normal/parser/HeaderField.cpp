@@ -97,7 +97,7 @@ void HeaderField::swap(HeaderField& x)
 
 void HeaderField::print() const
 {
-	PRINT_DEBUG << "-- HeaderField --" << std::endl;
+	PRINT_DEBUG << "-- Header Field --" << std::endl;
 	for (const_iterator it = _map.begin(); it != _map.end(); ++it)
 	{
 		PRINT_DEBUG << "  " << it->first << ": " << it->second << std::endl;

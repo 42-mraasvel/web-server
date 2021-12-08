@@ -1,6 +1,6 @@
 #include "Request.hpp"
 #include "color.hpp"
-#include <cstdio> // RM, REMOVE: FOR PRINT/DEBUGGING
+#include "settings.hpp"
 
 /*
 	RequestStatus	status;
@@ -104,20 +104,20 @@ void Request::printBodyBytes() const
 {
 	for (std::size_t i = 0; i < message_body.size(); ++i) {
 		if (i != 0) {
-			printf(" ");
+			PRINT_DEBUG << ' ';
 		}
-		printf("%d", message_body[i]);
+		PRINT_DEBUG << static_cast<int> (message_body[i]);
 	}
-	printf("\n");
+	PRINT_DEBUG << std::endl;
 }
 
 template <typename C>
 void printVector(const std::string& prefix, const C& c)
 {
-	printf("%s\n", prefix.c_str());
+	PRINT_DEBUG << prefix << std::endl;
 	for (std::size_t i = 0; i < c.size(); ++i)
 	{
-		printf("    [%s]\n", c[i].c_str());
+		PRINT_DEBUG << "    [" << c[i] << "]" << std::endl;
 	}
 }
 
@@ -137,81 +137,69 @@ static void	printConfigResult(ConfigInfo::ConfigResult const & result)
 			break ;
 		default:
 			string = "LOCATION_RESOLVED";
+			break;
 	}
-	printf("Resolved result: %s\n", string.c_str());
+	PRINT_DEBUG << "Resolved result: " << string << std::endl;
 }
 
 static void printConfigInfo(const ConfigInfo& info)
 {
-	printf(GREEN_BOLD "-- REQUEST CONFIG INFO --" RESET_COLOR "\n");
+	PRINT_DEBUG << GREEN_BOLD "-- Request Config Info --" RESET_COLOR << std::endl;
 	
 	if (!info.resolved_server)
 	{
-		printf("No server block resolved.\n");
+		PRINT_DEBUG << "No server block resolved" << std::endl;
 		return;
 	}
 	printConfigResult(info.result);
-	printf("Client Max Body Size: %lu\n", info.resolved_server->_client_body_size);
+	PRINT_DEBUG << "Client Max Body Size: [" << info.resolved_server->_client_body_size << "]" << std::endl;
 	printVector("  -- SERVER NAMES --", info.resolved_server->_server_names);
 
 	if (info.result == ConfigInfo::NOT_FOUND)
 	{
-		printf("No location block resolved.\n");
+		PRINT_DEBUG << "No locatino block resolved" << std::endl;
 		return ;
 	}
-	else
-	{
-		printf("Resolved location block is: [%s]\n", info.resolved_location->_path.c_str());
-	}
-	printf("Resolved Target: %s\n", info.resolved_target.c_str());
-	printf("Resolved File Path: %s\n", info.resolved_file_path.c_str());
+	PRINT_DEBUG << "Resolved location block: [" << info.resolved_location->_path << "]" << std::endl;
+	PRINT_DEBUG << "Resolved target: " << info.resolved_target << std::endl;
+	PRINT_DEBUG << "Resolved file path: " << info.resolved_file_path << std::endl;
 	printVector("  -- ALLOWED METHODS --", info.resolved_location->_allowed_methods);
 	printVector("  -- INDEX --", info.resolved_location->_index);
-	printf("  -- CGI --\n");
+	PRINT_DEBUG << "  -- CGI -- " << std::endl;
 	for (std::size_t i = 0; i < info.resolved_location->_cgi.size(); ++i)
 	{
-
-		printf("    [%s]: [%s]\n",
-		info.resolved_location->_cgi[i].first.c_str(),
-		info.resolved_location->_cgi[i].second.c_str());
+		PRINT_DEBUG << "    [" \
+			<< info.resolved_location->_cgi[i].first  << "]: [" \
+			<< info.resolved_location->_cgi[i].second << "]" << std::endl;
 	}
-
 }
 
 void Request::print() const
 {
-	printf(GREEN_BOLD "-- PARSED REQUEST --" RESET_COLOR "\r\n");
-	printf("%s [%s][%s] HTTP/%d.%d\r\n",
-		getMethodString().c_str(),
-		request_target.c_str(),
-		query.c_str(),
-		major_version, minor_version);
-	printf("Status: %s\n", getStatusString().c_str());
-	printf("StatusCode: %d\n", status_code);
-	printf("Address: '%s:%d'\n", address.first.c_str(), address.second);
-	printf(" %s- Header Field -%s\n", GREEN_BOLD, RESET_COLOR);
-	for (header_field_t::const_iterator it = header_fields.begin(); it != header_fields.end(); ++it)
+	PRINT_DEBUG << GREEN_BOLD "-- Parsed Request --" RESET_COLOR << std::endl;
+	PRINT_DEBUG << getMethodString() << " [" << request_target << "][" << query << "] HTTP/" \
+		<< major_version << "." << minor_version << std::endl;
+	PRINT_DEBUG << "Status: " << getStatusString() << std::endl;
+	PRINT_DEBUG << "StatusCode: " << status_code << std::endl;
+	PRINT_DEBUG << "Address: " << address.first << ":" << address.second << std::endl;
+	header_fields.print();
+
+	PRINT_DEBUG << GREEN_BOLD " - Message Body -" RESET_COLOR << std::endl;
+	PRINT_DEBUG << "Body-Size(" << message_body.size() << ")" << std::endl;
+
+	if (message_body.size() <= MAX_HEADER_SIZE)
 	{
-		printf("  %s: %s\r\n", it->first.c_str(), it->second.c_str());
-	}
-	printf(GREEN_BOLD " - Message Body -" RESET_COLOR "\r\n");
-	printf("Body-Size(%lu)\n", message_body.size());
-	if (message_body.size() <= 8192) {
-		printf("%s\r\n", message_body.c_str());
+		PRINT_DEBUG << message_body << std::endl;
 		printBodyBytes();
-	}
-	else {
-		printf("body too large to print\n");
-	}
-	printf(GREEN_BOLD " - Other feature -" RESET_COLOR "\r\n");
-	if (close_connection)
-	{
-		printf("Close_connection: yes\n");
 	}
 	else
 	{
-		printf("Close_connection: no\n");
+		PRINT_DEBUG << "Body too large to print" << std::endl;
 	}
-	printf(GREEN_BOLD "------------------------" RESET_COLOR "\r\n");
+
+	PRINT_DEBUG << GREEN_BOLD " - Other Features -" RESET_COLOR << std::endl;
+
+	PRINT_DEBUG << "Close Connection: " << (close_connection ? "yes" : "no") << std::endl;
+	PRINT_DEBUG << GREEN_BOLD "------------------------" RESET_COLOR << std::endl;
 	// printConfigInfo(config_info);
 }

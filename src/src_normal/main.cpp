@@ -1,6 +1,5 @@
 #include "settings.hpp"
 #include <cstdlib> // For exit() and EXIT_FAILURE
-#include <iostream> // For cout
 #include <poll.h>
 #include <unistd.h>
 #include "webserver/Webserver.hpp"

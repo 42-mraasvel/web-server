@@ -24,7 +24,7 @@ int RequestLineParser::parse(std::string const & buffer, std::size_t & index, Re
 
 	if (_state != PARSE)
 	{
-		fprintf(stderr, "RequestLineParser::parse called with invalid state\n");
+		PRINT_WARNING << "RequestLineParser called with invalid state" << std::endl;
 		return ERR;
 	}
 

@@ -66,7 +66,7 @@ int	Connection::readRequest(std::string & buffer)
 	ssize_t ret = recv(_fd, &buffer[0], BUFFER_SIZE, 0);
 	if (ret == ERR)
 	{
-		syscallError(_FUNC_ERR("perror"));
+		syscallError(_FUNC_ERR("recv"));
 		return ERR;
 	}
 	else if (ret == 0)

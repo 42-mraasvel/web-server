@@ -27,7 +27,8 @@ int	Webserver::init()
 	{
 		if (shouldInitialize(it->first))
 		{
-			printf("Initiailizing: %s:%d\n", it->first.first.c_str(), it->first.second);
+			PRINT_INFO << YELLOW_BOLD "Initializing listening socket" RESET_COLOR ": " \
+				<< it->first.first << ":" << it->first.second << std::endl;
 			if (initServer(it->first) == ERR)
 			{
 				return ERR;
@@ -64,23 +65,23 @@ void Webserver::executeFd(short revents, FdTable::AFdPointer afd)
 {
 	if (shouldCloseFd(revents))
 	{
-		printf(BLUE_BOLD "Close Event:" RESET_COLOR " %s: [%d]\n",
-			afd->getName().c_str(), afd->getFd());
+		PRINT_DEBUG << BLUE_BOLD "Close Event" RESET_COLOR ": " \
+			<< afd->getName() << ": [" << afd->getFd() << "]" << std::endl;
 		afd->closeEvent(_fd_table);
 		return;
 	}
 
 	if (revents & POLLIN)
 	{
-		printf(BLUE_BOLD "Read event:" RESET_COLOR " %s: [%d]\n",
-			afd->getName().c_str(), afd->getFd());
+		PRINT_DEBUG << BLUE_BOLD "Read Event" RESET_COLOR ": " \
+			<< afd->getName() << ": [" << afd->getFd() << "]" << std::endl;
 		afd->readEvent(_fd_table);
 	}
 
 	if (revents & POLLOUT)
 	{
-		printf(BLUE_BOLD "Write event:" RESET_COLOR " %s: [%d]\n",
-			afd->getName().c_str(), afd->getFd());
+		PRINT_DEBUG << BLUE_BOLD "Write Event" RESET_COLOR ": " \
+			<< afd->getName() << ": [" << afd->getFd() << "]" << std::endl;
 		afd->writeEvent(_fd_table);
 	}
 }
@@ -98,8 +99,7 @@ int	Webserver::dispatchFd(int ready)
 			}
 			catch (std::exception const & e)
 			{
-				fprintf(stderr, "%sEXCEPTION%s: [%s]\n",
-					RED_BOLD, RESET_COLOR, e.what());
+				PRINT_ERR << "Exception: [" << e.what() << "]" << std::endl;
 				_fd_table[i].second->exceptionEvent(_fd_table);
 			}
 		}
@@ -121,8 +121,7 @@ void	Webserver::scanFdTable()
 		}
 		catch (std::exception const & e)
 		{
-			fprintf(stderr, "%sUPDATE EXCEPTION%s: [%s]\n",
-				RED_BOLD, RESET_COLOR, e.what());
+			PRINT_ERR << "Update Exception: " << e.what() << std::endl;
 			_fd_table[i].second->exceptionEvent(_fd_table);
 		}
 	}
@@ -132,8 +131,8 @@ void	Webserver::scanFdTable()
 	{
 		if (_fd_table[i].second->getFlag() == AFdInfo::TO_ERASE)
 		{
-			printf("Erasing Fd: %s: [%d]\n",
-				_fd_table[i].second->getName().c_str(), _fd_table[i].second->getFd());
+			PRINT_INFO << "Erasing Fd: " << _fd_table[i].second->getName() \
+				<< ": [" << _fd_table[i].second->getFd() << "]" << std::endl;
 			_fd_table.eraseFd(i);
 			continue;
 		}
@@ -148,34 +147,30 @@ int	Webserver::run()
 {
 	int ready;
 
+	printOpening();
 	while(true)
 	{
 		scanFdTable();
 		ready = poll(_fd_table.getPointer(), _fd_table.size(), POLL_TIMEOUT);
-		printf("Number of connections: %lu\n", _fd_table.size());
+		PRINT_DEBUG << "Number of Fds: " << _fd_table.size() << std::endl;
 		if (ready < 0)
 		{
-			perror("Poll");
-			// TODO possible exit
+			syscallError(_FUNC_ERR("poll"));
+			// TODO: evaluate poll error
 		}
 		else if (ready > 0)
 		{
-			printf(YELLOW_BOLD "Poll returns: " RESET_COLOR "%d\n", ready);
-			// print();
+			print();
 			dispatchFd(ready);
-		}
-		else
-		{
-			#ifdef __APPLE__
-			#ifdef LEAK_CHECK
-			//RM, REMOVE
-			system("leaks debug.out");
-			#endif /* LEAK_CHECK */
-			#endif /* __APPLE__ */
 		}
 	}
 
 	return OK;
+}
+
+void Webserver::printOpening() const
+{
+	PRINT << MAGENTA_BOLD << "-- Listening --" << RESET_COLOR << std::endl;
 }
 
 /* Debugging */

@@ -21,6 +21,8 @@ class Webserver
 		bool shouldCloseFd(short revents) const;
 		void executeFd(short revents, FdTable::AFdPointer afd);
 
+		void printOpening() const;
+
 	private:
 		FdTable 			_fd_table;
 		address_map			_config_map;

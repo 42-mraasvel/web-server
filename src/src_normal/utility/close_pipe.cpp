@@ -1,3 +1,5 @@
+#include "utility.hpp"
+#include "macros.hpp"
 #include <unistd.h>
 #include <stdio.h>
 
@@ -10,7 +12,7 @@ namespace WebservUtility
 		{
 			if (close(fd) == -1)
 			{
-				perror("close");
+				syscallError(_FUNC_ERR("close"));
 			}
 		}
 	}

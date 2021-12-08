@@ -18,7 +18,8 @@ static bool isValidRequestHeader(std::string const &key,
 		|| WebservUtility::caseInsensitiveEqual(key, "Transfer-Encoding")
 		|| WebservUtility::caseInsensitiveEqual(key, "Host"))
 		{
-			generalError("%s: %s\n", _FUNC_ERR("Duplicate Field").c_str(), key.c_str());
+			// TODO: DISCUSS what stream should be used
+			PRINT_DEBUG << _FUNC_ERR("Duplicate Field") << ": " << key << std::endl;
 			return false;
 		}
 	}
