@@ -1,35 +1,38 @@
-# Webserver
+# HTTP Web Server
 
-A Hypertext Transfer Protocol (HTTP) 1.1 webserver written in C++ 98, inspired by NginX.
+A Hypertext Transfer Protocol (HTTP) 1.1 web server written in C++ 98, inspired by NginX.
+
 This is a project for Codam Coding College.
 It can be used to serve any type of content to clients through the HTTP protocol.
-Content such as files, for websites or any other purpose.
+Content such as files, for websites or other purposes.
 
 ## Supported Functionalities
 
-The server can listen on any socket (IP:PORT), it will accept connections on that socket and process HTTP requests from that connection.
+The server listens on a socket (IP:Port).
+
+It will accept connections on that socket and process HTTP requests.
 
 - HTTP Methods:
 
 	- GET
 
-		Fetch resources from the origin server
+		Fetch resources from the origin server.
 
 	- POST
 
-		Upload or update resources in the origin server
+		Upload or update resources on the origin server.
 
 	- DELETE
 
-		Delete resources in the origin server
+		Delete resources on the origin server.
 
 - Common Gateway Interface (CGI)
 
-	An interface that allows the user to specify an external program to execute specific requests. The webserver converts the HTTP request to a CGI request, reads the CGI response and converts it back into an HTTP response, which is returned to the client.
+	CGI allows the user to specify an external program to execute specific requests. The web server converts the HTTP request to a CGI request, reads the CGI response and converts it back into an HTTP response, which is returned to the client.
 
 - Configuration Options
 
-	Implemented similarly to NginX's configuration. All directives are explained in detail here: 
+	Implemented similarly to NginX's configuration. All directives are explained in detail [here](#configuration-syntax-and-directives): 
 	
 	TODO: LINK
 
@@ -37,7 +40,7 @@ The server can listen on any socket (IP:PORT), it will accept connections on tha
 
 ### 1. Writing a configuration file
 
-A configuration file can optionally be given to the webserver as argument. See above for syntax and all configuration options.
+A configuration file can optionally be given to the web server as argument. See above for syntax and all configuration options.
 
 If not specified, a default configuration is used instead.
 
@@ -45,7 +48,7 @@ If not specified, a default configuration is used instead.
 
 	./run.sh [OPTIONS] [ConfigurationFile]
 
-The webserver is now able to accept requests, this can be done through the browser or any other valid HTTP client.
+The web server is now able to accept requests, this can be done through the browser or any other valid HTTP client.
 
 TODO: link to options and describe what the options do, etc
 
@@ -102,7 +105,7 @@ server {
 	}
 	```
 
-	These contain the options for how the webserver should handle the requests.
+	These contain the options for how the web server should handle the requests.
 
 	The server blocks are resolved using the request interface address, the top-most block is the default server.
 
@@ -133,7 +136,7 @@ server {
 	error_page 404 /error_pages/404.html;
 	```
 
-	Specify a custom file to respond to certain error codes. If not specified or the file doesn't exist, the webserver's default response is used.
+	Specify a custom file to respond to certain error codes. If not specified or the file doesn't exist, the web server's default response is used.
 
 - Client Max Body Size (optional)
 	```
@@ -165,7 +168,7 @@ server {
 	}
 	```
 
-	More specific options for how the webserver handles the request further, the request target is used to resolve the location block.
+	More specific options for how the web server handles the request further, the request target is used to resolve the location block.
 
 	The most specific match is used, unless the `=` (exact match) option is specified, in which case the request target has to match exactly.
 
@@ -190,7 +193,7 @@ server {
 	root /var/www/html;
 	```
 
-	Specifies the directory in which the webserver should look for files to serve. The default value is `/var/www/html`
+	Specifies the directory in which the web server should look for files to serve. The default value is `/var/www/html`
 
 - Auto Index (optional)
 	```
