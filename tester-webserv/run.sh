@@ -16,7 +16,7 @@ rm -rf $UPLOAD_DIR
 
 $WEBSERV_DIR/$EXEC_NAME $CONFIG_FILE > /dev/null 2>&1 &
 
-process=$(ps -a | grep $EXEC_NAME)
+process=$(ps -a | grep -v grep | grep $EXEC_NAME)
 if [ -z "$process" ]; then
 	echo "ERROR: not running: $EXEC_NAME"
 	exit 1
