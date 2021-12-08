@@ -1,10 +1,5 @@
 import TestCase
-
-def defaultTestCase():
-	testcase = TestCase.TestCase()
-	testcase.tag = 'AutoIndex'
-	testcase.request.headers['Host'] = 'autoindex_server'
-	return testcase
+from testcase_generation.Resolution.default  import defaultTestCase
 
 def testCaseAutoindexOnGet():
 	# TestCase
@@ -15,9 +10,7 @@ def testCaseAutoindexOnGet():
 	testcase.request.target = '/on/'
 	# Response
 	testcase.response.status_code = 200
-	testcase.response.expect_body = True
-	with open('./ServerRoot/auto_index/index.html', 'rb') as f:
-		testcase.response.body = f.read()
+	testcase.response.headers['Content-length'] = '294' #auto_index page will have different date so only check content-length
 	return testcase
 
 def testCaseAutoindexOnPost():
@@ -85,7 +78,7 @@ def testCaseAutoindexIndexGet():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/auto_index/index/index.html', 'rb') as f:
+	with open('./ServerRoot/Resolution/auto_index/index/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	return testcase
 

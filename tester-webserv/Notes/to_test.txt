@@ -28,6 +28,8 @@
 -- Location Block --
 
 	- Location block resolution
+		v- Auto Index
+		v- Default File
 	- Method allowed (GET, POST, DELETE)
 		- HeaderField (allowed: x)
 	- HTTP Redirections
@@ -35,8 +37,6 @@
 		- Response Code (for different redirection types)
 		- Retry-After header-field
 	- Root Directory
-	v- Auto Index
-	v- Default File
 	- CGI: executable to test in/output
 		- Header-Fields
 		- StatusCode

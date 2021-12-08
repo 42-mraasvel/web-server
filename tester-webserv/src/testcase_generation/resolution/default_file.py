@@ -1,10 +1,5 @@
 import TestCase
-
-def defaultTestCase():
-	testcase = TestCase.TestCase()
-	testcase.tag = 'DefaultFile'
-	testcase.request.headers['Host'] = 'default_file_server'
-	return testcase
+from testcase_generation.Resolution.default  import defaultTestCase
 
 def testCaseDefaultFileGetYes():
 	# TestCase
@@ -16,7 +11,7 @@ def testCaseDefaultFileGetYes():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/default_file/index.html', 'rb') as f:
+	with open('./ServerRoot/Resolution/default_file/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	return testcase
 
@@ -64,6 +59,6 @@ def testCaseDefaultFileSearch():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/default_file/index.html', 'rb') as f:
+	with open('./ServerRoot/Resolution/default_file/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	return testcase
