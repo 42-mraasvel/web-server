@@ -1,13 +1,14 @@
 #include "settings.hpp"
 #include <cstdio>
 #include <cstdlib>
+#include <errno.h>
 
 /*
 Wrapper for calling perror and returning ERR code
 */
 int syscallError(const std::string& str)
 {
-	perror(("syscallError: " + str).c_str());
+	PRINT_ERR << "syscallError: " << str << strerror(errno) << std::endl;
 	return ERR;
 }
 

@@ -1,4 +1,5 @@
 #include "HeaderField.hpp"
+#include "settings.hpp"
 #include <cstdio> // RM, REMOVE
 
 bool HeaderField::case_insensitive_less::operator() (const std::string& x, const std::string& y) const
@@ -96,9 +97,9 @@ void HeaderField::swap(HeaderField& x)
 
 void HeaderField::print() const
 {
-	printf("-- HeaderField --\n");
+	PRINT_DEBUG << "-- HeaderField --" << std::endl;
 	for (const_iterator it = _map.begin(); it != _map.end(); ++it)
 	{
-		printf("  %s: %s\n", it->first.c_str(), it->second.c_str());
+		PRINT_DEBUG << "  " << it->first << ": " << it->second << std::endl;
 	}
 }

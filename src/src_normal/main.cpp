@@ -9,6 +9,7 @@
 #include "utility/SmartPointer.hpp"
 #include "handler/RequestHandler.hpp"
 #include "tmp/create_address_map.hpp"
+#include "outputstream/Output.hpp"
 
 #ifndef USING_CATCH
 int main(int argc, char **argv)
@@ -22,12 +23,12 @@ int main(int argc, char **argv)
 		}
 		else if (argc == 1)
 		{
-			std::cout << RED_BOLD "Warning: No configuration file given, using default config" << RESET_COLOR << std::endl;
+			PRINT << RED_BOLD "Warning: " RESET_COLOR "No configuration file given, using default config" << std::endl;
 			configuration = "src/src_normal/config/resources/default.conf";
 		}
 		else
 		{
-			std::cerr << RED_BOLD "Invalid argument amount" << std::endl;
+			PRINT_ERR << "invalid argument amount" << std::endl;
 			exit(1);
 		}
 		Config config_file(configuration);
@@ -40,7 +41,7 @@ int main(int argc, char **argv)
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << e.what() << '\n';
+		PRINT_ERR << e.what() << std::endl;
 	}
 	return 0;
 }

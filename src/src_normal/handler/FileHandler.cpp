@@ -165,7 +165,7 @@ bool	FileHandler::openFile(FdTable & fd_table)
 	int	file_fd = open(_absolute_file_path.c_str(), _open_flag, 0644);
 	if (file_fd == ERR)
 	{
-		perror("open");
+		syscallError(_FUNC_ERR("open"));
 		markError(StatusCode::INTERNAL_SERVER_ERROR);
 		return false;
 	}
@@ -176,7 +176,7 @@ bool	FileHandler::openFile(FdTable & fd_table)
 		markError(StatusCode::INTERNAL_SERVER_ERROR);
 		return false;
 	}
-	printf(BLUE_BOLD "Open File:" RESET_COLOR " %s: [%d]\n", _absolute_file_path.c_str(), file_fd);
+	PRINT_DEBUG << BLUE_BOLD "Open File" RESET_COLOR ": " << _absolute_file_path << ": [" << file_fd << "]" << std::endl;
 	try
 	{
 		_file = FilePointer(new File(file_fd));
@@ -224,11 +224,11 @@ int	FileHandler::executeDelete()
 {
 	if (remove(_absolute_file_path.c_str()) == ERR)
 	{
-		perror("remove");
+		syscallError(_FUNC_ERR("remove"));
 		markError(StatusCode::INTERNAL_SERVER_ERROR);
 		return ERR;
 	}
-	printf(BLUE_BOLD "Delete File:" RESET_COLOR " [%s]\n", _absolute_file_path.c_str());
+	PRINT_DEBUG << BLUE_BOLD "Delete File" RESET_COLOR ": [" << _absolute_file_path << "]" << std::endl;
 	_file->setFlag(AFdInfo::COMPLETE);
 	return OK;
 }
@@ -276,7 +276,7 @@ void	FileHandler::update(std::string & response_body)
 void	FileHandler::exceptionEvent()
 {
 	markError(StatusCode::INTERNAL_SERVER_ERROR);
-	fprintf(stderr, "%sEXCEPTION%s: FileHandler\n", RED_BOLD, RESET_COLOR);
+	PRINT_ERR << "FileHandler: exceptionEvent" << std::endl;
 }
 
 int	FileHandler::redirectErrorPage(FdTable & fd_table, std::string const & file_path, int status_code)

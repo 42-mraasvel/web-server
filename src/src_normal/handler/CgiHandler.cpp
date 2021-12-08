@@ -52,8 +52,7 @@ bool CgiHandler::isCgi(Request const & request)
 */
 int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 {
-	printf(YELLOW_BOLD "-- CGI Execution Start --" RESET_COLOR "\n");
-
+	PRINT_DEBUG << YELLOW_BOLD "-- Executing CGI --" RESET_COLOR << std::endl;
 	/* 1. Preparation */
 	_status = CgiHandler::INCOMPLETE;
 
@@ -199,10 +198,11 @@ void CgiHandler::setSpecificHeaderField(HeaderField & header_field, bool content
 		//TODO: DISCUSS: check if should be removed
 		if (header_field.contains(it->first) && it->second != header_field[it->first])
 		{
-			fprintf(stderr, "  %sWARNING%s: %s:%d [%s]: Overwriting Field: %s: [%s] with [%s]\n",
-				RED_BOLD, RESET_COLOR,
-				__FILE__, __LINE__, __FUNCTION__, it->first.c_str(),
-				header_field[it->first].c_str(), it->second.c_str());
+			PRINT_WARNING << __FILE__ << ":" << __LINE__ << " " << __FUNCTION__ \
+				<< ": overwriting field: " \
+				<< it->first << ": [" << header_field[it->first] \
+				<< "] with [" << it->second << "]" << std::endl; 
+
 		}
 		if (!skippedHeaderField(it->first))
 		{
@@ -268,7 +268,7 @@ void CgiHandler::update(std::string & response_body)
 	}
 	else if (_timer.elapsed() >= TIMEOUT)
 	{
-		printf("%sCgiHandler%s: TIMEOUT\n", RED_BOLD, RESET_COLOR); 
+		PRINT_INFO << RED_BOLD "CgiHandler" RESET_COLOR ": Timeout" << std::endl;
 		finishCgi(CgiHandler::ERROR, StatusCode::GATEWAY_TIMEOUT);
 	}
 }
@@ -297,7 +297,7 @@ void CgiHandler::evaluateReader(std::string & response_body)
 void CgiHandler::exceptionEvent()
 {
 	finishCgi(CgiHandler::ERROR, StatusCode::INTERNAL_SERVER_ERROR);
-	fprintf(stderr, "%sEXCEPTION%s: CgiHandler\n", RED_BOLD, RESET_COLOR);
+	PRINT_ERR << "CgiHandler: exceptionEvent" << std::endl;
 }
 
 int CgiHandler::checkStatusField() const
@@ -305,7 +305,7 @@ int CgiHandler::checkStatusField() const
 	HeaderField::const_pair_type status = _header.get("Status");
 	if (status.second)
 	{
-		printf("Cgi returned StatusCode: %s\n", status.first->second.c_str());
+		PRINT_DEBUG << "Cgi returned status:  " << status.first->second << std::endl;
 		return WebservUtility::strtol(status.first->second);
 	}
 	return StatusCode::STATUS_OK;

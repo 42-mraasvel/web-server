@@ -21,9 +21,10 @@ _close_connection(false),
 _close_timer_set(false),
 _unsafe_request_count(0)
 {
-	printf("%s-- NEW CLIENT -- %s\n", RED_BOLD, RESET_COLOR);
-	printf("Connection: [%s]:[%d]\n", client.first.c_str(), client.second);
-	printf("Interface: [%s]:[%d]\n", interface.first.c_str(), interface.second);
+	PRINT_INFO << YELLOW_BOLD "-- New Connection --" RESET_COLOR << std::endl;
+	PRINT_INFO << "Connection: [" << client.first << "]:[" << client.second << "]" << std::endl;
+	PRINT_INFO << "Interface: [" << interface.first << "]:[" << client.second << "]" << std::endl;
+
 }
 
 Connection::~Connection() {}
@@ -65,7 +66,7 @@ int	Connection::readRequest(std::string & buffer)
 	ssize_t ret = recv(_fd, &buffer[0], BUFFER_SIZE, 0);
 	if (ret == ERR)
 	{
-		perror("Recv");
+		syscallError(_FUNC_ERR("perror"));
 		return ERR;
 	}
 	else if (ret == 0)
@@ -73,7 +74,7 @@ int	Connection::readRequest(std::string & buffer)
 		return ERR;
 	}
 	buffer.resize(ret);
-	printf("Request size: %lu, Bytes read: %ld\n", buffer.size(), ret);
+	PRINT_DEBUG << getName() << ": [" << getFd() << "]: Read " << ret << " bytes, Request size: " << buffer.size() << std::endl;
 	return OK;
 }
 
@@ -215,7 +216,7 @@ void	Connection::checkTimeOut()
 	}
 	else if (_timer.elapsed() >= TIMEOUT)
 	{
-		printf("%sConnection%s: [%d]: TIMEOUT\n", RED_BOLD, RESET_COLOR, getFd());
+		PRINT_INFO << getName() << ": [" << getFd() << "]: Timeout" << std::endl;
 		closeConnection();
 	}
 }
@@ -242,7 +243,7 @@ int	Connection::sendResponseString()
 		size_t size = std::min((size_t)BUFFER_SIZE, _response_string.size());
 		if (send(_fd, _response_string.c_str(), size, 0) == ERR)
 		{
-			perror("send");
+			syscallError(_FUNC_ERR("send"));
 			return ERR;
 		}
 		_response_string.erase(0, size);
@@ -277,7 +278,7 @@ void	Connection::exceptionEvent(FdTable & fd_table)
 
 void	Connection::closeConnection()
 {
-	std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
+	PRINT_INFO << BLUE_BOLD << getName() << RESET_COLOR ": [" << getFd() << "] is set to be closed." << RESET_COLOR << std::endl;
 	_flag = AFdInfo::TO_ERASE;
 }
 

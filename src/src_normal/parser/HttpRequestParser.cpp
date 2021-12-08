@@ -95,13 +95,7 @@ void HttpRequestParser::parseHeader(std::string const &buffer,
 	else if (_header_parser.isComplete())
 	{
 		request.header_fields.swap(_header_parser.getHeaderField());
-		try {
 		processRequestHeader(request);
-
-		} catch(...) {
-			printf("PROCESS REQUEST HANDLER THREW\n");
-			throw;
-		}
 	}
 }
 
