@@ -22,6 +22,7 @@ cp $METHOD_SAMPLE_FILE $DELETE_DIR
 
 $WEBSERV_DIR/$EXEC_NAME $CONFIG_FILE > /dev/null 2>&1 &
 
+sleep 0.0001
 process=$(ps -a | grep -v grep | grep $EXEC_NAME)
 if [ -z "$process" ]; then
 	echo "ERROR: not running: $EXEC_NAME"
