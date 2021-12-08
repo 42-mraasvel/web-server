@@ -12,15 +12,15 @@ if [ "$?" != "0" ]; then
 	exit 1
 fi
 
-rm -r $UPLOAD_DIR
+rm -rf $UPLOAD_DIR
 
 $WEBSERV_DIR/$EXEC_NAME $CONFIG_FILE > /dev/null 2>&1 &
 
-#process=$(ps -C ${EXEC_NAME} | grep a.out)
-#if [ -z "$process" ]; then
-#	echo "ERROR: not running: $EXEC_NAME"
-#	exit 1
-#fi
+process=$(ps -a | grep $EXEC_NAME)
+if [ -z "$process" ]; then
+	echo "ERROR: not running: $EXEC_NAME"
+	exit 1
+fi
 
 make > /dev/null && python3 src/main.py $IP_PORT $@
 
