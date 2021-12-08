@@ -74,7 +74,7 @@ void	FileHandler::setFileParameter()
 			return ;
 		case Method::POST:
 			_access_flag = W_OK;
-			_open_flag = O_CREAT | O_WRONLY;
+			_open_flag = O_CREAT | O_WRONLY | O_TRUNC;
 			_file_event = AFdInfo::WRITING;
 			if (_status_code == 0)
 			{
