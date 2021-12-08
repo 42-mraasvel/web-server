@@ -13,6 +13,7 @@
 Config Specific Defines
 */
 #define DEFAULT_PORT 80
+#define DEFAULT_ROOT "/var/www/html"
 
 /*
 Parsing Specific Defines
