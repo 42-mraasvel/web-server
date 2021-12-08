@@ -32,19 +32,17 @@ It will accept connections on that socket and process HTTP requests.
 
 - Configuration Options
 
-	Implemented similarly to NginX's configuration. All directives are explained in detail [here](#configuration-syntax-and-directives): 
-	
-	TODO: LINK
+	Implemented similarly to NginX's configuration. All directives are explained in detail [here](#configuration-syntax-and-directives).
 
 ## Usage
 
-### 1. Writing a configuration file
+### 1. Write a configuration file
 
-A configuration file can optionally be given to the web server as argument. See above for syntax and all configuration options.
+A configuration file can optionally be given to the web server as argument. See the link above for syntax and all configuration options.
 
 If not specified, a default configuration is used instead.
 
-### 2. Building and running the webserve
+### 2. Build and run the web server
 
 	./run.sh [OPTIONS] [ConfigurationFile]
 
@@ -52,19 +50,13 @@ The web server is now able to accept requests, this can be done through the brow
 
 TODO: link to options and describe what the options do, etc
 
-### 3. Sending Requests
+### 3. Send requests
 
-A typical HTTP request is done through either a browser, or a client program. You can use either a browser, curl, python, or any other custom implementation.
+A typical HTTP request is sent through either a browser or other client programs.
 
-If you're using the default configuration, you can use the following link:
+With the default configuration, you can test the web server by going to the following link:
 
 >http://localhost:8080
-
-### Appendix
-
-The `localhost` specifies the IP address of the server. It can also be an exact IP or a domain name that maps to an IP, such as `127.0.0.1` or `example.com`
-
-The `:8080` portion specifies the port you want to send the request to.
 
 ## Configuration Syntax and Directives
 
@@ -75,7 +67,7 @@ server {
 	listen 127.0.0.1:8080;
 	listen 8081;
 	server_name example.com *.example.com www.example.* "";
-	
+
 	error_page 404 /error_pages/404.html;
 	client_body_size 100M;
 
@@ -95,6 +87,10 @@ server {
 	location /outdated {
 		return 301 http://example.com:8080;
 	}
+
+	location = /exact_match/ {
+		root /var/www/other;
+	}
 }
 ```
 - Server Block
@@ -105,38 +101,36 @@ server {
 	}
 	```
 
-	These contain the options for how the web server should handle the requests.
+	Server blocks contain options for how the web server handles requests. There can be multiple server blocks.
 
-	The server blocks are resolved using the request interface address, the top-most block is the default server.
-
-	There can be multiple server blocks, each block can listen on multiple IP:PORT pairs.
+	Server blocks are resolved using the request address, the top-most block is the default.
 
 - Listen Directive
 	```
 	listen 127.0.0.1:8080;
 	```
-	Instructs the server to accept requests on this IP:PORT pair, multiple listen directives can be present in the same block.
+	Instructs the server to accept requests on this IP:Port pair, multiple listen directives can be present in the same block.
 	```
 	listen 8081;
 	```
-	If an IP is not specified, the server will bind to all interfaces for this port.
+	If an IP is not specified, the server will listen to all addresses for this port.
 
 - Server Names (optional)
 	```
 	server_name example.com *.example.com www.example.* "";
 	```
-	Used to further resolve server block for a request if there are multiple matches using the `Host` header field in the request.
+	Used to further resolve server blocks for a request if there are multiple matches using the `Host` header field in the request.
 
-	The wildcard `*` matches any number of characters before or after the given string.
+	Server names support wildcards `*`.
 
-	The empty server_name `""` will match with an empty Host header field. If no server_names are specified, this is the default value.
+	The empty server name `""` will match with an empty `Host` header field. If no server name is specified, `""` will be set as the default value.
 
 - Error Pages (optional)
 	```
 	error_page 404 /error_pages/404.html;
 	```
 
-	Specify a custom file to respond to certain error codes. If not specified or the file doesn't exist, the web server's default response is used.
+	Specify a custom file to respond to a given error code. If the error_page directive is not specified or the given file doesn't exist, the web server's default response is used.
 
 - Client Max Body Size (optional)
 	```
@@ -168,7 +162,7 @@ server {
 	}
 	```
 
-	More specific options for how the web server handles the request further, the request target is used to resolve the location block.
+	Location blocks contain more specific options for how the web server further handles requests, the request target is used to resolve the location block.
 
 	The most specific match is used, unless the `=` (exact match) option is specified, in which case the request target has to match exactly.
 
@@ -186,14 +180,14 @@ server {
 	allowed_methods GET POST DELETE;
 	```
 
-	Specifies the accepted HTTP methods for a particular location, all other methods will be rejected.
+	Specifies the accepted HTTP methods for a particular location, other methods will be rejected.
 
 - Root Directory (optional)
 	```
 	root /var/www/html;
 	```
 
-	Specifies the directory in which the web server should look for files to serve. The default value is `/var/www/html`
+	Specifies the directory in which the web server looks for files to serve. If no root directive is specified, the default value is `/var/www/html`.
 
 - Auto Index (optional)
 	```
@@ -201,7 +195,7 @@ server {
 	autoindex off;
 	```
 
-	If enabled and the request target is a directory, and a default file cannot be found, a directory listing is returned.
+	Auto index enables the web server to return a directory listing, when the request target is a directory and a default index is not found.
 
 	Default value: on
 
@@ -209,7 +203,7 @@ server {
 	```
 	index index.html index.php;
 	```
-	Specifies the default files to search for if the request target is a directory. Stops at the first match.
+	Specifies the default files to search for if the request target is a directory. The search stops at the first match.
 
 - CGI (optional)
 	```
@@ -217,14 +211,14 @@ server {
 	cgi .py /usr/bin/python3;
 	```
 
-	If the request target ends in the given file extension, the executable given will be executed as a CGI program, with the request target's full path as argument.
+	If the request target ends in the given file extension, the executable given will be executed as a CGI program with the request target's full path as an argument.
 
-- Uploading Files (optional)
+- Upload Store (optional)
 	```
 	upload_store /var/www/upload;
 	```
 
-	For POST requests, if an upload_store is specified, that directory will be where the file is stored instead of the server root.
+	The directory specified by the upload_store directive is used for POST requests to upload files. When not specified, files will be stored in the location block's root directory.
 
 - Redirections (optional)
 	```
