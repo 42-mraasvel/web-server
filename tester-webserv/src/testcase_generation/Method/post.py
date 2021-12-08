@@ -58,14 +58,27 @@ def testCasePostRootDirOld():
 	testcase.response.status_code = 204
 	return testcase
 
-def testCasePostForbidden():
+def testCasePostForbiddenFile():
 	# TestCase
 	testcase = defaultTestCase()
-	testcase.name = "PostUploadDirForbidden"
+	testcase.name = "PostUploadDirForbiddenFile"
 	# Request
 	testcase.request.method = 'POST'
 	testcase.request.target = '/Post/forbidden/forbidden.html'
-	testcase.request.body = 'Overwriting!!!'
+	testcase.request.body = 'Incoming!!!'
+	testcase.request.headers['content-length'] = str(len(testcase.request.body))
+	# Response
+	testcase.response.status_code = 403
+	return testcase
+
+def testCasePostForbiddenDir():
+	# TestCase
+	testcase = defaultTestCase()
+	testcase.name = "PostUploadDirForbiddenDir"
+	# Request
+	testcase.request.method = 'POST'
+	testcase.request.target = '/Post/forbidden/forbidden_dir/sub_dir/new.html'
+	testcase.request.body = 'Incoming!!!'
 	testcase.request.headers['content-length'] = str(len(testcase.request.body))
 	# Response
 	testcase.response.status_code = 403

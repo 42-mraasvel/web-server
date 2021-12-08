@@ -1,17 +1,39 @@
 -- General --
-
-	- HTTP Response Codes
-	- Method execution, response codes, body, etc
-	- Chunked
+	- Config File Error
+	- Bad Request from RequestParser (see Response Code 400 BAD_REQUEST)
+	v- Method Execution (response codes, body, etc)
+		- GET
+			- 200
+			- 404 NOT_FOUND
+		- POST
+			- with upload_store (201 CREATED, 204 NO_CONTENT)
+			- w/o upload_store >> root (201 CREATED, 204 NO_CONTENT)
+			- 403 FORBIDDEN (file, directory)
+		- DELETE
+			- 204 NO_CONTENT
+			- 404 NOT_FOUND
 	- Connection Management
+	- Response Codes
+		- 100 CONTINUE
+		v- 201 CREATED (see Method Execution)
+		- 3xx?
+		- 400 BAD_REQUEST
+			- CaseSensitivity
+		v- 403 FORBIDDEN (see Method Execution)
+		- 404 NOT_FOUND
+		// TODO: to add more
+		
 	- Response Header-Fields
+		- Retry
+		- Connection
+		v- Allow (see Location Block - Method allowed)
 		- Content-Type
 	- Test with different settings.hpp files (BUFFER_SIZE, LIMITS)
-	- CaseSensitivity
+		- Chunked
 
 -- Server Block --
 
-	- Interface resolution
+	- Interface resolution: listen
 	- Default host:port resolution
 		- Give an unknown server_name
 		- Resolved block should be block 1
@@ -28,18 +50,16 @@
 -- Location Block --
 
 	- Location block resolution
-		v- Auto Index
-		v- Default File
-	- Method allowed (GET, POST, DELETE)
+	v- Method allowed (GET, POST, DELETE)
 		- HeaderField (allowed: x)
-	- HTTP Redirections
-		- Location header-field
-		- Response Code (for different redirection types)
-		- Retry-After header-field
 	- Root Directory
+	v- Auto Index
+	v- Default File
 	- CGI: executable to test in/output
 		- Header-Fields
 		- StatusCode
 		- Environment variables
-	- File uploading (POST)
-		- Check content and existance of file after uploading
+	- HTTP Redirections
+		- Location header-field
+		- Response Code (for different redirection types)
+		- Retry-After header-field

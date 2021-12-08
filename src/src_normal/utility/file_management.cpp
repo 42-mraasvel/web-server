@@ -33,19 +33,21 @@ bool	isDirectoryExist(std::string const & directory_path)
 */
 int	createDirectories(std::string const & path)
 {
-	size_t	i = 1;
-	size_t	ret;
-	int		new_dir_count = 0;
+	size_t		i = 1;
+	size_t		ret;
+	int			new_dir_count = 0;
+	std::string	dir_path;
+	
 	while (i < path.size())
 	{
 		ret = path.find_first_of("/", i);
 		if (ret == std::string::npos)
 		{
-			return new_dir_count;
+			break;
 		}
 		else
 		{
-			std::string dir_path = path.substr(0, ret);
+			dir_path = path.substr(0, ret);
 			if (!isDirectoryExist(dir_path))
 			{
 				if (mkdir(dir_path.c_str(), 0755) == ERR)
@@ -56,6 +58,10 @@ int	createDirectories(std::string const & path)
 			}
 			i = ret + 1;
 		}
+	}
+	if (!dir_path.empty() && access(dir_path.c_str(), W_OK) == ERR)
+	{
+		return ERR;
 	}
 	return new_dir_count;
 }

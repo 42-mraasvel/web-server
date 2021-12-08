@@ -7,6 +7,7 @@ from testcase_generation.LocationBlock import default_file
 from testcase_generation.LocationBlock import notallowed
 from testcase_generation.LocationBlock import resolution
 from testcase_generation.Method import delete
+from testcase_generation.Method import get
 from testcase_generation.Method import post
 from testcase_generation.Redirection import redirection
 
@@ -44,10 +45,13 @@ def generate():
 	testcases.append(delete.testCaseDeleteDefaultFile())
 	testcases.append(delete.testCaseDeleteNotFound())
 	testcases.append(delete.testCaseDeleteForbidden())
+	testcases.append(get.testCaseGet())
+	testcases.append(get.testCaseGetNotFound())
 	testcases.append(post.testCasePostUploadDirNew())
 	testcases.append(post.testCasePostUploadDirOld())
 	testcases.append(post.testCasePostRootDirNew())
 	testcases.append(post.testCasePostRootDirOld())
-	testcases.append(post.testCasePostForbidden())
+	testcases.append(post.testCasePostForbiddenFile())
+	testcases.append(post.testCasePostForbiddenDir())
 	testcases.append(redirection.testCaseRedirect())
 	return testcases
