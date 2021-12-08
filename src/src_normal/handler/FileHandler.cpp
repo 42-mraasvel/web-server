@@ -157,6 +157,10 @@ bool	FileHandler::isUploadPathCreated()
 	{
 		_status_code = StatusCode::CREATED;
 	}
+	else
+	{
+		return isFileAuthorized();
+	}
 	return true;
 }
 
