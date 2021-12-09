@@ -34,13 +34,13 @@
 	- Test with different settings.hpp files (BUFFER_SIZE, LIMITS)
 		- Chunked
 
--- Server Block --
+-- Server Block directive --
 
-	- Interface resolution: listen
+	- Listen: Interface (host:port) resolution
 	- Default host:port resolution
 		- Give an unknown server_name
 		- Resolved block should be block 1
-	- server_name resolution
+	- server_name: resolution
 		- No server_name (host field) specified: should be block 1
 		- Give server_name for block 1, 2, 3, etc
 		- Resolved block should match

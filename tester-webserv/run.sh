@@ -1,6 +1,5 @@
 ############# Settings ##########################
 
-IP_PORT='localhost:8080'
 WEBSERV_DIR='..'
 EXEC_NAME='a.out'
 CONFIG_FILE='TestConfiguration.conf'
@@ -36,6 +35,6 @@ if [ -z "$process" ]; then
 	exit 1
 fi
 
-make > /dev/null && python3 src/main.py $IP_PORT $@
+make > /dev/null && python3 src/main.py $@
 
 pkill $EXEC_NAME

@@ -14,13 +14,13 @@ WHITE_BOLD  ="\033[1;37m"
 RESET_COLOR = "\033[0m"
 
 # Expect: list of testcases
-def execute(testcases = [], authority = 'localhost:8080', tags = []):
+def execute(testcases = [], tags = []):
 	passed = 0
 	failed = 0
 	for index, testcase in enumerate(testcases):
 		if tags and testcase.tag not in tags:
 			continue
-		response = sendRequest(testcase.request, authority)
+		response = sendRequest(testcase.request)
 		message = evaluateResponse(response, testcase.response, testcase.evaluator)
 		if message is not None:
 			failed += 1
@@ -47,8 +47,8 @@ def passMsg(testcase, index):
 		testcase.request.method, "with status code:", testcase.response.status_code)
 
 # Send the request
-def sendRequest(request, authority):
-	uri = 'http://' + authority + request.target
+def sendRequest(request):
+	uri = 'http://' + request.authority + request.target
 	return requests.request(request.method, uri, headers = request.headers, data = request.body)
 
 # Evaluate the response

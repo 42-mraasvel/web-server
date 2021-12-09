@@ -11,6 +11,7 @@ from testcase_generation.Method import get
 from testcase_generation.Method import post
 from testcase_generation.ServerBlock import default_errorpage
 from testcase_generation.ServerBlock import max_body_size
+from testcase_generation.ServerBlock import server_name
 
 def generate():
 	testcases = ParseTestCase.testCaseFromFiles()
@@ -68,4 +69,5 @@ def generate():
 	testcases.append(max_body_size.testCaseMaxBodySizeGet())
 	testcases.append(max_body_size.testCaseMaxBodySizePost())
 	testcases.append(max_body_size.testCaseMaxBodySizeDelete())
+	testcases.append(server_name.testCaseServerNameNotFound())
 	return testcases

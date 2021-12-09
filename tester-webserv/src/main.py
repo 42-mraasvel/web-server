@@ -4,19 +4,18 @@ import Error
 import Logger
 import GenerateTestCases
 
-USAGE_ERR_STR = "Arguments: [Hostname/IP:Port] [TestCase TAGS]"
+USAGE_ERR_STR = "Arguments: [TestCase TAGS]"
 
 def startup():
 	Logger.clearLog()
 	sys.path.insert(0, './TestCaseGeneration')
 
 if __name__ == '__main__':
-	if len(sys.argv) == 1:
+	if len(sys.argv) == 0:
 		Error.exitError(USAGE_ERR_STR)
 	startup()
-	authority = sys.argv[1]
-	tags = sys.argv[2:]
+	tags = sys.argv[1:]
 
 	testcases = GenerateTestCases.generate()
-	exit_status = ExecuteTest.execute(testcases, authority, tags)
+	exit_status = ExecuteTest.execute(testcases, tags)
 	exit(exit_status)

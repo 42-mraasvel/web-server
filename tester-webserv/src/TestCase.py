@@ -32,6 +32,7 @@ class Request:
 		self.target = str()
 		self.headers = dict()
 		self.body = bytes()
+		self.authority = 'localhost:8080'
 
 	def print(self):
 		for line in self.getLogList():

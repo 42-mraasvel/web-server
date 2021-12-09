@@ -1,9 +1,15 @@
 import TestCase
 from testcase_generation.ServerBlock.default import defaultTestCase
 
+def defaultErrorPageTestCase():
+	# TestCase
+	testcase = defaultTestCase ()
+	testcase.request.headers['Host'] = 'serverblock_errorpage'
+	return testcase
+	
 def testCaseDefaultErrorPageRedirect1():
 	# TestCase
-	testcase = defaultTestCase()
+	testcase = defaultErrorPageTestCase()
 	# Request
 	testcase.name = "DefaultErrorPageRedirect1"
 	testcase.request.method = 'GET'
@@ -18,7 +24,7 @@ def testCaseDefaultErrorPageRedirect1():
 
 def testCaseDefaultErrorPageRedirect2():
 	# TestCase
-	testcase = defaultTestCase()
+	testcase = defaultErrorPageTestCase()
 	# Request
 	testcase.name = "DefaultErrorPageRedirect2"
 	testcase.request.method = 'DELETE'
@@ -36,7 +42,7 @@ def testCaseDefaultErrorPageRedirect2():
 
 def testCaseDefaultErrorPageRedirectNotFound():
 	# TestCase
-	testcase = defaultTestCase()
+	testcase = defaultErrorPageTestCase()
 	# Request
 	testcase.name = 'DefaultErrorPageRedirectNotFound'
 	testcase.request.method = 'POST'
@@ -53,7 +59,7 @@ def testCaseDefaultErrorPageRedirectNotFound():
 
 def testCaseDefaultErrorPageNotRedirect():
 	# TestCase
-	testcase = defaultTestCase()
+	testcase = defaultErrorPageTestCase()
 	testcase.name = "DefaultErrorPageNotRedirect"
 	# Request
 	testcase.request.method = 'POST'
