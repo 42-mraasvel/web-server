@@ -21,6 +21,7 @@ FORBIDDEN_SUBDIR=$FORBIDDEN_DIR'/forbidden_dir'
 rm -rf $TEMP_DIR
 
 #build for Method/Delete
+mkdir -p $DELETE_DIR
 cp $METHOD_SAMPLE_FILE $DELETE_DIR
 
 #remove forbidden main directory
