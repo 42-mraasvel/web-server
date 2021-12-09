@@ -64,20 +64,33 @@ def testCasePostForbiddenFile():
 	testcase.name = "PostUploadDirForbiddenFile"
 	# Request
 	testcase.request.method = 'POST'
-	testcase.request.target = '/Post/forbidden/forbidden.html'
+	testcase.request.target = '/forbidden/forbidden.html'
 	testcase.request.body = 'Incoming!!!'
 	testcase.request.headers['content-length'] = str(len(testcase.request.body))
 	# Response
 	testcase.response.status_code = 403
 	return testcase
 
-def testCasePostForbiddenDir():
+def testCasePostForbiddenDir1():
 	# TestCase
 	testcase = defaultTestCase()
-	testcase.name = "PostUploadDirForbiddenDir"
+	testcase.name = "PostUploadDirForbiddenDir1"
 	# Request
 	testcase.request.method = 'POST'
-	testcase.request.target = '/Post/forbidden/forbidden_dir/sub_dir/new.html'
+	testcase.request.target = '/forbidden/forbidden_dir/sample.html'
+	testcase.request.body = 'Incoming!!!'
+	testcase.request.headers['content-length'] = str(len(testcase.request.body))
+	# Response
+	testcase.response.status_code = 403
+	return testcase
+
+def testCasePostForbiddenDir2():
+	# TestCase
+	testcase = defaultTestCase()
+	testcase.name = "PostUploadDirForbiddenDir2"
+	# Request
+	testcase.request.method = 'POST'
+	testcase.request.target = '/forbidden/forbidden_dir/nonexisting_dir/nonexisting.html'
 	testcase.request.body = 'Incoming!!!'
 	testcase.request.headers['content-length'] = str(len(testcase.request.body))
 	# Response

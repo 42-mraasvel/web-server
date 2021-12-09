@@ -19,6 +19,7 @@ class RequestExecutor
 			AUTO_INDEX_ON,
 			HANDLER_ERROR,
 			TARGET_NOT_FOUND,
+			TARGET_FORBIDDEN,
 			TARGET_IS_DIRECTORY
 		};
 

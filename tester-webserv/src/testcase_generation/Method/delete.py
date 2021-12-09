@@ -37,13 +37,25 @@ def testCaseDeleteNotFound():
 	testcase.response.status_code = 404
 	return testcase
 
-def testCaseDeleteForbidden():
+def testCaseDeleteForbiddenFile():
 	# TestCase
 	testcase = defaultTestCase()
-	testcase.name = "DeleteForbidden"
+	testcase.name = "DeleteForbiddenFile"
 	# Request
 	testcase.request.method = 'DELETE'
-	testcase.request.target = '/Delete/Forbidden.html'
+	testcase.request.target = '/forbidden/forbidden.html'
+
+	# Response
+	testcase.response.status_code = 403
+	return testcase
+
+def testCaseDeleteForbiddenDir():
+	# TestCase
+	testcase = defaultTestCase()
+	testcase.name = "DeleteForbiddenDir"
+	# Request
+	testcase.request.method = 'DELETE'
+	testcase.request.target = '/forbidden/forbidden_dir/sample.html'
 
 	# Response
 	testcase.response.status_code = 403

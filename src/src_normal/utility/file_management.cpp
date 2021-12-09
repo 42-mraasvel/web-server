@@ -8,7 +8,7 @@
 namespace WebservUtility
 {
 
-bool	isFileExist(std::string const & file_path)
+bool	isFileExisted(std::string const & file_path)
 {
 	if (access(file_path.c_str(), F_OK) == ERR)
 	{
@@ -17,7 +17,7 @@ bool	isFileExist(std::string const & file_path)
 	return true;
 }
 
-bool	isDirectoryExist(std::string const & directory_path)
+bool	isDirectoryExisted(std::string const & directory_path)
 {
 	DIR *dir = opendir(directory_path.c_str());
 	if (dir == NULL)
@@ -48,7 +48,7 @@ int	createDirectories(std::string const & path)
 		else
 		{
 			dir_path = path.substr(0, ret);
-			if (!isDirectoryExist(dir_path))
+			if (!isDirectoryExisted(dir_path))
 			{
 				if (mkdir(dir_path.c_str(), 0755) == ERR)
 				{

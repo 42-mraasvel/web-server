@@ -109,9 +109,16 @@ bool	FileHandler::isFileValid()
 
 bool	FileHandler::isFileExisted()
 {
-	if (!WebservUtility::isFileExist(_absolute_file_path))
+	if (!WebservUtility::isFileExisted(_absolute_file_path))
 	{
-		markError(StatusCode::NOT_FOUND);
+		if (errno == EACCES)
+		{
+			markError(StatusCode::FORBIDDEN);
+		}
+		else
+		{
+			markError(StatusCode::NOT_FOUND);
+		}
 		return false;
 	}
 	return true;
@@ -153,7 +160,7 @@ bool	FileHandler::isUploadPathCreated()
 		}
 		return false;
 	}
-	if (!WebservUtility::isFileExist(_absolute_file_path))
+	if (!WebservUtility::isFileExisted(_absolute_file_path))
 	{
 		_status_code = StatusCode::CREATED;
 	}

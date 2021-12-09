@@ -29,3 +29,15 @@ def testCaseGetNotFound():
 	testcase.response.status_code = 404
 	return testcase
 
+
+def testCaseGetForbiddenFile():
+	# TestCase
+	testcase = defaultTestCase()
+	testcase.name = "GetForbiddenFile"
+	# Request
+	testcase.request.method = 'GET'
+	testcase.request.target = '/forbidden/forbidden.html'
+
+	# Response
+	testcase.response.status_code = 403
+	return testcase

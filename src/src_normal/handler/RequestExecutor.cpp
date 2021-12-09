@@ -96,7 +96,7 @@ void	RequestExecutor::checkAutoIndexDirectory(Request const & request)
 	{
 		markStatus(BAD_REQUEST, StatusCode::BAD_REQUEST);
 	}
-	else if (!WebservUtility::isFileExist(request.config_info.resolved_file_path))
+	else if (!WebservUtility::isFileExisted(request.config_info.resolved_file_path))
 	{
 		markStatus(TARGET_NOT_FOUND, StatusCode::NOT_FOUND);
 	}
@@ -121,9 +121,17 @@ bool	RequestExecutor::isRequestTargetValid(Response const & response, std::strin
 	{
 		return true;
 	}
-	if (!WebservUtility::isFileExist(response.config_info.resolved_file_path))
+	if (!WebservUtility::isFileExisted(response.config_info.resolved_file_path))
 	{
-		markStatus(TARGET_NOT_FOUND, StatusCode::NOT_FOUND);
+		if (errno == EACCES)
+		{
+			printf(">>>>>>>> file forbidden: %s\n", response.config_info.resolved_file_path.c_str());
+			markStatus(TARGET_FORBIDDEN, StatusCode::FORBIDDEN);
+		}
+		else
+		{
+			markStatus(TARGET_NOT_FOUND, StatusCode::NOT_FOUND);
+		}
 		return false;
 	}
 	DIR*	dir = opendir(response.config_info.resolved_file_path.c_str());
