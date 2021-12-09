@@ -3,11 +3,12 @@ from testcase_generation.cgi import tester42
 from testcase_generation.locationblock import autoindex
 from testcase_generation.locationblock import default_file
 from testcase_generation.locationblock import notallowed
+from testcase_generation.locationblock import redirection
 from testcase_generation.locationblock import resolution
+from testcase_generation.locationblock import root
 from testcase_generation.Method import delete
 from testcase_generation.Method import get
 from testcase_generation.Method import post
-from testcase_generation.Redirection import redirection
 
 def generate():
 	testcases = ParseTestCase.testCaseFromFiles()
@@ -30,10 +31,19 @@ def generate():
 	testcases.append(notallowed.testCaseGetNotAllowed())
 	testcases.append(notallowed.testCasePostNotAllowed())
 	testcases.append(notallowed.testCaseDeleteNotAllowed())
+	testcases.append(redirection.testCaseRedirectGet())
+	testcases.append(redirection.testCaseRedirectPost())
+	testcases.append(redirection.testCaseRedirectDelete())
 	testcases.append(resolution.testCaseMatchSlash())
 	testcases.append(resolution.testCaseBlockOne())
 	testcases.append(resolution.testCaseBlockTwo())
 	testcases.append(resolution.testCaseNonExistantBlock())
+	testcases.append(root.testCaseRootEmpty())
+	testcases.append(root.testCaseRootError1())
+	testcases.append(root.testCaseRootError2())
+	testcases.append(root.testCaseRootError3())
+	testcases.append(root.testCaseRootError4())
+	testcases.append(root.testCaseRootError5())
 	testcases.append(delete.testCaseDelete())
 	testcases.append(delete.testCaseDeleteDefaultFile())
 	testcases.append(delete.testCaseDeleteNotFound())
@@ -49,5 +59,4 @@ def generate():
 	testcases.append(post.testCasePostForbiddenFile())
 	testcases.append(post.testCasePostForbiddenDir1())
 	testcases.append(post.testCasePostForbiddenDir2())
-	testcases.append(redirection.testCaseRedirect())
 	return testcases

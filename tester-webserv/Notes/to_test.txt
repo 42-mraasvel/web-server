@@ -1,10 +1,12 @@
+********** python tester **********
+
 -- General --
 	- Config File Error
-	- Bad Request from RequestParser (see Response Code 400 BAD_REQUEST)
 	v- Method Execution (response codes, body, etc)
 		- GET
 			- 200
 			- 404 NOT_FOUND
+			- 403 FORBIDDEN (file)
 		- POST
 			- with upload_store (201 CREATED, 204 NO_CONTENT)
 			- w/o upload_store >> root (201 CREATED, 204 NO_CONTENT)
@@ -12,6 +14,7 @@
 		- DELETE
 			- 204 NO_CONTENT
 			- 404 NOT_FOUND
+			- 403 FORBIDDEN (file, directory)
 	- Connection Management
 	- Response Codes
 		- 100 CONTINUE
@@ -47,19 +50,34 @@
 	- Client Max Body Size
 		- Specify a block with a small max body size: assert Status Code
 
--- Location Block --
+-- Location Block directive--
 
-	- Location block resolution
+	(to extend)- Location block resolution
 	v- Method allowed (GET, POST, DELETE)
 		- HeaderField (allowed: x)
-	- Root Directory
+	v- Root Directory (empty root, root syntax error)
 	v- Auto Index
 	v- Default File
 	- CGI: executable to test in/output
 		- Header-Fields
 		- StatusCode
 		- Environment variables
-	- HTTP Redirections
+	v- upload_store (see Method Execution - POST)
+	v- return/redirection (GET/POST/DELETE)
+
+********** c++ client program **********
+	- Bad Request from RequestParser (see Response Code 400 BAD_REQUEST)
+		- target error
+	- HTTP version 1.0
+	- Duplicate header-fields
+	- Missing host field
+	- Expect: 100-continue
+	- Interface resolution (ServerBlock resolution based on IP:PORT specification, all requests go in through a single interface)
+	- Timeout
+	- Syntax Checks
+	- RequestValidator functions: check one by one
+	- HTTP Redirections (direct response)
 		- Location header-field
 		- Response Code (for different redirection types)
 		- Retry-After header-field
+
