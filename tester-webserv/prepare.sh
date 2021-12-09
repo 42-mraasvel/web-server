@@ -33,11 +33,15 @@ fi
 rm -rf $FORBIDEEN_DIR
 
 #build forbidden main directory
-mkdir $FORBIDDEN_DIR
+if [ ! -d "$FORBIDDEN_DIR" ]; then
+	mkdir $FORBIDDEN_DIR
+fi
 #	build forbidden file
 cp $METHOD_SAMPLE_FILE $FORBIDDEN_FILE
 chmod 0111 $FORBIDDEN_FILE
 #	build forbidden dir
-mkdir $FORBIDDEN_SUBDIR
+if [ ! -d "$FORBIDDEN_SUBDIR" ]; then
+	mkdir $FORBIDDEN_SUBDIR
+fi
 cp $METHOD_SAMPLE_FILE $FORBIDDEN_SUBDIR'/sample.html'
 chmod 0444 $FORBIDDEN_SUBDIR

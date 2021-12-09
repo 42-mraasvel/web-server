@@ -2,7 +2,7 @@ import TestCase
 
 def defaultTestCase():
 	testcase = TestCase.TestCase()
-	testcase.tag = 'locationblock'
+	testcase.tag = 'LocationBlock'
 	testcase.request.method = 'GET'
 	testcase.request.headers['Host'] = 'locationblock'
 	return testcase
