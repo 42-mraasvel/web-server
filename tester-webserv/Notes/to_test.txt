@@ -44,11 +44,11 @@
 		- No server_name (host field) specified: should be block 1
 		- Give server_name for block 1, 2, 3, etc
 		- Resolved block should match
-	- Default error page
+	v- Default error page
 		- Force a 404 error: Status Code and body should match the error page
 		- Error with nonexistant error page
-	- Client Max Body Size
-		- Specify a block with a small max body size: assert Status Code
+	v- Client Max Body Size
+		- max body too small
 
 -- Location Block directive--
 

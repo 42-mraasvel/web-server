@@ -94,6 +94,8 @@ def evaluateNoBody(status_code, content):
 def evaluateBody(content, exp_content, should_cmp = True):
 	if not should_cmp:
 		return None
+	if type(exp_content) == str:
+		exp_content = exp_content.encode('ascii')
 	if content != exp_content:
 		# return createMessage('Body', content, exp_content)
 		return createMessage('Body', 'Len: ' + str(len(content)), 'Len: ' + str(len(exp_content)))

@@ -9,6 +9,8 @@ from testcase_generation.locationblock import root
 from testcase_generation.Method import delete
 from testcase_generation.Method import get
 from testcase_generation.Method import post
+from testcase_generation.ServerBlock import default_errorpage
+from testcase_generation.ServerBlock import max_body_size
 
 def generate():
 	testcases = ParseTestCase.testCaseFromFiles()
@@ -59,4 +61,11 @@ def generate():
 	testcases.append(post.testCasePostForbiddenFile())
 	testcases.append(post.testCasePostForbiddenDir1())
 	testcases.append(post.testCasePostForbiddenDir2())
+	testcases.append(default_errorpage.testCaseDefaultErrorPageRedirect1())
+	testcases.append(default_errorpage.testCaseDefaultErrorPageRedirect2())
+	testcases.append(default_errorpage.testCaseDefaultErrorPageRedirectNotFound())
+	testcases.append(default_errorpage.testCaseDefaultErrorPageNotRedirect())
+	testcases.append(max_body_size.testCaseMaxBodySizeGet())
+	testcases.append(max_body_size.testCaseMaxBodySizePost())
+	testcases.append(max_body_size.testCaseMaxBodySizeDelete())
 	return testcases

@@ -8,7 +8,7 @@ SERVER_ROOT='./ServerRoot'
 
 #Server program log
 SERVER_LOG_FILE='./server.log'
-SERVER_LOG=off #toggle on/off
+SERVER_LOG=on #toggle on/off
 
 ####################################################
 
