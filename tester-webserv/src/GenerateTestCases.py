@@ -1,11 +1,9 @@
 import ParseTestCase
 from testcase_generation.cgi import tester42
-from testcase_generation import example
-from testcase_generation import example2
-from testcase_generation.LocationBlock import autoindex
-from testcase_generation.LocationBlock import default_file
-from testcase_generation.LocationBlock import notallowed
-from testcase_generation.LocationBlock import resolution
+from testcase_generation.locationblock import autoindex
+from testcase_generation.locationblock import default_file
+from testcase_generation.locationblock import notallowed
+from testcase_generation.locationblock import resolution
 from testcase_generation.Method import delete
 from testcase_generation.Method import get
 from testcase_generation.Method import post
@@ -15,11 +13,6 @@ def generate():
 	testcases = ParseTestCase.testCaseFromFiles()
 	testcases.append(tester42.testCase42Get())
 	testcases.append(tester42.testCase42Post())
-	testcases.append(example.testCaseFailingTestCase())
-	testcases.append(example.testCaseExampleCustomEvaluation())
-	testcases.append(example.testCaseSecondTestCase())
-	testcases.append(example.testCaseSimpleTestCase())
-	testcases.append(example2.testCaseSimpleTestCase())
 	testcases.append(autoindex.testCaseAutoindexOnGet())
 	testcases.append(autoindex.testCaseAutoindexOnPost())
 	testcases.append(autoindex.testCaseAutoindexOnDelete())

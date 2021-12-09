@@ -12,6 +12,14 @@ OUTFILE := $(SDIR)/GenerateTestCases.py
 PY := python3
 PYSCRIPT := ./search.py 
 
+all: $(OUTFILE)
+
 # Making the generator file
 $(OUTFILE): $(TESTFILES)
 	$(PY) $(PYSCRIPT) $(TESTCASEDIR) $(PREFIX) $^ > $@
+
+clean:
+	$(RM) $(OUTFILE)
+
+re: clean
+	$(MAKE) all
