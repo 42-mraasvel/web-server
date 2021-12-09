@@ -95,7 +95,7 @@ class TestCase:
 	
 	def getLogString(self):
 		lines = self.request.getLogList() + self.response.getLogList()
-		result = '[INFO] TestCase Tag/Name: \'{}\'\n'.format(self.tag)
+		result = '[INFO] TestCase Tag/Name: \'{}-{}\'\n'.format(self.tag, self.name)
 		for line in lines:
 			result += line + "\n"
 		return result
