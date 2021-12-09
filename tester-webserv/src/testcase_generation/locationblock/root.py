@@ -2,7 +2,7 @@ import TestCase
 
 def defaultTestCase():
 	testcase = TestCase.TestCase()
-	testcase.tag = 'locationblock'
+	testcase.tag = 'LocationBlock'
 	testcase.request.method = 'GET'
 	testcase.request.headers['Host'] = 'locationblock_root'
 	testcase.response.status_code = 404
@@ -13,6 +13,13 @@ def testCaseRootEmpty():
 	# Request
 	testcase.name = 'RootEmpty'
 	testcase.request.target = '/emptyroot'
+	return testcase
+
+def testCaseRootErrorFile():
+	testcase = defaultTestCase()
+	# Request
+	testcase.name = 'RootFile'
+	testcase.request.target = '/'
 	return testcase
 
 def testCaseRootError1():

@@ -338,8 +338,6 @@ ConfigInfo::location_block_pointer	ConfigResolver::resolveIndexFile(StringVector
 			std::string file = final_location->_root + temp_target;
 			if (access(file.c_str(), F_OK) == OK)
 			{
-				printf(RED_BOLD "temp_target: %s\n" RESET_COLOR, temp_target.c_str());
-				printf(RED_BOLD "final_root: %s\n" RESET_COLOR, final_location->_root.c_str());
 				info.resolved_target = temp_target;
 				return final_location;
 			}

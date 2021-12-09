@@ -2,50 +2,53 @@ import TestCase
 
 def defaultTestCase():
 	testcase = TestCase.TestCase()
-	testcase.tag = 'locationblock'
+	testcase.tag = 'LocationBlock'
 	testcase.request.method = 'GET'
 	testcase.request.headers['Host'] = 'locationblock'
 	return testcase
 
-def testCaseMatchSlash():
+def testCaseResolutionMatchSlash():
 	testcase = defaultTestCase()
 
-	testcase.name = 'MatchSlash'
+	testcase.name = 'ResolutionMatchSlash'
 	# Request
 	testcase.request.target = '/'
 	# Response
 	testcase.response.status_code = 200
-	with open('./ServerRoot/locationblock/index.html', 'rb') as f:
-		testcase.response.body = f.read()
 	testcase.response.expect_body = True
+	with open('./ServerRoot/LocationBlock/index.html', 'rb') as f:
+		testcase.response.body = f.read()
+	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
 
-def testCaseBlockOne():
+def testCaseResolutionBlockOne():
 	testcase = defaultTestCase()
-	testcase.name = 'BlockOne'
+	testcase.name = 'ResolutionBlockOne'
 	# Request
 	testcase.request.target = '/block1/'
 	# Response
 	testcase.response.status_code = 200
-	with open('./ServerRoot/locationblock/block1/block1/index.html', 'rb') as f:
-		testcase.response.body = f.read()
 	testcase.response.expect_body = True
+	with open('./ServerRoot/LocationBlock/block1/block1/index.html', 'rb') as f:
+		testcase.response.body = f.read()
+	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
 
-def testCaseBlockTwo():
+def testCaseResolutionBlockTwo():
 	testcase = defaultTestCase()
-	testcase.name = 'ExactMatch'
+	testcase.name = 'ResolutionExactMatch'
 	testcase.request.target = '/block2/index.html'
 	# Response
 	testcase.response.status_code = 200
-	with open('./ServerRoot/locationblock/block2/block2/index.html', 'rb') as f:
-		testcase.response.body = f.read()
 	testcase.response.expect_body = True
+	with open('./ServerRoot/LocationBlock/block2/block2/index.html', 'rb') as f:
+		testcase.response.body = f.read()
+	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
 
-def testCaseNonExistantBlock():
+def testCaseResolutionNonExistantBlock():
 	testcase = defaultTestCase()
-	testcase.name = 'NoMatch'
+	testcase.name = 'ResolutionNoMatch'
 	testcase.request.target = '/doesntexist/x/y/z'
 	# Response
 	testcase.response.status_code = 404

@@ -2,7 +2,7 @@ import TestCase
 
 def defaultTestCase():
 	testcase = TestCase.TestCase()
-	testcase.tag = 'locationblock'
+	testcase.tag = 'LocationBlock'
 	testcase.request.headers['Host'] = 'locationblock_index'
 	return testcase
 
@@ -85,6 +85,7 @@ def testCaseAutoindexIndexGet():
 	testcase.response.expect_body = True
 	with open('./ServerRoot/locationblock/auto_index/index/index.html', 'rb') as f:
 		testcase.response.body = f.read()
+	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
 
 def testCaseAutoindexIndexPost():

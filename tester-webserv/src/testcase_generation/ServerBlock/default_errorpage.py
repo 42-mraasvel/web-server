@@ -10,8 +10,8 @@ def defaultErrorPageTestCase():
 def testCaseDefaultErrorPageRedirect1():
 	# TestCase
 	testcase = defaultErrorPageTestCase()
-	# Request
 	testcase.name = "DefaultErrorPageRedirect1"
+	# Request
 	testcase.request.method = 'GET'
 	testcase.request.target = '/nonexisting.html'
 	# Response
@@ -25,11 +25,10 @@ def testCaseDefaultErrorPageRedirect1():
 def testCaseDefaultErrorPageRedirect2():
 	# TestCase
 	testcase = defaultErrorPageTestCase()
-	# Request
 	testcase.name = "DefaultErrorPageRedirect2"
+	# Request
 	testcase.request.method = 'DELETE'
 	testcase.request.target = '/nonexisting.html'
-
 	# Response
 	testcase.response.status_code = 405
 	testcase.response.expect_body = True
@@ -43,13 +42,12 @@ def testCaseDefaultErrorPageRedirect2():
 def testCaseDefaultErrorPageRedirectNotFound():
 	# TestCase
 	testcase = defaultErrorPageTestCase()
-	# Request
 	testcase.name = 'DefaultErrorPageRedirectNotFound'
+	# Request
 	testcase.request.method = 'POST'
 	testcase.request.target = '/nonexisting/'
 	testcase.request.body = 'Incoming!!!!!'
 	testcase.request.headers['content-length'] = str(len(testcase.request.body))
-
 	# Response
 	testcase.response.status_code = 400
 	testcase.response.expect_body = True

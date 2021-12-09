@@ -1,5 +1,5 @@
 import TestCase
-from testcase_generation.locationblock.autoindex  import defaultTestCase
+from testcase_generation.LocationBlock.autoindex  import defaultTestCase
 
 def testCaseDefaultFileGetYes():
 	# TestCase
@@ -11,8 +11,9 @@ def testCaseDefaultFileGetYes():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/locationblock/default_file/index.html', 'rb') as f:
+	with open('./ServerRoot/LocationBlock/default_file/index.html', 'rb') as f:
 		testcase.response.body = f.read()
+	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
 
 def testCaseDefaultFilePost():
@@ -59,6 +60,7 @@ def testCaseDefaultFileSearch():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/locationblock/default_file/index.html', 'rb') as f:
+	with open('./ServerRoot/LocationBlock/default_file/index.html', 'rb') as f:
 		testcase.response.body = f.read()
+	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase

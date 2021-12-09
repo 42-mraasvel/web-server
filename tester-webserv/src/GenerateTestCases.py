@@ -1,17 +1,18 @@
 import ParseTestCase
 from testcase_generation.cgi import tester42
-from testcase_generation.locationblock import autoindex
-from testcase_generation.locationblock import default_file
-from testcase_generation.locationblock import notallowed
-from testcase_generation.locationblock import redirection
-from testcase_generation.locationblock import resolution
-from testcase_generation.locationblock import root
+from testcase_generation.LocationBlock import autoindex
+from testcase_generation.LocationBlock import default_file
+from testcase_generation.LocationBlock import notallowed
+from testcase_generation.LocationBlock import redirection
+from testcase_generation.LocationBlock import resolution
+from testcase_generation.LocationBlock import root
 from testcase_generation.Method import delete
 from testcase_generation.Method import get
 from testcase_generation.Method import post
 from testcase_generation.ServerBlock import default_errorpage
 from testcase_generation.ServerBlock import max_body_size
 from testcase_generation.ServerBlock import server_name
+from testcase_generation.StatusCode import status_code
 
 def generate():
 	testcases = ParseTestCase.testCaseFromFiles()
@@ -37,11 +38,13 @@ def generate():
 	testcases.append(redirection.testCaseRedirectGet())
 	testcases.append(redirection.testCaseRedirectPost())
 	testcases.append(redirection.testCaseRedirectDelete())
-	testcases.append(resolution.testCaseMatchSlash())
-	testcases.append(resolution.testCaseBlockOne())
-	testcases.append(resolution.testCaseBlockTwo())
-	testcases.append(resolution.testCaseNonExistantBlock())
+	testcases.append(redirection.testCaseRedirect307())
+	testcases.append(resolution.testCaseResolutionMatchSlash())
+	testcases.append(resolution.testCaseResolutionBlockOne())
+	testcases.append(resolution.testCaseResolutionBlockTwo())
+	testcases.append(resolution.testCaseResolutionNonExistantBlock())
 	testcases.append(root.testCaseRootEmpty())
+	testcases.append(root.testCaseRootErrorFile())
 	testcases.append(root.testCaseRootError1())
 	testcases.append(root.testCaseRootError2())
 	testcases.append(root.testCaseRootError3())
@@ -69,5 +72,14 @@ def generate():
 	testcases.append(max_body_size.testCaseMaxBodySizeGet())
 	testcases.append(max_body_size.testCaseMaxBodySizePost())
 	testcases.append(max_body_size.testCaseMaxBodySizeDelete())
-	testcases.append(server_name.testCaseServerNameNotFound())
+	testcases.append(server_name.testCaseServerName8080Default())
+	testcases.append(server_name.testCaseServerName8081Default())
+	testcases.append(server_name.testCaseServerName8081First())
+	testcases.append(server_name.testCaseServerName8081Second())
+	testcases.append(server_name.testCaseServerNameWildcardExactMatch())
+	testcases.append(server_name.testCaseServerNameWildcardFront())
+	testcases.append(server_name.testCaseServerNameWildcardFrontPriority())
+	testcases.append(server_name.testCaseServerNameWildcardBack())
+	testcases.append(status_code.testCaseExpectError())
+	testcases.append(status_code.testCaseMethodNotImplemented())
 	return testcases
