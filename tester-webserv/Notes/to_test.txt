@@ -7,7 +7,7 @@
 		- GET
 			- 200
 			- 404 NOT_FOUND
-			- 403 FORBIDDEN (file)
+			x- 403 FORBIDDEN (unable to set to 'user has no read permission')
 		- POST
 			- with upload_store (201 CREATED, 204 NO_CONTENT)
 			- w/o upload_store >> root (201 CREATED, 204 NO_CONTENT)

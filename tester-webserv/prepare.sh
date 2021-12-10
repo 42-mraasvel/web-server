@@ -34,7 +34,7 @@ if [ -f "$FORBIDDEN_FILE" ]; then
 	rm -f $FORBIDDEN_FILE
 fi
 cp $METHOD_SAMPLE_FILE $FORBIDDEN_FILE
-chmod a=x $FORBIDDEN_FILE
+chmod a=r $FORBIDDEN_FILE
 
 #(re)build forbidden sub directory
 if [ -d "$FORBIDDEN_SUBDIR" ]; then
