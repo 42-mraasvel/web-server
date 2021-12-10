@@ -7,47 +7,41 @@
 class Config
 {
 	public:
-		Config(std::string const & config_file);
-		~Config();
-		// getter
 		typedef std::vector<ConfigServer>::const_iterator	const_iterator;
-
 		typedef std::vector<ConfigServer::server_pointer> 					server_block_vector;
 		typedef std::pair<std::string, int>					ip_host_pair;
 		typedef std::map<ip_host_pair, server_block_vector>	address_map;
 		typedef address_map::const_iterator					const_iterator_map;
 
 
-
+	public:
+		Config(std::string const & config_file);
+		~Config();
 		const_iterator begin() const;
 		const_iterator end() const;
-
-		// parsing
 		int parser();
 	
 	private:
 		std::string const & tokenPreper(std::string str);
-		int	splitToken(std::string const & string);
-		void tokenizer(std::string const & body);
-
-		int	parseConfigFile();
-		int	parseServer();
-		int	parseListen();
-		int	parseServerName();
-		int parseClientBodySize();
-		int parseAllowedMethods();
-		int	parseLocation();
-		int	parseAutoindex();
-		int	parseErrorPage();
-		int	parseCgi();
-		int	parseIndex();
-		int	parseRoot();
-		int parseReturn();
-		int parseUploadStore();
-		
-		int	checkExpectedSyntax(std::string str);
-		int	checkExpectedSyntax(std::string str1, std::string str2);
-		int	checkExpectedSyntax(std::string str1, std::string str2, std::string str3);
+		void	splitToken(std::string const & string);
+		void	tokenizer(std::string const & body);
+		int		parseConfigFile();
+		int		parseServer();
+		int		parseListen();
+		int		parseServerName();
+		int		parseClientBodySize();
+		int		parseAllowedMethods();
+		int		parseLocation();
+		int		parseAutoindex();
+		int		parseErrorPage();
+		int		parseCgi();
+		int		parseIndex();
+		int		parseRoot();
+		int		parseReturn();
+		int		parseUploadStore();
+		int		checkExpectedSyntax(std::string str);
+		int		checkExpectedSyntax(std::string str1, std::string str2);
+		int		checkExpectedSyntax(std::string str1, std::string str2, std::string str3);
 		void	configError(std::string str);
 
 
@@ -81,3 +75,13 @@ class Config
 		void printServerBlock(const_iterator_map node) const;
 		void printLocationBlock(ConfigLocation::location_pointer location) const;
 };
+
+
+typedef int (Config::*ConfigMemFnc)(void);
+
+typedef struct s_parseFunctions 
+{
+	std::string	str;
+	ConfigMemFnc f;
+
+}				parseFunctions;

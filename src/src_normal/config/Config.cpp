@@ -10,25 +10,9 @@
 #include <limits>
 
 Config::Config(std::string const & config_file): _file_name(config_file), _server_amount(0), _token_index(0)
-{
-	this->parser();
-	initAddressMap();
-	printAddressMap();
-}
+{}
 
-// check for leaks
-Config::~Config()
-{
-	// address_map::iterator it;
-	// for (it = _address_map.begin(); it != _address_map.end(); ++it)
-	// {
-	// 	for (size_t i = 0; i < it->second.size(); i++)
-	// 	{
-	// 		it->second[i]->_locations.erase(it->second[i]->_locations.begin());
-	// 	}
-	// 	it->second.erase(it->second.begin());
-	// }
-}
+Config::~Config(){}
 
 Config::const_iterator Config::begin() const
 {
@@ -63,7 +47,7 @@ void Config::tokenizer(std::string const & body)
 	}
 }
 
-int	Config::splitToken(std::string const & string)
+void	Config::splitToken(std::string const & string)
 {
 	size_t pos_open_bracket = string.find_first_of("{");
 	size_t pos_close_bracket = string.find_first_of("}");
@@ -100,7 +84,6 @@ int	Config::splitToken(std::string const & string)
 	{
 		_tokens.push_back(string.substr(0));
 	}
-	return (0);
 }
 
 int Config::parser()
@@ -125,78 +108,90 @@ int Config::parser()
 
 	} while(ret > 0);
 	close(fd);
-	this->tokenizer(body);
-	parseConfigFile();
-	return (0);
+	tokenizer(body);
+	if (parseConfigFile() == ERR)
+	{
+		return ERR;
+	}
+	initAddressMap();
+	printAddressMap();
+	return OK;
 }
 
 
-// TODO: Add protection for new configserver
 int	Config::parseConfigFile()
 {
 	while (_token_index < _tokens.size())
 	{
-		parseServer();
+		if (parseServer() == ERR)
+		{
+			return ERR;
+		}
 		_server_amount++;
 		_token_index++;
 	}
-	return (OK);
+	return OK;
 }
 
-int	Config::parseServer()
+
+int Config::parseServer()
 {
 	_servers.push_back(ConfigServer());
-	if (_tokens.size() < 3)
+	int ret = 0;
+	if (_tokens.size() < 3
+		|| _tokens[_token_index].compare("server")
+		|| _tokens[_token_index + 1].compare("{"))
 	{
-		configError("Configuration Error");
+		return ERR;
 	}
-	checkExpectedSyntax("server");
-	_token_index++;
-	checkExpectedSyntax("{");
-	_token_index++;
+	_token_index+=2;
+	static parseFunctions func[] = 
+	{
+		{"listen", &Config::parseListen},
+		{"server_name", &Config::parseServerName},
+		{"error_page", &Config::parseErrorPage},
+		{"client_body_size", &Config::parseClientBodySize},
+		{"location", &Config::parseLocation}
+	};
 	while (_token_index < _tokens.size() && _tokens[_token_index].compare("}"))
 	{
-		if (_tokens[_token_index].compare("listen") == 0)
+		for (size_t i = 0; i < 5; i++)
 		{
-			parseListen();
+			ret = 0;
+			if (_tokens[_token_index].compare(func[i].str) == 0)
+			{
+				ret = (this->*(func[i].f))();
+				if (ret == ERR)
+				{
+					return ERR;
+				}
+				i = -1;
+			}
+			else if(i == 4 && _tokens[_token_index].compare("}"))
+			{
+				return ERR;
+			}
 		}
-		else if (_tokens[_token_index].compare("server_name") == 0)
-		{
-			parseServerName();
-		}
-		else if (_tokens[_token_index].compare("error_page") == 0)
-		{
-			parseErrorPage();
-		}
-		else if (_tokens[_token_index].compare("client_body_size") == 0)
-		{
-			parseClientBodySize();
-		}
-		else if (_tokens[_token_index].compare("location") == 0)
-		{
-			parseLocation();
-			_token_index++;
-			continue;
-		}
-		else
-		{
-			std::cout << RED_BOLD "Config Error: '" << _tokens[_token_index] << "' is not a valid configuration" RESET_COLOR << std::endl;
-			exit(1);
-		}
-		checkExpectedSyntax(";");
 		_token_index++;
 	}
 	if (_servers[_server_amount].emptyAddress() == 0)
 	{
 		_servers[_server_amount].addAddress("0.0.0.0", 80);
 	}
-	checkExpectedSyntax("}");
-	return (OK);
+	if (_tokens[_token_index].compare("}"))
+	{
+		return ERR;
+	}
+	return OK;
+
 }
 
-int	Config::parseLocation()
+
+
+int Config::parseLocation()
 {
 	location_flag flag = NONE;
+	int ret = 0;
 	_token_index++;
 	if (_tokens[_token_index].compare("=") == 0)
 	{
@@ -208,41 +203,104 @@ int	Config::parseLocation()
 	_token_index++;
 	checkExpectedSyntax("{");
 	_token_index++;
-	while(_token_index < _tokens.size() && _tokens[_token_index].compare("}"))
+	static parseFunctions func[] = 
 	{
-		if (_tokens[_token_index].compare("root") == 0)
+		{"root", &Config::parseRoot},
+		{"allowed_methods", &Config::parseAllowedMethods},
+		{"autoindex", &Config::parseAutoindex},
+		{"index", &Config::parseIndex},
+		{"cgi", &Config::parseCgi},
+		{"return", &Config::parseReturn},
+		{"upload_store", &Config::parseUploadStore}
+	};
+	while (_token_index < _tokens.size() && _tokens[_token_index].compare("}"))
+	{
+		std::cout <<"Check > " << _tokens[_token_index] << std::endl;
+		for (size_t i = 0; i < 8; i++)
 		{
-			parseRoot();
+			ret = 0;
+			if (_tokens[_token_index].compare(func[i].str) == 0)
+			{
+				ret = (this->*(func[i].f))();
+				if (ret == ERR)
+				{
+					return ERR;
+				}
+				i = -1;
+			}
+			else if(i ==7  && _tokens[_token_index].compare("}"))
+			{
+				std::cout <<"Check > " << _tokens[_token_index] << std::endl;
+				return ERR;
+			}
 		}
-		else if (_tokens[_token_index].compare("allowed_methods") == 0)
-		{
-			parseAllowedMethods();
-		}
-		else if (_tokens[_token_index].compare("autoindex") == 0)
-		{
-			parseAutoindex();
-		}
-		else if (_tokens[_token_index].compare("index") == 0)
-		{
-			parseIndex();
-		}
-		else if (_tokens[_token_index].compare("cgi") == 0)
-		{
-			parseCgi();
-		}
-		else if (_tokens[_token_index].compare("return") == 0)
-		{
-			parseReturn();
-		}
-		else if (_tokens[_token_index].compare("upload_store") == 0)
-		{
-			parseUploadStore();
-		}
-		checkExpectedSyntax(";");
 		_token_index++;
 	}
-	return (OK);
+	if (_tokens[_token_index].compare("}"))
+	{
+		return ERR;
+	}
+	return OK;
+
 }
+
+
+
+
+
+
+
+
+
+// int	Config::parseLocation()
+// {
+// 	location_flag flag = NONE;
+// 	_token_index++;
+// 	if (_tokens[_token_index].compare("=") == 0)
+// 	{
+// 		flag = EQUAL;
+// 		_token_index++;
+// 	}
+// 	_servers[_server_amount].addLocation(ConfigLocation(_tokens[_token_index]));
+// 	_servers[_server_amount].addLocationFlag(flag);
+// 	_token_index++;
+// 	checkExpectedSyntax("{");
+// 	_token_index++;
+// 	while(_token_index < _tokens.size() && _tokens[_token_index].compare("}"))
+// 	{
+// 		if (_tokens[_token_index].compare("root") == 0)
+// 		{
+// 			parseRoot();
+// 		}
+// 		else if (_tokens[_token_index].compare("allowed_methods") == 0)
+// 		{
+// 			parseAllowedMethods();
+// 		}
+// 		else if (_tokens[_token_index].compare("autoindex") == 0)
+// 		{
+// 			parseAutoindex();
+// 		}
+// 		else if (_tokens[_token_index].compare("index") == 0)
+// 		{
+// 			parseIndex();
+// 		}
+// 		else if (_tokens[_token_index].compare("cgi") == 0)
+// 		{
+// 			parseCgi();
+// 		}
+// 		else if (_tokens[_token_index].compare("return") == 0)
+// 		{
+// 			parseReturn();
+// 		}
+// 		else if (_tokens[_token_index].compare("upload_store") == 0)
+// 		{
+// 			parseUploadStore();
+// 		}
+// 		checkExpectedSyntax(";");
+// 		_token_index++;
+// 	}
+// 	return (OK);
+// }
 
 // TODO: add protection
 int	Config::parseListen()
@@ -257,7 +315,8 @@ int	Config::parseListen()
 		size_t start = _tokens[_token_index].find_first_not_of(":", split);
 		if (start == std::string::npos)
 		{
-			configError("Listen config error");
+			return ERR;
+			// configError("Listen config error");
 		}
 		listen = _tokens[_token_index].substr(start);
 	}
@@ -270,13 +329,19 @@ int	Config::parseListen()
 	{
 		if (std::isdigit(listen[i]) == 0)
 		{
-			configError("unexpected syntax: " + listen);
+			return ERR;
+			// configError("unexpected syntax: " + listen);
 		}
 	}
 	int port = atoi(listen.c_str());
 	_servers[_server_amount].addAddress(host, port);
 	_token_index++;
-	return (_token_index);
+	if(_tokens[_token_index].compare(";") != 0)
+	{
+		return (ERR);
+	}
+	_token_index++;
+	return OK;
 }
 
 int	Config::parseServerName()
@@ -287,6 +352,11 @@ int	Config::parseServerName()
 		_servers[_server_amount].addServerName(_tokens[_token_index]);
 		_token_index++;
 	}
+	if(_tokens[_token_index].compare(";") != 0)
+	{
+		return (ERR);
+	}
+	_token_index++;
 	return (OK);
 }
 
@@ -308,6 +378,11 @@ int	Config::parseRoot()
 			path = real_path;
 		}
 		_servers[_server_amount].addRoot(path);
+	}
+	_token_index++;
+	if(_tokens[_token_index].compare(";") != 0)
+	{
+		return (ERR);
 	}
 	_token_index++;
 	return (OK);
@@ -353,6 +428,11 @@ int	Config::parseClientBodySize()
 	}
 	_servers[_server_amount].addClientBodySize(size);
 	_token_index++;
+	if(_tokens[_token_index].compare(";") != 0)
+	{
+		return (ERR);
+	}
+	_token_index++;
 	return (OK);
 }
 
@@ -367,6 +447,11 @@ int	Config::parseAllowedMethods()
 		}
 		_token_index++;
 	}
+	if(_tokens[_token_index].compare(";") != 0)
+	{
+		return (ERR);
+	}
+	_token_index++;
 	return (OK);
 }
 
@@ -376,6 +461,11 @@ int	Config::parseAutoindex()
 	if (checkExpectedSyntax("on", "off"))
 	{
 		_servers[_server_amount].addAutoIndex(_tokens[_token_index].compare("off"));
+	}
+	_token_index++;
+	if(_tokens[_token_index].compare(";") != 0)
+	{
+		return (ERR);
 	}
 	_token_index++;
 	return (OK);
@@ -394,6 +484,16 @@ int	Config::parseErrorPage()
 	int page_number = atoi(_tokens[_token_index].c_str());
 	_token_index++;
 	_servers[_server_amount].addErrorPage(page_number, _tokens[_token_index]);
+	_token_index++;
+	if(_tokens[_token_index].compare(";") != 0)
+	{
+		return (ERR);
+	}
+	_token_index++;
+	if(_tokens[_token_index].compare(";") != 0)
+	{
+		return (ERR);
+	}
 	_token_index++;
 	return (OK);
 }
@@ -420,6 +520,11 @@ int Config::parseCgi()
 		path = real_path;
 	}
 	_servers[_server_amount].addCgi(extention, path);
+	if(_tokens[_token_index].compare(";") != 0)
+	{
+		return (ERR);
+	}
+	_token_index++;
 	return (OK);
 }
 
@@ -440,6 +545,11 @@ int Config::parseUploadStore()
 		path = real_path;
 	}
 	_servers[_server_amount].addUploadStore(path);
+	if(_tokens[_token_index].compare(";") != 0)
+	{
+		return (ERR);
+	}
+	_token_index++;
 	return (OK);
 }
 
@@ -456,6 +566,11 @@ int	Config::parseIndex()
 		_servers[_server_amount].addIndex(_tokens[_token_index]);
 		_token_index++;
 	}
+	if(_tokens[_token_index].compare(";") != 0)
+	{
+		return (ERR);
+	}
+	_token_index++;
 	return (OK);
 }
 
@@ -476,6 +591,11 @@ int Config::parseReturn()
 	}
 	int code = WebservUtility::strtoul(ret);
 	_servers[_server_amount].addReturn(code, path);
+	if(_tokens[_token_index].compare(";") != 0)
+	{
+		return (ERR);
+	}
+	_token_index++;
 	return (OK);
 }
 
@@ -484,7 +604,7 @@ int	Config::checkExpectedSyntax(std::string str)
 	if (_tokens[_token_index].compare(str) != 0)
 	{
 		std::cerr << RED_BOLD "Config Error: expected " << str << " instead of " << _tokens[_token_index] << RESET_COLOR << std::endl;
-		exit(1);
+		return ERR;
 	}
 	return (OK);
 }
@@ -495,7 +615,7 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2)
 		&& _tokens[_token_index].compare(str2) != 0)
 	{
 		std::cerr << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
-		exit(1);
+		return ERR;
 	}
 	return (OK);
 }
@@ -507,7 +627,7 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2, std::string 
 		&& _tokens[_token_index].compare(str3) != 0)
 	{
 		std::cerr << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 <<" or " << str3 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
-		exit(1);
+		return ERR;
 	}
 	return (OK);
 }
@@ -515,7 +635,6 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2, std::string 
 void	Config::configError(std::string str)
 {
 	std::cerr << RED_BOLD << "Config error: " << str << std::endl;
-	exit(1);
 }
 
 // Getters

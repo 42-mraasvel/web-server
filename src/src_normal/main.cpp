@@ -28,6 +28,13 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 		Config config_file(configuration);
+
+		if (config_file.parser() == ERR)
+		{
+			//TODO: Correct exit procedure
+			std::cout << "PARSING ERROR EXIT PROGRAM" << std::endl;
+			exit(1);
+		}
 		config_file.print();
 		Webserver webserver;
 		if (webserver.init(config_file))
