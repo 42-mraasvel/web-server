@@ -1,4 +1,7 @@
 import ParseTestCase
+from testcase_generation.Response import response_header
+from testcase_generation.Response import status_code
+from testcase_generation.Response import media_type
 from testcase_generation.ServerBlock import default_errorpage
 from testcase_generation.ServerBlock import server_name
 from testcase_generation.ServerBlock import max_body_size
@@ -9,13 +12,21 @@ from testcase_generation.LocationBlock import default_file
 from testcase_generation.LocationBlock import root
 from testcase_generation.LocationBlock import resolution
 from testcase_generation.cgi import tester42
-from testcase_generation.StatusCode import status_code
 from testcase_generation.Method import delete
 from testcase_generation.Method import post
 from testcase_generation.Method import get
 
 def generate():
 	testcases = ParseTestCase.testCaseFromFiles()
+	testcases.append(response_header.testCaseConnectionClose())
+	testcases.append(status_code.testCaseStatusCode417())
+	testcases.append(status_code.testCaseStatusCode501Method())
+	testcases.append(status_code.testCaseStatusCode501Encoding())
+	testcases.append(media_type.testCaseMediaType_html())
+	testcases.append(media_type.testCaseMediaType_txt())
+	testcases.append(media_type.testCaseMediaType_png())
+	testcases.append(media_type.testCaseMediaType_jpeg())
+	testcases.append(media_type.testCaseMediaType_sh())
 	testcases.append(default_errorpage.testCaseDefaultErrorPageRedirect1())
 	testcases.append(default_errorpage.testCaseDefaultErrorPageRedirect2())
 	testcases.append(default_errorpage.testCaseDefaultErrorPageRedirectNotFound())
@@ -64,8 +75,6 @@ def generate():
 	testcases.append(resolution.testCaseResolutionNonExistantBlock())
 	testcases.append(tester42.testCase42Get())
 	testcases.append(tester42.testCase42Post())
-	testcases.append(status_code.testCaseExpectError())
-	testcases.append(status_code.testCaseMethodNotImplemented())
 	testcases.append(delete.testCaseDelete())
 	testcases.append(delete.testCaseDeleteDefaultFile())
 	testcases.append(delete.testCaseDeleteNotFound())

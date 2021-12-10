@@ -1,9 +1,10 @@
 ------------------
 --     NOW      --
 ------------------
-- ConfigResolver TODO (to discuss with maarten)
 
-- testcase: check response without message body
+- with maarten: Transfer-Encoding: 501 NOT_IMPLEMENTED
+
+- ConfigResolver TODO (to discuss with maarten)
 
 
 ------------------

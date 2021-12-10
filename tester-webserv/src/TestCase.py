@@ -54,7 +54,7 @@ class Response:
 		self.headers = dict()
 		self.expect_body = False
 		self.body = bytes()
-#		self.headers['connection'] = 'keep-alive'
+		self.headers['connection'] = 'keep-alive'
 
 	def print(self):
 		for line in self.getLogList():
@@ -71,6 +71,18 @@ class Response:
 		return data
 
 def defaultResponseEvaluator(response):
+	if len(response.headers['Date']) != 29:
+		return "HeaderField 'Date: {}' has incorrect length (Expected: 29)".format(response.headers['Date'])
+	if (response.status_code >= 300 and response.status_code < 400) or response.status_code == 204 or response.status_code == 304:
+		if response.content:
+			return "Unexpected message body"
+	if response.status_code >= 300 and response.status_code < 400:
+		if 'Location' not in response.headers:
+			return "Expected Headerfield 'Location' not found"
+		if 'Retry-After' not in response.headers:
+			return "Expected Headerfield 'Retry-After' not found"
+	if 'Transfer-Encoding' in response.headers and 'Content-Length' in response.headers:
+		return "Transfer-Encoding and Content-Length present togehter"
 	return None
 
 class TestCase:

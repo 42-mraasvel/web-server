@@ -7,7 +7,7 @@ def testCaseGetNotAllowed():
 	testcase.request.target = '/GET_NOT_ALLOWED'
 
 	testcase.response.status_code = 405
-	testcase.response.headers['Allow'] = 'POST, DELETE'
+	testcase.response.headers['allow'] = 'POST, DELETE'
 	return testcase
 
 def testCasePostNotAllowed():
@@ -18,7 +18,7 @@ def testCasePostNotAllowed():
 	testcase.request.target = '/NOT_ALLOWED'
 
 	testcase.response.status_code = 405
-	testcase.response.headers['Allow'] = 'GET'
+	testcase.response.headers['allow'] = 'GET'
 	return testcase
 
 def testCaseDeleteNotAllowed():
@@ -28,5 +28,5 @@ def testCaseDeleteNotAllowed():
 	testcase.request.target = '/NOT_ALLOWED'
 
 	testcase.response.status_code = 405
-	testcase.response.headers['Allow'] = 'GET'
+	testcase.response.headers['allow'] = 'GET'
 	return testcase

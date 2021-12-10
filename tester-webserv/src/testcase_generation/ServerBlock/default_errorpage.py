@@ -31,6 +31,7 @@ def testCaseDefaultErrorPageRedirect2():
 	testcase.request.target = '/nonexisting.html'
 	# Response
 	testcase.response.status_code = 405
+	testcase.response.headers['Allow'] = 'GET, POST'
 	testcase.response.expect_body = True
 	with open('./ServerRoot/error_pages/405.html', 'rb') as f:
 		testcase.response.body = f.read()

@@ -15,7 +15,7 @@ def testCaseSimpleTestCase():
 	# Response
 	response = TestCase.Response()
 	response.status_code = 200
-	response.headers['Content-Length'] = '185'
+	response.headers['content-length'] = '185'
 	response.expect_body = True
 	with open('../page_sample/index.html', 'rb') as f:
 		response.body = f.read()

@@ -62,6 +62,7 @@ def testCaseServerName8081Second():
 	testcase.request.target = '/'
 	# Response
 	testcase.response.status_code = 405
+	testcase.response.headers['Allow'] = ''
 	testcase.response.expect_body = True
 	testcase.response.body = '405 Method Not Allowed\n'
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))

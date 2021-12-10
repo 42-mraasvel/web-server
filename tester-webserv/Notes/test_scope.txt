@@ -1,0 +1,162 @@
+***********************************
+********** Testing Scope **********
+***********************************
+
+[P]: python tester
+[C]: c++ tester
+[?]: to decide
+-y: done
+-n: not-done
+
++---------------------+
+|     Config File     |
++---------------------+
+	------ Config File Error ------
+		[C-n] TODO: to add more
+
+	------ Server Block directive ------
+		[P-y] Listen: Interface (host:port) resolution
+				- same server_name but different Interface
+		[P-y] Server_name: resolution
+				[C-n] - empty server_name & empty host header 
+				- default block: take first server if no server_name match
+				- wildcard
+					- exactmatch | longest| front| back| front > back
+		[P-y] Default error page
+				- Force a 404 error: Status Code and body should match the error page
+				- Error with nonexistant error page
+		[P-y] Client Max Body Size (max body too small)
+
+	------ Location Block directive ------
+		[P-y] Location block resolution
+				- match | not found | exact match
+		[P-y] Method allowed (GET, POST, DELETE)
+				- HeaderField (allowed: x)
+		[P-y] Root Directory (empty root, root syntax error)
+		[P-y] Auto Index
+		[P-y] Default File
+		[???] CGI: executable to test in/output
+				- Header-Fields
+				- StatusCode
+				- Environment variables
+		[P-y] upload_store (see Method Execution - POST)
+		[P-y] return/redirection (GET/POST/DELETE)
+
++---------------------+
+|        Process      |
++---------------------+
+	------ Connection Management ------
+		[C-n] TODO: to add more
+	
+	------ HTTP 1.0 ------
+		[C-n] connection need to be closed unless header [connection = keep-alive]
+		[C-n] TODO: to add test list
+
+	------ Settings ------
+		[c-n] time out
+		[???] BUFFER_SIZE
+		[???] LIMITS
+		[???] Chunked
+		[???] TODO: to add test list
+	
+	------ Method Execution ------
+		[P-y] GET
+				- 200
+				- 404 NOT_FOUND
+				[???]- 403 FORBIDDEN (unable to set to 'user has no read permission')
+		[P-y] POST
+				- with upload_store (201 CREATED, 204 NO_CONTENT)
+				- w/o upload_store >> root (201 CREATED, 204 NO_CONTENT)
+				- 403 FORBIDDEN (file, directory)
+		[P-y] DELETE
+				- 204 NO_CONTENT
+				- 404 NOT_FOUND
+				- 403 FORBIDDEN (file, directory)
+
++---------------------+
+|       Response      |
++---------------------+
+	------ Response Code ------
+		[C-n] 100 CONTINUE 
+		[P-y] 201 CREATED (see Method Execution - POST)
+				- Location header should be request target
+		[P-y] 204 NO_CONTENT (see Method Execution - POST/DELETE)
+		[P-y] 301 MOVED_PERMANENTLY (see ServerBlock-ErrorPage)
+		[C-n] 3xx REDIRECT  
+				- Location header-field
+				- Response Code (for different redirection types)
+				- Retry-After header-field
+		[C-n] 400 BAD_REQUEST 
+				- First line syntax error
+				- case sensitivity
+				- header [Host]
+					- multiple host field
+					- HTTP 1.1 without host field
+				- header [connection != close | keep-alive]
+				- TODO: RequestValidator functions: check one by one
+				- TODO: to add more
+		[P-y] 403 FORBIDDEN (see Method Execution)
+		[P-y] 404 NOT_FOUND (see Method Execution)
+		[P-y] 405 METHOD_NOT_ALLOWED (see LocationBlock-MethodAllowed)
+				- check headerfield 'Allow'
+		[???] 408 REQUEST_TIMEOUT
+		[P-y] 413 PAYLOAD_TOO_LARGE (see ServerBlock-ClientMaxSize)
+		[???] 415 UNSUPPORTED_MEDIA_TYPE
+		[P-y] 417 EXPECTATION_FAILED (see StatusCode)
+		[???] 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+		[P-y] 500 INTERNAL_SERVER_ERROR (through out whole program)
+		[P-y] 501 NOT_IMPLEMENTED (see StatusCode)
+				- method other than: GET POST DELETE)
+				- Request header "Transfer-Encoding" other than: chunked (close connection)
+		[???] 502 BAD_GATEWAY
+		[???] 504 GATEWAY_TIMEOUT
+		[C-n] 505 HTTP_VERSION_NOT_SUPPORTED 
+	
+	------ Response Header Field ------
+		[P-y] Date
+				- check if date string len = 29
+		[P-y] Connection
+				- "keep-alive": test by default
+				- "close":
+					- Request header [Transfer-Encoding != chunked] (see Response 501)
+					- HTTP 1.1 request header [connection = close]
+					[C-n] HTTP 1.0 request header [connection != keep-alive] 
+		[P-y] Location
+				- 201 CREATED (see Method Execution - POST)
+				- 3xx: location should be effective request uri (check location presence in defaultEvaluator)
+		[P-y] Retry-After
+				- should present in all 3xx response (check presence in defaultEvaluator)
+		[P-y] Allow (see Location Block - Method allowed & Response Code 405)
+		[P-y] Content-Length
+				- cannot present together with Transfer-Encoding (check in defaultEvaluator)
+		[???] Transfer-Encoding
+		[P-y] Content-Type
+
+
+
+
+***********************************
+**********   Question    **********
+***********************************
+1.
+	for below the case, a request from 127.0.0.1:8081 with Host: second_server
+	will resolve to first block instead of the second.
+	server {
+		listen 8081;
+		listen 127.0.0.1:8081;
+		server_name first_server;
+
+		location / {
+			allowed_methods GET;
+			root ./ServerRoot/FirstServer/8081;
+			index index.html;
+		}
+	}
+
+	server {
+		listen 8081;
+		server_name second_server;
+
+		location / {
+		}
+	}

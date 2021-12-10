@@ -59,9 +59,6 @@ def evaluateResponse(response, expected, custom_evaluator):
 	x = evaluateHeaders(response.headers, expected.headers)
 	if x is not None:
 		return x
-	x = evaluateNoBody(response.status_code, response.content)
-	if x is not None:
-		return x
 	x = evaluateBody(response.content, expected.body, expected.expect_body)
 	if x is not None:
 		return x
@@ -83,12 +80,6 @@ def evaluateHeaders(headers, exp_headers):
 			return createMessage('Header', 'NAME_NOT_PRESENT', key)
 		elif headers[key] != exp_headers[key]:
 			return createMessage('Header', key + ": " + headers[key], key + ": " + exp_headers[key])
-	return None
-
-def evaluateNoBody(status_code, content):
-	if (status_code >= 300 and status_code < 400) or status_code == 204 or status_code == 304:
-		if content:
-			return createMessage('Body', 'Message body present', 'No message body')
 	return None
 
 def evaluateBody(content, exp_content, should_cmp = True):

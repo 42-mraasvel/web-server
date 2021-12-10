@@ -15,7 +15,7 @@ def testCaseAutoindexOnGet():
 	testcase.request.target = '/on/'
 	# Response
 	testcase.response.status_code = 200
-	testcase.response.headers['Content-length'] = '294' #auto_index page will have different date so only check content-length
+	testcase.response.headers['content-length'] = '294' #auto_index page will have different date so only check content-length
 	return testcase
 
 def testCaseAutoindexOnPost():

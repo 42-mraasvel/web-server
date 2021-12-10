@@ -468,10 +468,7 @@ void	initMap(Map & map)
 	map[".sgm"]			= "text/x-sgml";
 	map[".sgml"]		= "text/sgml";
 	map[".sgml"]		= "text/x-sgml";
-	map[".sh"]			= "application/x-bsh";
 	map[".sh"]			= "application/x-sh";
-	map[".sh"]			= "application/x-shar";
-	map[".sh"]			= "text/x-script.sh";
 	map[".shar"]		= "application/x-bsh";
 	map[".shar"]		= "application/x-shar";
 	map[".shtml"]		= "text/html";
