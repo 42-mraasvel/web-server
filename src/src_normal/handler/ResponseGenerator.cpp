@@ -110,7 +110,7 @@ void	ResponseGenerator::setDate(Response & response)
 	struct tm	tm = *gmtime(&now);
 	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", &tm);
 	
-	response.header_fields["Data"] = std::string(buf);
+	response.header_fields["Date"] = std::string(buf);
 }
 
 void	ResponseGenerator::setConnection(Response & response)

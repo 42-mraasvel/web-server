@@ -2,6 +2,7 @@
 
 -- General --
 	?- Config File Error
+	?- Connection Management
 	v- Method Execution (response codes, body, etc)
 		- GET
 			- 200
@@ -15,10 +16,10 @@
 			- 204 NO_CONTENT
 			- 404 NOT_FOUND
 			- 403 FORBIDDEN (file, directory)
-	?- Connection Management
 	?- Response Codes
 		x- 100 CONTINUE (see c++ tester)
 		v- 201 CREATED (see Method Execution - POST)
+			- Location header should be request target
 		v- 204 NO_CONTENT (see Method Execution - POST/DELETE)
 		v- 301 MOVED_PERMANENTLY (see ServerBlock-ErrorPage)
 		x- 3xx REDIRECT  (see c++ tester)

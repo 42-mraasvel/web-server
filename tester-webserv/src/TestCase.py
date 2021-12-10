@@ -54,6 +54,7 @@ class Response:
 		self.headers = dict()
 		self.expect_body = False
 		self.body = bytes()
+#		self.headers['connection'] = 'keep-alive'
 
 	def print(self):
 		for line in self.getLogList():

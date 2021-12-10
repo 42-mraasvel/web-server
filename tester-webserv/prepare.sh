@@ -20,29 +20,29 @@ FORBIDDEN_SUBDIR=$FORBIDDEN_DIR'/forbidden_dir'
 #remove temp
 rm -rf $TEMP_DIR
 
-#build for Method/Delete
+#build all Method directory
 mkdir -p $DELETE_DIR
+mkdir -p $FORBIDDEN_DIR
+mkdir -p $POST_DIR
+
+#build for Method/Delete
 cp $METHOD_SAMPLE_FILE $DELETE_DIR
 
-#remove forbidden main directory
+#(re)build forbidden file
 if [ -f "$FORBIDDEN_FILE" ]; then
-	chmod 0755 $FORBIDDEN_FILE
+	chmod 755 $FORBIDDEN_FILE
+	rm -f $FORBIDDEN_FILE
 fi
-if [ -d "$FORBIDDEN_SUBDIR" ]; then
-	chmod 0755 $FORBIDDEN_SUBDIR
-fi
-rm -rf $FORBIDEEN_DIR
-
-#build forbidden main directory
-if [ ! -d "$FORBIDDEN_DIR" ]; then
-	mkdir $FORBIDDEN_DIR
-fi
-#	build forbidden file
 cp $METHOD_SAMPLE_FILE $FORBIDDEN_FILE
-chmod 0111 $FORBIDDEN_FILE
-#	build forbidden dir
-if [ ! -d "$FORBIDDEN_SUBDIR" ]; then
-	mkdir $FORBIDDEN_SUBDIR
+chmod a=x $FORBIDDEN_FILE
+
+#(re)build forbidden sub directory
+if [ -d "$FORBIDDEN_SUBDIR" ]; then
+	sudo chown $USER $FORBIDDEN_SUBDIR
+	chmod 755 $FORBIDDEN_SUBDIR
+	rm -r $FORBIDDEN_SUBDIR
 fi
+mkdir -p $FORBIDDEN_SUBDIR
 cp $METHOD_SAMPLE_FILE $FORBIDDEN_SUBDIR'/sample.html'
-chmod 0444 $FORBIDDEN_SUBDIR
+chmod a=r $FORBIDDEN_SUBDIR
+sudo chown nobody $FORBIDDEN_SUBDIR

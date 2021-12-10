@@ -14,6 +14,7 @@ def testCasePostUploadDirNew():
 
 	# Response
 	testcase.response.status_code = 201
+	testcase.response.headers['location'] = str(testcase.request.target)
 	return testcase
 
 def testCasePostUploadDirOld():
@@ -42,6 +43,7 @@ def testCasePostRootDirNew():
 
 	# Response
 	testcase.response.status_code = 201
+	testcase.response.headers['location'] = str(testcase.request.target)
 	return testcase
 
 def testCasePostRootDirOld():
