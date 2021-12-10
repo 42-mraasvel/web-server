@@ -9,7 +9,7 @@ Wrapper for calling perror and returning ERR code
 */
 int syscallError(const std::string& str)
 {
-	PRINT_ERR << "syscallError: " << str << strerror(errno) << std::endl;
+	PRINT_ERR << "syscallError: " << str << ": " << strerror(errno) << std::endl;
 	return ERR;
 }
 
