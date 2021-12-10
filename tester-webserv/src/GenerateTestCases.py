@@ -2,17 +2,17 @@ import ParseTestCase
 from testcase_generation.ServerBlock import default_errorpage
 from testcase_generation.ServerBlock import server_name
 from testcase_generation.ServerBlock import max_body_size
+from testcase_generation.LocationBlock import notallowed
+from testcase_generation.LocationBlock import autoindex
+from testcase_generation.LocationBlock import redirection
+from testcase_generation.LocationBlock import default_file
+from testcase_generation.LocationBlock import root
+from testcase_generation.LocationBlock import resolution
 from testcase_generation.cgi import tester42
 from testcase_generation.StatusCode import status_code
 from testcase_generation.Method import delete
 from testcase_generation.Method import post
 from testcase_generation.Method import get
-from testcase_generation.Location_Block import notallowed
-from testcase_generation.Location_Block import autoindex
-from testcase_generation.Location_Block import redirection
-from testcase_generation.Location_Block import default_file
-from testcase_generation.Location_Block import root
-from testcase_generation.Location_Block import resolution
 
 def generate():
 	testcases = ParseTestCase.testCaseFromFiles()
@@ -31,24 +31,6 @@ def generate():
 	testcases.append(max_body_size.testCaseMaxBodySizeGet())
 	testcases.append(max_body_size.testCaseMaxBodySizePost())
 	testcases.append(max_body_size.testCaseMaxBodySizeDelete())
-	testcases.append(tester42.testCase42Get())
-	testcases.append(tester42.testCase42Post())
-	testcases.append(status_code.testCaseExpectError())
-	testcases.append(status_code.testCaseMethodNotImplemented())
-	testcases.append(delete.testCaseDelete())
-	testcases.append(delete.testCaseDeleteDefaultFile())
-	testcases.append(delete.testCaseDeleteNotFound())
-	testcases.append(delete.testCaseDeleteForbiddenFile())
-	testcases.append(delete.testCaseDeleteForbiddenDir())
-	testcases.append(post.testCasePostUploadDirNew())
-	testcases.append(post.testCasePostUploadDirOld())
-	testcases.append(post.testCasePostRootDirNew())
-	testcases.append(post.testCasePostRootDirOld())
-	testcases.append(post.testCasePostForbiddenFile())
-	testcases.append(post.testCasePostForbiddenDir1())
-	testcases.append(post.testCasePostForbiddenDir2())
-	testcases.append(get.testCaseGet())
-	testcases.append(get.testCaseGetNotFound())
 	testcases.append(notallowed.testCaseGetNotAllowed())
 	testcases.append(notallowed.testCasePostNotAllowed())
 	testcases.append(notallowed.testCaseDeleteNotAllowed())
@@ -80,4 +62,22 @@ def generate():
 	testcases.append(resolution.testCaseResolutionBlockOne())
 	testcases.append(resolution.testCaseResolutionBlockTwo())
 	testcases.append(resolution.testCaseResolutionNonExistantBlock())
+	testcases.append(tester42.testCase42Get())
+	testcases.append(tester42.testCase42Post())
+	testcases.append(status_code.testCaseExpectError())
+	testcases.append(status_code.testCaseMethodNotImplemented())
+	testcases.append(delete.testCaseDelete())
+	testcases.append(delete.testCaseDeleteDefaultFile())
+	testcases.append(delete.testCaseDeleteNotFound())
+	testcases.append(delete.testCaseDeleteForbiddenFile())
+	testcases.append(delete.testCaseDeleteForbiddenDir())
+	testcases.append(post.testCasePostUploadDirNew())
+	testcases.append(post.testCasePostUploadDirOld())
+	testcases.append(post.testCasePostRootDirNew())
+	testcases.append(post.testCasePostRootDirOld())
+	testcases.append(post.testCasePostForbiddenFile())
+	testcases.append(post.testCasePostForbiddenDir1())
+	testcases.append(post.testCasePostForbiddenDir2())
+	testcases.append(get.testCaseGet())
+	testcases.append(get.testCaseGetNotFound())
 	return testcases

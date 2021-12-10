@@ -1,5 +1,5 @@
 import TestCase
-from testcase_generation.Location_Block.autoindex  import defaultTestCase
+from testcase_generation.LocationBlock.autoindex  import defaultTestCase
 
 def testCaseDefaultFileGetYes():
 	# TestCase
