@@ -53,7 +53,7 @@
 		[C-n] TODO: to add test list
 
 	------ Settings ------
-		[c-n] time out
+		[C-n] time out
 		[???] BUFFER_SIZE
 		[???] LIMITS
 		[???] Chunked
@@ -160,3 +160,16 @@
 		location / {
 		}
 	}
+
+*********************************
+**********   Answer    **********
+*********************************
+
+1.
+	This is because `127.0.0.1:8080` is the more specific interface
+		1. Resolve server blocks using listen directive and interface address (request IP:Port)
+		2. Furth resolve server blocks if necessary using server_name and `Host` header field
+	NginX also resolves to the first server block in this case* (tested it to be sure)
+	
+	
+	*http://nginx.org/en/docs/http/request_processing.html#:~:text=In%20this%20configuration%2C%20nginx%20first%20tests%20the%20IP%20address%20and%20port%20of%20the%20request%20against%20the%20listen%20directives%20of%20the%20server%20blocks.%20It%20then%20tests%20the%20%E2%80%9CHost%E2%80%9D%20header%20field%20of%20the%20request%20against%20the%20server_name%20entries%20of%20the%20server%20blocks%20that%20matched%20the%20IP%20address%20and%20port.

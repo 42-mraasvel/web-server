@@ -83,7 +83,7 @@ def testCaseAutoindexIndexGet():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/locationblock/auto_index/index/index.html', 'rb') as f:
+	with open('./ServerRoot/LocationBlock/auto_index/index/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
