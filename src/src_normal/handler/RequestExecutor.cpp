@@ -8,6 +8,7 @@
 #include "CgiHandler.hpp"
 #include "FileHandler.hpp"
 
+#include <errno.h>
 #include <dirent.h>
 
 RequestExecutor::RequestExecutor():
