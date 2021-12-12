@@ -1,12 +1,12 @@
 TODO
 
-	- Expect 100 testcase, using a request specific flag
 	- 3xx redirection testing
 	- Tag execution filter: most tag/name into TestCase class (each request has it's testcase version)
 
 	- If there are multiple responses (or more than 1 per request) print out the remaining responses
 	- Log invalid responses: print out only a small message (inside of the ResponseValidator)
 	- Detached (multithreaded) should be behind a wrapper surrounding the Client
+	- Print last sent request/response if timeout
 
 To Discuss:
 

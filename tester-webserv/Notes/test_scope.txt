@@ -80,7 +80,7 @@
 |       Response      |
 +---------------------+
 	------ Response Code ------
-		[C-n] 100 CONTINUE 
+		[C-y] 100 CONTINUE 
 		[P-y] 201 CREATED (see Method Execution - POST)
 				- Location header should be request target
 		[P-y] 204 NO_CONTENT (see Method Execution - POST/DELETE)

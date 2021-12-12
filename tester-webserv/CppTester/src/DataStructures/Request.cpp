@@ -2,6 +2,9 @@
 #include "color.hpp"
 #include "Utility/Output.hpp"
 
+Request::Settings::Settings()
+: flags(NONE) {}
+
 Request::Request(Address server_addr)
 : server_addr(server_addr) {}
 

@@ -152,7 +152,7 @@ void Client::update(RequestQueue& requests) {
 
 bool Client::shouldGenerateRequestString(const RequestQueue& requests) const {
 	return processing_request != requests.end()
-		&& string_generator.getRequestString().size() < BUFFER_SIZE;
+		&& string_generator.shouldGenerate(response);
 }
 
 void Client::generateMultipleRequests(const RequestQueue& requests) {
@@ -288,6 +288,8 @@ void Client::writeEvent() {
 		syscallError(_FUNC_ERR("send"));
 		return;
 	}
+	PRINT_DEBUG << "Sent:" << std::endl;
+	PRINT_DEBUG << str << std::endl;
 	string_generator.eraseBytes(n);
 }
 

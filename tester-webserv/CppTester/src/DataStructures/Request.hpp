@@ -15,6 +15,21 @@ Members:
 struct Request {
 	public:
 		typedef std::shared_ptr<Request> Pointer;
+	
+	public:
+		struct Settings {
+			public:
+				enum Flags {
+					NONE = 0x0,
+					EXPECT = 0x1
+				};
+
+			public:
+				Settings();
+
+			public:
+				short int flags;
+		};
 
 	public:
 		Request(Address server_addr = Address());
@@ -31,4 +46,5 @@ struct Request {
 
 		std::string name;
 		std::string tag;
+		Settings settings;
 };

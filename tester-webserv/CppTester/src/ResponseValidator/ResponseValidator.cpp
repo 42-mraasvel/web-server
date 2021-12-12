@@ -77,7 +77,11 @@ void ResponseValidator::fail(const Request& request, const ResponseVector& respo
 		r->log();
 	}
 	LOG_INFO << "Expected Response" << std::endl;
-	expected->log();
+	if (expected != nullptr) {
+		expected->log();
+	} else {
+		LOG_WARNING << "missing expected response" << std::endl;
+	}
 }
 
 void ResponseValidator::pass(const Request& request, const ResponseVector& response) const {

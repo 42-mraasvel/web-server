@@ -1,4 +1,6 @@
 #include "RequestStringGenerator.hpp"
+#include "DataStructures/Response.hpp"
+#include "Utility/status_codes.hpp"
 #include "settings.hpp"
 
 RequestStringGenerator::RequestStringGenerator() {
@@ -6,6 +8,7 @@ RequestStringGenerator::RequestStringGenerator() {
 }
 
 int RequestStringGenerator::generate(const Request::Pointer request) {
+	checkExpect();
 	while (request_string.size() < BUFFER_SIZE) {
 		switch (state) {
 			case State::REQUEST_LINE:
@@ -17,6 +20,8 @@ int RequestStringGenerator::generate(const Request::Pointer request) {
 			case State::MESSAGE_BODY:
 				generateMessageBody(request);
 				break;
+			case State::EXPECTING:
+				return OK;
 			case State::COMPLETE:
 				return OK;
 			case State::ERROR:
@@ -40,8 +45,13 @@ void RequestStringGenerator::generateHeaderField(const Request::Pointer request)
 		request_string.append(CRLF);
 	}
 	request_string.append(CRLF);
+	
 	if (request->message_body.size() > 0) {
-		setState(State::MESSAGE_BODY);
+		if (request->settings.flags & Request::Settings::EXPECT) {
+			setState(State::EXPECTING);
+		} else {
+			setState(State::MESSAGE_BODY);
+		}
 	} else {
 		setState(State::COMPLETE);
 	}
@@ -54,6 +64,19 @@ void RequestStringGenerator::generateMessageBody(const Request::Pointer request)
 	if (pos == request->message_body.size()) {
 		setState(State::COMPLETE);
 	}
+}
+
+void RequestStringGenerator::checkExpect() {
+	if (state == State::EXPECTING) {
+		setState(State::MESSAGE_BODY);
+	}
+}
+
+bool RequestStringGenerator::shouldGenerate(std::vector<Response::Pointer> responses) const {
+	if (state == State::EXPECTING && responses.size() != 2) {
+		return false;
+	}
+	return request_string.size() < BUFFER_SIZE;
 }
 
 const std::string& RequestStringGenerator::getRequestString() const {

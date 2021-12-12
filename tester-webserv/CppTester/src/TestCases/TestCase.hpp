@@ -3,6 +3,7 @@
 #include "Client/Client.hpp"
 #include "DataStructures/Request.hpp"
 #include "ResponseValidator/ResponseValidator.hpp"
+#include "TestCaseUtils/TestCaseUtil.hpp"
 #include <vector>
 #include <unordered_set>
 #include <string>
