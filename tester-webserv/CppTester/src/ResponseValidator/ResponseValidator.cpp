@@ -5,13 +5,17 @@
 #include <cassert>
 
 bool validateStatusCode(const ResponseValidator::ResponseVector& response, const Response::Pointer expected) {
-	assert(response.size() == 1);
+	if (response.size() != 1) {
+		return false;
+	}
 	assert(expected != NULL);
 	return response.front()->status_code == expected->status_code;
 }
 
 bool validateHeaderFields(const ResponseValidator::ResponseVector& response, const Response::Pointer expected) {
-	assert(response.size() == 1);
+	if (response.size() != 1) {
+		return false;
+	}
 	assert(expected != NULL);
 	if (!validateStatusCode(response, expected)) {
 		return false;
@@ -31,7 +35,9 @@ bool validateHeaderFields(const ResponseValidator::ResponseVector& response, con
 }
 
 bool validateAll(const ResponseValidator::ResponseVector& response, const Response::Pointer expected) {
-	assert(response.size() == 1);
+	if (response.size() != 1) {
+		return false;
+	}
 	assert(expected != NULL);
 	if (!validateHeaderFields(response, expected)) {
 		return false;

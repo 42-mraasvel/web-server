@@ -52,10 +52,22 @@ endif
 
 RM = /bin/rm -f
 
+# Specific TestCaseGenerator file options
+PY := python3
+GENERATOR_SCRIPT := generate.py
+GENERATOR := $(SDIR)/TestCases/GenerateTestCases.cpp
+TESTFILEDIR := $(SDIR)/TestCases/Tests
+TESTFILES := $(shell find $(TESTFILEDIR) -name "*.cpp" -type f)
+TESTPREFIX := testCase
+
 # Rules
 .PHONY: all
-all:
+all: $(GENERATOR)
 	$(MAKE) $(NAME) -j8
+
+# Generator
+$(GENERATOR): $(TESTFILES) $(GENERATOR_SCRIPT)
+	$(PY) $(GENERATOR_SCRIPT) $(TESTPREFIX) $(TESTFILES) > $@
 
 # Compilation
 $(NAME): $(OBJ)

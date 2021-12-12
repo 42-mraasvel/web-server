@@ -17,7 +17,7 @@ struct Request {
 		typedef std::shared_ptr<Request> Pointer;
 
 	public:
-		Request(Address server_addr);
+		Request(Address server_addr = Address());
 
 		void print() const;
 		void log() const;
