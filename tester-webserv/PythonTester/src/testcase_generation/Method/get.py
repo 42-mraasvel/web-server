@@ -1,5 +1,6 @@
 import TestCase
 from testcase_generation.Method.default import defaultTestCase
+import Constants
 
 def testCaseGet():
 	# TestCase
@@ -12,7 +13,7 @@ def testCaseGet():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/Method/Get/sample.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/Method/Get/sample.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase

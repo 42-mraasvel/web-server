@@ -1,5 +1,6 @@
 import TestCase
 from testcase_generation.ServerBlock.default import defaultTestCase
+import Constants
 
 def testCaseServerName8080Default():
 	# TestCase
@@ -12,7 +13,7 @@ def testCaseServerName8080Default():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/ServerBlock/first_server/8080/index.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/ServerBlock/first_server/8080/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
@@ -29,7 +30,7 @@ def testCaseServerName8081Default():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/ServerBlock/first_server/8081/index.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/ServerBlock/first_server/8081/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
@@ -46,7 +47,7 @@ def testCaseServerName8081First():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/ServerBlock/first_server/8081/index.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/ServerBlock/first_server/8081/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
@@ -81,7 +82,7 @@ def testCaseServerNameWildcardExactMatch():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/ServerBlock/wild_card/exactmatch/index.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/ServerBlock/wild_card/exactmatch/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
@@ -98,7 +99,7 @@ def testCaseServerNameWildcardFront():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/ServerBlock/wild_card/front/index.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/ServerBlock/wild_card/front/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
@@ -115,7 +116,7 @@ def testCaseServerNameWildcardFrontPriority():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/ServerBlock/wild_card/front/index.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/ServerBlock/wild_card/front/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
@@ -132,7 +133,7 @@ def testCaseServerNameWildcardBack():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/ServerBlock/wild_card/back/index.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/ServerBlock/wild_card/back/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase

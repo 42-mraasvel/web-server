@@ -1,5 +1,6 @@
 import TestCase
 from testcase_generation.Response.default import defaultTestCase
+import Constants
 
 def defaultMediaTypeTestCase():
 	testcase = defaultTestCase()
@@ -15,7 +16,7 @@ def testCaseMediaType_html():
 	testcase.name = 'MediaType_html'
 	testcase.request.target = '/MediaType/sample.html'
 	testcase.response.headers['Content-Type'] = 'text/html'
-	with open('./ServerRoot/Method/MediaType/sample.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/Method/MediaType/sample.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
@@ -25,7 +26,7 @@ def testCaseMediaType_txt():
 	testcase.name = 'MediaType_txt'
 	testcase.request.target = '/MediaType/sample.txt'
 	testcase.response.headers['Content-Type'] = 'text/plain;charset=UTF-8'
-	with open('./ServerRoot/Method/MediaType/sample.txt', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/Method/MediaType/sample.txt', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
@@ -35,7 +36,7 @@ def testCaseMediaType_png():
 	testcase.name = 'MediaType_png'
 	testcase.request.target = '/MediaType/sample.png'
 	testcase.response.headers['Content-Type'] = 'image/png'
-	with open('./ServerRoot/Method/MediaType/sample.png', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/Method/MediaType/sample.png', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
@@ -45,7 +46,7 @@ def testCaseMediaType_jpeg():
 	testcase.name = 'MediaType_png'
 	testcase.request.target = '/MediaType/sample.jpeg'
 	testcase.response.headers['Content-Type'] = 'image/jpeg'
-	with open('./ServerRoot/Method/MediaType/sample.jpeg', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/Method/MediaType/sample.jpeg', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
@@ -55,7 +56,7 @@ def testCaseMediaType_sh():
 	testcase.name = 'MediaType_sh'
 	testcase.request.target = '/MediaType/sample.sh'
 	testcase.response.headers['Content-Type'] = 'application/x-sh'
-	with open('./ServerRoot/Method/MediaType/sample.sh', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/Method/MediaType/sample.sh', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase

@@ -1,6 +1,7 @@
 ############# Settings ##########################
 #directory
-METHOD_DIR='./ServerRoot/Method'
+SERVER_ROOT=$1
+METHOD_DIR="$SERVER_ROOT/Method"
 FORBIDDEN_DIR=$METHOD_DIR'/forbidden'
 GET_DIR=$METHOD_DIR'/Get'
 POST_DIR=$METHOD_DIR'/Post'

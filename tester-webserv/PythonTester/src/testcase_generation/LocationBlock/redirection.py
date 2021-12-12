@@ -1,4 +1,5 @@
 import TestCase
+import Constants
 
 def defaultTestCase():
 	testcase = TestCase.TestCase()
@@ -16,7 +17,7 @@ def testCaseRedirectGet():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/LocationBlock/index.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/LocationBlock/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
@@ -33,7 +34,7 @@ def testCaseRedirectPost():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/LocationBlock/index.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/LocationBlock/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
@@ -48,7 +49,7 @@ def testCaseRedirectDelete():
 	# Response
 	testcase.response.status_code = 404
 #	testcase.response.expect_body = True
-#	with open('./ServerRoot/LocationBlock/index.html', 'rb') as f:
+#	with open(Constants.SERVER_ROOT + '/LocationBlock/index.html', 'rb') as f:
 #		testcase.response.body = f.read()
 #	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase

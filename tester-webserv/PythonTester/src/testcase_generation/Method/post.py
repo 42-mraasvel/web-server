@@ -1,5 +1,6 @@
 import TestCase
 from testcase_generation.Method.default import defaultTestCase
+import Constants
 
 def testCasePostUploadDirNew():
 	# TestCase
@@ -8,7 +9,7 @@ def testCasePostUploadDirNew():
 	# Request
 	testcase.request.method = 'POST'
 	testcase.request.target = '/Post/upload/new.txt'
-	with open('./ServerRoot/Method/Get/sample.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/Method/Get/sample.html', 'rb') as f:
 		testcase.request.body = f.read()
 	testcase.request.headers['content-length'] = str(len(testcase.request.body))
 
@@ -37,7 +38,7 @@ def testCasePostRootDirNew():
 	# Request
 	testcase.request.method = 'POST'
 	testcase.request.target = '/Post/root/new.txt'
-	with open('./ServerRoot/Method/Get/sample.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/Method/Get/sample.html', 'rb') as f:
 		testcase.request.body = f.read()
 	testcase.request.headers['content-length'] = str(len(testcase.request.body))
 

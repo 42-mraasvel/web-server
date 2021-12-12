@@ -1,4 +1,5 @@
 import TestCase
+import Constants
 
 def defaultTestCase():
 	testcase = TestCase.TestCase()
@@ -16,7 +17,7 @@ def testCaseResolutionMatchSlash():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/LocationBlock/index.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/LocationBlock/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
@@ -29,7 +30,7 @@ def testCaseResolutionBlockOne():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/LocationBlock/block1/block1/index.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/LocationBlock/block1/block1/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
@@ -41,7 +42,7 @@ def testCaseResolutionBlockTwo():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open('./ServerRoot/LocationBlock/block2/block2/index.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/LocationBlock/block2/block2/index.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase

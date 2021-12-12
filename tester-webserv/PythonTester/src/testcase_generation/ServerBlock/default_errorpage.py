@@ -1,5 +1,6 @@
 import TestCase
 from testcase_generation.ServerBlock.default import defaultTestCase
+import Constants
 
 def defaultErrorPageTestCase():
 	# TestCase
@@ -17,7 +18,7 @@ def testCaseDefaultErrorPageRedirect1():
 	# Response
 	testcase.response.status_code = 404
 	testcase.response.expect_body = True
-	with open('./ServerRoot/error_pages/404.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/error_pages/404.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	return testcase
@@ -33,7 +34,7 @@ def testCaseDefaultErrorPageRedirect2():
 	testcase.response.status_code = 405
 	testcase.response.headers['Allow'] = 'GET, POST'
 	testcase.response.expect_body = True
-	with open('./ServerRoot/error_pages/405.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/error_pages/405.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	testcase.response.headers['allow'] = 'GET, POST'

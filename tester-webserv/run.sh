@@ -1,9 +1,10 @@
 ############# Settings ##########################
 
 WEBSERV_DIR='..'
+PYTHON_DIR='./PythonTester'
 EXEC_NAME='a.out'
-CONFIG_FILE='TestConfiguration.conf'
-SERVER_ROOT='./ServerRoot'
+CONFIG_FILE=$(realpath './TestConfiguration.conf')
+SERVER_ROOT=$(realpath './ServerRoot')
 
 #Server program log
 SERVER_LOG_FILE='./server.log'
@@ -18,7 +19,7 @@ if [ "$?" != "0" ]; then
 	exit 1
 fi
 
-source prepare.sh
+source prepare.sh $SERVER_ROOT
 
 rm -f $SERVER_LOG_FILE
 
@@ -35,6 +36,6 @@ if [ -z "$process" ]; then
 	exit 1
 fi
 
-make > /dev/null && python3 src/main.py $@
+make -C $PYTHON_DIR > /dev/null && python3 $PYTHON_DIR/src/main.py $SERVER_ROOT $@
 
 pkill $EXEC_NAME
