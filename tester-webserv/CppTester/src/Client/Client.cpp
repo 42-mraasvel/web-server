@@ -15,7 +15,7 @@ Client::Settings::Settings()
 }
 
 Client::Client(Settings settings)
-: connfd(-1), settings(settings), response(NULL) {}
+: connfd(-1), settings(settings) {}
 
 Client::~Client() {
 	closeConnection();
@@ -179,7 +179,7 @@ void Client::generateSingleRequest() {
 void Client::processResponses(RequestQueue& requests) {
 	while (!responses.empty()) {
 		if (requests.size() == 0) {
-			warning("no requests left to compare to" + std::to_string(responses.size()) + "remaining responses");
+			warning("no requests left to compare to" + std::to_string(responses.size()) + "remaining response vectors");
 			return setError();
 		}
 		processResponse(responses.front(), requests.front().first, requests.front().second);
@@ -188,12 +188,12 @@ void Client::processResponses(RequestQueue& requests) {
 	}
 }
 
-void Client::processResponse(const Response::Pointer response, const Request::Pointer request,
+void Client::processResponse(const ResponseVector responses, const Request::Pointer request,
 							ResponseValidator validator) {
-	if (!validator.isValidResponse(*response)) {
-		validator.fail(*request, *response);
+	if (!validator.isValidResponse(responses)) {
+		validator.fail(*request, responses);
 	} else {
-		validator.pass(*request, *response);
+		validator.pass(*request, responses);
 	}
 }
 
@@ -244,28 +244,37 @@ void Client::readEvent() {
 void Client::parseResponse(const std::string& buffer) {
 	std::size_t index = 0;
 	while (index < buffer.size()) {
-		if (response == NULL) {
+		if (response.size() == 0) {
 			newResponsePointer();
 		}
-		if (response_parser.parse(buffer, index, *response) == ERR) {
+		if (response_parser.parse(buffer, index, *response.back()) == ERR) {
 			warning("response parsing error");
 			setError();
 			return;
 		} else if (response_parser.isComplete()) {
-			PRINT_INFO << "Client: [" << connfd << "]: received response" << std::endl;;
+			PRINT_INFO << "Client: [" << connfd << "]: received response: [" << response.back()->status_code << "]" << std::endl;;
 			finishResponse();
 		}
 	}
 }
 
 void Client::newResponsePointer() {
-	response = Response::Pointer(new Response);
+	response.push_back(Response::Pointer(new Response));
 }
 
 void Client::finishResponse() {
-	responses.push_front(response);
-	response = NULL;
+	if (isFinalResponse(response.back())) {
+		responses.push_front(response);
+		response.clear();
+	} else {
+		newResponsePointer();
+	}
 	response_parser.reset();
+}
+
+bool Client::isFinalResponse(Response::Pointer response) {
+	return !((response->status_code >= 300 && response->status_code < 400)
+		|| (response->status_code >= 100 && response->status_code < 200));
 }
 
 /*

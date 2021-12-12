@@ -1,29 +1,36 @@
 #pragma once
 
 #include "DataStructures/Response.hpp"
+#include <vector>
 #include <memory>
 
-bool validateStatusCode(const Response& response, const Response& expected);
-bool validateHeaderFields(const Response& response, const Response& expected);
-bool validateAll(const Response& response, const Response& expected);
+bool validateStatusCode(const std::vector<Response::Pointer>& response, const Response::Pointer expected);
+bool validateHeaderFields(const std::vector<Response::Pointer>& response, const Response::Pointer expected);
+bool validateAll(const std::vector<Response::Pointer>& response, const Response::Pointer expected);
 
 struct Request;
 
 class ResponseValidator {
 	public:
-		typedef bool (*ValidatorFunction)(const Response& response, const Response& expected);
+		typedef std::vector<Response::Pointer> ResponseVector;
+		typedef bool (*ValidatorFunction)(const ResponseVector& response, const Response::Pointer expected);
 
 	public:
 		ResponseValidator(Response::Pointer expected,
-					ValidatorFunction validator = &validateHeaderFields);
+					ValidatorFunction validator = &validateHeaderFields,
+					std::size_t expected_responses = 1);
+		ResponseValidator(ValidatorFunction validator = &validateHeaderFields,
+						std::size_t expected_responses = 1);
 
-		bool isValidResponse(const Response& response);
+		bool isValidResponse(const ResponseVector& response);
+		std::size_t getExpectedResponses() const;
 
-		void fail(const Request& request, const Response& response) const;
-		void pass(const Request& request, const Response& response) const;
+		void fail(const Request& request, const ResponseVector& response) const;
+		void pass(const Request& request, const ResponseVector& response) const;
 		void print() const;
 
 	private:
 		Response::Pointer expected;
 		ValidatorFunction validator;
+		std::size_t expected_responses;
 };

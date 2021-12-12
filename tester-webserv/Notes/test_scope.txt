@@ -4,6 +4,7 @@
 
 [P]: python tester
 [C]: c++ tester
+[B]: bash script
 [?]: to decide
 -y: done
 -n: not-done
@@ -12,7 +13,9 @@
 |     Config File     |
 +---------------------+
 	------ Config File Error ------
-		[C-n] TODO: to add more
+		[B-n] TODO: to add more
+			- Can also be done using Catch2 to avoid executing the entire webserver
+			- Simple bash script and directory full of invalid files for syntax errors
 
 	------ Server Block directive ------
 		[P-y] Listen: Interface (host:port) resolution

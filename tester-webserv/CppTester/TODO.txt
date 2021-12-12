@@ -1,6 +1,9 @@
 TODO
 
-	- Write some testcases, implement new options as needed
+	- connection close headerfield for http/1.0
+	- Expect 100 testcase, using a request specific flag
+	- 3xx redirection testing
+
 	- Automate adding and running testcases
 
 	- If there are multiple responses (or more than 1 per request) print out the remaining responses

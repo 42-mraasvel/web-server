@@ -3,6 +3,7 @@
 #include "DataStructures/Request.hpp"
 #include "RequestStringGenerator.hpp"
 #include "Parser/HttpResponseParser.hpp"
+#include "ResponseValidator/ResponseValidator.hpp"
 #include "Utility/Timer.hpp"
 #include <deque>
 #include <poll.h>
@@ -54,7 +55,8 @@ class Client {
 		typedef std::pair<Request::Pointer, ResponseValidator> RequestPair;
 		typedef std::deque<RequestPair> RequestQueue;
 		typedef RequestQueue::const_iterator RequestIterator;
-		typedef std::deque<Response::Pointer> ResponseQueue;
+		typedef ResponseValidator::ResponseVector ResponseVector;
+		typedef std::deque<ResponseVector> ResponseQueue;
 
 	public:
 		Client(Settings options);
@@ -87,7 +89,7 @@ class Client {
 		void generateMultipleRequests(const RequestQueue& requests);
 		void generateSingleRequest();
 		void processResponses(RequestQueue& requests);
-		void processResponse(const Response::Pointer response, const Request::Pointer request,
+		void processResponse(const ResponseVector responses, const Request::Pointer request,
 							ResponseValidator validator);
 		bool shouldRemoveWriting(const RequestQueue& requests) const;
 		void checkTimeout();
@@ -97,6 +99,7 @@ class Client {
 		void parseResponse(const std::string& buffer);
 		void newResponsePointer();
 		void finishResponse();
+		bool isFinalResponse(Response::Pointer response);
 
 	/* Write Event */
 		void writeEvent();
@@ -123,6 +126,6 @@ class Client {
 		RequestIterator processing_request;
 		RequestStringGenerator string_generator;
 		HttpResponseParser response_parser;
-		Response::Pointer response;
+		ResponseVector response;
 		ResponseQueue responses;
 };
