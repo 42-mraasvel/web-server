@@ -38,10 +38,10 @@ void Output::console() const {
 			print(RED_BOLD, std::cerr);
 			return;
 		case Output::INFO:
-			print(YELLOW_BOLD, std::cout);
+			// print(YELLOW_BOLD, std::cout);
 			break;
 		case Output::DEBUG:
-			print(BLUE_BOLD, std::cout);
+			// print(BLUE_BOLD, std::cout);
 			break;
 		default:
 			print("", std::cout);

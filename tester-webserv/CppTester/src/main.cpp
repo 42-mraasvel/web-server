@@ -1,10 +1,23 @@
 #include "Utility/Output.hpp"
 #include "TestCases/TestCase.hpp"
+#include <unordered_set>
+#include <string>
 
 TestCaseVector generateTestCases();
 
-int main() {
+static TagSet parseTags(int argc, char *argv[]) {
+	// Skip program name
+	argc--; argv++;
+	TagSet tags;
+	for (int i = 0; i < argc; ++i) {
+		tags.insert(std::string(argv[i]));
+	}
+	return tags;
+}
+
+int main(int argc, char *argv[]) {
 	Output::clearLog();
-	executeTestCases(generateTestCases());
+	const TagSet tags = parseTags(argc, argv);
+	executeTestCases(generateTestCases(), tags);
 	return 0;
 }

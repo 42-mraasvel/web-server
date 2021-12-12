@@ -5,8 +5,19 @@ static void executeTestCase(const TestCase& testcase) {
 	Client::testRequests(testcase.requests, testcase.server, testcase.settings);
 }
 
-void executeTestCases(TestCaseVector testcases) {
-	for (const TestCase& testcase : testcases) {
+static void nameRequests(TestCase& testcase) {
+	for (TestCase::RequestPair request_pair : testcase.requests) {
+		request_pair.first->name = testcase.name;
+		request_pair.first->tag = testcase.tag;
+	}
+}
+
+void executeTestCases(TestCaseVector testcases, const TagSet tags) {
+	for (TestCase& testcase : testcases) {
+		if (tags.size() > 0 && tags.count(testcase.tag) == 0) {
+			continue;
+		}
+		nameRequests(testcase);
 		executeTestCase(testcase);
 	}
 }

@@ -67,8 +67,8 @@ std::size_t ResponseValidator::getExpectedResponses() const {
 Output functions
 */
 void ResponseValidator::fail(const Request& request, const ResponseVector& response) const {
-	PRINT << RED_BOLD << "Fail" RESET_COLOR ": [" << request.name << "-" << request.tag << "]" << std::endl;
-	LOG_ERR << "Failed Testcase: [" << request.name << "-" << request.tag << "]" << std::endl;
+	PRINT << RED_BOLD << "Fail" RESET_COLOR ": [" << request.tag << "-" << request.name << "]" << std::endl;
+	LOG_ERR << "Failed Testcase: [" << request.tag << "-" << request.name << "]" << std::endl;
 	LOG_INFO << "Sent Request" << std::endl;
 	request.log();
 	LOG_INFO << "Received: " << response.size() << " responses" << std::endl;
@@ -81,7 +81,7 @@ void ResponseValidator::fail(const Request& request, const ResponseVector& respo
 }
 
 void ResponseValidator::pass(const Request& request, const ResponseVector& response) const {
-	PRINT << GREEN_BOLD << "Pass" RESET_COLOR ": [" << request.name << "-" << request.tag << "]" << std::endl;
+	PRINT << GREEN_BOLD << "Pass" RESET_COLOR ": [" << request.tag << "-" << request.name << "]" << std::endl;
 }
 
 void ResponseValidator::print() const {

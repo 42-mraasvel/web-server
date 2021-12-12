@@ -52,7 +52,7 @@
 		[C-n] TODO: to add more
 	
 	------ HTTP 1.0 ------
-		[C-n] connection need to be closed unless header [connection = keep-alive]
+		[C-y] connection need to be closed unless header [connection = keep-alive]
 		[C-n] TODO: to add test list
 
 	------ Settings ------
