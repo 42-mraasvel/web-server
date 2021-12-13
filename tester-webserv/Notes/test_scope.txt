@@ -51,18 +51,19 @@
 |        Process      |
 +---------------------+
 	------ Connection Management ------
-		[C-n] connection: close
-		[C-n] timeout
-		[C-n] Unsafe Pipeline:
+		M: [C-n] connection: close
+		M: [C-n] timeout
+		M: [C-n] Unsafe Pipeline:
 			- Large Post -> GET (all bytes) -> DELETE -> GET (404) on posted file: to check if unsafe method is not executed concurrently
 		[C-y] connection: keep-alive
 
 	------ HTTP 1.0 ------
 		[C-y] connection need to be closed unless header [connection = keep-alive]
-		[C-n] TODO: to add test list
+		A: [C-n] TODO: to add test list
 
 	------ Settings ------
-		[C-n] time out
+		- Preset settings to pass all tests with
+		M: [C-n] time out
 		[???] BUFFER_SIZE
 		[???] LIMITS
 		[???] Chunked
@@ -97,7 +98,7 @@
 				- Location header-field
 				- Response Code (for different redirection types)
 				- Retry-After header-field
-		[C-n] 400 BAD_REQUEST 
+		A: [C-n] 400 BAD_REQUEST 
 				- First line syntax error
 				- case sensitivity
 				- header [Host]
@@ -110,19 +111,19 @@
 		[P-y] 404 NOT_FOUND (see Method Execution)
 		[P-y] 405 METHOD_NOT_ALLOWED (see LocationBlock-MethodAllowed)
 				- check headerfield 'Allow'
-		[???] 408 REQUEST_TIMEOUT
+		A: [C-n] 408 REQUEST_TIMEOUT
 		[P-y] 413 PAYLOAD_TOO_LARGE (see ServerBlock-ClientMaxSize)
 		[???] 415 UNSUPPORTED_MEDIA_TYPE
 		[P-y] 417 EXPECTATION_FAILED (see StatusCode)
-		[???] 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+		M: [C-n] 431 REQUEST_HEADER_FIELDS_TOO_LARGE
 		[P-y] 500 INTERNAL_SERVER_ERROR (through out whole program)
 		[P-y] 501 NOT_IMPLEMENTED (see StatusCode)
 				- method other than: GET POST DELETE)
 				- Request header "Transfer-Encoding" other than: chunked (close connection)
-		[???] 502 BAD_GATEWAY
-		[???] 504 GATEWAY_TIMEOUT
+		[PC-n] 502 BAD_GATEWAY
+		[PC-n] 504 GATEWAY_TIMEOUT
 		[C-y] 505 HTTP_VERSION_NOT_SUPPORTED 
-	
+
 	------ Response Header Field ------
 		[P-y] Date
 				- check if date string len = 29
@@ -140,47 +141,6 @@
 		[P-y] Allow (see Location Block - Method allowed & Response Code 405)
 		[P-y] Content-Length
 				- cannot present together with Transfer-Encoding (check in defaultEvaluator)
-		[???] Transfer-Encoding
-		[P-y] Content-Type
-
-
-
-
-***********************************
-**********   Question    **********
-***********************************
-1.
-	for below the case, a request from 127.0.0.1:8081 with Host: second_server
-	will resolve to first block instead of the second.
-	server {
-		listen 8081;
-		listen 127.0.0.1:8081;
-		server_name first_server;
-
-		location / {
-			allowed_methods GET;
-			root ./ServerRoot/FirstServer/8081;
-			index index.html;
-		}
-	}
-
-	server {
-		listen 8081;
-		server_name second_server;
-
-		location / {
-		}
-	}
-
-*********************************
-**********   Answer    **********
-*********************************
-
-1.
-	This is because `127.0.0.1:8080` is the more specific interface
-		1. Resolve server blocks using listen directive and interface address (request IP:Port)
-		2. Furth resolve server blocks if necessary using server_name and `Host` header field
-	NginX also resolves to the first server block in this case* (tested it to be sure)
-	
-	
-	*http://nginx.org/en/docs/http/request_processing.html#:~:text=In%20this%20configuration%2C%20nginx%20first%20tests%20the%20IP%20address%20and%20port%20of%20the%20request%20against%20the%20listen%20directives%20of%20the%20server%20blocks.%20It%20then%20tests%20the%20%E2%80%9CHost%E2%80%9D%20header%20field%20of%20the%20request%20against%20the%20server_name%20entries%20of%20the%20server%20blocks%20that%20matched%20the%20IP%20address%20and%20port.
+		[PC-n] Transfer-Encoding
+		[P-n] Content-Type
+			Check nonexistant extensions and no extension for content-type

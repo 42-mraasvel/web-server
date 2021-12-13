@@ -39,11 +39,11 @@ chmod a=r $FORBIDDEN_FILE
 
 #(re)build forbidden sub directory
 if [ -d "$FORBIDDEN_SUBDIR" ]; then
-	sudo chown $USER $FORBIDDEN_SUBDIR
+	# sudo chown $USER $FORBIDDEN_SUBDIR
 	chmod 755 $FORBIDDEN_SUBDIR
 	rm -r $FORBIDDEN_SUBDIR
 fi
 mkdir -p $FORBIDDEN_SUBDIR
 cp $METHOD_SAMPLE_FILE $FORBIDDEN_SUBDIR'/sample.html'
 chmod a=r $FORBIDDEN_SUBDIR
-sudo chown nobody $FORBIDDEN_SUBDIR
+# sudo chown nobody $FORBIDDEN_SUBDIR

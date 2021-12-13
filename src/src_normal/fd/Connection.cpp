@@ -139,7 +139,7 @@ void	Connection::generateResponseString()
 			&& retrieveResponse())
 	{
 		appendString(_response->string_to_send, _response_string);
-		if (_response->status == Response::COMPLETE)
+		if (_response->isFinished())
 		{
 			decreUnsafe(_response->method);
 			_close_connection = _response->close_connection;

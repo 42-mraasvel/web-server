@@ -43,7 +43,7 @@ void	RequestExecutor::executeRequest(FdTable & fd_table, Request & request, Resp
 
 	if (_status != START)
 	{
-		response.markComplete(_status_code);
+		response.markSpecial(_status_code);
 	}
 }
 

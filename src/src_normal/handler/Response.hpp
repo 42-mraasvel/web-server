@@ -14,7 +14,8 @@ struct Response
 	enum Status
 	{
 		START,
-		COMPLETE
+		COMPLETE,
+		SPECIAL
 	};
 
 	enum Encoding
@@ -26,6 +27,8 @@ struct Response
 
 	public:
 		void	markComplete(int new_status_code);
+		void	markSpecial(int new_status_code);
+		bool	isFinished() const;
 		void	setCgi();
 		void	unsetCgi();
 		void	resetErrorPageRedirection();

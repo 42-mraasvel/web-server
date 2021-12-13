@@ -75,25 +75,21 @@ int HeaderFieldParser::handleLeftover(buffer_type const & buffer)
 	{
 		return OK;
 	}
-
 	std::size_t start = _index;
 	// Returns the index of the start of the ENDLINE in buffer
 	// Will destroy "\r" from END OF leftover IF edgecase is encountered
 	_index = util::findEndLine(_leftover, buffer, _index);
-
 	// Append buffer[start:end] to leftover
 	// Returns ERR if it exceeds MAX_SIZE
 	if (appendLeftover(buffer, start, _index) == ERR)
 	{
 		return ERR;
 	}
-
 	// No endline found
 	if (_index == std::string::npos)
 	{
 		return OK;
 	}
-
 	// Set index beyond the ENDLINE in buffer
 	util::skipEndLine(buffer, _index);
 	// Parse leftover's field into map
@@ -110,12 +106,10 @@ Size check the leftover (header-field-max-size)
 */
 int HeaderFieldParser::appendLeftover(buffer_type const & buffer, std::size_t start, std::size_t end)
 {
-
 	if (end - start + _leftover.size() > _max_size)
 	{
 		return setError(StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE);
 	}
-
 	_leftover.append(buffer, start, end - start);
 	return OK;
 }

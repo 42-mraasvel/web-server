@@ -27,7 +27,7 @@ void	ResponseGenerator::evaluateEncoding(Response & response)
 {
 	if (response.encoding == Response::UNDEFINED)
 	{
-		if (response.status != Response::COMPLETE)
+		if (!response.isFinished())
 		{
 			if (isReadyToBeChunked(response))
 			{
@@ -218,7 +218,7 @@ void	ResponseGenerator::encodeMessageBody(Response & response)
 		response.message_body.insert(0, chunk_size);
 		response.message_body.append(NEWLINE);
 	}
-	if (response.status == Response::COMPLETE)
+	if (response.isFinished())
 	{
 		response.message_body.append(CHUNK_TAIL);
 	}

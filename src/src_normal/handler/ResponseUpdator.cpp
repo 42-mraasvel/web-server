@@ -12,21 +12,15 @@ ResponseUpdator::ResponseUpdator() {}
 
 void	ResponseUpdator::update(FdTable & fd_table, Response & response)
 {
-	if (response.status != Response::COMPLETE)
+	if (!response.isFinished())
 	{
 		updateHandler(response);
 	}
 
-	if (response.status == Response::COMPLETE && response.encoding == Response::CHUNKED)
-	{
-		return;
-	}
-
-	if (response.status == Response::COMPLETE && !StatusCode::isStatusCodeNoMessageBody(response.status_code))
+	if (response.status == Response::SPECIAL && !StatusCode::isStatusCodeNoMessageBody(response.status_code))
 	{
 		setSpecialMessageBody(fd_table, response);
 	}
-	std::cout << response.message_body << std::endl;
 
 	if (response.handler->isComplete())
 	{
@@ -49,7 +43,7 @@ void	ResponseUpdator::updateHandler(Response & response)
 	}
 	if (response.handler->isError())
 	{
-		response.markComplete(response.handler->getStatusCode());
+		response.markSpecial(response.handler->getStatusCode());
 	}
 }
 
@@ -94,7 +88,7 @@ void	ResponseUpdator::processAutoIndex(Response & response)
 	if (WebservUtility::list_directory(response.config_info.resolved_target, response.config_info.resolved_file_path, response.message_body) == ERR)
 	{
 		response.message_body.erase();
-		response.markComplete(StatusCode::INTERNAL_SERVER_ERROR);
+		response.markSpecial(StatusCode::INTERNAL_SERVER_ERROR);
 	}
 }
 

@@ -28,7 +28,7 @@ TestCase defaultStressTest() {
 	testcase.name = "Stress";
 	testcase.execute_only_if_tag = true;
 	ResponseValidator validator(defaultResponse());
-	int n = 650;
+	int n = 1000;
 	for (int i = 0; i < n; ++i) {
 		testcase.requests.push_back(TestCase::RequestPair(defaultRequest(), validator));
 	}
