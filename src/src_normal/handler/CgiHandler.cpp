@@ -261,7 +261,6 @@ void CgiHandler::update(std::string & response_body)
 		_sender = NULL;
 	}
 
-
 	if (isComplete())
 	{
 		finishCgi(CgiHandler::COMPLETE, checkStatusField());
@@ -277,6 +276,11 @@ void CgiHandler::evaluateReader(std::string & response_body)
 {
 	if (_reader->getBody().size() > 0)
 	{
+		if (_header.size() == 0)
+		{
+			_header.swap(_reader->getHeader());
+			_status_code = checkStatusField();
+		}
 		if (response_body.size() == 0)
 		{
 			response_body.swap(_reader->getBody());

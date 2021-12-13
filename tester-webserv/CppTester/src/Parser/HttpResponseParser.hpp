@@ -29,7 +29,7 @@ class HttpResponseParser {
 	
 	private:
 		void setState(State new_state);
-		void setError();
+		void setError(int code);
 
 	/* Main Parsing */
 		void parseStatusLine(const std::string& buffer,
@@ -49,6 +49,7 @@ class HttpResponseParser {
 
 	private:
 		State state;
+		int status_code;
 		StatusLineParser status_line_parser;
 		HeaderFieldParser header_field_parser;
 		ContentParser content_parser;

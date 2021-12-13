@@ -6,6 +6,7 @@
 #include "Response.hpp"
 #include "CgiHandler.hpp"
 #include "FileHandler.hpp"
+#include <iostream>
 
 ResponseUpdator::ResponseUpdator() {}
 
@@ -16,16 +17,21 @@ void	ResponseUpdator::update(FdTable & fd_table, Response & response)
 		updateHandler(response);
 	}
 
+	if (response.status == Response::COMPLETE && response.encoding == Response::CHUNKED)
+	{
+		return;
+	}
+
 	if (response.status == Response::COMPLETE && !StatusCode::isStatusCodeNoMessageBody(response.status_code))
 	{
 		setSpecialMessageBody(fd_table, response);
 	}
+	std::cout << response.message_body << std::endl;
 
 	if (response.handler->isComplete())
 	{
 		response.markComplete(response.handler->getStatusCode());
 	}
-
 	_generator.generateString(response);
 }
 

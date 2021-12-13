@@ -112,7 +112,7 @@ bool Connection::canExecuteRequest(int fd_table_size) const
 			&& !_unsafe_request_count
 			&& _response_handler.canExecuteRequest()
 			&& !(!_request_handler.isNextRequestSafe()
-				&& !_response_handler.isResponseQueueEmpty())
+			&& !_response_handler.isResponseQueueEmpty())
 			&& fd_table_size < FD_TABLE_MAX_SIZE;
 }
 

@@ -10,7 +10,7 @@
 #include <poll.h>
 
 Client::Settings::Settings()
-: timeout(DEFAULT_TIMEOUT), pipeline_amount(DEFAULT_PIPELINE) {
+: timeout(DEFAULT_TIMEOUT), pipeline_amount(DEFAULT_PIPELINE), wait_close(DEFAULT_WAIT_CLOSE) {
 	flags = TIMEOUT;
 }
 
@@ -36,6 +36,9 @@ void Client::testRequests(const RequestQueue& requests, Address server_addr, Set
 		return;
 	}
 	c.executeTransaction(requests);
+	if (c.isError()) {
+		// c.handleError(requests);
+	}
 }
 
 bool Client::validSettings(const Settings& settings) {
@@ -101,19 +104,22 @@ void Client::executeTransaction(RequestQueue requests) {
 		update(requests);
 		if (isComplete()) {
 			return;
+		} else if (state == State::WAITING) {
+			break;
 		}
 		int n = poll(&pfd, 1, POLL_TIMEOUT);
 		if (n == ERR) {
 			syscallError(_FUNC_ERR("poll"));
 		} else if (shouldCloseConnection()) {
 			warning("closing connection early due to poll");
-			// This probably means the server closed the connection
+			setError();
 			closeConnection();
 			return;
 		} else if (n > 0) {
 			executeEvents();
 		}
 	}
+	waitForServer();
 }
 
 void Client::prepareTransaction(const RequestQueue& requests) {
@@ -139,7 +145,11 @@ void Client::update(RequestQueue& requests) {
 	}
 	if (requests.empty()) {
 		PRINT_INFO << "Client: [" << connfd << "]: processed all request/response pairs" << std::endl;
-		setState(State::COMPLETE);
+		if (settings.flags & Settings::WAIT_FOR_CLOSE) {
+			setState(State::WAITING);
+		} else {
+			setState(State::COMPLETE);
+		}
 	} else if (shouldRemoveWriting(requests)) {
 		if (processing_request == requests.end()) {
 			PRINT_INFO << "Client: [" << connfd << "]: finished writing" << std::endl;
@@ -251,6 +261,7 @@ void Client::parseResponse(const std::string& buffer) {
 		}
 		if (response_parser.parse(buffer, index, *response.back()) == ERR) {
 			warning("response parsing error");
+			PRINT_DEBUG << buffer << std::endl;
 			setError();
 			return;
 		} else if (response_parser.isComplete()) {
@@ -294,6 +305,31 @@ void Client::writeEvent() {
 	PRINT_INFO << "Sent: " << n << " bytes" << std::endl;
 	PRINT_DEBUG << str << std::endl;
 	string_generator.eraseBytes(n);
+}
+
+void Client::waitForServer() {
+	timer.reset();
+	while (state == State::WAITING) {
+		sleep(POLL_TIMEOUT);
+		if (timer.elapsed() > settings.wait_close) {
+			warning("timed out when waiting for server to close");
+			setError();
+			break;
+		}
+	}
+	closeConnection();
+}
+
+void Client::handleError(const RequestQueue& requests) const {
+	LOG_ERR << "Client: [" << connfd << "]: " << "error ocurred with " << requests.size() << " requests remaining" << std::endl;
+	for (const Response::Pointer r : response) {
+		LOG_INFO << "Received Response:" << std::endl;
+		r->log();
+	}
+	ResponseVector empty;
+	for (const RequestPair& it : requests) {
+		it.second.fail(*it.first, empty);
+	}
 }
 
 /*

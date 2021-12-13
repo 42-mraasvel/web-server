@@ -30,17 +30,20 @@ class Client {
 				short int flags;
 				int timeout;
 				int pipeline_amount;
+				int wait_close;
 
 			private:
 				static constexpr int DEFAULT_TIMEOUT = 60;
 				static constexpr int DEFAULT_PIPELINE = 10;
+				static constexpr int DEFAULT_WAIT_CLOSE = 120;
 		};
 	
 	private:
 		enum class State {
 			EXECUTING,
 			COMPLETE,
-			ERROR
+			ERROR,
+			WAITING
 		};
 
 	public:
@@ -59,6 +62,7 @@ class Client {
 
 		bool isComplete() const;
 		bool isError() const;
+		void handleError(const RequestQueue& requests) const;
 
 	private:
 	/* Error Checking Input */
@@ -95,6 +99,8 @@ class Client {
 
 	/* Write Event */
 		void writeEvent();
+	
+		void waitForServer();
 
 	/* Utility */
 		void closeConnection();

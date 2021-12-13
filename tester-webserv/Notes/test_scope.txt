@@ -38,10 +38,12 @@
 		[P-y] Root Directory (empty root, root syntax error)
 		[P-y] Auto Index
 		[P-y] Default File
-		[???] CGI: executable to test in/output
+		[PC-n] CGI: executable to test in/output
 				- Header-Fields
 				- StatusCode
 				- Environment variables
+				- Errors (BAD_GATEWAY, Syntax)
+				- CGI timeout
 		[P-y] upload_store (see Method Execution - POST)
 		[P-y] return/redirection (GET/POST/DELETE)
 
@@ -49,8 +51,12 @@
 |        Process      |
 +---------------------+
 	------ Connection Management ------
-		[C-n] TODO: to add more
-	
+		[C-n] connection: close
+		[C-n] timeout
+		[C-n] Unsafe Pipeline:
+			- Large Post -> GET (all bytes) -> DELETE -> GET (404) on posted file: to check if unsafe method is not executed concurrently
+		[C-y] connection: keep-alive
+
 	------ HTTP 1.0 ------
 		[C-y] connection need to be closed unless header [connection = keep-alive]
 		[C-n] TODO: to add test list
@@ -75,6 +81,8 @@
 				- 204 NO_CONTENT
 				- 404 NOT_FOUND
 				- 403 FORBIDDEN (file, directory)
+	------ Bad Agent ------
+		[C-n] Infinite header fields
 
 +---------------------+
 |       Response      |

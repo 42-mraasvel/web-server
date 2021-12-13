@@ -38,7 +38,7 @@ int HttpResponseParser::parse(const std::string& buffer, std::size_t& index, Res
 void HttpResponseParser::parseStatusLine(const std::string& buffer,
 		std::size_t & index, Response & response) {
 	if (status_line_parser.parse(buffer, index, response) == ERR) {
-		setError();
+		setError(StatusCode::BAD_REQUEST);
 	} else if (status_line_parser.isComplete()) {
 		setState(State::PARSE_HEADER);
 	}
@@ -48,7 +48,7 @@ void HttpResponseParser::parseHeader(const std::string& buffer,
 		std::size_t & index, Response & response) {
 	if (header_field_parser.parse(buffer, index) == ERR) {
 		PRINT_ERR << "HeaderFieldParser Error" << std::endl;
-		setError();
+		setError(header_field_parser.getStatusCode());
 	} else if (header_field_parser.isComplete()) {
 		response.header_fields.swap(header_field_parser.getHeaderField());
 		processHeader(response.header_fields);
@@ -72,12 +72,12 @@ void HttpResponseParser::checkContent(const HeaderField& header) {
 void HttpResponseParser::checkContentLength(const std::string& value) {
 	for (char c : value) {
 		if (!isdigit(c)) {
-			return setError();
+			return setError(StatusCode::BAD_REQUEST);
 		}
 	}
 	std::size_t length;
 	if (util::strtoul(value, length) == -1) {
-		return setError();
+		return setError(StatusCode::BAD_REQUEST);
 	} else if (length == 0) {
 		return setState(State::COMPLETE);
 	}
@@ -87,7 +87,7 @@ void HttpResponseParser::checkContentLength(const std::string& value) {
 
 void HttpResponseParser::checkTransferEncoding(const std::string& value) {
 	if (!util::caseInsensitiveEqual(value, "chunked")) {
-		return setError();
+		return setError(StatusCode::BAD_REQUEST);
 	}
 	setState(State::PARSE_CHUNKED);
 }
@@ -97,7 +97,7 @@ void HttpResponseParser::parseContent(const std::string& buffer,
 		std::size_t & index, Response & response) {
 	if (content_parser.parse(buffer, index) == ERR) {
 		PRINT_ERR << "ContentParser Error" << std::endl;
-		setError();
+		setError(content_parser.getStatusCode());
 	} else if (content_parser.isComplete()) {
 		response.message_body.swap(content_parser.getContent());
 		setState(State::COMPLETE);
@@ -108,7 +108,7 @@ void HttpResponseParser::parseChunked(const std::string& buffer,
 		std::size_t & index, Response & response) {
 	if (chunked_content_parser.parse(buffer, index) == ERR) {
 		PRINT_ERR << "ChunkedParser Error" << std::endl;
-		setError();
+		setError(chunked_content_parser.getStatusCode());
 	} else if (chunked_content_parser.isComplete()) {
 		chunked_content_parser.appendMessageBody(response.message_body);
 		chunked_content_parser.appendHeader(response.header_fields);
@@ -124,7 +124,8 @@ bool HttpResponseParser::isComplete() const {
 	return state == State::COMPLETE;
 }
 
-void HttpResponseParser::setError() {
+void HttpResponseParser::setError(int code) {
+	status_code = code;
 	setState(State::ERROR);
 }
 
