@@ -28,6 +28,7 @@ class ResponseValidator {
 		void fail(const Request& request, const ResponseVector& response) const;
 		void pass(const Request& request, const ResponseVector& response) const;
 		void print() const;
+		void log(const Request& request, const ResponseVector& response) const;
 
 	private:
 		Response::Pointer expected;

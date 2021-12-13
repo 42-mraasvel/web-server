@@ -19,15 +19,20 @@ struct TestCase {
 		typedef Client::Settings Settings;
 
 	public:
+		TestCase();
+
+	public:
 		std::string tag;
 		std::string name;
 	public:
 		RequestQueue requests;
 		Settings settings;
 		Address server;
+		bool execute_only_if_tag;
 };
 
 typedef std::vector<TestCase> TestCaseVector;
 typedef std::unordered_set<std::string> TagSet;
 
 void executeTestCases(TestCaseVector testcases, const TagSet tags = {});
+void executeTestCasesParallel(TestCaseVector testcases, const TagSet tags = {});

@@ -273,8 +273,9 @@ void Client::finishResponse() {
 }
 
 bool Client::isFinalResponse(Response::Pointer response) {
-	return !((response->status_code >= 300 && response->status_code < 400)
-		|| (response->status_code >= 100 && response->status_code < 200));
+	return !(response->status_code >= 100 && response->status_code < 200);
+	// return !((response->status_code >= 300 && response->status_code < 400)
+	// 	|| (response->status_code >= 100 && response->status_code < 200));
 }
 
 /*
@@ -288,7 +289,7 @@ void Client::writeEvent() {
 		syscallError(_FUNC_ERR("send"));
 		return;
 	}
-	PRINT_DEBUG << "Sent:" << std::endl;
+	PRINT_INFO << "Sent: " << n << " bytes" << std::endl;
 	PRINT_DEBUG << str << std::endl;
 	string_generator.eraseBytes(n);
 }

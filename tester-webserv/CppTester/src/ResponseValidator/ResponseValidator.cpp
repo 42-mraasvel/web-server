@@ -68,6 +68,15 @@ Output functions
 */
 void ResponseValidator::fail(const Request& request, const ResponseVector& response) const {
 	PRINT << RED_BOLD << "Fail" RESET_COLOR ": [" << request.tag << "-" << request.name << "]" << std::endl;
+	log(request, response);
+}
+
+void ResponseValidator::pass(const Request& request, const ResponseVector& response) const {
+	PRINT << GREEN_BOLD << "Pass" RESET_COLOR ": [" << request.tag << "-" << request.name << "]" << std::endl;
+	log(request, response);
+}
+
+void ResponseValidator::log(const Request& request, const ResponseVector& response) const {
 	LOG_ERR << "Failed Testcase: [" << request.tag << "-" << request.name << "]" << std::endl;
 	LOG_INFO << "Sent Request" << std::endl;
 	request.log();
@@ -82,10 +91,6 @@ void ResponseValidator::fail(const Request& request, const ResponseVector& respo
 	} else {
 		LOG_WARNING << "missing expected response" << std::endl;
 	}
-}
-
-void ResponseValidator::pass(const Request& request, const ResponseVector& response) const {
-	PRINT << GREEN_BOLD << "Pass" RESET_COLOR ": [" << request.tag << "-" << request.name << "]" << std::endl;
 }
 
 void ResponseValidator::print() const {

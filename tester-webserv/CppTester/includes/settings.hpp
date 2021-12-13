@@ -10,4 +10,5 @@
 
 #define CRLF "\r\n"
 #define MAX_HEADER_SIZE 8192
-#define BUFFER_SIZE 4096
+// #define BUFFER_SIZE 4096
+#define BUFFER_SIZE 8192

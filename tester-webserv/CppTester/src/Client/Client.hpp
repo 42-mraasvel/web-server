@@ -22,14 +22,7 @@ class Client {
 					TIMEOUT		= 0x0001,
 					PIPELINED	= 0x0002,
 					// DETACHED	= 0x0004,
-
-					// PIPELINED	= 0x0020,
-					// PIPELINED	= 0x0040,
-					// PIPELINED	= 0x0080,
-					// PIPELINED	= 0x0100,
-					// PIPELINED	= 0x0200,
-					// PIPELINED	= 0x0400,
-					// PIPELINED	= 0x0800,
+					// WAIT_FOR_CLOSE = 0x0008,
 				};
 			public:
 				Settings();

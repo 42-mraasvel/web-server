@@ -85,7 +85,7 @@
 				- Location header should be request target
 		[P-y] 204 NO_CONTENT (see Method Execution - POST/DELETE)
 		[P-y] 301 MOVED_PERMANENTLY (see ServerBlock-ErrorPage)
-		[C-n] 3xx REDIRECT  
+		[C-y] 3xx REDIRECT  
 				- Location header-field
 				- Response Code (for different redirection types)
 				- Retry-After header-field
@@ -113,7 +113,7 @@
 				- Request header "Transfer-Encoding" other than: chunked (close connection)
 		[???] 502 BAD_GATEWAY
 		[???] 504 GATEWAY_TIMEOUT
-		[C-n] 505 HTTP_VERSION_NOT_SUPPORTED 
+		[C-y] 505 HTTP_VERSION_NOT_SUPPORTED 
 	
 	------ Response Header Field ------
 		[P-y] Date

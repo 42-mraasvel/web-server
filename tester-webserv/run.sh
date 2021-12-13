@@ -1,10 +1,14 @@
 ############# Settings ##########################
 
+getRealPath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
 WEBSERV_DIR='..'
 PYTHON_DIR='./PythonTester'
 EXEC_NAME='a.out'
-CONFIG_FILE=$(realpath './TestConfiguration.conf')
-SERVER_ROOT=$(realpath './ServerRoot')
+CONFIG_FILE=$(getRealPath './TestConfiguration.conf')
+SERVER_ROOT=$(getRealPath './ServerRoot')
 
 #Server program log
 SERVER_LOG_FILE='./server.log'

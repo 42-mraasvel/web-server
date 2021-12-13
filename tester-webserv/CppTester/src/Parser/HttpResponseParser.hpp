@@ -40,7 +40,7 @@ class HttpResponseParser {
 			std::size_t & index, Response & response);
 		void parseChunked(const std::string& buffer,
 			std::size_t & index, Response & response);
-		
+
 	/* Header Processing */
 		void processHeader(const HeaderField& header);
 		void checkContent(const HeaderField& header);
