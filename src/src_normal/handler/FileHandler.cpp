@@ -324,7 +324,6 @@ void	FileHandler::setContentType(HeaderField & header_field) const
 	if (_method == Method::GET && !_absolute_file_path.empty())
 	{
 		header_field["Content-Type"] = MediaType::getMediaType(_absolute_file_path);
-		return ;
 	}
 }
 

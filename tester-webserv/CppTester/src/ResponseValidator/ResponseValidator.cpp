@@ -73,7 +73,7 @@ void ResponseValidator::fail(const Request& request, const ResponseVector& respo
 
 void ResponseValidator::pass(const Request& request, const ResponseVector& response) const {
 	PRINT << GREEN_BOLD << "Pass" RESET_COLOR ": [" << request.tag << "-" << request.name << "]" << std::endl;
-	log(request, response);
+	// log(request, response);
 }
 
 void ResponseValidator::log(const Request& request, const ResponseVector& response) const {

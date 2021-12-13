@@ -10,7 +10,7 @@ TestCase testCaseRedirection308();
 TestCase testCaseRedirection302();
 TestCase testCaseRedirection303();
 TestCase testCaseRedirection307();
-TestCase testCaseStress();
+TestCase testCaseStress0();
 TestCase testCaseVersionNotSupported();
 
 TestCaseVector generateTestCases() {
@@ -25,7 +25,7 @@ TestCaseVector generateTestCases() {
 	testcases.push_back(testCaseRedirection302());
 	testcases.push_back(testCaseRedirection303());
 	testcases.push_back(testCaseRedirection307());
-	testcases.push_back(testCaseStress());
+	testcases.push_back(testCaseStress0());
 	testcases.push_back(testCaseVersionNotSupported());
 	return testcases;
 }

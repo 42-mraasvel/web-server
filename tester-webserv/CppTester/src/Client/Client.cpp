@@ -107,6 +107,7 @@ void Client::executeTransaction(RequestQueue requests) {
 			syscallError(_FUNC_ERR("poll"));
 		} else if (shouldCloseConnection()) {
 			warning("closing connection early due to poll");
+			// This probably means the server closed the connection
 			closeConnection();
 			return;
 		} else if (n > 0) {
@@ -234,6 +235,7 @@ void Client::readEvent() {
 		return;
 	} else if (n == 0) {
 		warning("unexpected EOF read");
+		// Server closed the connection
 		setError();
 		return;
 	}

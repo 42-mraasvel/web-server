@@ -5,21 +5,25 @@ namespace MediaType
 
 std::string	getMediaType(std::string const & file)
 {
-	Map map;
-	initMap(map);
+	static const Map map = initMap();
 
 	size_t	find = file.find_last_of(".");
-	std::string extension = file.substr(find);
-	if (map.contains(extension))
+	if (find != std::string::npos)
 	{
-		return map.get();
+		std::string extension = file.substr(find);
+		Map::const_pair_type it = map.get(extension);
+		if (it.second)
+		{
+			return it.first->second;
+		}
 	}
 	return "application/octet-stream";
 }
 
-void	initMap(Map & map)
+Map	initMap()
 {
 	// https://www.sitepoint.com/mime-types-complete-list/
+	Map map;
 
 	map[".3dm"]			= "x-world/x-3dmf";
 	map[".3dmf"]		= "x-world/x-3dmf";
@@ -661,8 +665,8 @@ void	initMap(Map & map)
 	map[".zoo"]			= "application/octet-stream";
 	map[".zsh"]			= "text/x-script.zsh";
 
-
-}	
+	return map;
+}
 
 }
 

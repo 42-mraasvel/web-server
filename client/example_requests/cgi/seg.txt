@@ -1,0 +1,2 @@
+GET /cgi-bin/seg HTTP/1.0
+

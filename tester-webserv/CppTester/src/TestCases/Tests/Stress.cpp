@@ -20,7 +20,7 @@ static Response::Pointer defaultResponse() {
 	return response;
 }
 
-TestCase testCaseStress() {
+TestCase defaultStressTest() {
 	TestCase testcase = defaultTestCase();
 
 	testcase.settings.flags |= Client::Settings::PIPELINED;
@@ -33,4 +33,8 @@ TestCase testCaseStress() {
 		testcase.requests.push_back(TestCase::RequestPair(defaultRequest(), validator));
 	}
 	return testcase;
+}
+
+TestCase testCaseStress0() {
+	return defaultStressTest();
 }

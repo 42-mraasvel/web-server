@@ -18,11 +18,10 @@ class Client {
 		struct Settings {
 			public:
 				enum Flags {
-					NONE		= 0x0000,
-					TIMEOUT		= 0x0001,
-					PIPELINED	= 0x0002,
-					// DETACHED	= 0x0004,
-					// WAIT_FOR_CLOSE = 0x0008,
+					NONE			= 0x0000,
+					TIMEOUT			= 0x0001, // Close the connection
+					PIPELINED		= 0x0002, // Send multiple requests without waiting for the response
+					WAIT_FOR_CLOSE	= 0x0004,
 				};
 			public:
 				Settings();
