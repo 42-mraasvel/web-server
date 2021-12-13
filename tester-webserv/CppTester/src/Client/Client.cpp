@@ -322,7 +322,7 @@ void Client::waitForServer() {
 
 void Client::handleError(const RequestQueue& requests) const {
 	LOG_ERR << "Client: [" << connfd << "]: " << "error ocurred with " << requests.size() << " requests remaining" << std::endl;
-	for (const Response::Pointer r : response) {
+	for (const Response::Pointer& r : response) {
 		LOG_INFO << "Received Response:" << std::endl;
 		r->log();
 	}

@@ -4,28 +4,13 @@ TODO
 	- Log invalid responses: print out only a small message (inside of the ResponseValidator)
 	- Detached (multithreaded) should be behind a wrapper surrounding the Client
 	- Print last sent request/response if timeout
-
-To Discuss:
-
-	- How to handle multiple response requests (1xx responses)
+	- Print number of testcases, requests passed and failed at the end
 
 Client class:
-
-	1. Connect to the server
-	2. Send requests, and read responses (using poll)
-	3. 
-
-	Options:
-
-		- Timeout for no activity
-		- Pipelined
 
 		-- Ideas, Not Implemented Yet --
 			- Set CONTENT_LENGTH or TRANSFER_ENCODING
 				- Have the client determine the content length or transfer encoding, based on the Chunked option and body size
-			- Detached mode
-				- For this the Client should have a waitUntilFinished() method, which if in detached mode waits for the threads
-			- Send expect: 100-continue before sending message body
 
 General:
 

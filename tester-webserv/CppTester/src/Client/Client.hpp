@@ -21,7 +21,7 @@ class Client {
 					NONE			= 0x0000,
 					TIMEOUT			= 0x0001, // Close the connection
 					PIPELINED		= 0x0002, // Send multiple requests without waiting for the response
-					WAIT_FOR_CLOSE	= 0x0004,
+					WAIT_FOR_CLOSE	= 0x0004, // wait wait_close seconds after the final request was sent (there can also be 0 requests)
 				};
 			public:
 				Settings();
