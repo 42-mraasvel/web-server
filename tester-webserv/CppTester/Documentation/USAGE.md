@@ -17,7 +17,6 @@
 ### On by Default
 - TIMEOUT
 
-
 ## Creating Testcases
 	Create testcases as functions in the 'src/TestCases/Tests' directory.
 	Any function following the prototype 'TestCase testCase...();' with '...' being anything

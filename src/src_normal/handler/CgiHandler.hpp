@@ -56,6 +56,7 @@ class CgiHandler: public iHandler
 
 	/* Update Functionality */
 		void evaluateReader(std::string & response_body);
+		void swapHeader();
 		bool isExecutionError() const;
 		int getErrorCode() const;
 

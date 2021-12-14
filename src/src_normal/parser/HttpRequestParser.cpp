@@ -215,7 +215,7 @@ int HttpRequestParser::parseContentLength(std::string const &value)
 	}
 
 	std::size_t content_length;
-	if (WebservUtility::strtoul(value, content_length) == -1)
+	if (value.size() == 0 || WebservUtility::strtoul(value, content_length) == -1)
 	{
 		return setError(StatusCode::BAD_REQUEST);
 	}

@@ -7,7 +7,8 @@ struct Response {
 	typedef std::unordered_map<std::string, std::string> header_type;
 
 	void write() const;
-	static void errorResponse(int status, const std::string& reason);
+	void write(const std::string& message_body) const;
+	static void writeResponse(int status, const std::string& reason);
 
 	header_type fields;
 	std::string body;

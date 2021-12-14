@@ -1,5 +1,5 @@
 # Executable
-NAME = a.out
+NAME = mrtest_cgi.out
 NAME_DEBUG = debug.out
 NAME_FSANITIZE = fsanitize.out
 EXECS = $(NAME) $(NAME_DEBUG) $(NAME_FSANITIZE)

@@ -1,3 +1,4 @@
+#include "Executor.hpp"
 #include "InputValidator.hpp"
 #include "Response.hpp"
 #include "Output.hpp"
@@ -20,11 +21,11 @@ static int readContent(std::string* body) {
 			perror("read");
 			return -1;
 		} else if (n == 0) {
-			Response::errorResponse(StatusCode::INTERNAL_SERVER_ERROR,
+			Response::writeResponse(StatusCode::INTERNAL_SERVER_ERROR,
 				"didn't receive CONTENT_LENGTH bytes");
 			return -1;
 		} else if (bytes_read + n > len) {
-			Response::errorResponse(StatusCode::INTERNAL_SERVER_ERROR,
+			Response::writeResponse(StatusCode::INTERNAL_SERVER_ERROR,
 				"too many bytes read: " + std::to_string(bytes_read + n) + ": expected: " + std::to_string(len));
 			return -1;
 		}
@@ -36,21 +37,21 @@ static int readContent(std::string* body) {
 
 int main(int argc, char *argv[], char *environ[]) {
 	InputValidator validator;
-
 	if (!validator.validInput(argc, argv)) {
-		Response::errorResponse(validator.getStatusCode(), validator.getReason());
+		Response::writeResponse(validator.getStatusCode(), validator.getReason());
 		return 0;
 	}
 
 	std::string body;
 	if (getenv("CONTENT_LENGTH")) {
 		readContent(&body);
-		PRINT_WARNING << body << std::endl;
 	}
 
-	Response response;
-	response.fields["Status"] = "200";
-	response.body = "1234\n";
-	response.write();
+	try {
+		Executor executor;
+		executor.execute(body);
+	} catch (const std::exception& e) {
+		Response::writeResponse(StatusCode::INTERNAL_SERVER_ERROR, e.what());
+	}
 	return 0;
 }

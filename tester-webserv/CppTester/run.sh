@@ -16,7 +16,7 @@ getRealPath() {
 EXEC_NAME='a.out'
 CONFIG_FILE='./TestConfiguration.conf' #$(getRealPath '../TestConfiguration.conf')
 
-( cd .. ; bash background_webserver.sh $CONFIG_FILE )
+( cd .. ; make > /dev/null && bash background_webserver.sh $CONFIG_FILE )
 
 sleep 0.0001
 process=$(ps -a | grep -v grep | grep $EXEC_NAME)

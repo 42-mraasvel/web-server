@@ -19,6 +19,9 @@ FORBIDDEN_SUBDIR=$FORBIDDEN_DIR'/forbidden_dir'
 #special (DO NOT CHANGE!)
 AC_MAC="0"
 
+# Make CGI
+make > /dev/null
+
 ####################################################
 
 #remove temp

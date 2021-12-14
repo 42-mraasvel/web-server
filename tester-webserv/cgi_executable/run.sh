@@ -3,5 +3,5 @@ if [ "$1" == "debug" ]; then
 elif [ "$1" == "fsanitize" ]; then
 	make fsanitize > /dev/null && ./fsanitize.out
 else
-	make > /dev/null && ./a.out $@
+	make > /dev/null && ./mrtest_cgi.out $@
 fi
