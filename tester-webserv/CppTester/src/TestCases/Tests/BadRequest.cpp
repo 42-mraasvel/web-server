@@ -172,10 +172,20 @@ TestCase testCaseBadRequestContentLength() {
 	for (std::string i : connection )
 	{
 		Request::Pointer request = defaultRequest();
-		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
 		request->header_fields["Content-Length"] = i;
+		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
+		expected->header_fields["close"] = "close";
 		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	}
+
+	//present with Transfer-Encoding
+	Request::Pointer request = defaultRequest();
+	request->header_fields["Transfer-encoding"] = "chunked";
+	request->message_body = "4\r\n1234\r\n0\r\n\r\n";
+	request->header_fields["Content-length"] = std::to_string(request->message_body.size());
+	Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
+	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+
 	return testcase;
 }
 
@@ -202,6 +212,10 @@ TestCase testCaseBadRequestDuplicateHeader() {
 		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
 		request->multi_fields.insert(std::make_pair(header[i], value[i]));		
 		request->multi_fields.insert(std::make_pair(header[i], value[i]));		
+		if (header[i] == "content-length")
+		{
+			expected->header_fields["close"] = "close";
+		}
 		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	}
 
@@ -219,6 +233,22 @@ TestCase testCaseBadRequestHeader() {
 		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
 		request->multi_fields.insert(std::make_pair(i + " ", " "));
 		request->header_fields[i + " "] = "";
+		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+	}
+	return testcase;
+}
+
+TestCase testCaseBadRequestEncoding() {
+	TestCase testcase = defaultTestCase();
+	testcase.name = "BadEncoding";
+
+	std::vector<std::string> body = {"not chunked message", "4\r\n1234567\r\n0\r\n\r\n", "4\r\n1\r\n0\r\n\r\n", "4\r\n0\r\n\r\n", "4\r\n\r\n0\r\n\r\n", "4\r\n1234\r\n4\r\n1234567\r\n0\r\n\r\n", "4\r\n1234r\nr\nr\nr\n\r\n0\r\n\r\n"};
+	for (std::string i : body )
+	{
+		Request::Pointer request = defaultRequest();
+		request->header_fields["transfer-encoding"] = "chunked";
+		request->message_body = i;
+		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
 		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	}
 	return testcase;

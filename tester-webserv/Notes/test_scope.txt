@@ -52,6 +52,9 @@
 +---------------------+
 	------ Connection Management ------
 		[C-y] connection: close
+				- HTTP 1.0 [connection != keep-alive]
+				- invalid [content-length] (see 400 BAD REQUEST)
+				- invalid chunked body (see 400 BAD REQUEST)
 		[C-y] timeout
 		[C-y] Unsafe Pipeline:
 			- Large Post -> GET (all bytes) -> DELETE -> GET (404) on posted file: to check if unsafe method is not executed concurrently
@@ -59,7 +62,6 @@
 
 	------ HTTP 1.0 ------
 		[C-y] connection need to be closed unless header [connection = keep-alive]
-		A: [C-n] TODO: to add test list
 
 	------ Settings ------
 		- Preset settings to pass all tests with
@@ -109,12 +111,17 @@
 						- multiple host field
 					- [connection != close | keep-alive]
 					- [expect != 100-continue] (see status_code)
-					- [content-length] != digit
+					- [content-length]
+						- value != digit >> close connection
+						- present together with [transfer-encoding] >> close connection
 					- [content-coding]
 						[P-y]- empty value respond 415 UNSUPPORTED_MEDIA_TYPE
 						- non-empty value respond 400
 					- WS before ":"
 					- duplicate header
+						- duplicate [content-length] >> close connection
+				- Message body
+					- incorrect chunked format >> close connection
 		[P-y] 403 FORBIDDEN (see Method Execution)
 		[P-y] 404 NOT_FOUND (see Method Execution)
 		[P-y] 405 METHOD_NOT_ALLOWED (see LocationBlock-MethodAllowed)
@@ -156,6 +163,8 @@
 
 
 ************** Question / To-Discuss **************
-1. multiple request header [connection] [content-type] does not return 400
 
-
+to do: close connection if 
+	- duplicated content-length
+	- invalid content-length
+	- invalid chunked message
