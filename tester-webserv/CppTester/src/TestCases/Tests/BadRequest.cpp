@@ -28,7 +28,7 @@ TestCase testCaseBadRequestMethod() {
 	testcase.name = "BadMethod";
 
 	std::vector<std::string> methods_501 = {"GE.T", "3GET", "G1ET.", "GE5T", "GET0",
-	"GET!", "!GET", "GE!T", "GE#T", "G$ET", "G^ET"};
+	"GET!", "!GET", "GE!T", "GE#T", "G$ET", "G^ET", "get", "post", "delete", "GeT"};
 	for (std::string i : methods_501 )
 	{
 		Request::Pointer request = defaultRequest();
@@ -52,7 +52,7 @@ TestCase testCaseBadRequestTarget() {
 	TestCase testcase = defaultTestCase();
 	testcase.name = "BadTarget";
 
-	std::vector<std::string> target = {"./aa", "../aa", "???", "aaa/aa", "/.....", "/%#@$#^"};
+	std::vector<std::string> target = {"./aa", "../aa", "???", "aaa/aa", "/.....", "/%#@$#^", "/index.html "};
 	for (std::string i : target )
 	{
 		Request::Pointer request = defaultRequest();
@@ -68,7 +68,7 @@ TestCase testCaseBadRequestVersion() {
 	TestCase testcase = defaultTestCase();
 	testcase.name = "BadVersion";
 
-	std::vector<std::string> version = {"random", "http", "/HTTP", "HTTP", "HTTP/", "HTTP///", "HTTP/aaa", "HTTP/1", "HTTP/111", "HTTP/1??", "HTTP/1...", "HTTP/1.a", "HTTP/1.?", "HTTP/1.1;"};
+	std::vector<std::string> version = {"random", "http", "/HTTP", "HTTP", "HTTP/", "HTTP///", "HTTP/aaa", "HTTP/1", "HTTP/111", "HTTP/1??", "HTTP/1...", "HTTP/1.a", "HTTP/1.?", "HTTP/1.1;", "HTTP /1.1;", "http/1.1"};
 	for (std::string i : version )
 	{
 		Request::Pointer request = defaultRequest();
@@ -76,6 +76,117 @@ TestCase testCaseBadRequestVersion() {
 		request->request_line = "GET / " + i;
 		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	}
+
+	return testcase;
+}
+
+TestCase testCaseBadRequestFirstLineDelimeter() {
+	TestCase testcase = defaultTestCase();
+	testcase.name = "FirstLineBadDelimeter";
+
+	std::vector<std::string> space = {"  ", "	", " 	", "		", "\n", "...", "^^", "/"};
+	for (std::string i : space )
+	{
+		Request::Pointer request = defaultRequest();
+		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
+		request->request_line = "GET" + i + "/" + i + "HTTP/1.1";
+		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+	}
+
+	std::vector<std::string> end = {" ", "	", "\n", ";", ";\n", "."};
+	for (std::string i : end )
+	{
+		Request::Pointer request = defaultRequest();
+		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
+		request->request_line = "GET / HTTP/1.1" + i;
+		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+	}
+	return testcase;
+}
+
+TestCase testCaseBadRequestURITooLong() {
+	TestCase testcase = defaultTestCase();
+	testcase.name = "FirstLineURITooLong";
+
+	Request::Pointer request = defaultRequest();
+	Response::Pointer expected = defaultResponse(StatusCode::URI_TOO_LONG);
+	request->request_line.append(std::string(10000, 'x'));
+	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+
+	return testcase;
+}
+
+TestCase testCaseBadRequestHost() {
+	TestCase testcase = defaultTestCase();
+	testcase.name = "BadHost";
+
+	std::vector<std::string> host = {"localhost:8081", "localhost:", "localhost;;;", "localhost::", "", "localhost:8080:", "localhost:8080:0", "localhost:8080;", "localhost :8080", "localhost: 8080"};
+	for (std::string i : host )
+	{
+		Request::Pointer request = defaultRequest();
+		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
+		request->header_fields["Host"] = i;
+		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+	}
+
+	// EmptyHost
+	Request::Pointer request = defaultRequest();
+	Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
+	request->header_fields.erase("Host");
+	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+
+	return testcase;
+}
+
+TestCase testCaseBadRequestConnection() {
+	TestCase testcase = defaultTestCase();
+	testcase.name = "BadConnection";
+
+	std::vector<std::string> connection = {"lkjl", "", "closee", " ", "close;", "keep-alive;"};
+	for (std::string i : connection )
+	{
+		Request::Pointer request = defaultRequest();
+		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
+		request->header_fields["Connection"] = i;
+		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+	}
+
+	return testcase;
+}
+
+TestCase testCaseBadRequestContentLength() {
+	TestCase testcase = defaultTestCase();
+	testcase.name = "BadContentLength";
+
+	std::vector<std::string> connection = {"1234;", ";", "aaaa", "???", "1234.12312", "123,4124", "42, 23", "42, 42"};
+	for (std::string i : connection )
+	{
+		Request::Pointer request = defaultRequest();
+		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
+		request->header_fields["Content-Length"] = i;
+		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+	}
+
+	return testcase;
+}
+
+TestCase testCaseBadRequestHeader() {
+	TestCase testcase = defaultTestCase();
+	testcase.name = "BadHeader";
+
+	std::vector<std::string> header = {"Content-type"};
+	for (std::string i : header )
+	{
+		Request::Pointer request = defaultRequest();
+		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
+		request->header_fields[i] = ";";
+		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+	}
+
+	Request::Pointer request = defaultRequest();
+	Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
+	request->header_fields["Content-length "] = "";
+	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 
 	return testcase;
 }

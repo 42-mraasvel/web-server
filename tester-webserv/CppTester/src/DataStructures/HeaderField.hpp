@@ -57,6 +57,7 @@ public:
 	size_type size() const;
 	void clear();
 	void swap(HeaderField& x);
+	void erase(const key_type& key);
 
 /* Debugging */
 	public:

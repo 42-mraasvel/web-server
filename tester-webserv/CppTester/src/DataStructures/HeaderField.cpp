@@ -92,6 +92,11 @@ void HeaderField::swap(HeaderField& x)
 	_map.swap(x._map);
 }
 
+void HeaderField::erase(const key_type& key)
+{
+	_map.erase(key);
+}
+
 
 /* debugging */
 void HeaderField::log() const {
