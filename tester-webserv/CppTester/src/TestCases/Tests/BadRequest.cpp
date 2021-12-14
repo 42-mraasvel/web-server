@@ -79,19 +79,3 @@ TestCase testCaseBadRequestVersion() {
 
 	return testcase;
 }
-
-TestCase testCaseBadRequestVersion() {
-	TestCase testcase = defaultTestCase();
-	testcase.name = "Trying";
-
-	std::vector<std::string> version = {"random", "http", "/HTTP", "HTTP", "HTTP/", "HTTP///", "HTTP/aaa", "HTTP/1", "HTTP/111", "HTTP/1??", "HTTP/1...", "HTTP/1.a", "HTTP/1.?", "HTTP/1.1;"};
-	for (std::string i : version )
-	{
-		Request::Pointer request = defaultRequest();
-		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
-		request->request_line = "GET / " + i;
-		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
-	}
-
-	return testcase;
-}
