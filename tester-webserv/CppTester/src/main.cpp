@@ -20,5 +20,8 @@ int main(int argc, char *argv[]) {
 	const TagSet tags = parseTags(argc, argv);
 	// executeTestCasesParallel(generateTestCases(), tags);
 	executeTestCases(generateTestCases(), tags);
+
+	// make it pretty if you want
+	PRINT << "-- Passed: " << ResponseValidator::getPassedCount() << ", Failed: " << ResponseValidator::getFailedCount() << " --" << std::endl;
 	return 0;
 }
