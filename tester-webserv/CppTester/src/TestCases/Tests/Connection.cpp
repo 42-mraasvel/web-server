@@ -22,6 +22,9 @@ TestCase testCaseConnectionDefault0() {
 
 	TestCase testcase = defaultTestCase();
 	testcase.name = "1.0: close";
+	testcase.settings.flags |= Client::Settings::WAIT_FOR_CLOSE;
+	testcase.settings.wait_close = 20;
+	testcase.execute_only_if_tag = true;
 	testcase.requests.push_front(TestCase::RequestPair(request, ResponseValidator(expected)));
 	return testcase;
 }
@@ -52,6 +55,9 @@ TestCase testCaseConnectionClose() {
 
 	TestCase testcase = defaultTestCase();
 	testcase.name = "1.1: Close";
+	testcase.settings.flags |= Client::Settings::WAIT_FOR_CLOSE;
+	testcase.settings.wait_close = 20;
+	testcase.execute_only_if_tag = true;
 	testcase.requests.push_front(TestCase::RequestPair(request, ResponseValidator(expected)));
 	return testcase;
 }

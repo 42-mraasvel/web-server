@@ -18,7 +18,7 @@ static TagSet parseTags(int argc, char *argv[]) {
 int main(int argc, char *argv[]) {
 	Output::clearLog();
 	const TagSet tags = parseTags(argc, argv);
-	// executeTestCasesParallel(generateTestCases());
+	// executeTestCasesParallel(generateTestCases(), tags);
 	executeTestCases(generateTestCases(), tags);
 	return 0;
 }

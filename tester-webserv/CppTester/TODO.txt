@@ -1,9 +1,5 @@
 TODO
 
-	- If there are multiple responses (or more than 1 per request) print out the remaining responses
-	- Log invalid responses: print out only a small message (inside of the ResponseValidator)
-	- Detached (multithreaded) should be behind a wrapper surrounding the Client
-	- Print last sent request/response if timeout
 	- Print number of testcases, requests passed and failed at the end
 
 Client class:

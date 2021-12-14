@@ -51,8 +51,8 @@
 |        Process      |
 +---------------------+
 	------ Connection Management ------
-		M: [C-n] connection: close
-		M: [C-n] timeout
+		[C-y] connection: close
+		[C-y] timeout
 		M: [C-n] Unsafe Pipeline:
 			- Large Post -> GET (all bytes) -> DELETE -> GET (404) on posted file: to check if unsafe method is not executed concurrently
 		[C-y] connection: keep-alive
@@ -63,7 +63,7 @@
 
 	------ Settings ------
 		- Preset settings to pass all tests with
-		M: [C-n] time out
+		[C-n] time out
 		[???] BUFFER_SIZE
 		[???] LIMITS
 		[???] Chunked
