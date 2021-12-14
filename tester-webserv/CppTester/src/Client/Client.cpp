@@ -37,7 +37,7 @@ void Client::testRequests(const RequestQueue& requests, Address server_addr, Set
 	}
 	c.executeTransaction(requests);
 	if (c.isError()) {
-		// c.handleError(requests);
+		c.handleError(requests);
 	}
 }
 
@@ -105,6 +105,7 @@ void Client::executeTransaction(RequestQueue requests) {
 		if (isComplete()) {
 			return;
 		} else if (state == State::WAITING) {
+			waitForServer();
 			break;
 		}
 		int n = poll(&pfd, 1, POLL_TIMEOUT);
@@ -119,7 +120,6 @@ void Client::executeTransaction(RequestQueue requests) {
 			executeEvents();
 		}
 	}
-	waitForServer();
 }
 
 void Client::prepareTransaction(const RequestQueue& requests) {
@@ -309,14 +309,25 @@ void Client::writeEvent() {
 
 void Client::waitForServer() {
 	timer.reset();
+	PRINT_INFO << "Client: [" << connfd << "]: Waiting "
+		<< settings.wait_close << " seconds for server to close the connection"
+		<< std::endl;
+	removeEvent(POLLOUT);
+	addEvent(POLLIN);
 	while (state == State::WAITING) {
-		sleep(POLL_TIMEOUT);
+		char buffer;
+		poll(&pfd, 1, POLL_TIMEOUT);
 		if (timer.elapsed() > settings.wait_close) {
 			warning("timed out when waiting for server to close");
 			setError();
 			break;
+		} else if (shouldCloseConnection() || recv(connfd, &buffer, 1, 0) == 0) {
+			printRevents();
+			PRINT_INFO << "Connection closed by server" << std::endl;
+			break;
 		}
 	}
+	usleep(1000);
 	closeConnection();
 }
 
@@ -326,9 +337,9 @@ void Client::handleError(const RequestQueue& requests) const {
 		LOG_INFO << "Received Response:" << std::endl;
 		r->log();
 	}
-	ResponseVector empty;
-	for (const RequestPair& it : requests) {
-		it.second.fail(*it.first, empty);
+	if (requests.size() > 0) {
+		ResponseVector empty;
+		requests.front().second.fail(*requests.front().first, empty);
 	}
 }
 

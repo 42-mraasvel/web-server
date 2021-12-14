@@ -68,16 +68,17 @@ Output functions
 */
 void ResponseValidator::fail(const Request& request, const ResponseVector& response) const {
 	PRINT << RED_BOLD << "Fail" RESET_COLOR ": [" << request.tag << "-" << request.name << "]" << std::endl;
+	LOG_ERR << "Failed Testcase: [" << request.tag << "-" << request.name << "]" << std::endl;
 	log(request, response);
 }
 
 void ResponseValidator::pass(const Request& request, const ResponseVector& response) const {
 	PRINT << GREEN_BOLD << "Pass" RESET_COLOR ": [" << request.tag << "-" << request.name << "]" << std::endl;
-	// log(request, response);
+	LOG_INFO << "Passed Testcase: [" << request.tag << "-" << request.name << "]" << std::endl;
+	log(request, response);
 }
 
 void ResponseValidator::log(const Request& request, const ResponseVector& response) const {
-	LOG_ERR << "Failed Testcase: [" << request.tag << "-" << request.name << "]" << std::endl;
 	LOG_INFO << "Sent Request" << std::endl;
 	request.log();
 	LOG_INFO << "Received: " << response.size() << " responses" << std::endl;

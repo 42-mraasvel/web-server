@@ -173,7 +173,7 @@ void	Connection::resetResponse()
 
 void	Connection::resetEvents(FdTable & fd_table)
 {
-	if (_flag == AFdInfo::TO_ERASE)
+	if (getFlag() == AFdInfo::TO_ERASE)
 	{
 		updateEvents(AFdInfo::WAITING, fd_table);
 	}
@@ -278,7 +278,7 @@ void	Connection::exceptionEvent(FdTable & fd_table)
 void	Connection::closeConnection()
 {
 	std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
-	_flag = AFdInfo::TO_ERASE;
+	setFlag(AFdInfo::TO_ERASE);
 }
 
 bool	Connection::isMethodSafe(Method::Type const & method) const

@@ -28,4 +28,5 @@ fi
 
 make > /dev/null && ./a.out $@
 
+sleep 0.001
 pkill $EXEC_NAME

@@ -12,7 +12,9 @@ static void executeTestCase(const TestCase& testcase) {
 
 static void nameRequests(TestCase& testcase) {
 	for (TestCase::RequestPair request_pair : testcase.requests) {
-		request_pair.first->name = testcase.name;
+		if (request_pair.first->name.empty()) {
+			request_pair.first->name = testcase.name;
+		}
 		request_pair.first->tag = testcase.tag;
 	}
 }
@@ -28,6 +30,7 @@ static void waitPids(std::vector<pid_t> pids) {
 
 static bool shouldExecuteTestcase(const TestCase& testcase, const TagSet tags) {
 	return (tags.size() == 0 && !testcase.execute_only_if_tag)
+		|| (testcase.execute_only_if_tag && tags.size() == 1 && *tags.begin() == "all")
 		|| tags.count(testcase.tag) > 0;
 }
 

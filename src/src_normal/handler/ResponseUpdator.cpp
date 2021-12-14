@@ -16,6 +16,10 @@ void	ResponseUpdator::update(FdTable & fd_table, Response & response)
 	{
 		updateHandler(response);
 	}
+	else if (response.status == Response::COMPLETE)
+	{
+		return;
+	}
 
 	if (response.status == Response::SPECIAL && !StatusCode::isStatusCodeNoMessageBody(response.status_code))
 	{
