@@ -83,7 +83,9 @@ class HeaderFieldParser
 		int skipColon(const std::string& s, std::size_t& index) const;
 		int parseFieldName(const std::string& s, std::string& key, std::size_t& index) const;
 		int parseFieldValue(const std::string& s, std::string& value, std::size_t& index, std::size_t end) const;
-	
+
+	private:
+		static const std::size_t MAX_HEADER_FIELDS = 2500;
 
 	private:
 		HeaderFieldType _header;

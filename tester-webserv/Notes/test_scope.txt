@@ -83,7 +83,7 @@
 				- 404 NOT_FOUND
 				- 403 FORBIDDEN (file, directory)
 	------ Bad Agent ------
-		[C-n] Infinite header fields
+		[C-y] Infinite header fields
 
 +---------------------+
 |       Response      |
@@ -121,7 +121,7 @@
 		[P-y] 413 PAYLOAD_TOO_LARGE (see ServerBlock-ClientMaxSize)
 		[???] 415 UNSUPPORTED_MEDIA_TYPE
 		[P-y] 417 EXPECTATION_FAILED
-		M: [C-n] 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+		[C-y] 431 REQUEST_HEADER_FIELDS_TOO_LARGE
 		[P-y] 500 INTERNAL_SERVER_ERROR (through out whole program)
 		[P-y] 501 NOT_IMPLEMENTED
 				- method other than: GET POST DELETE)
@@ -138,7 +138,7 @@
 				- "close":
 					- Request header [Transfer-Encoding != chunked] (see Response 501)
 					- HTTP 1.1 request header [connection = close]
-					[C-n] HTTP 1.0 request header [connection != keep-alive] 
+					[C-y] HTTP 1.0 request header [connection != keep-alive] 
 		[P-y] Location
 				- 201 CREATED (see Method Execution - POST)
 				- 3xx: location should be effective request uri (check location presence in defaultEvaluator)

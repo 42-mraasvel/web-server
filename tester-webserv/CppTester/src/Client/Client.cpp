@@ -190,7 +190,7 @@ void Client::generateSingleRequest() {
 void Client::processResponses(RequestQueue& requests) {
 	while (!responses.empty()) {
 		if (requests.size() == 0) {
-			warning("no requests left to compare to" + std::to_string(responses.size()) + "remaining response vectors");
+			warning("no requests left to compare to " + std::to_string(responses.size()) + " remaining response");
 			return setError();
 		}
 		processResponse(responses.front(), requests.front().first, requests.front().second);

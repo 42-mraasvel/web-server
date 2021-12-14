@@ -21,8 +21,6 @@ _max_size(max_header_field_size) {
 */
 int HeaderFieldParser::parse(buffer_type const & buffer, std::size_t & index)
 {
-	assert(_state == HeaderFieldParser::PARSING && "HeaderFieldParser: STATE SHOULD BE PARSING");
-
 	_index = index;
 	if (handleLeftover(buffer) == ERR)
 	{
@@ -127,7 +125,7 @@ If the size of the string (end - start) equals 0: that is the end of the header-
 */
 int HeaderFieldParser::parseHeaderField(std::string const & s, std::size_t start, std::size_t end)
 {
-	if (end - start > _max_size)
+	if (end - start > _max_size || _header.size() > MAX_HEADER_FIELDS)
 	{
 		return setError(StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE);
 	}
