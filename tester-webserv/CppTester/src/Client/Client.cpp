@@ -277,7 +277,7 @@ void Client::newResponsePointer() {
 
 void Client::finishResponse() {
 	if (isFinalResponse(response.back())) {
-		responses.push_front(response);
+		responses.push_back(response);
 		response.clear();
 	} else {
 		newResponsePointer();

@@ -53,7 +53,7 @@
 	------ Connection Management ------
 		[C-y] connection: close
 		[C-y] timeout
-		M: [C-n] Unsafe Pipeline:
+		[C-y] Unsafe Pipeline:
 			- Large Post -> GET (all bytes) -> DELETE -> GET (404) on posted file: to check if unsafe method is not executed concurrently
 		[C-y] connection: keep-alive
 

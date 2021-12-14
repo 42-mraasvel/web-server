@@ -240,6 +240,7 @@ int	Connection::sendResponseString()
 	if (!_response_string.empty())
 	{
 		size_t size = std::min((size_t)BUFFER_SIZE, _response_string.size());
+		std::cout << "SENDING: " << _response_string.substr(0, size) << std::endl;
 		if (send(_fd, _response_string.c_str(), size, 0) == ERR)
 		{
 			perror("send");

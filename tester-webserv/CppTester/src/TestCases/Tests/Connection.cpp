@@ -25,7 +25,7 @@ TestCase testCaseConnectionDefault0() {
 	testcase.settings.flags |= Client::Settings::WAIT_FOR_CLOSE;
 	testcase.settings.wait_close = 20;
 	testcase.execute_only_if_tag = true;
-	testcase.requests.push_front(TestCase::RequestPair(request, ResponseValidator(expected)));
+	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	return testcase;
 }
 
@@ -38,7 +38,7 @@ TestCase testCaseConnectionKeepAlive() {
 	expected->header_fields["connection"] = "keep-alive";
 
 	TestCase testcase = defaultTestCase();
-	testcase.requests.push_front(TestCase::RequestPair(request, ResponseValidator(expected)));
+	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	testcase.name = "1.0: Keep-Alive";
 	return testcase;
 }
@@ -58,7 +58,7 @@ TestCase testCaseConnectionClose() {
 	testcase.settings.flags |= Client::Settings::WAIT_FOR_CLOSE;
 	testcase.settings.wait_close = 20;
 	testcase.execute_only_if_tag = true;
-	testcase.requests.push_front(TestCase::RequestPair(request, ResponseValidator(expected)));
+	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	return testcase;
 }
 
@@ -73,6 +73,6 @@ TestCase testCaseConnectionDefault1() {
 
 	TestCase testcase = defaultTestCase();
 	testcase.name = "1.1: keep-alive";
-	testcase.requests.push_front(TestCase::RequestPair(request, ResponseValidator(expected)));
+	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	return testcase;
 }

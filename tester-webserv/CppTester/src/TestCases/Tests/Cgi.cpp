@@ -18,6 +18,6 @@ TestCase testCaseCgi() {
 	TestCase testcase = defaultTestCase();
 	Response::Pointer expected(new Response);
 	expected->status_code = 200;
-	testcase.requests.push_front(TestCase::RequestPair(defaultRequest(), ResponseValidator(expected)));
+	testcase.requests.push_back(TestCase::RequestPair(defaultRequest(), ResponseValidator(expected)));
 	return testcase;
 }

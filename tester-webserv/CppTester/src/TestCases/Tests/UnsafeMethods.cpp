@@ -28,7 +28,7 @@ static std::string generateRequestLine(const std::string& method) {
 }
 
 static std::string postMessageBody() {
-	size_t n = 100000;
+	size_t n = 100;
 	std::string body(n, 'a');
 	body.append("\n");
 	return body;
