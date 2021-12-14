@@ -123,7 +123,7 @@ void HttpRequestParser::headerErrorCheckCloseConnection(Request & request)
 {
 	const std::pair<std::string, std::string>& failed = _header_parser.getFailedPair();
 
-	if (failed.first == "Content-Length"
+	if (WebservUtility::caseInsensitiveEqual(failed.first, "Content-Length")
 		&& _header_parser.getHeaderField().contains(failed.first))
 	{
 		request.close_connection = true;

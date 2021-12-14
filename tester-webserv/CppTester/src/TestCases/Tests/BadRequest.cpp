@@ -169,12 +169,12 @@ TestCase testCaseBadRequestContentLength() {
 	testcase.name = "BadContentLength";
 
 	std::vector<std::string> connection = {"1234;", ";", "aaaa", "???", "1234.12312", "123,4124", "42, 23", "42, 42"};
-	for (std::string i : connection )
+	for (std::string i : connection)
 	{
 		Request::Pointer request = defaultRequest();
 		request->header_fields["Content-Length"] = i;
 		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
-		expected->header_fields["close"] = "close";
+		expected->header_fields["connection"] = "close";
 		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	}
 
@@ -214,7 +214,7 @@ TestCase testCaseBadRequestDuplicateHeader() {
 		request->multi_fields.insert(std::make_pair(header[i], value[i]));		
 		if (header[i] == "content-length")
 		{
-			expected->header_fields["close"] = "close";
+			expected->header_fields["connection"] = "close";
 		}
 		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	}
