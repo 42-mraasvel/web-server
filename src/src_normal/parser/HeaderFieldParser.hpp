@@ -66,6 +66,7 @@ class HeaderFieldParser
 		// Should be used when the parsing is finished, use header.swap(x) for constant copy
 		HeaderFieldType& getHeaderField();
 		void reset();
+		const std::pair<std::string, std::string>& getFailedPair() const;
 
 	private:
 
@@ -96,4 +97,5 @@ class HeaderFieldParser
 		std::string _leftover;
 		std::size_t _index;
 		int _status_code;
+		std::pair<std::string, std::string> _failed_pair;
 };

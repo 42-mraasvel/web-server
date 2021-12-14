@@ -154,6 +154,7 @@ int HeaderFieldParser::parseHeaderField(std::string const & s, std::size_t start
 	// Custom field validator
 	if (!_valid_field(key, value, _header))
 	{
+		_failed_pair = std::make_pair(key, value);
 		return setError(StatusCode::BAD_REQUEST);
 	}
 	_header[key] = value;
@@ -221,6 +222,11 @@ int HeaderFieldParser::parseFieldValue(const std::string& s, std::string& value,
 /*
 Public interfaces
 */
+
+const std::pair<std::string, std::string>& HeaderFieldParser::getFailedPair() const
+{
+	return _failed_pair;
+}
 
 bool HeaderFieldParser::isError() const
 {

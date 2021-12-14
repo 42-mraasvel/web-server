@@ -1,7 +1,9 @@
 #include "Response.hpp"
 #include "Output.hpp"
+#include <cassert>
 
 void Response::write() const {
+	assert(fields.size() > 0);
 	for (auto it = fields.begin(); it != fields.end(); ++it) {
 		PRINT << it->first << ": " << it->second << "\r\n";
 	}

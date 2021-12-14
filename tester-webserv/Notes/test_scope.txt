@@ -39,7 +39,7 @@
 		[P-y] Auto Index
 		[P-y] Default File
 		M: [PC-n] CGI: executable to test in/output
-				- Header-Fields
+				- MessageBody
 				- StatusCode
 				- Environment variables
 				- Errors (BAD_GATEWAY, Syntax)

@@ -109,12 +109,24 @@ void HttpRequestParser::parseHeader(std::string const &buffer,
 {
 	if (_header_parser.parse(buffer, index) == ERR)
 	{
+		headerErrorCheckCloseConnection(request);
 		setError(_header_parser.getStatusCode());
 	}
 	else if (_header_parser.isComplete())
 	{
 		request.header_fields.swap(_header_parser.getHeaderField());
 		processRequestHeader(request);
+	}
+}
+
+void HttpRequestParser::headerErrorCheckCloseConnection(Request & request)
+{
+	const std::pair<std::string, std::string>& failed = _header_parser.getFailedPair();
+
+	if (failed.first == "Content-Length"
+		&& _header_parser.getHeaderField().contains(failed.first))
+	{
+		request.close_connection = true;
 	}
 }
 
@@ -137,6 +149,7 @@ void HttpRequestParser::parseChunked(std::string const &buffer,
 {
 	if (_chunked_content_parser.parse(buffer, index, request) == ERR)
 	{
+		request.close_connection = true;
 		setError(_chunked_content_parser.getStatusCode());
 	}
 	else if (_chunked_content_parser.isComplete())
@@ -163,6 +176,7 @@ int HttpRequestParser::processRequestHeader(Request &request)
 
 	if (checkContentType(request.header_fields) == ERR)
 	{
+		request.close_connection = true;
 		return ERR;
 	}
 	return OK;
