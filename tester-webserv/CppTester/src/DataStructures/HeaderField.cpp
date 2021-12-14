@@ -114,4 +114,3 @@ void HeaderField::output(Output::Stream& out) const {
 		out << "  " << it->first << ": " << it->second << std::endl;
 	}
 }
-
