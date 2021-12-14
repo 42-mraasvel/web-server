@@ -21,7 +21,7 @@
 		[P-y] Listen: Interface (host:port) resolution
 				- same server_name but different Interface
 		[P-y] Server_name: resolution
-				A: [C-n] - empty server_name & empty host header 
+				[C-y] - empty server_name & empty host header 
 				- default block: take first server if no server_name match
 				- wildcard
 					- exactmatch | longest| front| back| front > back
@@ -164,7 +164,5 @@
 
 ************** Question / To-Discuss **************
 
-to do: close connection if 
-	- duplicated content-length
-	- invalid content-length
-	- invalid chunked message
+1. config: server_name "" is not implemented (should add an empty string to server_name vector)
+
