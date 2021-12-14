@@ -3,6 +3,25 @@
 #include "utility/utility.hpp"
 #include "Request.hpp"
 
+static bool validHostHeaderValue(const std::string& value)
+{
+	std::size_t pos = value.find(':');
+	if (pos == std::string::npos)
+	{
+		return true;
+	}
+	++pos;
+	while (pos < value.size())
+	{
+		if (!isdigit(value[pos]))
+		{
+			return false;
+		}
+		++pos;
+	}
+	return true;
+}
+
 /*
 This is the validator called during HeaderFieldParsing
 Used to check duplicate header-fields
@@ -11,7 +30,6 @@ static bool isValidRequestHeader(std::string const &key,
 								 std::string const &value, HeaderField const &header)
 {
 	HeaderField::const_pair_type field = header.get(key);
-
 	if (field.second)
 	{
 		if (WebservUtility::caseInsensitiveEqual(key, "Content-Length")
@@ -21,6 +39,10 @@ static bool isValidRequestHeader(std::string const &key,
 			generalError("%s: %s\n", _FUNC_ERR("Duplicate Field").c_str(), key.c_str());
 			return false;
 		}
+	}
+	if (WebservUtility::caseInsensitiveEqual(key, "Host"))
+	{
+		return validHostHeaderValue(value);
 	}
 	return true;
 }

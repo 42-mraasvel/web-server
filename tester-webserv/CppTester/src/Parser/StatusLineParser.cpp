@@ -91,11 +91,7 @@ int StatusLineParser::parseSpace(Response& dest, std::size_t& index) {
 int StatusLineParser::parseStatusCode(Response& dest, std::size_t& index) {
 	std::size_t start = index;
 	util::skip(leftover, index, isDigit);
-	// TODO: evaluate if this should always be 3 digits [RFC7230]:StatusLine
-	// if (index - start != 3) {
-	// 	return ERR;
-	// }
-	if (index - start == 0) {
+	if (index - start != 3) {
 		return ERR;
 	}
 	dest.status_code = std::stoi(&leftover[start]);

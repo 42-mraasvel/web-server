@@ -261,7 +261,8 @@ void Client::parseResponse(const std::string& buffer) {
 		}
 		if (response_parser.parse(buffer, index, *response.back()) == ERR) {
 			warning("response parsing error");
-			PRINT_DEBUG << buffer << std::endl;
+			LOG_ERR << "Response Parser Buffer:" << std::endl;
+			LOG << buffer << std::endl;
 			setError();
 			return;
 		} else if (response_parser.isComplete()) {

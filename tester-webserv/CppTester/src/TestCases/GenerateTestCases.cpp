@@ -10,6 +10,7 @@ TestCase testCaseBadRequestVersion();
 TestCase testCaseBadRequestFirstLineDelimeter();
 TestCase testCaseBadRequestURITooLong();
 TestCase testCaseBadRequestHost();
+TestCase testCaseBadRequestMultiHost();
 TestCase testCaseBadRequestConnection();
 TestCase testCaseBadRequestContentLength();
 TestCase testCaseBadRequestHeader();
@@ -40,6 +41,7 @@ TestCaseVector generateTestCases() {
 	testcases.push_back(testCaseBadRequestFirstLineDelimeter());
 	testcases.push_back(testCaseBadRequestURITooLong());
 	testcases.push_back(testCaseBadRequestHost());
+	testcases.push_back(testCaseBadRequestMultiHost());
 	testcases.push_back(testCaseBadRequestConnection());
 	testcases.push_back(testCaseBadRequestContentLength());
 	testcases.push_back(testCaseBadRequestHeader());

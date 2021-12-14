@@ -138,6 +138,21 @@ TestCase testCaseBadRequestHost() {
 	return testcase;
 }
 
+TestCase testCaseBadRequestMultiHost() {
+	TestCase testcase = defaultTestCase();
+	testcase.name = "Multiple Host";
+
+	Request::Pointer request = defaultRequest();
+	Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
+	std::size_t n = 10;
+	for (std::size_t i = 0; i < n; ++i)
+	{
+		request->multi_fields.insert(std::make_pair("host", "localhost"));
+	}
+	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+	return testcase;
+}
+
 TestCase testCaseBadRequestConnection() {
 	TestCase testcase = defaultTestCase();
 	testcase.name = "BadConnection";
