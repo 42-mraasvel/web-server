@@ -45,6 +45,16 @@ bool validateAll(const ResponseValidator::ResponseVector& response, const Respon
 	return response.front()->message_body == expected->message_body;
 }
 
+std::size_t ResponseValidator::failed = 0;
+std::size_t ResponseValidator::passed = 0;
+
+std::size_t ResponseValidator::getFailedCount() {
+	return ResponseValidator::failed;
+}
+std::size_t ResponseValidator::getPassedCount() {
+	return ResponseValidator::passed;
+}
+
 ResponseValidator::ResponseValidator(Response::Pointer expected,
 									ValidatorFunction validator,
 									std::size_t expected_responses)
@@ -67,12 +77,14 @@ std::size_t ResponseValidator::getExpectedResponses() const {
 Output functions
 */
 void ResponseValidator::fail(const Request& request, const ResponseVector& response) const {
+	ResponseValidator::failed += 1;
 	PRINT << RED_BOLD << "Fail" RESET_COLOR ": [" << request.tag << "-" << request.name << "]" << std::endl;
 	LOG_ERR << "Failed Testcase: [" << request.tag << "-" << request.name << "]" << std::endl;
 	log(request, response);
 }
 
 void ResponseValidator::pass(const Request& request, const ResponseVector& response) const {
+	ResponseValidator::passed += 1;
 	PRINT << GREEN_BOLD << "Pass" RESET_COLOR ": [" << request.tag << "-" << request.name << "]" << std::endl;
 	// LOG_INFO << "Passed Testcase: [" << request.tag << "-" << request.name << "]" << std::endl;
 	// log(request, response);

@@ -30,6 +30,13 @@ class ResponseValidator {
 		void print() const;
 		void log(const Request& request, const ResponseVector& response) const;
 
+		static std::size_t getFailedCount();
+		static std::size_t getPassedCount();
+
+	private:
+		static std::size_t failed;
+		static std::size_t passed;
+
 	private:
 		Response::Pointer expected;
 		ValidatorFunction validator;
