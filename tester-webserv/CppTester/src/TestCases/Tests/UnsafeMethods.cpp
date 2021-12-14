@@ -52,6 +52,7 @@ static TestCase::RequestPair validGet() {
 	Request::Pointer get =  targetGet();
 	get->name = "valid get";
 	Response::Pointer expected(new Response);
+	expected->header_fields["Transfer-Encoding"] = "chunked";
 	expected->status_code = 200;
 	expected->message_body = postMessageBody();
 	return TestCase::RequestPair(get, ResponseValidator(expected, &validateAll));

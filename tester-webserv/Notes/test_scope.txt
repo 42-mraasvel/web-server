@@ -13,7 +13,7 @@
 |     Config File     |
 +---------------------+
 	------ Config File Error ------
-		[B-n] TODO: to add more
+		N: (A/M) [B-n] TODO: to add more
 			- Can also be done using Catch2 to avoid executing the entire webserver
 			- Simple bash script and directory full of invalid files for syntax errors
 
@@ -21,7 +21,7 @@
 		[P-y] Listen: Interface (host:port) resolution
 				- same server_name but different Interface
 		[P-y] Server_name: resolution
-				[C-n] - empty server_name & empty host header 
+				A: [C-n] - empty server_name & empty host header 
 				- default block: take first server if no server_name match
 				- wildcard
 					- exactmatch | longest| front| back| front > back
@@ -38,7 +38,7 @@
 		[P-y] Root Directory (empty root, root syntax error)
 		[P-y] Auto Index
 		[P-y] Default File
-		[PC-n] CGI: executable to test in/output
+		M: [PC-n] CGI: executable to test in/output
 				- Header-Fields
 				- StatusCode
 				- Environment variables
@@ -63,12 +63,12 @@
 
 	------ Settings ------
 		- Preset settings to pass all tests with
-		[C-n] time out
-		[???] BUFFER_SIZE
-		[???] LIMITS
-		[???] Chunked
-		[???] TODO: to add test list
-	
+		T: [C-n] time out
+		T: [???] BUFFER_SIZE
+		T: [???] LIMITS
+		T: [???] Chunked
+		T: [???] TODO: to add test list
+
 	------ Method Execution ------
 		[P-y] GET
 				- 200
@@ -94,11 +94,11 @@
 				- Location header should be request target
 		[P-y] 204 NO_CONTENT (see Method Execution - POST/DELETE)
 		[P-y] 301 MOVED_PERMANENTLY (see ServerBlock-ErrorPage)
-		[C-y] 3xx REDIRECT  
+		[C-y] 3xx REDIRECT
 				- Location header-field
 				- Response Code (for different redirection types)
 				- Retry-After header-field
-		[C-y] 400 BAD_REQUEST 
+		[C-y] 400 BAD_REQUEST
 				- First line
 					- Method (case-sensitive) | Target | version (case-sensitive) | Delimeter (space +end) | whitespace not allowed inside each component | URI_TOO_LONG
 				- Header
@@ -126,8 +126,8 @@
 		[P-y] 501 NOT_IMPLEMENTED
 				- method other than: GET POST DELETE)
 				- Request header "Transfer-Encoding" other than: chunked (close connection)
-		[PC-n] 502 BAD_GATEWAY
-		[PC-n] 504 GATEWAY_TIMEOUT
+		M: [PC-n] 502 BAD_GATEWAY
+		M: [PC-n] 504 GATEWAY_TIMEOUT
 		[C-y] 505 HTTP_VERSION_NOT_SUPPORTED 
 
 	------ Response Header Field ------
@@ -147,8 +147,9 @@
 		[P-y] Allow (see Location Block - Method allowed & Response Code 405)
 		[P-y] Content-Length
 				- cannot present together with Transfer-Encoding (check in defaultEvaluator)
-		[PC-n] Transfer-Encoding
-		[P-n] Content-Type
+		[C-y] Transfer-Encoding
+			- See Unsafe method (validGet)
+		M: [P-n] Content-Type
 			Check nonexistant extensions and no extension for content-type
 
 
@@ -166,7 +167,7 @@
 		- GET /**** HTTP/1.1
 
 3. Request Host
-	- HeaderField cannot send multiple Host field?
+
 	- header field end with ";" does not respond 400
 	(header-field = field-name ":" OWS field-value OWS)
 		- Host | Content-length | Content-type
