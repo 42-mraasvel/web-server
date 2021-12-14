@@ -14,7 +14,7 @@ def testCaseConnectionClose():
 	# Response
 	testcase.response.status_code = 200
 	testcase.response.expect_body = True
-	with open(Constants.SERVER_ROOT + '/Method//Get/sample.html', 'rb') as f:
+	with open(Constants.SERVER_ROOT + '/Method/Get/sample.html', 'rb') as f:
 		testcase.response.body = f.read()
 	testcase.response.headers['content-length'] = str(len(testcase.response.body))
 	testcase.response.headers['connection'] = 'close'
