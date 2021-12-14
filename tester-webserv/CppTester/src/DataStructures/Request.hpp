@@ -43,6 +43,7 @@ struct Request {
 		std::string request_line;
 		HeaderField header_fields;
 		std::string message_body;
+		std::multimap<std::string, std::string> multi_fields;
 
 		std::string name;
 		std::string tag;

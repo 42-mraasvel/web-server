@@ -36,13 +36,20 @@ void RequestStringGenerator::generateRequestLine(const Request::Pointer request)
 	setState(State::HEADER_FIELD);
 }
 
+void RequestStringGenerator::appendHeaderField(const std::string& key, const std::string& value) {
+	request_string.reserve(key.size() + value.size() + 4);
+	request_string.append(key);
+	request_string.append(": ");
+	request_string.append(value);
+	request_string.append(CRLF);
+}
+
 void RequestStringGenerator::generateHeaderField(const Request::Pointer request) {
 	for (auto it = request->header_fields.begin(); it != request->header_fields.end(); ++it) {
-		request_string.reserve(it->first.size() + it->second.size() + 4);
-		request_string.append(it->first);
-		request_string.append(": ");
-		request_string.append(it->second);
-		request_string.append(CRLF);
+		appendHeaderField(it->first, it->second);
+	}
+	for (auto it = request->multi_fields.begin(); it != request->multi_fields.end(); ++it) {
+		appendHeaderField(it->first, it->second);
 	}
 	request_string.append(CRLF);
 	

@@ -32,6 +32,7 @@ class RequestStringGenerator {
 	private:
 		void generateRequestLine(const Request::Pointer request);
 		void generateHeaderField(const Request::Pointer request);
+		void appendHeaderField(const std::string& key, const std::string& value);
 		void generateMessageBody(const Request::Pointer request);
 		void checkExpect();
 		void setState(State new_state);

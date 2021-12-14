@@ -154,7 +154,7 @@
 
 ************** Question / To-Discuss **************
 1. Request Method containing different marks, some return 501 some returns 400
-	>> 501 {"GE.T", "3GET", "G1ET.", "GE5T", "GET0", "GET!", "!GET", "GE!T", "GE#T", "G$ET", 	"G^ET"};
+	>> 501 {"GE.T", "3GET", "G1ET.", "GE5T", "GET0", "GET!", "!GET", "GE!T", "GE#T", "G$ET", "G^ET"};
 	>> 400 {"?GET", "G/ET", "GE;T", "GET?"};
 
 2. Request Target
