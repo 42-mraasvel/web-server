@@ -149,7 +149,7 @@
 				- cannot present together with Transfer-Encoding (check in defaultEvaluator)
 		[C-y] Transfer-Encoding
 			- See Unsafe method (validGet)
-		M: [P-n] Content-Type
+		[P-y] Content-Type
 			Check nonexistant extensions and no extension for content-type
 
 
