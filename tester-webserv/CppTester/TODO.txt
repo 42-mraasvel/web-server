@@ -1,11 +1,11 @@
 TODO
 
-	- Print number of testcases, requests passed and failed at the end
-
 Client class:
 
 		-- Ideas, Not Implemented Yet --
+
 			- Set CONTENT_LENGTH or TRANSFER_ENCODING
+
 				- Have the client determine the content length or transfer encoding, based on the Chunked option and body size
 
 General:
