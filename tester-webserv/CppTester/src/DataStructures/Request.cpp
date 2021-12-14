@@ -17,9 +17,11 @@ void Request::print() const {
 }
 
 static void outputMultimap(const std::multimap<std::string, std::string>& multi, Output::Stream& out) {
+	if (multi.empty()) {
+		return;
+	}
 	out << "-- Multi Fields --" << std::endl;
-	for (std::multimap<std::string, std::string>::const_iterator it = multi.begin(); it != multi.end(); ++it)
-	{
+	for (std::multimap<std::string, std::string>::const_iterator it = multi.begin(); it != multi.end(); ++it) {
 		out << "  " << it->first << ": " << it->second << std::endl;
 	}
 }
