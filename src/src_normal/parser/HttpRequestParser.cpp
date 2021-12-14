@@ -2,6 +2,7 @@
 #include "settings.hpp"
 #include "utility/utility.hpp"
 #include "Request.hpp"
+#include <iostream>
 
 static bool validHostHeaderValue(const std::string& value)
 {
@@ -25,20 +26,16 @@ static bool validHostHeaderValue(const std::string& value)
 /*
 This is the validator called during HeaderFieldParsing
 Used to check duplicate header-fields
+[RFC7230] Section 3.2.2.
 */
 static bool isValidRequestHeader(std::string const &key,
 								 std::string const &value, HeaderField const &header)
 {
 	HeaderField::const_pair_type field = header.get(key);
-	if (field.second)
+	if (field.second && WebservUtility::caseInsensitiveEqual(key, "Set-Cookie"))
 	{
-		if (WebservUtility::caseInsensitiveEqual(key, "Content-Length")
-		|| WebservUtility::caseInsensitiveEqual(key, "Transfer-Encoding")
-		|| WebservUtility::caseInsensitiveEqual(key, "Host"))
-		{
-			generalError("%s: %s\n", _FUNC_ERR("Duplicate Field").c_str(), key.c_str());
-			return false;
-		}
+		std::cerr << (_FUNC_ERR("Duplicate Field")) << ": " << key << std::endl;
+		return false;
 	}
 	if (WebservUtility::caseInsensitiveEqual(key, "Host"))
 	{
