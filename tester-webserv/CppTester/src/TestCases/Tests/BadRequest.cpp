@@ -60,7 +60,6 @@ TestCase testCaseBadRequestTarget() {
 		request->request_line = "GET " + i + " HTTP/1.1";
 		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	}
-
 	return testcase;
 }
 
@@ -76,7 +75,6 @@ TestCase testCaseBadRequestVersion() {
 		request->request_line = "GET / " + i;
 		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	}
-
 	return testcase;
 }
 
@@ -112,7 +110,6 @@ TestCase testCaseBadRequestURITooLong() {
 	Response::Pointer expected = defaultResponse(StatusCode::URI_TOO_LONG);
 	request->request_line.append(std::string(10000, 'x'));
 	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
-
 	return testcase;
 }
 
@@ -120,7 +117,7 @@ TestCase testCaseBadRequestHost() {
 	TestCase testcase = defaultTestCase();
 	testcase.name = "BadHost";
 
-	std::vector<std::string> host = {"localhost:8081", "localhost:", "localhost;;;", "localhost::", "", "localhost:8080:", "localhost:8080:0", "localhost:8080;", "localhost :8080", "localhost: 8080"};
+	std::vector<std::string> host = {"localhost:8081", "localhost:", "localhost::", "", "localhost:8080:", "localhost:8080:0", "localhost:8080;", "localhost: 8080", ":"};
 	for (std::string i : host )
 	{
 		Request::Pointer request = defaultRequest();
@@ -134,13 +131,12 @@ TestCase testCaseBadRequestHost() {
 	Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
 	request->header_fields.erase("Host");
 	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
-
 	return testcase;
 }
 
 TestCase testCaseBadRequestMultiHost() {
 	TestCase testcase = defaultTestCase();
-	testcase.name = "Multiple Host";
+	testcase.name = "MultipleHost";
 
 	Request::Pointer request = defaultRequest();
 	Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
@@ -165,7 +161,6 @@ TestCase testCaseBadRequestConnection() {
 		request->header_fields["Connection"] = i;
 		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	}
-
 	return testcase;
 }
 
@@ -177,8 +172,50 @@ TestCase testCaseBadRequestContentLength() {
 	for (std::string i : connection )
 	{
 		Request::Pointer request = defaultRequest();
-		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
 		request->header_fields["Content-Length"] = i;
+		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
+		expected->header_fields["close"] = "close";
+		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+	}
+
+	//present with Transfer-Encoding
+	Request::Pointer request = defaultRequest();
+	request->header_fields["Transfer-encoding"] = "chunked";
+	request->message_body = "4\r\n1234\r\n0\r\n\r\n";
+	request->header_fields["Content-length"] = std::to_string(request->message_body.size());
+	Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
+	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+
+	return testcase;
+}
+
+TestCase testCaseBadRequestContentCoding() {
+	TestCase testcase = defaultTestCase();
+	testcase.name = "BadContentCoding";
+
+	Request::Pointer request = defaultRequest();
+	Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
+	request->header_fields["Content-Coding"] = "";
+	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+	return testcase;
+}
+
+TestCase testCaseBadRequestDuplicateHeader() {
+	TestCase testcase = defaultTestCase();
+	testcase.name = "DuplicateHeader";
+	std::vector<std::string> header = {"host", "content-length", "connection", "content-type"};
+	std::vector<std::string> value = {"localhost", "123", "keep-alive", "txt/html"};
+
+	for (size_t i = 0; i < header.size(); ++i)
+	{
+		Request::Pointer request = defaultRequest();
+		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
+		request->multi_fields.insert(std::make_pair(header[i], value[i]));		
+		request->multi_fields.insert(std::make_pair(header[i], value[i]));		
+		if (header[i] == "content-length")
+		{
+			expected->header_fields["close"] = "close";
+		}
 		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	}
 
@@ -189,19 +226,30 @@ TestCase testCaseBadRequestHeader() {
 	TestCase testcase = defaultTestCase();
 	testcase.name = "BadHeader";
 
-	std::vector<std::string> header = {"Content-type"};
+	std::vector<std::string> header = {"host", "content-length", "connection", "content-type"};
 	for (std::string i : header )
 	{
 		Request::Pointer request = defaultRequest();
 		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
-		request->header_fields[i] = ";";
+		request->multi_fields.insert(std::make_pair(i + " ", " "));
+		request->header_fields[i + " "] = "";
 		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	}
+	return testcase;
+}
 
-	Request::Pointer request = defaultRequest();
-	Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
-	request->header_fields["Content-length "] = "";
-	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+TestCase testCaseBadRequestEncoding() {
+	TestCase testcase = defaultTestCase();
+	testcase.name = "BadEncoding";
 
+	std::vector<std::string> body = {"not chunked message", "4\r\n1234567\r\n0\r\n\r\n", "4\r\n1\r\n0\r\n\r\n", "4\r\n0\r\n\r\n", "4\r\n\r\n0\r\n\r\n", "4\r\n1234\r\n4\r\n1234567\r\n0\r\n\r\n", "4\r\n1234r\nr\nr\nr\n\r\n0\r\n\r\n"};
+	for (std::string i : body )
+	{
+		Request::Pointer request = defaultRequest();
+		request->header_fields["transfer-encoding"] = "chunked";
+		request->message_body = i;
+		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
+		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+	}
 	return testcase;
 }

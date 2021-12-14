@@ -14,8 +14,7 @@ getRealPath() {
 }
 
 EXEC_NAME='a.out'
-CONFIG_FILE=$(getRealPath '../TestConfiguration.conf')
-SERVER_ROOT=$(getRealPath '../ServerRoot')
+CONFIG_FILE='./TestConfiguration.conf' #$(getRealPath '../TestConfiguration.conf')
 
 ( cd .. ; bash background_webserver.sh $CONFIG_FILE )
 
@@ -26,7 +25,7 @@ if [ -z "$process" ]; then
 	exit 1
 fi
 
-make > /dev/null && ./a.out $@
+make > /dev/null && ./$EXEC_NAME $@
 
 sleep 0.001
 pkill $EXEC_NAME

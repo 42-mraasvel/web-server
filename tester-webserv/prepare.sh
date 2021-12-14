@@ -16,6 +16,9 @@ METHOD_SAMPLE_FILE=$GET_DIR'/sample.html'
 FORBIDDEN_FILE=$FORBIDDEN_DIR'/forbidden.html'
 FORBIDDEN_SUBDIR=$FORBIDDEN_DIR'/forbidden_dir'
 
+#special (DO NOT CHANGE!)
+AC_MAC="0"
+
 ####################################################
 
 #remove temp
@@ -39,11 +42,15 @@ chmod a=r $FORBIDDEN_FILE
 
 #(re)build forbidden sub directory
 if [ -d "$FORBIDDEN_SUBDIR" ]; then
-	# sudo chown $USER $FORBIDDEN_SUBDIR
+	if [ "$AC_MAC" = "1" ]; then
+		sudo chown $USER $FORBIDDEN_SUBDIR
+	fi
 	chmod 755 $FORBIDDEN_SUBDIR
 	rm -r $FORBIDDEN_SUBDIR
 fi
 mkdir -p $FORBIDDEN_SUBDIR
 cp $METHOD_SAMPLE_FILE $FORBIDDEN_SUBDIR'/sample.html'
 chmod a=r $FORBIDDEN_SUBDIR
-# sudo chown nobody $FORBIDDEN_SUBDIR
+if [ "$AC_MAC" = "1" ]; then
+	sudo chown nobody $FORBIDDEN_SUBDIR
+fi

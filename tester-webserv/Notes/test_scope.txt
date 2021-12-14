@@ -52,6 +52,9 @@
 +---------------------+
 	------ Connection Management ------
 		[C-y] connection: close
+				- HTTP 1.0 [connection != keep-alive]
+				- invalid [content-length] (see 400 BAD REQUEST)
+				- invalid chunked body (see 400 BAD REQUEST)
 		[C-y] timeout
 		[C-y] Unsafe Pipeline:
 			- Large Post -> GET (all bytes) -> DELETE -> GET (404) on posted file: to check if unsafe method is not executed concurrently
@@ -59,7 +62,6 @@
 
 	------ HTTP 1.0 ------
 		[C-y] connection need to be closed unless header [connection = keep-alive]
-		A: [C-n] TODO: to add test list
 
 	------ Settings ------
 		- Preset settings to pass all tests with
@@ -103,23 +105,30 @@
 					- Method (case-sensitive) | Target | version (case-sensitive) | Delimeter (space +end) | whitespace not allowed inside each component | URI_TOO_LONG
 				- Header
 					- [Host]
-						[???] - multiple host field
+						- One host
+							- wrong port | non-digit after ":"
 						- HTTP 1.1 without host field
-						- One host: wrong port | syntax error
+						- multiple host field
 					- [connection != close | keep-alive]
 					- [expect != 100-continue] (see status_code)
-					- [content-length] != digit
+					- [content-length]
+						- value != digit >> close connection
+						- present together with [transfer-encoding] >> close connection
+					- [content-coding]
+						[P-y]- empty value respond 415 UNSUPPORTED_MEDIA_TYPE
+						- non-empty value respond 400
 					- WS before ":"
-					- line end with ";"
-				[???]- message_body
-				[???]- TODO: RequestValidator functions: check one by one
+					- duplicate header
+						- duplicate [content-length] >> close connection
+				- Message body
+					- incorrect chunked format >> close connection
 		[P-y] 403 FORBIDDEN (see Method Execution)
 		[P-y] 404 NOT_FOUND (see Method Execution)
 		[P-y] 405 METHOD_NOT_ALLOWED (see LocationBlock-MethodAllowed)
 				- check headerfield 'Allow'
 		A: [C-n] 408 REQUEST_TIMEOUT
 		[P-y] 413 PAYLOAD_TOO_LARGE (see ServerBlock-ClientMaxSize)
-		[???] 415 UNSUPPORTED_MEDIA_TYPE
+		[P-y] 415 UNSUPPORTED_MEDIA_TYPE
 		[P-y] 417 EXPECTATION_FAILED
 		[C-y] 431 REQUEST_HEADER_FIELDS_TOO_LARGE
 		[P-y] 500 INTERNAL_SERVER_ERROR (through out whole program)
@@ -154,25 +163,8 @@
 
 
 ************** Question / To-Discuss **************
-1. Request Method containing different marks, some return 501 some returns 400
-	>> 501 {"GE.T", "3GET", "G1ET.", "GE5T", "GET0", "GET!", "!GET", "GE!T", "GE#T", "G$ET", "G^ET"};
-	>> 400 {"?GET", "G/ET", "GE;T", "GET?"};
 
-2. Request Target
-	- 200 OK with index file
-		- GET /?!243 HTTP/1.1 
-		- GET /??? HTTP/1.1  (/.... and /%#@$#^ is 400)
-	- 404 Not Found
-		- GET /!! HTTP/1.1
-		- GET /**** HTTP/1.1
-
-3. Request Host
-
-	- header field end with ";" does not respond 400
-	(header-field = field-name ":" OWS field-value OWS)
-		- Host | Content-length | Content-type
-	- WS between host and port does not respond 400
-	(Host = uri-host [ ":" port ] ; Section 2.7.1)
-		- "localhost :8080" or "locahost: 8080"
-
-4. in 400 BAD_REQUEST (this note): [???]- TODO: RequestValidator functions: check one by one
+to do: close connection if 
+	- duplicated content-length
+	- invalid content-length
+	- invalid chunked message

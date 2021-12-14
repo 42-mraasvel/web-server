@@ -123,7 +123,7 @@ bool	RequestValidator::isTransferEncodingValid(const HeaderField & header)
 	{
 		if (!WebservUtility::caseInsensitiveEqual(transfer_encoding.first->second, "chunked"))
 		{
-			generalError("%s %s\n", _FUNC_ERR("Unsupported TE:").c_str(), transfer_encoding.first->second.c_str());
+			generalError("%s %s\n", _FUNC_ERR("Unsupported Transfer-Ecoding:").c_str(), transfer_encoding.first->second.c_str());
 			_status_code = StatusCode::NOT_IMPLEMENTED;
 			_close_connection = true;
 			return false;
