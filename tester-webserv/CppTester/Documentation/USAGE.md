@@ -11,6 +11,8 @@
 		Wait N (wait_close) seconds after all requests have been sent for the server
 		to close the connection. If the server closes the connection in this time,
 		the client returns success.
+	SEP_CONNECTION
+		Each request is executed on a seperate connection (cannot be used in combination with PIPELINED)
 
 ### On by Default
 - TIMEOUT

@@ -32,6 +32,7 @@ class ResponseValidator {
 
 		static std::size_t getFailedCount();
 		static std::size_t getPassedCount();
+		static void addFailed(std::size_t n);
 
 	private:
 		static std::size_t failed;

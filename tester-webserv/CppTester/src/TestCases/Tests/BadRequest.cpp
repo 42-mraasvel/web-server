@@ -186,6 +186,7 @@ TestCase testCaseBadRequestContentLength() {
 	Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
 	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 
+	testcase.settings.flags |= Client::Settings::SEP_CONNECTION;
 	return testcase;
 }
 
@@ -218,7 +219,7 @@ TestCase testCaseBadRequestDuplicateHeader() {
 		}
 		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	}
-
+	testcase.settings.flags |= Client::Settings::SEP_CONNECTION;
 	return testcase;
 }
 
@@ -251,5 +252,6 @@ TestCase testCaseBadRequestEncoding() {
 		Response::Pointer expected = defaultResponse(StatusCode::BAD_REQUEST);
 		testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
 	}
+	testcase.settings.flags |= Client::Settings::SEP_CONNECTION;
 	return testcase;
 }

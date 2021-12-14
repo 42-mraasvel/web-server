@@ -55,6 +55,10 @@ std::size_t ResponseValidator::getPassedCount() {
 	return ResponseValidator::passed;
 }
 
+void ResponseValidator::addFailed(std::size_t n) {
+	failed += n;
+}
+
 ResponseValidator::ResponseValidator(Response::Pointer expected,
 									ValidatorFunction validator,
 									std::size_t expected_responses)

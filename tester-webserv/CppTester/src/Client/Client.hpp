@@ -22,6 +22,7 @@ class Client {
 					TIMEOUT			= 0x0001, // Close the connection
 					PIPELINED		= 0x0002, // Send multiple requests without waiting for the response
 					WAIT_FOR_CLOSE	= 0x0004, // wait wait_close seconds after the final request was sent (there can also be 0 requests)
+					SEP_CONNECTION	= 0x0008, // Execute each request on a seperate connection
 				};
 			public:
 				Settings();
@@ -54,7 +55,7 @@ class Client {
 		typedef std::deque<ResponseVector> ResponseQueue;
 
 	public:
-		Client(Settings options);
+		Client(Settings options, Address server);
 		~Client();
 
 		static void testRequest(RequestPair request, Settings settings = Settings());
@@ -71,7 +72,7 @@ class Client {
 		static bool validSettings(const Settings& settings);
 
 	/* Connection */
-		int initializeConnection(const Address& server_addr);
+		int initializeConnection();
 		int connectToServer(struct sockaddr_in) const;
 
 		void executeTransaction(RequestQueue requests);
@@ -119,6 +120,7 @@ class Client {
 		int connfd;
 		struct pollfd pfd;
 		Settings settings;
+		Address server;
 		State state;
 		Timer timer;
 		RequestIterator processing_request;

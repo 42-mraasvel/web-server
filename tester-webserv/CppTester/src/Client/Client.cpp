@@ -14,8 +14,8 @@ Client::Settings::Settings()
 	flags = TIMEOUT;
 }
 
-Client::Client(Settings settings)
-: connfd(-1), settings(settings) {}
+Client::Client(Settings settings, Address server)
+: connfd(-1), settings(settings), server(server) {}
 
 Client::~Client() {
 	closeConnection();
@@ -28,11 +28,12 @@ void Client::testRequest(RequestPair request, Settings settings) {
 }
 
 void Client::testRequests(const RequestQueue& requests, Address server_addr, Settings settings) {
-	Client c(settings);
+	Client c(settings, server_addr);
 	if (!validSettings(settings) || !validRequests(requests)) {
+		PRINT_ERR << "invalid settings" << std::endl;
 		return;
 	}
-	if (c.initializeConnection(server_addr) == ERR) {
+	if (c.initializeConnection() == ERR) {
 		return;
 	}
 	c.executeTransaction(requests);
@@ -43,7 +44,8 @@ void Client::testRequests(const RequestQueue& requests, Address server_addr, Set
 
 bool Client::validSettings(const Settings& settings) {
 	if (settings.timeout <= 0 || settings.pipeline_amount <= 0) {
-		PRINT_ERR << "invalid settings" << std::endl;
+		return false;
+	} else if (settings.flags & Settings::SEP_CONNECTION && settings.flags & Settings::PIPELINED) {
 		return false;
 	}
 	return true;
@@ -68,10 +70,10 @@ bool Client::validRequest(const Request::Pointer request) {
 	return true;
 }
 
-int Client::initializeConnection(const Address& addr) {
+int Client::initializeConnection() {
 	struct sockaddr_in server_addr;
-	if (util::addressToSockaddr(addr, &server_addr) == ERR) {
-		PRINT_ERR << "Could not resolve address: " << addr.ip << ":" << addr.port << std::endl;
+	if (util::addressToSockaddr(server, &server_addr) == ERR) {
+		PRINT_ERR << "Could not resolve address: " << server.ip << ":" << server.port << std::endl;
 		return ERR;
 	}
 	connfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -196,6 +198,10 @@ void Client::processResponses(RequestQueue& requests) {
 		processResponse(responses.front(), requests.front().first, requests.front().second);
 		requests.pop_front();
 		responses.pop_front();
+		if (requests.size() != 0 && settings.flags & Settings::SEP_CONNECTION) {
+			closeConnection();
+			initializeConnection();
+		}
 	}
 }
 
@@ -334,6 +340,7 @@ void Client::waitForServer() {
 
 void Client::handleError(const RequestQueue& requests) const {
 	LOG_ERR << "Client: [" << connfd << "]: " << "error ocurred with " << requests.size() << " requests remaining" << std::endl;
+	ResponseValidator::addFailed(requests.size());
 	for (const Response::Pointer& r : response) {
 		LOG_INFO << "Received Response:" << std::endl;
 		r->log();
