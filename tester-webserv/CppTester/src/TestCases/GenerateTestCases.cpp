@@ -1,33 +1,39 @@
 #include "TestCase.hpp"
 
-TestCase testCaseCgi();
-TestCase testCaseConnectionDefault0();
-TestCase testCaseConnectionKeepAlive();
-TestCase testCaseConnectionClose();
-TestCase testCaseConnectionDefault1();
-TestCase testCaseExpect();
+TestCase testCaseStress0();
+TestCase testCaseVersionNotSupported();
 TestCase testCaseRedirection301();
 TestCase testCaseRedirection308();
 TestCase testCaseRedirection302();
 TestCase testCaseRedirection303();
 TestCase testCaseRedirection307();
-TestCase testCaseStress0();
-TestCase testCaseVersionNotSupported();
+TestCase testCaseBadRequestMethod();
+TestCase testCaseBadRequestTarget();
+TestCase testCaseBadRequestVersion();
+TestCase testCaseExpect();
+TestCase testCaseCgi();
+TestCase testCaseConnectionDefault0();
+TestCase testCaseConnectionKeepAlive();
+TestCase testCaseConnectionClose();
+TestCase testCaseConnectionDefault1();
 
 TestCaseVector generateTestCases() {
 	TestCaseVector testcases;
-	testcases.push_back(testCaseCgi());
-	testcases.push_back(testCaseConnectionDefault0());
-	testcases.push_back(testCaseConnectionKeepAlive());
-	testcases.push_back(testCaseConnectionClose());
-	testcases.push_back(testCaseConnectionDefault1());
-	testcases.push_back(testCaseExpect());
+	testcases.push_back(testCaseStress0());
+	testcases.push_back(testCaseVersionNotSupported());
 	testcases.push_back(testCaseRedirection301());
 	testcases.push_back(testCaseRedirection308());
 	testcases.push_back(testCaseRedirection302());
 	testcases.push_back(testCaseRedirection303());
 	testcases.push_back(testCaseRedirection307());
-	testcases.push_back(testCaseStress0());
-	testcases.push_back(testCaseVersionNotSupported());
+	testcases.push_back(testCaseBadRequestMethod());
+	testcases.push_back(testCaseBadRequestTarget());
+	testcases.push_back(testCaseBadRequestVersion());
+	testcases.push_back(testCaseExpect());
+	testcases.push_back(testCaseCgi());
+	testcases.push_back(testCaseConnectionDefault0());
+	testcases.push_back(testCaseConnectionKeepAlive());
+	testcases.push_back(testCaseConnectionClose());
+	testcases.push_back(testCaseConnectionDefault1());
 	return testcases;
 }

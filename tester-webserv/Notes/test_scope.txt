@@ -144,3 +144,17 @@
 		[PC-n] Transfer-Encoding
 		[P-n] Content-Type
 			Check nonexistant extensions and no extension for content-type
+
+
+************** Question / To-Discuss **************
+1. Request Method containing different marks, some return 501 some returns 400
+	>> 501 {"GE.T", "3GET", "G1ET.", "GE5T", "GET0", "GET!", "!GET", "GE!T", "GE#T", "G$ET", 	"G^ET"};
+	>> 400 {"?GET", "G/ET", "GE;T", "GET?"};
+
+2. Request Target
+	- 200 OK with index file
+		- GET /?!243 HTTP/1.1 
+		- GET /??? HTTP/1.1  (/.... and /%#@$#^ is 400)
+	- 404 Not Found
+		- GET /!! HTTP/1.1
+		- GET /**** HTTP/1.1
