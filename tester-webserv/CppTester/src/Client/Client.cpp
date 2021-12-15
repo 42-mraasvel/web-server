@@ -200,6 +200,7 @@ void Client::processResponses(RequestQueue& requests) {
 		requests.pop_front();
 		responses.pop_front();
 		if (requests.size() != 0 && settings.flags & Settings::SEP_CONNECTION) {
+			PRINT_INFO << "Reinitializing connection" << std::endl;
 			closeConnection();
 			initializeConnection();
 		}
@@ -227,7 +228,7 @@ void Client::checkTimeout() {
 }
 
 bool Client::shouldCloseConnection() {
-	return pfd.revents & (POLLHUP | POLLERR | POLLNVAL);
+	return !(pfd.revents & POLLIN) && pfd.revents & (POLLHUP | POLLERR | POLLNVAL);
 }
 
 void Client::executeEvents() {
@@ -273,7 +274,7 @@ void Client::parseResponse(const std::string& buffer) {
 			setError();
 			return;
 		} else if (response_parser.isComplete()) {
-			PRINT_INFO << "Client: [" << connfd << "]: received response: [" << response.back()->status_code << "]" << std::endl;;
+			PRINT_INFO << "Client: [" << connfd << "]: received response: [" << response.back()->status_code << "]" << std::endl;
 			finishResponse();
 		}
 	}

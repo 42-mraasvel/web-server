@@ -65,11 +65,10 @@
 
 	------ Settings ------
 		- Preset settings to pass all tests with
-		T: [C-n] time out
-		T: [???] BUFFER_SIZE
-		T: [???] LIMITS
-		T: [???] Chunked
-		T: [???] TODO: to add test list
+		[C-y] time out
+		[C-y] BUFFER_SIZE
+		[C-y] LIMITS
+		[C-y] Chunked
 
 	------ Method Execution ------
 		[P-y] GET

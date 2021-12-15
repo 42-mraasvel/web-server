@@ -5,6 +5,7 @@ static TestCase defaultTestCase() {
 	TestCase testcase;
 	testcase.server = Address("localhost", 8080);
 	testcase.tag = "BadRequest";
+	testcase.settings.flags |= Client::Settings::SEP_CONNECTION;
 	return testcase;
 }
 
@@ -117,7 +118,7 @@ TestCase testCaseBadRequestHost() {
 	TestCase testcase = defaultTestCase();
 	testcase.name = "BadHost";
 
-	std::vector<std::string> host = {"localhost:8081", "localhost:", "localhost::", "", "localhost:8080:", "localhost:8080:0", "localhost:8080;", "localhost: 8080", ":"};
+	std::vector<std::string> host = {"localhost:8081", "localhost:", "localhost::", "localhost:8080:", "localhost:8080:0", "localhost:8080;", "localhost: 8080", ":"};
 	for (std::string i : host )
 	{
 		Request::Pointer request = defaultRequest();

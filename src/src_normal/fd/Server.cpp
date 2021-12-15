@@ -56,6 +56,13 @@ void Server::readEvent(FdTable & fd_table)
 		close(connection_fd);
 		return;
 	}
+	int enable = 1;
+	if (setsockopt(connection_fd, SOL_SOCKET, SO_NOSIGPIPE, &enable, sizeof(int)) < 0)
+	{
+		syscallError(_FUNC_ERR("setsockopt"));
+		close(connection_fd);
+		return;
+	}
 
 	try
 	{

@@ -56,7 +56,10 @@ bool	ResponseGenerator::isReadyToBeChunked(Response const & response) const
 
 void	ResponseGenerator::generateUnchunkedResponse(Response & response)
 {
-	setHeaderPart(response);
+	if (!response.header_part_set)
+	{
+		setHeaderPart(response);
+	}
 	appendMessageBody(response);
 }
 

@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
+#include <unistd.h>
 
 Connection::Connection(int fd, AddressType client,
 	AddressType interface, Config::address_map const * config_map):
@@ -73,7 +74,7 @@ int	Connection::readRequest(std::string & buffer)
 		return ERR;
 	}
 	buffer.resize(ret);
-	printf("Request size: %lu, Bytes read: %ld\n", buffer.size(), ret);
+	// printf("Request size: %lu, Bytes read: %ld\n", buffer.size(), ret);
 	return OK;
 }
 
@@ -242,7 +243,7 @@ int	Connection::sendResponseString()
 		size_t size = std::min((size_t)BUFFER_SIZE, _response_string.size());
 		if (send(_fd, _response_string.c_str(), size, 0) == ERR)
 		{
-			perror("send");
+			syscallError(_FUNC_ERR("send"));
 			return ERR;
 		}
 		_response_string.erase(0, size);

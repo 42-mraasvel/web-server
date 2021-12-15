@@ -42,14 +42,14 @@ void CgiSender::writeEvent(FdTable & fd_table)
 			return;
 		}
 		_message_body.erase(0, n);
-		printf("%s: [%d]: Sent: %ld bytes\n",
-			getName().c_str(), getFd(), n);
+		// printf("%s: [%d]: Sent: %ld bytes\n",
+		// 	getName().c_str(), getFd(), n);
 	}
 
 	if (_message_body.size() == 0)
 	{
-		printf("%s: [%d]: Finished writing\n",
-			getName().c_str(), getFd());
+		// printf("%s: [%d]: Finished writing\n",
+		// 	getName().c_str(), getFd());
 		closeEvent(fd_table);
 	}
 }

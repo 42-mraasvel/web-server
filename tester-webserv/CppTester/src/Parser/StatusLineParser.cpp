@@ -91,7 +91,8 @@ int StatusLineParser::parseSpace(Response& dest, std::size_t& index) {
 int StatusLineParser::parseStatusCode(Response& dest, std::size_t& index) {
 	std::size_t start = index;
 	util::skip(leftover, index, isDigit);
-	if (index - start != 3) {
+	if (index - start == 0)
+	{
 		return ERR;
 	}
 	dest.status_code = std::stoi(&leftover[start]);

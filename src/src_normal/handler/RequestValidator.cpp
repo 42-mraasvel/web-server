@@ -33,6 +33,7 @@ bool	RequestValidator::shouldSendContinue() const
 
 bool	RequestValidator::isRequestValidPreConfig(Request const & request)
 {
+	_status_code = 0;
 	return !isBadRequest(request.status, request.status_code)
 			&& isHostValid(request)
 			&& isConnectionValid(request)
@@ -59,10 +60,6 @@ bool	RequestValidator::isHostValid(Request const & request)
 	if (host.second)
 	{
 		std::string value = host.first->second;
-		if (value.empty())
-		{
-			return false;
-		}
 		std::size_t found = value.rfind(":");
 		if (found != std::string::npos)
 		{

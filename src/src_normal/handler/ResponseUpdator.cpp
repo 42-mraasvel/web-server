@@ -57,11 +57,13 @@ void	ResponseUpdator::setSpecialMessageBody(FdTable & fd_table, Response & respo
 		&& response.status_code == response.config_info.resolved_location->_return.first)
 	{
 		processRedirectResponse(response);
+		response.status = Response::COMPLETE;
 	}
 	else if (response.config_info.result == ConfigInfo::AUTO_INDEX_ON
 			&& response.status_code == StatusCode::STATUS_OK)
 	{
 		processAutoIndex(response);
+		response.status = Response::COMPLETE;
 	}
 	if (response.message_body.empty())
 	{
@@ -70,6 +72,7 @@ void	ResponseUpdator::setSpecialMessageBody(FdTable & fd_table, Response & respo
 			|| !isErrorPageRedirected(fd_table, response))
 		{
 			setOtherErrorPage(response);
+			response.status = Response::COMPLETE;
 		}
 	}
 }
