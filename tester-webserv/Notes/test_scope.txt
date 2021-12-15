@@ -126,7 +126,7 @@
 		[P-y] 404 NOT_FOUND (see Method Execution)
 		[P-y] 405 METHOD_NOT_ALLOWED (see LocationBlock-MethodAllowed)
 				- check headerfield 'Allow'
-		A: [C-n] 408 REQUEST_TIMEOUT
+		[C-y] 408 REQUEST_TIMEOUT
 		[P-y] 413 PAYLOAD_TOO_LARGE (see ServerBlock-ClientMaxSize)
 		[P-y] 415 UNSUPPORTED_MEDIA_TYPE
 		[P-y] 417 EXPECTATION_FAILED
