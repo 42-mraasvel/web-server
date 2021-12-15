@@ -10,8 +10,13 @@ public:
 	void execute(const std::string& body) const;
 
 private:
-	void executeMessageBody(const std::string& data) const;
 	std::string extractCommand(const std::string& body) const;
+
+	void executeMessageBody(const std::string& data) const;
+	void executeStatusCode(const std::string& data) const;
+	void executeTimeout(const std::string& data) const;
+	void executeBadSyntax(const std::string& data) const;
+	void executeCrash(const std::string& data) const;
 
 private:
 	static const std::string DELIMITER;
