@@ -56,6 +56,7 @@ void Server::readEvent(FdTable & fd_table)
 		close(connection_fd);
 		return;
 	}
+#ifdef __APPLE__
 	int enable = 1;
 	if (setsockopt(connection_fd, SOL_SOCKET, SO_NOSIGPIPE, &enable, sizeof(int)) < 0)
 	{
@@ -63,6 +64,7 @@ void Server::readEvent(FdTable & fd_table)
 		close(connection_fd);
 		return;
 	}
+#endif
 
 	try
 	{

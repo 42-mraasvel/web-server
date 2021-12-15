@@ -241,7 +241,11 @@ int	Connection::sendResponseString()
 	if (!_response_string.empty())
 	{
 		size_t size = std::min((size_t)BUFFER_SIZE, _response_string.size());
+#ifdef __APPLE__
 		if (send(_fd, _response_string.c_str(), size, 0) == ERR)
+#else
+		if (send(_fd, _response_string.c_str(), size, MSG_NOSIGNAL) == ERR)
+#endif
 		{
 			syscallError(_FUNC_ERR("send"));
 			return ERR;

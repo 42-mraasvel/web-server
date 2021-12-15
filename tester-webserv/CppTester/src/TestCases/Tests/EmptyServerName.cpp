@@ -2,6 +2,7 @@
 #include "Utility/utility.hpp"
 #include <fcntl.h>
 #include <unistd.h>
+#include <cstring>
 
 static Request::Pointer defaultRequest() {
 	Request::Pointer request(new Request);
