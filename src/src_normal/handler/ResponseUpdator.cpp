@@ -65,7 +65,8 @@ void	ResponseUpdator::setSpecialMessageBody(FdTable & fd_table, Response & respo
 	}
 	if (response.message_body.empty())
 	{
-		if (response.error_page_attempted
+		if (response.status_code == StatusCode::REQUEST_TIMEOUT
+			|| response.error_page_attempted
 			|| !isErrorPageRedirected(fd_table, response))
 		{
 			setOtherErrorPage(response);
