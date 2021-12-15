@@ -75,7 +75,7 @@ int HttpRequestParser::parse(std::string const &buffer, std::size_t &index, Requ
 				parseChunked(buffer, index, request);
 				break;
 			case ERROR:
-				_header_processor.processError(request);
+				_header_processor.processError(request, getStatusCode());
 				return ERR;
 			case COMPLETE:
 				return OK;
@@ -83,7 +83,7 @@ int HttpRequestParser::parse(std::string const &buffer, std::size_t &index, Requ
 	}
 	if (_state == ERROR)
 	{
-		_header_processor.processError(request);
+		_header_processor.processError(request, getStatusCode());
 		return ERR;
 	}
 	return OK;

@@ -13,6 +13,7 @@ def testCaseMaxBodySizeGet():
 	testcase.request.method = 'GET'
 	# Response
 	testcase.response.status_code = 413
+	testcase.response.headers["connection"] = "close"
 	return testcase
 
 def testCaseMaxBodySizePost():

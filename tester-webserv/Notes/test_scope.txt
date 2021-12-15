@@ -38,7 +38,7 @@
 		[P-y] Root Directory (empty root, root syntax error)
 		[P-y] Auto Index
 		[P-y] Default File
-		M: [PC-n] CGI: executable to test in/output
+		[C-y] CGI: executable to test in/output
 				- MessageBody
 				- StatusCode
 				- Environment variables
@@ -135,8 +135,8 @@
 		[P-y] 501 NOT_IMPLEMENTED
 				- method other than: GET POST DELETE)
 				- Request header "Transfer-Encoding" other than: chunked (close connection)
-		M: [PC-n] 502 BAD_GATEWAY
-		M: [PC-n] 504 GATEWAY_TIMEOUT
+		[C-y] 502 BAD_GATEWAY
+		[C-y] 504 GATEWAY_TIMEOUT
 		[C-y] 505 HTTP_VERSION_NOT_SUPPORTED 
 
 	------ Response Header Field ------
