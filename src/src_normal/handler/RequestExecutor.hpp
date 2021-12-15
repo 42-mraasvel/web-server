@@ -14,6 +14,7 @@ class RequestExecutor
 		{
 			START,
 			BAD_REQUEST,
+			TIME_OUT_REQUEST,
 			CONTINUE,
 			REDIRECT,
 			AUTO_INDEX_ON,

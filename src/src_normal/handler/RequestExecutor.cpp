@@ -57,6 +57,9 @@ bool	RequestExecutor::isRequestComplete(Request const & request)
 		case Request::EXPECT:
 			markStatus(CONTINUE, StatusCode::CONTINUE);
 			return false;
+		case Request::TIME_OUT_REQUEST:
+			markStatus(TIME_OUT_REQUEST, StatusCode::REQUEST_TIMEOUT);
+			return false;
 		case Request::COMPLETE:
 			return true;
 		default :

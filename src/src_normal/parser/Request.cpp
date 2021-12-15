@@ -84,6 +84,8 @@ std::string Request::getStatusString() const
 			return "COMPLETE";
 		case BAD_REQUEST:
 			return "BAD_REQUEST";
+		case TIME_OUT_REQUEST:
+			return "TIME_OUT_REQUEST";
 	}
 	return "???";
 }

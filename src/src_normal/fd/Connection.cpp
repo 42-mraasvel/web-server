@@ -213,10 +213,10 @@ void	Connection::checkTimeOut()
 	{
 		_timer.reset();
 	}
-	else if (_timer.elapsed() >= TIMEOUT)
+	else if (_timer.elapsed() >= TIMEOUT && !_close_connection)
 	{
 		printf("%sConnection%s: [%d]: TIMEOUT\n", RED_BOLD, RESET_COLOR, getFd());
-		closeConnection();
+		_request_handler.newTimeoutRequest();
 	}
 }
 
