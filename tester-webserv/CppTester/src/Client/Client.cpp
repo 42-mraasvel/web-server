@@ -102,6 +102,7 @@ int Client::connectToServer(struct sockaddr_in server_addr) const {
 
 void Client::executeTransaction(RequestQueue requests) {
 	prepareTransaction(requests);
+	request_queue = &requests;
 	while (state == State::EXECUTING) {
 		update(requests);
 		if (isComplete()) {
@@ -283,7 +284,7 @@ void Client::newResponsePointer() {
 }
 
 void Client::finishResponse() {
-	if (isFinalResponse(response.back())) {
+	if (isFinalResponse()) {
 		responses.push_back(response);
 		response.clear();
 	} else {
@@ -292,10 +293,8 @@ void Client::finishResponse() {
 	response_parser.reset();
 }
 
-bool Client::isFinalResponse(Response::Pointer response) {
-	return !(response->status_code >= 100 && response->status_code < 200);
-	// return !((response->status_code >= 300 && response->status_code < 400)
-	// 	|| (response->status_code >= 100 && response->status_code < 200));
+bool Client::isFinalResponse() const {
+	return response.size() == request_queue->front().second.getExpectedResponses();
 }
 
 /*

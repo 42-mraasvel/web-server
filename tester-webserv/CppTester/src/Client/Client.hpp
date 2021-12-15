@@ -96,7 +96,7 @@ class Client {
 		void parseResponse(const std::string& buffer);
 		void newResponsePointer();
 		void finishResponse();
-		bool isFinalResponse(Response::Pointer response);
+		bool isFinalResponse() const;
 
 	/* Write Event */
 		void writeEvent();
@@ -128,4 +128,5 @@ class Client {
 		HttpResponseParser response_parser;
 		ResponseVector response;
 		ResponseQueue responses;
+		RequestQueue* request_queue;
 };

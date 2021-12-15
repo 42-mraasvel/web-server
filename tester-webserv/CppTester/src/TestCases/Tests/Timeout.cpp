@@ -16,15 +16,22 @@ TestCase testCaseTimeout() {
 	return testcase;
 }
 
+static bool timeoutValidation(const std::vector<Response::Pointer>& response, const Response::Pointer expected) {
+	if (response.size() != 2) {
+		return false;
+	}
+	return response.front()->status_code == StatusCode::STATUS_OK && response.back()->status_code == StatusCode::REQUEST_TIMEOUT; 
+}
+
 TestCase testCaseTimeoutWithRequest() {
 	Request::Pointer request(new Request);
 	Response::Pointer response(new Response);
 
 	request->request_line = "GET / HTTP/1.1";
 	request->header_fields["host"] = "localhost";
-	response->status_code = 200;
 
 	TestCase testcase = defaultTestCase();
-	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(response)));
+	testcase.settings.timeout = 75;
+	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(nullptr, &timeoutValidation, 2)));
 	return testcase;
 }
