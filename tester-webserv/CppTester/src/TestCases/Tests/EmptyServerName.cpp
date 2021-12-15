@@ -10,12 +10,12 @@ static Request::Pointer defaultRequest() {
 	return request;
 }
 
-TestCase testCaseEmptyServerName8080() {
+TestCase testCaseEmptyServerName8082() {
 	TestCase testcase;
 	testcase.tag = "Resolution";
-	testcase.name = "EmptyServerName8080";
+	testcase.name = "EmptyServerName8082";
 
-	testcase.server = Address("localhost", 8080);
+	testcase.server = Address("localhost", 8082);
 	Request::Pointer request = defaultRequest();
 
 	Response::Pointer expected(new Response);
@@ -32,12 +32,12 @@ TestCase testCaseEmptyServerName8080() {
 	return testcase;
 }
 
-TestCase testCaseEmptyServerName8081() {
+TestCase testCaseEmptyServerName8083() {
 	TestCase testcase;
 	testcase.tag = "Resolution";
-	testcase.name = "EmptyServerName8081";
+	testcase.name = "EmptyServerName8083";
 
-	testcase.server = Address("localhost", 8081);
+	testcase.server = Address("localhost", 8083);
 	Request::Pointer request = defaultRequest();
 
 	Response::Pointer expected(new Response);
