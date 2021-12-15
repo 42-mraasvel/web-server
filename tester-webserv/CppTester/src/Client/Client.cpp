@@ -294,7 +294,7 @@ void Client::finishResponse() {
 }
 
 bool Client::isFinalResponse() const {
-	return response.size() == request_queue->front().second.getExpectedResponses();
+	return request_queue->empty() || response.size() == request_queue->front().second.getExpectedResponses();
 }
 
 /*

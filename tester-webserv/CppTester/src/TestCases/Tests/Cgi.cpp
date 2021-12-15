@@ -82,6 +82,32 @@ TestCase testCaseCgiCrash() {
 	return defaultTestCase(testcase);
 }
 
+TestCase testCaseCgiNonExistantFile() {
+	TestCase testcase;
+
+	Response::Pointer expected(new Response);
+	expected->status_code = StatusCode::BAD_GATEWAY;
+
+	Request::Pointer request = defaultPostRequest();
+	request->request_line = "POST /test.nonexistant HTTP/1.1";
+	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+	testcase.name = "Non Existant";
+	return defaultTestCase(testcase);
+}
+
+TestCase testCaseCgiNoPermission() {
+	TestCase testcase;
+
+	Response::Pointer expected(new Response);
+	expected->status_code = StatusCode::BAD_GATEWAY;
+
+	Request::Pointer request = defaultPostRequest();
+	request->request_line = "POST /test.noperm HTTP/1.1";
+	testcase.requests.push_back(TestCase::RequestPair(request, ResponseValidator(expected)));
+	testcase.name = "No Permission";
+	return defaultTestCase(testcase);
+}
+
 TestCase testCaseCgiTimeout() {
 	TestCase testcase;
 

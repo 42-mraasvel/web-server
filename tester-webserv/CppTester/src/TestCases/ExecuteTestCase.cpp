@@ -30,7 +30,7 @@ static void waitPids(std::vector<pid_t> pids) {
 
 static bool shouldExecuteTestcase(const TestCase& testcase, const TagSet tags) {
 	return (tags.size() == 0 && !testcase.execute_only_if_tag)
-		|| (testcase.execute_only_if_tag && tags.size() == 1 && *tags.begin() == "all")
+		|| (tags.size() == 1 && *tags.begin() == "all")
 		|| tags.count(testcase.tag) > 0;
 }
 
