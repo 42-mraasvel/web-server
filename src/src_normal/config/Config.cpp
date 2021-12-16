@@ -96,12 +96,14 @@ int Config::parser()
 	if ((fd = open(_file_name.c_str(), O_RDONLY)) == -1)
 	{
 		configError("filename: " + _file_name);
+		return ERR;
 	}
 	do
 	{
 		if ((ret = read(fd, buf, BUFFER_SIZE)) == -1)
 		{
 			configError("read");
+			return ERR;
 		}
 		buf[ret] = 0;
 		body += buf;
@@ -121,6 +123,10 @@ int Config::parser()
 
 int	Config::parseConfigFile()
 {
+	if (_tokens.size() < 3)
+	{
+		return ERR;
+	}
 	while (_token_index < _tokens.size())
 	{
 		if (parseServer() == ERR)
@@ -552,7 +558,8 @@ int	Config::checkExpectedSyntax(std::string str)
 {
 	if (_tokens[_token_index].compare(str) != 0)
 	{
-		abortProgram("Config Error: expected " + str + " instead of " + _tokens[_token_index]);
+		// abortProgram("Config Error: expected " + str + " instead of " + _tokens[_token_index]);
+		return ERR;
 	}
 	return (OK);
 }
