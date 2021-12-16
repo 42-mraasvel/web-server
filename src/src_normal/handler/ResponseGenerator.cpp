@@ -27,7 +27,7 @@ void	ResponseGenerator::evaluateEncoding(Response & response)
 {
 	if (response.encoding == Response::UNDEFINED)
 	{
-		if (response.status != Response::COMPLETE)
+		if (!response.isFinished())
 		{
 			if (isReadyToBeChunked(response))
 			{
@@ -56,7 +56,10 @@ bool	ResponseGenerator::isReadyToBeChunked(Response const & response) const
 
 void	ResponseGenerator::generateUnchunkedResponse(Response & response)
 {
-	setHeaderPart(response);
+	if (!response.header_part_set)
+	{
+		setHeaderPart(response);
+	}
 	appendMessageBody(response);
 }
 
@@ -110,7 +113,7 @@ void	ResponseGenerator::setDate(Response & response)
 	struct tm	tm = *gmtime(&now);
 	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", &tm);
 	
-	response.header_fields["Data"] = std::string(buf);
+	response.header_fields["Date"] = std::string(buf);
 }
 
 void	ResponseGenerator::setConnection(Response & response)
@@ -218,7 +221,7 @@ void	ResponseGenerator::encodeMessageBody(Response & response)
 		response.message_body.insert(0, chunk_size);
 		response.message_body.append(NEWLINE);
 	}
-	if (response.status == Response::COMPLETE)
+	if (response.isFinished())
 	{
 		response.message_body.append(CHUNK_TAIL);
 	}

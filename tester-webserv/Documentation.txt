@@ -34,6 +34,9 @@
 			tag (string)
 				- string variable representing the tag (for printing and specifying which case to execute)
 	
+			name (string)
+				- Name of the TestCase: only for printing and identification purposes
+
 			evaluator (function pointer)
 				- custom input function to evaluate the response
 				- prototype: def evaluator(response):

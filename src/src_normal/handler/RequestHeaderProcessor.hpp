@@ -31,7 +31,8 @@ class RequestHeaderProcessor
 		RequestHeaderProcessor(MapType const * config_map);
 
 		int process(Request & request);
-		void processError(Request & request);
+		int processPostParsing(Request & request);
+		void processError(Request & request, int status_code);
 		int getStatusCode() const;
 
 	private:
@@ -39,6 +40,7 @@ class RequestHeaderProcessor
 		int setError(int code);
 
 	/* Determine close connection */
+		bool isTooLargeStatusCode(int status_code);
 		void determineCloseConnection(Request & request);
 
 	/* Config Resolution */

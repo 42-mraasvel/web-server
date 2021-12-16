@@ -1,17 +1,14 @@
-# Settings for the testcase generation
-TESTCASEDIR := testcase_generation
-PREFIX := testCase
+CGI_EXEC_DIR := ./cgi_executable
+CGI_EXEC := mrtest_cgi.out
+SERVER_ROOT_DIR := ./ServerRoot/cgi/cgi_bin
 
-# Details, details
-SDIR = src
-FULLPATH := $(SDIR)/$(TESTCASEDIR)
+all:
+	$(MAKE) -C $(CGI_EXEC_DIR)
+	$(MAKE) $(SERVER_ROOT_DIR)/$(CGI_EXEC)
 
-TESTFILES := $(shell find $(FULLPATH) -name "*.py" -type f)
-OUTFILE := $(SDIR)/GenerateTestCases.py
+$(SERVER_ROOT_DIR)/$(CGI_EXEC): $(CGI_EXEC_DIR)/$(CGI_EXEC)
+	mkdir -p $(@D)
+	cp $< $@
 
-PY := python3
-PYSCRIPT := ./search.py 
-
-# Making the generator file
-$(OUTFILE): $(TESTFILES)
-	$(PY) $(PYSCRIPT) $(TESTCASEDIR) $(PREFIX) $^ > $@
+$(CGI_EXEC_DIR)/$(CGI_EXEC):
+	$(MAKE) -C $(CGI_EXEC_DIR)

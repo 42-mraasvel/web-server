@@ -35,6 +35,17 @@ void	Response::markComplete(int new_status_code)
 	status_code = new_status_code;
 }
 
+void	Response::markSpecial(int new_status_code)
+{
+	status = SPECIAL;
+	status_code = new_status_code;
+}
+
+bool	Response::isFinished() const
+{
+	return status == SPECIAL || status == COMPLETE;
+}
+
 void	Response::setCgi()
 {
 	is_cgi = true;

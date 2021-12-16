@@ -37,12 +37,12 @@ class CgiExecutor
 				const std::string& key, const std::string& value) const;
 
 		bool canBeExecuted(std::string const & script);
-		int forkCgi(int* cgi_fds, FdTable& fd_table, std::string const & script, ConfigInfo const & info);
+		int forkCgi(int* cgi_fds, FdTable& fd_table, std::string const & script, ConfigInfo const & info, MetaVariableContainerType const & meta_variables);
 		int executeChildProcess(std::string const & script, ConfigInfo const & info) const;
 		int prepareArguments(char *args[3], std::string const & script, ConfigInfo const & info) const;
-		int prepareCgi(int* cgi_fds, FdTable& fd_table) const;
+		int prepareCgi(int* cgi_fds, FdTable& fd_table, MetaVariableContainerType const & meta_variables) const;
 		int closeAll(FdTable& fd_table) const;
-		int setEnvironment() const;
+		int setEnvironment(MetaVariableContainerType const & meta_variables) const;
 		int setRedirection(int* cgi_fds) const;
 
 		int clearCgi();
@@ -56,5 +56,4 @@ class CgiExecutor
 	private:
 		int _status_code;
 		pid_t _cgi_pid;
-		MetaVariableContainerType _meta_variables;
 };

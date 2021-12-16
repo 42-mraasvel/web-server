@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
+#include <unistd.h>
 
 Connection::Connection(int fd, AddressType client,
 	AddressType interface, Config::address_map const * config_map):
@@ -113,7 +114,7 @@ bool Connection::canExecuteRequest(int fd_table_size) const
 			&& !_unsafe_request_count
 			&& _response_handler.canExecuteRequest()
 			&& !(!_request_handler.isNextRequestSafe()
-				&& !_response_handler.isResponseQueueEmpty())
+			&& !_response_handler.isResponseQueueEmpty())
 			&& fd_table_size < FD_TABLE_MAX_SIZE;
 }
 
@@ -140,7 +141,7 @@ void	Connection::generateResponseString()
 			&& retrieveResponse())
 	{
 		appendString(_response->string_to_send, _response_string);
-		if (_response->status == Response::COMPLETE)
+		if (_response->isFinished())
 		{
 			decreUnsafe(_response->method);
 			_close_connection = _response->close_connection;
@@ -174,7 +175,7 @@ void	Connection::resetResponse()
 
 void	Connection::resetEvents(FdTable & fd_table)
 {
-	if (_flag == AFdInfo::TO_ERASE)
+	if (getFlag() == AFdInfo::TO_ERASE)
 	{
 		updateEvents(AFdInfo::WAITING, fd_table);
 	}
@@ -214,10 +215,10 @@ void	Connection::checkTimeOut()
 	{
 		_timer.reset();
 	}
-	else if (_timer.elapsed() >= TIMEOUT)
+	else if (_timer.elapsed() >= TIMEOUT && !_close_connection)
 	{
 		PRINT_INFO << getName() << ": [" << getFd() << "]: Timeout" << std::endl;
-		closeConnection();
+		_request_handler.newTimeoutRequest();
 	}
 }
 
@@ -241,7 +242,11 @@ int	Connection::sendResponseString()
 	if (!_response_string.empty())
 	{
 		size_t size = std::min((size_t)BUFFER_SIZE, _response_string.size());
+#ifdef __APPLE__
 		if (send(_fd, _response_string.c_str(), size, 0) == ERR)
+#else
+		if (send(_fd, _response_string.c_str(), size, MSG_NOSIGNAL) == ERR)
+#endif
 		{
 			syscallError(_FUNC_ERR("send"));
 			return ERR;
@@ -279,7 +284,7 @@ void	Connection::exceptionEvent(FdTable & fd_table)
 void	Connection::closeConnection()
 {
 	PRINT_INFO << BLUE_BOLD << getName() << RESET_COLOR ": [" << getFd() << "] is set to be closed." << RESET_COLOR << std::endl;
-	_flag = AFdInfo::TO_ERASE;
+	setFlag(AFdInfo::TO_ERASE);
 }
 
 bool	Connection::isMethodSafe(Method::Type const & method) const

@@ -33,7 +33,7 @@ int CgiExecutor::execute(FdTable & fd_table, Request & request, int* cgi_fds)
 	MetaVariableContainerType meta_variables = generateMetaVariables(request);
 
 	print(meta_variables, script, request.config_info);
-	if (forkCgi(cgi_fds, fd_table, script, request.config_info) == ERR)
+	if (forkCgi(cgi_fds, fd_table, script, request.config_info, meta_variables) == ERR)
 	{
 		setStatus(StatusCode::INTERNAL_SERVER_ERROR);
 		return ERR;
@@ -145,7 +145,8 @@ bool CgiExecutor::canBeExecuted(std::string const & script)
 Execution
 */
 
-int CgiExecutor::forkCgi(int* cgi_fds, FdTable& fd_table, std::string const & script, ConfigInfo const & info)
+int CgiExecutor::forkCgi(int* cgi_fds, FdTable& fd_table, std::string const & script,
+					ConfigInfo const & info, MetaVariableContainerType const & meta_variables)
 {
 	_cgi_pid = fork();
 	if (_cgi_pid == ERR)
@@ -155,7 +156,7 @@ int CgiExecutor::forkCgi(int* cgi_fds, FdTable& fd_table, std::string const & sc
 	else if (_cgi_pid == 0)
 	{
 		// We can exit because it's the child process
-		if (prepareCgi(cgi_fds, fd_table) == ERR)
+		if (prepareCgi(cgi_fds, fd_table, meta_variables) == ERR)
 		{
 			exit(EXIT_FAILURE);
 		}
@@ -169,14 +170,14 @@ int CgiExecutor::forkCgi(int* cgi_fds, FdTable& fd_table, std::string const & sc
 2. Initialize environment
 3. Initialize stdin, stdout through dup2
 */
-int CgiExecutor::prepareCgi(int* cgi_fds, FdTable& fd_table) const
+int CgiExecutor::prepareCgi(int* cgi_fds, FdTable& fd_table, MetaVariableContainerType const & meta_variables) const
 {
 	if (closeAll(fd_table) == ERR)
 	{
 		return ERR;
 	}
 
-	if (setEnvironment() == ERR)
+	if (setEnvironment(meta_variables) == ERR)
 	{
 		return ERR;
 	}
@@ -201,10 +202,10 @@ int CgiExecutor::closeAll(FdTable& fd_table) const
 	return OK;
 }
 
-int CgiExecutor::setEnvironment() const
+int CgiExecutor::setEnvironment(MetaVariableContainerType const & meta_variables) const
 {
-	for (MetaVariableContainerType::const_iterator it = _meta_variables.begin();
-		it != _meta_variables.end(); ++it)
+	for (MetaVariableContainerType::const_iterator it = meta_variables.begin();
+		it != meta_variables.end(); ++it)
 	{
 		if (setenv(it->first.c_str(), it->second.c_str(), true) == ERR)
 		{

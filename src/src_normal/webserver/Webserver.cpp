@@ -78,7 +78,7 @@ void Webserver::executeFd(short revents, FdTable::AFdPointer afd)
 		afd->readEvent(_fd_table);
 	}
 
-	if (revents & POLLOUT)
+	if (revents & POLLOUT && !(revents & (POLLERR | POLLNVAL | POLLHUP)))
 	{
 		PRINT_DEBUG << BLUE_BOLD "Write Event" RESET_COLOR ": " \
 			<< afd->getName() << ": [" << afd->getFd() << "]" << std::endl;

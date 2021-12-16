@@ -34,13 +34,15 @@ if __name__ == '__main__':
 	# Stress testing...
 
 	# content += KILOBYTE * "A" * 10
-	# content += MEGABYTE * "A"
+	content += MEGABYTE * "A"
 	# content += GIGABYTE * "A"
 
+	# print("1234")
 	header['Content-Type'] = content_type
 	header['Content-Length'] = str(len(content))
+	header['Status'] = 200
 
-	printHeader(header)
+	# printHeader(header)
 	print(content, end = "")
 
 
