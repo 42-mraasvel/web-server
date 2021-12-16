@@ -31,6 +31,7 @@ class RequestHeaderProcessor
 		RequestHeaderProcessor(MapType const * config_map);
 
 		int process(Request & request);
+		int processPostParsing(Request & request);
 		void processError(Request & request, int status_code);
 		int getStatusCode() const;
 
