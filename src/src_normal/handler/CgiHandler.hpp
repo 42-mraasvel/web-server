@@ -5,6 +5,7 @@
 # include "fd/FdTable.hpp"
 # include "fd/CgiSender.hpp"
 # include "fd/CgiReader.hpp"
+# include "cgi/CgiExecutor.hpp"
 # include "iHandler.hpp"
 # include "utility/Timer.hpp"
 
@@ -14,8 +15,6 @@
 class CgiHandler: public iHandler
 {
 	private:
-		typedef std::pair<std::string, std::string> MetaVariableType;
-		typedef std::vector<MetaVariableType> MetaVariableContainerType;
 		typedef std::vector<std::pair<std::string, std::string> > CgiVectorType;
 
 	public:
@@ -44,38 +43,12 @@ class CgiHandler: public iHandler
 		bool	isComplete() const;
 		bool	isError() const;
 		int		getStatusCode() const;
-		bool	isReadyToWrite() const;
 		void	setSpecificHeaderField(HeaderField & header_field, bool content_type_fixed);
-
-	/* Debugging */
-	public:
-		void print() const;
 	
 	private:
-
-		// void splitRequestTarget(std::string const & request_target, CgiVectorType const & cgi);
-		bool scriptCanBeExecuted();
-
-		void setInfo(ConfigInfo const & info);
-		void resolveCgiScript(std::string const target, CgiVectorType const & cgi);
-		void generateMetaVariables(const Request& request);
-		void metaVariableContent(const Request& request);
-		void metaVariablePathInfo(const Request& request);
-		void metaVariableHeader(const Request& request);
-		MetaVariableType convertFieldToMeta(const std::string& key, const std::string& value) const;
-
-
 		int initializeCgiConnection(int* cgi_fds, FdTable& fd_table, Request& r);
 		int initializeCgiReader(int* cgi_fds, FdTable& fd_table);
 		int initializeCgiSender(int* cgi_fds, FdTable& fd_table, Request& r);
-
-		int forkCgi(int* cgi_fds, FdTable& fd_table);
-		int prepareCgi(int* cgi_fds, FdTable& fd_table) const;
-		int closeAll(FdTable& fd_table) const;
-		int setEnvironment() const;
-		int setRedirection(int* cgi_fds) const;
-		int executeChildProcess() const;
-		int prepareArguments(char *args[3]) const;
 
 		void finishCgi(Status status, int code);
 		int checkStatusField() const;
@@ -83,15 +56,12 @@ class CgiHandler: public iHandler
 
 	/* Update Functionality */
 		void evaluateReader(std::string & response_body);
+		void swapHeader();
 		bool isExecutionError() const;
 		int getErrorCode() const;
-		int cleanCgi();
-		int killCgi(int* status);
 
 	/* Destruction */
-
 		void destroyFds();
-		void clear();
 
 	private:
 		Status		_status;
@@ -99,10 +69,7 @@ class CgiHandler: public iHandler
 		HeaderField _header;
 
 	private:
-		std::string _root_dir;
-		std::string _script;
-		std::string _target;
-		MetaVariableContainerType _meta_variables;
+		CgiExecutor _executor;
 		SmartPointer<CgiSender> _sender;
 		SmartPointer<CgiReader> _reader;
 		Timer _timer;

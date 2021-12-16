@@ -6,9 +6,7 @@
 #include "FileHandler.hpp"
 #include "CgiHandler.hpp"
 
-ResponseGenerator::ResponseGenerator():
-_content_type_fixed(false)
-{}
+ResponseGenerator::ResponseGenerator() {}
 
 void	ResponseGenerator::generateString(Response & response)
 {
@@ -29,7 +27,7 @@ void	ResponseGenerator::evaluateEncoding(Response & response)
 {
 	if (response.encoding == Response::UNDEFINED)
 	{
-		if (response.status != Response::COMPLETE)
+		if (!response.isFinished())
 		{
 			if (isReadyToBeChunked(response))
 			{
@@ -58,7 +56,10 @@ bool	ResponseGenerator::isReadyToBeChunked(Response const & response) const
 
 void	ResponseGenerator::generateUnchunkedResponse(Response & response)
 {
-	setHeaderPart(response);
+	if (!response.header_part_set)
+	{
+		setHeaderPart(response);
+	}
 	appendMessageBody(response);
 }
 
@@ -102,7 +103,7 @@ void	ResponseGenerator::setHeaderField(Response & response)
 	setAllow(response);
 	setTransferEncodingOrContentLength(response);
 	setContentType(response);
-	response.handler->setSpecificHeaderField(response.header_fields, _content_type_fixed);
+	response.handler->setSpecificHeaderField(response.header_fields, response.content_type_fixed);
 }
 
 void	ResponseGenerator::setDate(Response & response)
@@ -112,7 +113,7 @@ void	ResponseGenerator::setDate(Response & response)
 	struct tm	tm = *gmtime(&now);
 	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", &tm);
 	
-	response.header_fields["Data"] = std::string(buf);
+	response.header_fields["Date"] = std::string(buf);
 }
 
 void	ResponseGenerator::setConnection(Response & response)
@@ -190,7 +191,7 @@ void	ResponseGenerator::setContentType(Response & response)
 		&& response.status_code == StatusCode::STATUS_OK)
 	{
 		response.header_fields["Content-Type"] = "text/html";
-		_content_type_fixed = true;
+		response.content_type_fixed = true;
 	}
 	else if (!response.message_body.empty())
 	{
@@ -220,7 +221,7 @@ void	ResponseGenerator::encodeMessageBody(Response & response)
 		response.message_body.insert(0, chunk_size);
 		response.message_body.append(NEWLINE);
 	}
-	if (response.status == Response::COMPLETE)
+	if (response.isFinished())
 	{
 		response.message_body.append(CHUNK_TAIL);
 	}

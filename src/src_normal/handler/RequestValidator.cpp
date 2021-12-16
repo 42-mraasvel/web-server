@@ -33,6 +33,7 @@ bool	RequestValidator::shouldSendContinue() const
 
 bool	RequestValidator::isRequestValidPreConfig(Request const & request)
 {
+	_status_code = 0;
 	return !isBadRequest(request.status, request.status_code)
 			&& isHostValid(request)
 			&& isConnectionValid(request)
@@ -59,10 +60,6 @@ bool	RequestValidator::isHostValid(Request const & request)
 	if (host.second)
 	{
 		std::string value = host.first->second;
-		if (value.empty())
-		{
-			return false;
-		}
 		std::size_t found = value.rfind(":");
 		if (found != std::string::npos)
 		{
@@ -123,7 +120,7 @@ bool	RequestValidator::isTransferEncodingValid(const HeaderField & header)
 	{
 		if (!WebservUtility::caseInsensitiveEqual(transfer_encoding.first->second, "chunked"))
 		{
-			generalError("%s %s\n", _FUNC_ERR("Unsupported TE:").c_str(), transfer_encoding.first->second.c_str());
+			generalError("%s %s\n", _FUNC_ERR("Unsupported Transfer-Ecoding:").c_str(), transfer_encoding.first->second.c_str());
 			_status_code = StatusCode::NOT_IMPLEMENTED;
 			_close_connection = true;
 			return false;
@@ -172,15 +169,18 @@ bool	RequestValidator::isExpectationValid(Request const & request)
 
 bool	RequestValidator::isRequestValidPostConfig(Request const & request)
 {
-	return isMethodAllowed(request.method, request.config_info.resolved_location->_allowed_methods);
+	return isMethodAllowed(request);
 }
 
-bool	RequestValidator::isMethodAllowed(Method::Type const method, std::vector<std::string> const & allowed_methods)
+bool	RequestValidator::isMethodAllowed(Request const & request)
 {
-	if (!findMethodInConfig(method, allowed_methods))
+	if (request.config_info.result != ConfigInfo::REDIRECT)
 	{
-		_status_code = StatusCode::METHOD_NOT_ALLOWED;
-		return false;		
+		if (!findMethodInConfig(request.method, request.config_info.resolved_location->_allowed_methods))
+		{
+			_status_code = StatusCode::METHOD_NOT_ALLOWED;
+			return false;		
+		}
 	}
 	return true;
 }

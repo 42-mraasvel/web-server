@@ -25,7 +25,7 @@ int generalError(const char* format, ...)
 
 void abortProgram()
 {
-	std::abort();
+	exit(1);
 }
 
 void abortProgram(std::string const & message)

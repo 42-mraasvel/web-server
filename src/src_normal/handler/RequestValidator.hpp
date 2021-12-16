@@ -26,7 +26,7 @@ class RequestValidator
     public:
 		bool	isRequestValidPostConfig(Request const & request);
     private:
-		bool		isMethodAllowed(Method::Type const method, std::vector<std::string> const & allowed_methods);
+		bool		isMethodAllowed(Request const & request);
 		bool			findMethodInConfig(Method::Type const method, std::vector<std::string> const & allowed_methods) const;
     public:
         int getStatusCode() const;

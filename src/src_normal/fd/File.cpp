@@ -1,6 +1,6 @@
 #include "File.hpp"
 #include "settings.hpp"
-#include "Client.hpp"
+#include "Connection.hpp"
 #include <unistd.h>
 #include <algorithm>
 #include <poll.h>

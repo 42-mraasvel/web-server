@@ -65,4 +65,5 @@ class ConfigLocation
 		void printAllowedMethods() const;
 		void printClientBodySize() const;
 		void printCgi() const;
+		void printUpload() const;
 };

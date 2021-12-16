@@ -17,22 +17,23 @@ class ResponseHandler
 		ResponseHandler();
 	private:
 		ResponseHandler(ResponseHandler const & src);
-		ResponseHandler const &	operator=(ResponseHandler const & rhs);
+		ResponseHandler& operator=(ResponseHandler const & rhs);
 
-	/* Client::update() */
+	/* Connection::update() */
 	public:
-		void	processRequest(FdTable & fd_table, Request & request);
-		void	updateResponseQueue(FdTable & fd_table);
+		void		processRequest(FdTable & fd_table, Request & request);
+		void		updateResponseQueue(FdTable & fd_table);
 	private:
-		void	updateResponse(FdTable & fd_table, Response & response);
+		void		updateResponse(FdTable & fd_table, Response & response);
 
-	/* Client::writeEvent() */
+	/* Connection::writeEvent() */
 	public:
 		ResponsePointer	getNextResponse();
 		void			popQueue();
 
 	/* utility */
 	public:
+		bool	canExecuteRequest() const;
 		bool	isResponseQueueEmpty() const;
 		void	clear();
 

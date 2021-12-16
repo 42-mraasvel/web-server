@@ -104,8 +104,13 @@ void CgiResponseParser::setContentParsing()
 
 	if (length.second == true)
 	{
-		// TODO: overflow check??
-		_content_parser.setContentLength(WebservUtility::strtoul(length.first->second));
+		unsigned long value;
+		if (WebservUtility::strtoul(length.first->second, value) == -1)
+		{
+			setError(StatusCode::BAD_GATEWAY);
+			return;
+		}
+		_content_parser.setContentLength(value);
 		_length_present = true;
 	}
 	else
@@ -120,7 +125,6 @@ void CgiResponseParser::parseContent(std::string const & buffer,
 {
 	if (_content_parser.parse(buffer, index) == ERR)
 	{
-		//TODO: BAD_GATEWAY or PAYLOAD_TOO_LARGE?
 		setError(StatusCode::BAD_GATEWAY);
 	}
 	else if (_content_parser.isComplete())

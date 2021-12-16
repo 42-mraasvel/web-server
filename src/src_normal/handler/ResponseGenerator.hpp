@@ -41,7 +41,4 @@ class ResponseGenerator
 
 		void	appendMessageBody(Response & response);
 		void	encodeMessageBody(Response & response);
-	
-	private:
-		bool	_content_type_fixed;
 };

@@ -84,6 +84,8 @@ std::string Request::getStatusString() const
 			return "COMPLETE";
 		case BAD_REQUEST:
 			return "BAD_REQUEST";
+		case TIME_OUT_REQUEST:
+			return "TIME_OUT_REQUEST";
 	}
 	return "???";
 }
@@ -180,6 +182,7 @@ static void printConfigInfo(const ConfigInfo& info)
 
 void Request::print() const
 {
+	// return;
 	printf(GREEN_BOLD "-- PARSED REQUEST --" RESET_COLOR "\r\n");
 	printf("%s [%s][%s] HTTP/%d.%d\r\n",
 		getMethodString().c_str(),

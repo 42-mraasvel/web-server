@@ -137,6 +137,21 @@ TEST_CASE("Parser: partial requests", "[request-handler]")
 	REQUIRE(parser.getNextRequest() == nullptr);
 }
 
+TEST_CASE("Parser: 0 content-length", "[request-parser]")
+{
+	const std::string buffer =
+		"GET / HTTP/1.0" CRLF
+		"Content-Length: 0" CRLF
+		CRLF;
+
+	ConfigResolver::MapType* m = testing::createAddressMap();
+	HttpRequestParser parser(m);
+	Request r(testing::createAddress(), testing::createAddress());
+	size_t index = 0;
+	parser.parse(buffer, index, r);
+	REQUIRE(parser.isComplete());
+}
+
 TEST_CASE("Parser: Invalid Request-Lines", "[request-handler]")
 {
 	// Append CRLF CRLF for header field checking
