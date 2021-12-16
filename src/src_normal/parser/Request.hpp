@@ -14,6 +14,7 @@ struct Request
 		{
 			READING,
 			EXPECT,
+			TIME_OUT_REQUEST,
 			COMPLETE,
 			BAD_REQUEST
 		};

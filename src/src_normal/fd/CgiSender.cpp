@@ -11,14 +11,7 @@
 CgiSender::CgiSender(int fd, SmartPointer<Request> r, Timer* timer)
 : AFdInfo(fd), _timer(timer) {
 	//TODO: DISCUSS: message body is only sent in a POST request to the CGI process
-	if (r->method == Method::POST)
-	{
-		_message_body.swap(r->message_body);
-	}
-	else
-	{
-		r->message_body.clear();
-	}
+	_message_body = r->message_body;
 }
 
 CgiSender::~CgiSender() {}
@@ -49,14 +42,14 @@ void CgiSender::writeEvent(FdTable & fd_table)
 			return;
 		}
 		_message_body.erase(0, n);
-		printf("%s: [%d]: Sent: %ld bytes\n",
-			getName().c_str(), getFd(), n);
+		// printf("%s: [%d]: Sent: %ld bytes\n",
+		// 	getName().c_str(), getFd(), n);
 	}
 
 	if (_message_body.size() == 0)
 	{
-		printf("%s: [%d]: Finished writing\n",
-			getName().c_str(), getFd());
+		// printf("%s: [%d]: Finished writing\n",
+		// 	getName().c_str(), getFd());
 		closeEvent(fd_table);
 	}
 }

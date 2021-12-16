@@ -33,6 +33,7 @@ bool	RequestValidator::shouldSendContinue() const
 
 bool	RequestValidator::isRequestValidPreConfig(Request const & request)
 {
+	_status_code = 0;
 	return !isBadRequest(request.status, request.status_code)
 			&& isHostValid(request)
 			&& isConnectionValid(request)
@@ -59,10 +60,6 @@ bool	RequestValidator::isHostValid(Request const & request)
 	if (host.second)
 	{
 		std::string value = host.first->second;
-		if (value.empty())
-		{
-			return false;
-		}
 		std::size_t found = value.rfind(":");
 		if (found != std::string::npos)
 		{
@@ -123,7 +120,7 @@ bool	RequestValidator::isTransferEncodingValid(const HeaderField & header)
 	{
 		if (!WebservUtility::caseInsensitiveEqual(transfer_encoding.first->second, "chunked"))
 		{
-			generalError("%s %s\n", _FUNC_ERR("Unsupported TE:").c_str(), transfer_encoding.first->second.c_str());
+			generalError("%s %s\n", _FUNC_ERR("Unsupported Transfer-Ecoding:").c_str(), transfer_encoding.first->second.c_str());
 			_status_code = StatusCode::NOT_IMPLEMENTED;
 			_close_connection = true;
 			return false;

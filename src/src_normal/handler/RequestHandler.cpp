@@ -110,3 +110,16 @@ void RequestHandler::newContinueRequest()
 	cont->status = Request::EXPECT;
 	_requests.push(cont);
 }
+
+
+void	RequestHandler::newTimeoutRequest()
+{
+	RequestPointer timeout = RequestPointer(new Request(_client_addr, _interface_addr));
+	timeout->status = Request::TIME_OUT_REQUEST;
+	timeout->status_code = StatusCode::REQUEST_TIMEOUT;
+	timeout->close_connection = true;
+	timeout->method = Method::GET;
+	timeout->major_version = 1;
+	timeout->minor_version = 1;
+	_requests.push(timeout);
+}

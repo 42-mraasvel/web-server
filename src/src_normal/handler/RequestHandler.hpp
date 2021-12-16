@@ -37,6 +37,7 @@ class RequestHandler
 		bool isNextRequestSafe() const;
 		std::size_t numRequests() const;
 		void clear();
+		void newTimeoutRequest();
 
 	private:
 		void newRequest();

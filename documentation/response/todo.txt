@@ -1,9 +1,10 @@
 ------------------
 --     NOW      --
 ------------------
+
+- with maarten: Transfer-Encoding: 501 NOT_IMPLEMENTED
+
 - ConfigResolver TODO (to discuss with maarten)
-- ResponseUpdator TODO (to check if the redirect_text needs to be absolute form??)
-- for POST/DELETE, if target end with "/", how to do??
 
 
 ------------------
@@ -37,7 +38,10 @@ std::cout << RED_BOLD << " " << RESET_COLOR << std::endl;
     - Location Block
         - [optional modifier]
             - only accept "="
-        - [return]: return code effective_uri (i.e. return 301 http://localhost:8080/index.html)
+        - [return]: 
+            - return code effective_uri (i.e. return 301 http://localhost:8080/index.html)
+            - only accept full URL
+            - this will overwrite AllowedMethod (if any)
         - [upload_store]
             - only input needed in config file is upload_path;
             - final path = upload_path + target;

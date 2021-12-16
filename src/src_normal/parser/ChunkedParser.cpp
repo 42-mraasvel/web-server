@@ -114,6 +114,12 @@ int ChunkedParser::parseSize(std::string const & buffer, std::size_t & index, Re
 	WebservUtility::skip(buffer, index, isHex);
 	_leftover.append(buffer, start, index - start);
 
+	if (_leftover.size() > MAX_HEADER_SIZE)
+	{
+		setError(StatusCode::BAD_REQUEST);
+		return ERR;
+	}
+
 	if (index == buffer.size())
 	{
 		// Still potentially missing hexdigits

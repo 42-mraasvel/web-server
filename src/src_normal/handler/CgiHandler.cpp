@@ -71,6 +71,7 @@ int CgiHandler::executeRequest(FdTable& fd_table, Request& request)
 		return ERR;
 	}
 
+
 	WebservUtility::closePipe(cgi_fds);
 	_timer.reset();
 	return OK;
@@ -183,10 +184,7 @@ This function should only be called once
 */
 void CgiHandler::setSpecificHeaderField(HeaderField & header_field, bool content_type_fixed)
 {
-	if (_reader && _header.size() == 0)
-	{
-		_header.swap(_reader->getHeader());
-	}
+	swapHeader();
 	for (HeaderField::const_iterator it = _header.begin(); it != _header.end(); ++it)
 	{
 		// Don't add Content-Length if TE is present
@@ -261,10 +259,9 @@ void CgiHandler::update(std::string & response_body)
 		_sender = NULL;
 	}
 
-
 	if (isComplete())
 	{
-		finishCgi(CgiHandler::COMPLETE, checkStatusField());
+		finishCgi(CgiHandler::COMPLETE, _status_code);
 	}
 	else if (_timer.elapsed() >= TIMEOUT)
 	{
@@ -277,6 +274,7 @@ void CgiHandler::evaluateReader(std::string & response_body)
 {
 	if (_reader->getBody().size() > 0)
 	{
+		swapHeader();
 		if (response_body.size() == 0)
 		{
 			response_body.swap(_reader->getBody());
@@ -289,8 +287,18 @@ void CgiHandler::evaluateReader(std::string & response_body)
 	}
 	if (_reader->getFlag() == AFdInfo::COMPLETE)
 	{
+		swapHeader();
 		_reader->setToErase();
 		_reader = NULL;
+	}
+}
+
+void CgiHandler::swapHeader()
+{
+	if (_reader && _header.size() == 0)
+	{
+		_header.swap(_reader->getHeader());
+		_status_code = checkStatusField();
 	}
 }
 

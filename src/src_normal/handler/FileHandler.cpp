@@ -74,7 +74,7 @@ void	FileHandler::setFileParameter()
 			return ;
 		case Method::POST:
 			_access_flag = W_OK;
-			_open_flag = O_CREAT | O_WRONLY;
+			_open_flag = O_CREAT | O_WRONLY | O_TRUNC;
 			_file_event = AFdInfo::WRITING;
 			if (_status_code == 0)
 			{
@@ -109,9 +109,16 @@ bool	FileHandler::isFileValid()
 
 bool	FileHandler::isFileExisted()
 {
-	if (!WebservUtility::isFileExist(_absolute_file_path))
+	if (!WebservUtility::isFileExisted(_absolute_file_path))
 	{
-		markError(StatusCode::NOT_FOUND);
+		if (errno == EACCES)
+		{
+			markError(StatusCode::FORBIDDEN);
+		}
+		else
+		{
+			markError(StatusCode::NOT_FOUND);
+		}
 		return false;
 	}
 	return true;
@@ -153,9 +160,13 @@ bool	FileHandler::isUploadPathCreated()
 		}
 		return false;
 	}
-	if (!WebservUtility::isFileExist(_absolute_file_path))
+	if (!WebservUtility::isFileExisted(_absolute_file_path))
 	{
 		_status_code = StatusCode::CREATED;
+	}
+	else
+	{
+		return isFileAuthorized();
 	}
 	return true;
 }
@@ -313,7 +324,6 @@ void	FileHandler::setContentType(HeaderField & header_field) const
 	if (_method == Method::GET && !_absolute_file_path.empty())
 	{
 		header_field["Content-Type"] = MediaType::getMediaType(_absolute_file_path);
-		return ;
 	}
 }
 
