@@ -2,6 +2,8 @@
 
 # include <map>
 # include <cstddef>
+# include <limits>
+# include <cassert>
 
 namespace _SmartPointerDetail_
 {
@@ -11,6 +13,9 @@ extern SmartPointerMapType _reference_tracker;
 
 }
 
+/*
+Overflow: doesn't work if more than std::numeric_limits<unsigned int>::max() references to same address
+*/
 
 template <typename T>
 class SmartPointer
@@ -50,13 +55,7 @@ class SmartPointer
 		}
 
 		~SmartPointer() {
-			if (p == NULL) {
-				return;
-			}
 			decrementReference();
-			if (getCount() == 0) {
-				delete p;
-			}
 		}
 
 		reference operator*() {
@@ -87,20 +86,41 @@ class SmartPointer
 			return const_smart_pointer(p);
 		}
 
+		operator const void*() const {
+			return reinterpret_cast<const void *>(p);
+		}
+
+		bool operator !() const {
+			return !p;
+		}
+
+		operator pointer() {
+			return p;
+		}
+
+		// operator const_pointer() const {
+		// 	return p;
+		// }
+
 	private:
 
 		void incrementReference() const {
 			if (p == NULL) {
 				return;
 			}
+			assert(getCount() < std::numeric_limits<unsigned int>::max());
 			_SmartPointerDetail_::_reference_tracker[(void*)(p)] += 1;
 		}
 
-		void decrementReference() const {
+		void decrementReference() {
 			if (p == NULL) {
 				return;
 			}
 			_SmartPointerDetail_::_reference_tracker[(void*)(p)] -= 1;
+			if (getCount() == 0) {
+				delete p;
+				_SmartPointerDetail_::_reference_tracker.erase((void*)p);
+			}
 		}
 
 		unsigned int getCount() const {

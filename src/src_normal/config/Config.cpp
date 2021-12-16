@@ -213,14 +213,18 @@ int Config::parseLocation()
 		{"return", &Config::parseReturn},
 		{"upload_store", &Config::parseUploadStore}
 	};
+	bool root_check = false;
 	while (_token_index < _tokens.size() && _tokens[_token_index].compare("}"))
 	{
-		std::cout <<"Check > " << _tokens[_token_index] << std::endl;
 		for (size_t i = 0; i < 8; i++)
 		{
 			ret = 0;
 			if (_tokens[_token_index].compare(func[i].str) == 0)
 			{
+				if (_tokens[_token_index].compare("root") == 0)
+				{
+					root_check = true;
+				}
 				ret = (this->*(func[i].f))();
 				if (ret == ERR)
 				{
@@ -228,79 +232,23 @@ int Config::parseLocation()
 				}
 				i = -1;
 			}
-			else if(i ==7  && _tokens[_token_index].compare("}"))
+			else if(i ==7  && _tokens[_token_index].compare("}") == 0)
 			{
-				std::cout <<"Check > " << _tokens[_token_index] << std::endl;
-				return ERR;
+				return OK;
 			}
 		}
 		_token_index++;
+	}
+	if (root_check == false)
+	{
+		_servers[_server_amount].addRoot("/var/www");
 	}
 	if (_tokens[_token_index].compare("}"))
 	{
 		return ERR;
 	}
 	return OK;
-
 }
-
-
-
-
-
-
-
-
-
-// int	Config::parseLocation()
-// {
-// 	location_flag flag = NONE;
-// 	_token_index++;
-// 	if (_tokens[_token_index].compare("=") == 0)
-// 	{
-// 		flag = EQUAL;
-// 		_token_index++;
-// 	}
-// 	_servers[_server_amount].addLocation(ConfigLocation(_tokens[_token_index]));
-// 	_servers[_server_amount].addLocationFlag(flag);
-// 	_token_index++;
-// 	checkExpectedSyntax("{");
-// 	_token_index++;
-// 	while(_token_index < _tokens.size() && _tokens[_token_index].compare("}"))
-// 	{
-// 		if (_tokens[_token_index].compare("root") == 0)
-// 		{
-// 			parseRoot();
-// 		}
-// 		else if (_tokens[_token_index].compare("allowed_methods") == 0)
-// 		{
-// 			parseAllowedMethods();
-// 		}
-// 		else if (_tokens[_token_index].compare("autoindex") == 0)
-// 		{
-// 			parseAutoindex();
-// 		}
-// 		else if (_tokens[_token_index].compare("index") == 0)
-// 		{
-// 			parseIndex();
-// 		}
-// 		else if (_tokens[_token_index].compare("cgi") == 0)
-// 		{
-// 			parseCgi();
-// 		}
-// 		else if (_tokens[_token_index].compare("return") == 0)
-// 		{
-// 			parseReturn();
-// 		}
-// 		else if (_tokens[_token_index].compare("upload_store") == 0)
-// 		{
-// 			parseUploadStore();
-// 		}
-// 		checkExpectedSyntax(";");
-// 		_token_index++;
-// 	}
-// 	return (OK);
-// }
 
 // TODO: add protection
 int	Config::parseListen()
@@ -349,7 +297,14 @@ int	Config::parseServerName()
 	_token_index++;
 	while (_tokens[_token_index].compare(";") != 0)
 	{
-		_servers[_server_amount].addServerName(_tokens[_token_index]);
+		if (_tokens[_token_index].compare("\"\"") == 0)
+		{
+			_servers[_server_amount].addServerName("");
+		}
+		else
+		{
+			_servers[_server_amount].addServerName(_tokens[_token_index]);
+		}
 		_token_index++;
 	}
 	if(_tokens[_token_index].compare(";") != 0)
@@ -421,10 +376,10 @@ int	Config::parseClientBodySize()
 			}
 		}
 	}
-	size_t size = WebservUtility::strtoul(client_body_size);
+	std::size_t size = WebservUtility::strtoul(client_body_size);
 	if (size == 0)
 	{
-		size - std::numeric_limits<std::size_t>::max();
+		size = std::numeric_limits<std::size_t>::max();
 	}
 	_servers[_server_amount].addClientBodySize(size);
 	_token_index++;
@@ -441,7 +396,7 @@ int	Config::parseAllowedMethods()
 	_token_index++;
 	while (_tokens[_token_index].compare(";") != 0)
 	{
-		if (checkExpectedSyntax("GET", "POST", "DELETE"))
+		if (checkExpectedSyntax("GET", "POST", "DELETE") == OK)
 		{
 			_servers[_server_amount].addAllowedMethods(_tokens[_token_index]);
 		}
@@ -458,7 +413,7 @@ int	Config::parseAllowedMethods()
 int	Config::parseAutoindex()
 {
 	_token_index++;
-	if (checkExpectedSyntax("on", "off"))
+	if (checkExpectedSyntax("on", "off") == OK)
 	{
 		_servers[_server_amount].addAutoIndex(_tokens[_token_index].compare("off"));
 	}
@@ -484,11 +439,6 @@ int	Config::parseErrorPage()
 	int page_number = atoi(_tokens[_token_index].c_str());
 	_token_index++;
 	_servers[_server_amount].addErrorPage(page_number, _tokens[_token_index]);
-	_token_index++;
-	if(_tokens[_token_index].compare(";") != 0)
-	{
-		return (ERR);
-	}
 	_token_index++;
 	if(_tokens[_token_index].compare(";") != 0)
 	{
@@ -553,11 +503,10 @@ int Config::parseUploadStore()
 	return (OK);
 }
 
-
 int	Config::parseIndex()
 {
 	_token_index++;
-	while (_tokens[_token_index].compare(";") != 0)
+	while (_tokens[_token_index].compare(";") != 0 && _tokens[_token_index].find_first_of(".") != std::string::npos)
 	{
 		if (_tokens[_token_index].find_last_of("/") == _tokens[_token_index].size() - 1)
 		{
@@ -603,8 +552,7 @@ int	Config::checkExpectedSyntax(std::string str)
 {
 	if (_tokens[_token_index].compare(str) != 0)
 	{
-		std::cerr << RED_BOLD "Config Error: expected " << str << " instead of " << _tokens[_token_index] << RESET_COLOR << std::endl;
-		return ERR;
+		abortProgram("Config Error: expected " + str + " instead of " + _tokens[_token_index]);
 	}
 	return (OK);
 }
@@ -614,8 +562,7 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2)
 	if (_tokens[_token_index].compare(str1) != 0 
 		&& _tokens[_token_index].compare(str2) != 0)
 	{
-		std::cerr << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
-		return ERR;
+		abortProgram("Config Error: expected " + str1 + " or " + str2 + " instead of " + _tokens[_token_index]);
 	}
 	return (OK);
 }

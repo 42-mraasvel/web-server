@@ -1,0 +1,15 @@
+-- Documentation, README --
+
+	- Overview of what the project is and what it does, what can it be used for
+		- What is it
+		- Why use it
+	- Usage (HOW TO)
+		- Configuration
+		- List directives and general purpose
+		- Running it
+	- Explanation of directives, and how they are used
+		- Example: server block, location resolution
+		- Connection handling
+	- Implementation general explanation
+		- Flow of the program (high level overview of a simple server + connection + request/response)
+		- Non-configured: timeout, FdMaxTable

@@ -2,17 +2,13 @@
 #include "settings.hpp"
 #include "parser/Request.hpp"
 
-RequestHandler::RequestHandler()
-: _request(NULL) {}
+RequestHandler::RequestHandler(AddressType client, AddressType interface, MapType const * config_map)
+: _client_addr(client),
+_interface_addr(interface),
+_request(NULL),
+_parser(config_map) {}
 
-RequestHandler::~RequestHandler() {
-	while (!_requests.empty())
-	{
-		Request* x = _requests.front();
-		_requests.pop();
-		delete x;
-	}
-}
+RequestHandler::~RequestHandler() {}
 
 int RequestHandler::parse(std::string const & buffer)
 {
@@ -23,38 +19,56 @@ int RequestHandler::parse(std::string const & buffer)
 		{
 			newRequest();
 		}
-		if (_parser.parse(buffer, index, *_request) == ERR)
+		_parser.parse(buffer, index, *_request);
+		if (_parser.isError())
 		{
 			setErrorRequest();
 			return ERR;
-			break;
 		}
 		else if (_parser.isComplete())
 		{
 			_request->status = Request::COMPLETE;
-			// _request->print();
 			completeRequest();
 		}
+	}
+
+	if (_request && isContinueResponse(*_request))
+	{
+		newContinueRequest();
 	}
 
 	return OK;
 }
 
-Request* RequestHandler::getNextRequest()
+RequestHandler::RequestPointer RequestHandler::getNextRequest()
 {
 	if (_requests.empty())
 	{
 		return NULL;
 	}
 
-	Request* r = _requests.front();
+	RequestPointer r = _requests.front();
 	_requests.pop();
 	return r;
 }
 
+bool RequestHandler::isNextRequestSafe() const
+{
+	return _requests.empty()
+		|| _requests.front()->method == Method::GET;
+}
+
+void RequestHandler::clear()
+{
+	while (!_requests.empty())
+	{
+		_requests.pop();
+	}
+}
+
 void RequestHandler::newRequest()
 {
-	_request = new Request;
+	_request = RequestPointer(new Request(_client_addr, _interface_addr));
 }
 
 void RequestHandler::completeRequest()
@@ -69,4 +83,25 @@ void RequestHandler::setErrorRequest()
 	_request->status = Request::BAD_REQUEST;
 	_request->status_code = _parser.getStatusCode();
 	completeRequest();
+}
+
+/*
+100: continue
+*/
+
+bool RequestHandler::isContinueResponse(Request const & request) const
+{
+	return request.header_fields.contains("expect")
+			&& request.minor_version == 1
+			&& request.header_fields.contains("content-length")
+			&& !(request.header_fields.find("content-length")->second.empty())
+			&& request.message_body.empty();
+}
+
+void RequestHandler::newContinueRequest()
+{
+	RequestPointer cont = RequestPointer(new Request(_client_addr, _interface_addr));
+	cont->config_info = _request->config_info;
+	cont->status = Request::EXPECT;
+	_requests.push(cont);
 }

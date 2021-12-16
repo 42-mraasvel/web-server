@@ -5,18 +5,25 @@
 class Webserver
 {
 	public:
-		int init(Config const & config);
+		typedef Config::ip_host_pair ip_host_pair;
+		typedef Config::address_map address_map;
+	public:
+		Webserver(Config::address_map map);
+		int init();
 		int	run();
 
 	private:
-		// int initServer(ConfigServer const & conf);
-		int initServer(std::pair<std::string, int> ip_host_pair);
+		int initServer(Config::ip_host_pair ip_host_pair);
+		bool shouldInitialize(ip_host_pair const & iphost) const;
 		int	dispatchFd(int ready);
-		void	scanFdTable();
-		int checkDisconnectedSockets();
+		void scanFdTable();
+		bool shouldExecuteFd(const FdTable::AFdPointer afd);
+		bool shouldCloseFd(short revents) const;
+		void executeFd(short revents, FdTable::AFdPointer afd);
 
 	private:
-		FdTable _fd_table;
+		FdTable 			_fd_table;
+		address_map			_config_map;
 	
 	/* Debugging */
 	public:

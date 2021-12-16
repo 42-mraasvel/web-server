@@ -25,6 +25,7 @@ class CgiResponseParser
 
 		bool isError() const;
 		bool isComplete() const;
+		bool isCompleteIfEof() const;
 		int getStatusCode() const;
 
 	private:
@@ -40,4 +41,5 @@ class CgiResponseParser
 		ContentParser _content_parser;
 		State _state;
 		int _status_code;
+		bool _length_present;
 };

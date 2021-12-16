@@ -1,0 +1,132 @@
+Other:
+
+	- Client:
+		Initialize RequesHandler with address
+
+Flow:
+
+	********************
+	**** READ EVENT ****
+	********************
+	1.Read from socket - recv()
+		- Error: closeConnection()
+
+	2. RequestHandler parse string to RequestQueue	
+		- new Request(address, configuration)
+		- Parse RequestLine
+		- Parse HeaderFields
+			- Error:
+				- Multiple Content-Length
+				- Multiple Transfer-Encoding
+				- Close Connection Errors:
+					- Multiple host
+		- Check HeaderFields
+			- RequestValidator();
+				- Content-Coding: BAD_REQUEST or always reject (415)
+				- Close Connection On: (set request flag, or check return in caller and set there)
+					- HTTP/1.1 + missing host
+					- Transfer-encoding invalid value
+			- DetermineCloseConnection(); (set request flag)
+				request.close_conncetion = true;
+				- Valid Requests, but close connection:
+					- HTTP/1.0 without connection field
+					- Connection: close
+			- ConfigResolution(ip+port, basename(host), request_target);
+				- Prioritize redirection over Autoindex
+				- index resolution for request_target
+			- Check AllowedMethods();
+			- Check payload-body
+				- Content-Length exceeds max-size
+				- Set MaxSize from Configuration
+			- CONTINUE: create new request with CONTINUE flag
+		- Parse Content (if present)
+		- Return Error or Complete Request
+
+	**********************
+	**** UPDATE EVENT ****
+	**********************
+	1. Execute Request
+		1.1 Check if can execute request
+			- !_close_connection
+			- !_unsafe_request_count
+			- if currently there is a request, the next request in queue should be safe 
+			- enough fd capacity
+		1.2 Retrieve new request from queue
+		1.3 ResponseHandler process request
+			1.3.1 init new response, push to ResponseQueue
+			1.3.2 ResponseProcessor execute request
+				- Dispatch request based on status
+					a. BAD_REQUEST: mark response complete based on request's status_code
+					b. EXPECT: mark response complete as 100_CONTINUE
+					c. COMPLETE: execute complete request
+						- Dispatch request based on ConfigResult
+							a. REDIRECT: mark response complete, status_code as from Config file
+							b. AUTO_INDEX_ON: mark response complete, status_code 200_OK
+							c. LOCATION_RESOLVED:
+								i. check if request target exist
+									- ERROR 
+										- doesn't exist: mark response complete, status_code 404_NOT_FOUND
+										- exist as directory: mark response complete, status_code 301_MOVE_PERMANENTLY
+									- set EffectiveRequestURI
+									- set AbsoluteFilePath
+								ii. Handler execute Request
+
+
+
+		- Immediate response (CONTINUE flag, REDIRECT)
+		- Cgi Check
+		- Handler.execute(); CheckError
+			3.1. CgiHandler
+				- Swap request.message-body with CgiSender
+			3.2. FileHandler
+				- Dispatch Method
+					- GET: check AutoIndex for directory
+					- POST: ERROR: has to go through CGI
+					- DELETE: delete request_target IF file
+	
+	2. Update ResponseQueue
+
+	3. Generate Response
+
+	4. Reset event
+
+	5. Check TimeOut
+
+
+	4. Reset request
+
+	-- Handler Interface --
+
+		- Change Flags to private + remove FILE_ prefix
+		bool isCgi(Request);
+		int executeRequest(FdTable, Request);
+		void update();
+		bool isComplete();
+		bool isError();
+		setMessageBody(message_body);
+		setHeaderField(header);
+		int getStatusCode();
+		bool isReadyToWrite();
+
+	5. Update Client
+
+		For Each Response:
+			- Remove READING from event if CloseConnectionFlag is active
+			- Update Response:
+
+				- Update Handlers
+				- Check Completion or Error
+				- IF COMPLETE: markComplete();
+				- IF ERROR: markError(): check ErrorPage
+				- Set response data: body/header from the handler
+
+		- Check if first response isReadyToWrite();
+			- IF ready: Set event to writing
+
+	6. Write Response
+
+		- Set response string and write to client
+		- Check if response is finished writing
+		- Evaluate if connection should be closed
+		- Delete response and get next response
+		- Remove event for writing

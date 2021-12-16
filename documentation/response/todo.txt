@@ -1,31 +1,16 @@
 ------------------
 --     NOW      --
 ------------------
+- Upload: check directory given by configuration for POST requests
 
->> to figure mark response complete
+- ConfigResolver TODO (to discuss with maarten)
+- ResponseUpdator TODO (to check if the redirect_text needs to be absolute form??)
 
->> Redirection (3xx)
-    - is URL good for Location header?
 
->> resolve with config file
-    - general
-    - default error page?
-    - HTTP redirection?
-    - auto index
 
->> To discuss:
-    - implementation of MediaType + how to define charset?
-    - if only send a string, no response for bad-request?
-    - tear-down process go through
-        - should implement close in stage or not?
-    - redirection: do we config rewrite? try-files?
-    
 ------------------
 --    LATER     --
 ------------------
->> set _close_connection flag from request.
->> modify generatePage() for error response
->> exception handling (Allocation error);
 >> automate the test for response correctness
 
 >> Range Request
@@ -35,16 +20,25 @@
 std::cout << RED_BOLD << " " << RESET_COLOR << std::endl;
 
 
----------------------------
---    MAARTEN RAASVELDT  --
----------------------------
->> to check for Host (400 Bad Request):
->> to mark close connection flag:
-    - transfer encoding (see note on request part)
-    - When Content-Length is valid, but the sender closes the connection or the recipient times out before complete message_body received, the recipient MUST consider the message to be incomplete and close the connection.
+------------------------------------
+--    MAARTEN BENJAMIN RAASVELDT  --
+------------------------------------
 >> An origin server MAY respond with a status code of 415 (Unsupported Media Type) if a representation in the request message has a content coding that is not acceptable.
 
 ---------------
 --    NIELS  --
 ---------------
->> "return" in the location block.
+>> Index in location block cannot be a directory.
+
+----------------
+--    Agreed  --
+----------------
+
+>> Config:
+    - Server Block
+        - [error_page] code(*1) uri (i.e. error_page 404 /error/404.html
+    - Location Block
+        - [optional modifier]
+            - only accept "="
+        - [return]: return code effective_uri (i.e. return 301 http://localhost:8080/index.html)
+

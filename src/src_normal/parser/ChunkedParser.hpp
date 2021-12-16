@@ -75,6 +75,7 @@ class ChunkedParser
 		std::size_t _max_size;
 		std::size_t _chunk_size;
 		std::string _leftover;
+		std::size_t _discarded;
 		int _status_code;
 
 		ContentParser _content_parser;

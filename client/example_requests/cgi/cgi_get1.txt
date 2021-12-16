@@ -1,0 +1,3 @@
+GET /cgi-bin/cgi.py HTTP/1.1
+Host: localhost:8080
+

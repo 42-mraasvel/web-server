@@ -6,6 +6,9 @@
 #include "webserver/Webserver.hpp"
 #include "color.hpp"
 #include "config/Config.hpp"
+#include "utility/SmartPointer.hpp"
+#include "handler/RequestHandler.hpp"
+#include "tmp/create_address_map.hpp"
 
 #ifndef USING_CATCH
 int main(int argc, char **argv)
@@ -19,7 +22,7 @@ int main(int argc, char **argv)
 		}
 		else if (argc == 1)
 		{
-			std::cout << RED_BOLD "Warning: No configuration file given, using default config" << std::endl;
+			std::cout << RED_BOLD "Warning: No configuration file given, using default config" << RESET_COLOR << std::endl;
 			configuration = "src/src_normal/config/resources/default.conf";
 		}
 		else
@@ -31,13 +34,12 @@ int main(int argc, char **argv)
 
 		if (config_file.parser() == ERR)
 		{
-			//TODO: Correct exit procedure
 			std::cout << "PARSING ERROR EXIT PROGRAM" << std::endl;
 			exit(1);
 		}
 		config_file.print();
-		Webserver webserver;
-		if (webserver.init(config_file))
+		Webserver webserver(config_file.getAddressMap());
+		if (webserver.init())
 			return (1);
 		webserver.print();
 		webserver.run();

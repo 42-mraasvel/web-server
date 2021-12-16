@@ -3,6 +3,20 @@
 namespace MediaType
 {
 
+std::string	getMediaType(std::string const & file)
+{
+	Map map;
+	initMap(map);
+
+	size_t	find = file.find_last_of(".");
+	std::string extension = file.substr(find);
+	if (map.contains(extension))
+	{
+		return map.get();
+	}
+	return "application/octet-stream";
+}
+
 void	initMap(Map & map)
 {
 	// https://www.sitepoint.com/mime-types-complete-list/

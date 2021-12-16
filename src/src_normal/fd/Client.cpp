@@ -1,24 +1,32 @@
 #include "Client.hpp"
 #include "settings.hpp"
-#include "File.hpp"
 #include "utility/utility.hpp"
+#include "utility/status_codes.hpp"
+#include "File.hpp"
+#include "handler/Response.hpp"
+
 #include <poll.h>
 #include <fcntl.h>
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
 
-Client::Client(int fd): AFdInfo(fd), _request(NULL), _new_response(NULL), _response(NULL) {}
-
-Client::~Client()
+Client::Client(int fd, AddressType client,
+	AddressType interface, Config::address_map const * config_map):
+AFdInfo(fd),
+_request_handler(client, interface, config_map),
+_request(NULL),
+_response(NULL),
+_close_connection(false),
+_close_timer_set(false),
+_unsafe_request_count(0)
 {
-	while (!_response_queue.empty())
-	{
-		Response*	temp = _response_queue.front();
-		_response_queue.pop();
-		delete temp;
-	}
+	printf("%s-- NEW CLIENT -- %s\n", RED_BOLD, RESET_COLOR);
+	printf("Client: [%s]:[%d]\n", client.first.c_str(), client.second);
+	printf("Interface: [%s]:[%d]\n", interface.first.c_str(), interface.second);
 }
+
+Client::~Client() {}
 
 struct pollfd	Client::getPollFd() const
 {
@@ -33,20 +41,10 @@ struct pollfd	Client::getPollFd() const
 /****** readEvent ******/
 /***********************/
 
-int	Client::readEvent(FdTable & fd_table)
+void	Client::readEvent(FdTable & fd_table)
 {
-	if (parseRequest() == ERR)
-	{
-		return ERR;
-	}
-	while (retrieveRequest())
-	{
-		_request->print();
-		processRequest(fd_table);
-		resetRequest();
-	}
-	return OK;
-
+	_timer.reset();
+	parseRequest();
 }
 
 int	Client::parseRequest()
@@ -57,7 +55,7 @@ int	Client::parseRequest()
 		closeConnection();
 		return ERR;
 	}
-	_request_parser.parse(buffer);
+	_request_handler.parse(buffer);
 	return OK;
 }
 
@@ -79,72 +77,131 @@ int	Client::readRequest(std::string & buffer)
 	return OK;
 }
 
+/*************************/
+/****** updateEvent ******/
+/*************************/
+
+void	Client::update(FdTable & fd_table)
+{
+	executeRequests(fd_table);
+
+	_response_handler.updateResponseQueue(fd_table);
+
+	generateResponseString();
+
+	resetEvents(fd_table);
+
+	checkTimeOut();
+}
+
+void Client::executeRequests(FdTable & fd_table)
+{
+	while (canExecuteRequest(fd_table.size())
+			&& retrieveRequest())
+	{
+		_request->print();
+		increUnsafe(_request->method);
+		_response_handler.processRequest(fd_table, *_request);
+		resetRequest();
+	}
+}
+
+bool Client::canExecuteRequest(int fd_table_size) const
+{
+	return !_close_connection
+			&& !_unsafe_request_count
+			&& !(!_request_handler.isNextRequestSafe()
+				&& !_response_handler.isResponseQueueEmpty())
+			&& fd_table_size < FD_TABLE_MAX_SIZE;
+}
+
 bool	Client::retrieveRequest()
 {
-	if (!_request)
-	{
-		_request = _request_parser.getNextRequest();
-		if (!_request)
-		{
-			return false;
-		}
-		return true;
-	}
-	else
-	{
-		if (_request->status == Request::COMPLETE)
-		{
-			return true;
-		}
-		return false;
-	}
-}
-
-void	Client::processRequest(FdTable & fd_table)
-{
-	if (!_new_response)
-	{
-		initResponse(*_request);
-	}
-	if (isRequestReadyToExecute())
-	{
-		_new_response->executeRequest(fd_table, *_request);
-	}
-}
-
-void	Client::initResponse(Request const & request)
-{
-	_new_response = new Response(request);
-	_response_queue.push(_new_response);
-	_new_response->initiate(request);
-}
-
-bool	Client::isRequestReadyToExecute() const
-{
-	return _request->status == Request::COMPLETE
-			&& !isRequestExecuted();
-}
-
-bool	Client::isRequestExecuted() const
-{
-	return _new_response
-			&& _new_response->isComplete()
-			&& _new_response->getStatusCode() != 100;
+	_request = _request_handler.getNextRequest();
+	return _request;
 }
 
 void	Client::resetRequest()
 {
-	if (_request->status == Request::COMPLETE)
+	_request = NULL;
+}
+
+static void	appendString(std::string & from, std::string & to)
+{
+	to.append(from);
+	from.clear();
+}
+
+void	Client::generateResponseString()
+{
+	while (_response_string.size() < BUFFER_SIZE
+			&& retrieveResponse())
 	{
-		delete _request;
-		_request = NULL;
-		_new_response = NULL;
+		appendString(_response->string_to_send, _response_string);
+		if (_response->status == Response::COMPLETE)
+		{
+			decreUnsafe(_response->method);
+			_close_connection = _response->close_connection;
+			resetResponse();
+		}
 	}
-	else if (_new_response
-			&& _new_response->isComplete()
-			&& _new_response->getStatusCode() == 100)
+}
+
+bool	Client::retrieveResponse()
+{
+	if (!_response)
 	{
-		_new_response = NULL;
+		if (_close_connection)
+		{
+			return false;
+		}
+		_response = _response_handler.getNextResponse();
+		return _response;
+	}
+	return !_response->string_to_send.empty();
+}
+
+void	Client::resetResponse()
+{
+	_response = NULL;
+	_response_handler.popQueue();
+}
+
+void	Client::resetEvents(FdTable & fd_table)
+{
+	if (_flag == AFdInfo::TO_ERASE)
+	{
+		updateEvents(AFdInfo::WAITING, fd_table);
+	}
+	else if (_close_connection)
+	{
+		removeEvents(AFdInfo::READING, fd_table);
+	}
+	if (!_response_string.empty())
+	{
+		addEvents(AFdInfo::WRITING, fd_table);
+	}
+	else
+	{
+		removeEvents(AFdInfo::WRITING, fd_table);
+	}
+}
+
+void	Client::checkTimeOut()
+{
+	if (_close_timer_set && _timer.elapsed() >= CLOSE_CONNECTION_DELAY)
+	{
+		closeConnection();
+		return ;
+	}
+	if (!_response_handler.isResponseQueueEmpty())
+	{
+		_timer.reset();
+	}
+	else if (_timer.elapsed() >= TIMEOUT)
+	{
+		printf("%sClient%s: [%d]: TIMEOUT\n", RED_BOLD, RESET_COLOR, getFd());
+		closeConnection();
 	}
 }
 
@@ -152,80 +209,15 @@ void	Client::resetRequest()
 /****** writeEvent ******/
 /************************/
 
-int	Client::writeEvent(FdTable & fd_table)
+void	Client::writeEvent(FdTable & fd_table)
 {
-	while (_response_string.size() < BUFFER_SIZE
-			&& retrieveResponse())
-	{
-		processResponse();
-		if (_response->isComplete())
-		{
-			evaluateConnection();
-			resetResponse();
-		}
-	}
+	_timer.reset();
 	if (sendResponseString() == ERR)
 	{
 		closeConnection();
-		return ERR;
+		return;
 	}
-	updateEvents(AFdInfo::READING, fd_table);
-	return OK;
-}
-
-bool	Client::retrieveResponse()
-{
-	if (!_response)
-	{
-		if (_response_queue.empty())
-		{
-			return false;
-		}
-		_response = _response_queue.front();
-		_response->defineEncoding();
-		return true;
-	}
-
-	return _response->isHandlerReadyToWrite();
-}
-
-void	Client::processResponse()
-{
-	_response->generateResponse();
-	if (flag != AFdInfo::TO_ERASE)
-	{
-		appendResponseString();
-	}
-}
-
-void	Client::appendResponseString()
-{
-	_response_string.append(_response->getString());
-	_response->clearString();
-}
-
-void	Client::evaluateConnection()
-{
-	if (_response->getCloseConnectionFlag())
-	{
-		closeConnection();
-	}
-}
-
-void	Client::closeConnection()
-{
-	if (flag != AFdInfo::TO_ERASE)
-	{
-		std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
-		flag = AFdInfo::TO_ERASE;
-	}
-}
-
-void	Client::resetResponse()
-{
-	delete _response;
-	_response_queue.pop();
-	_response = NULL;
+	evaluateConnection(fd_table);
 }
 
 int	Client::sendResponseString()
@@ -243,52 +235,64 @@ int	Client::sendResponseString()
 	return OK;
 }
 
+void	Client::evaluateConnection(FdTable & fd_table)
+{
+	if (_close_connection && _response_string.empty())
+	{
+		_timer.reset();
+		_close_timer_set = true;
+	}
+}
+
+/****************************/
+/****** exceptionEvent ******/
+/****************************/
+
+void	Client::exceptionEvent(FdTable & fd_table)
+{
+	AFdInfo::exceptionEvent(fd_table); // RM, REMOVE, just for printing purposes
+	_response_handler.clear();
+	_request_handler.clear();
+	closeConnection();
+}
+
 /*********************/
 /****** utility ******/
 /*********************/
-void	Client::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
-{
-	short int updated_events;
 
-	switch (type)
-	{
-		case AFdInfo::READING:
-			updated_events = POLLIN;
-			break;
-		case AFdInfo::WRITING:
-			updated_events = POLLOUT;
-			break;
-		case AFdInfo::WAITING:
-			updated_events = 0;
-			break;
-	}
-	fd_table[_index].first.events = updated_events | POLLIN;
+void	Client::closeConnection()
+{
+	std::cerr << RED_BOLD << "Connection [" << _fd << "] is set to be closed." << RESET_COLOR << std::endl;
+	_flag = AFdInfo::TO_ERASE;
 }
 
-void	Client::update(FdTable & fd_table)
+bool	Client::isMethodSafe(Method::Type const & method) const
 {
-	if (!_response_queue.empty())
+	return method == Method::GET;
+}
+
+void	Client::increUnsafe(Method::Type const & method)
+{
+	if (!isMethodSafe(method))
 	{
-		//TODO: DISCUSS: Only the first response is called in the update,
-		//causing other responses to not be cleaned up, etc:
-		// it might be better to simply only execute the front request after all
-		_response_queue.front()->update();
-	}
-	if (!_response_string.empty()
-		|| isResponseReadyToWrite())
-	{
-		updateEvents(AFdInfo::WRITING, fd_table);
+		_unsafe_request_count++;
 	}
 }
 
-bool	Client::isResponseReadyToWrite() const
+void	Client::decreUnsafe(Method::Type const & method)
 {
-	return !_response_queue.empty()
-			&& (_response_queue.front()->isComplete()
-				|| _response_queue.front()->isHandlerReadyToWrite());
+	if (!isMethodSafe(method))
+	{
+		_unsafe_request_count--;
+	}
 }
+
+/***********************/
+/****** debugging ******/
+/***********************/
 
 std::string Client::getName() const
 {
 	return "Client";
 }
+

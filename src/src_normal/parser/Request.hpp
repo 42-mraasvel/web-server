@@ -1,25 +1,19 @@
 #pragma once
 # include "HeaderField.hpp"
-
-enum MethodType
-{
-	GET,
-	POST,
-	DELETE,
-	OTHER
-};
+# include "handler/ConfigResolver.hpp"
+# include "handler/ConfigInfo.hpp"
 
 struct Request 
 {
 	public:
 		typedef HeaderField header_field_t;
-
+		typedef ConfigResolver::AddressType Address;
 	public:
 
 		enum RequestStatus
 		{
 			READING,
-			HEADER_COMPLETE,
+			EXPECT,
 			COMPLETE,
 			BAD_REQUEST
 		};
@@ -34,23 +28,28 @@ struct Request
 
 	public:
 		Request();
+		Request(Address client, Address interface);
 
-		static MethodType getMethodType(std::string const & s);
+		static Method::Type getMethodType(std::string const & s);
+	
+	private:
 
-	/*
-	TODO: No _prefix because public?
-	*/
+		void init();
 
 	public:
+		Address			address;
+		Address			interface_addr;
 		RequestStatus	status;
 		int				status_code;
-		bool			executed;
+		bool			close_connection;
 
-		MethodType		method;
-		std::string		target_resource;
+		Method::Type	method;
+		std::string		request_target;
 		std::string		query;
 		int				major_version;
 		int				minor_version;
 		header_field_t	header_fields;
 		std::string		message_body;
+
+		ConfigInfo		config_info;
 };

@@ -10,14 +10,7 @@ AFdInfo::AFdInfo(): _fd(-1) {}
 AFdInfo::AFdInfo(int fd): _fd(fd) {}
 
 AFdInfo::~AFdInfo() {
-	if (_fd != -1)
-	{
-		if (close(_fd) == ERR)
-		{
-			syscallError(_FUNC_ERR("close"));
-		}
-		_fd = -1;
-	}
+	closeFd();
 }
 
 int	AFdInfo::getFd() const
@@ -35,32 +28,37 @@ void AFdInfo::setIndex(std::size_t index)
 	_index = index;
 }
 
-void	AFdInfo::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
+static short int	convertEventType(AFdInfo::EventTypes type)
 {
-	short int updated_events;
-
 	switch (type)
 	{
 		case AFdInfo::READING:
-			updated_events = POLLIN;
-			break;
+			return POLLIN;
 		case AFdInfo::WRITING:
-			updated_events = POLLOUT;
-			break;
+			return POLLOUT;
 		case AFdInfo::WAITING:
-			updated_events = 0;
-			break;
+			return 0;
 	}
-	fd_table[_index].first.events = updated_events;
+}
+
+void	AFdInfo::updateEvents(AFdInfo::EventTypes type, FdTable & fd_table)
+{
+	fd_table[_index].first.events = convertEventType(type);
+}
+
+void	AFdInfo::addEvents(AFdInfo::EventTypes type, FdTable & fd_table)
+{
+	fd_table[_index].first.events |= convertEventType(type);
+}
+
+void	AFdInfo::removeEvents(AFdInfo::EventTypes type, FdTable & fd_table)
+{
+	fd_table[_index].first.events &= ~(convertEventType(type));
 }
 
 void	AFdInfo::update(FdTable & fd_table)
 {
-	if (flag == AFdInfo::TO_ERASE)
-	{
-		printf(BLUE_BOLD "Close File:" RESET_COLOR " [%d]\n", _fd);
-		fd_table.eraseFd(_index);
-	}
+	return ;
 }
 
 void	AFdInfo::closeEvent(FdTable & fd_table)
@@ -69,12 +67,18 @@ void	AFdInfo::closeEvent(FdTable & fd_table)
 	fd_table[_index].first.fd = -1;
 }
 
+void	AFdInfo::exceptionEvent(FdTable & fd_table)
+{
+	printf("%sException Event%s: %s\n",
+		RED_BOLD, RESET_COLOR, getName().c_str());
+}
+
 /* Destruction */
 
 void AFdInfo::setToErase()
 {
 	closeFd();
-	flag = AFdInfo::TO_ERASE;
+	setFlag(AFdInfo::TO_ERASE);
 }
 
 void AFdInfo::closeFd()
@@ -85,6 +89,7 @@ void AFdInfo::closeFd()
 		{
 			syscallError(_FUNC_ERR("close"));
 		}
+		printf(BLUE_BOLD "Close Fd:" RESET_COLOR " [%d]\n", _fd);
 		_fd = -1;
 	}
 }
@@ -97,3 +102,14 @@ void AFdInfo::closeFd(FdTable & fd_table)
 	closeFd();
 	fd_table[_index].first.fd = -1;
 }
+
+AFdInfo::Flags AFdInfo::getFlag() const
+{
+	return _flag;
+}
+
+void AFdInfo::setFlag(AFdInfo::Flags flag)
+{
+	_flag = flag;
+}
+

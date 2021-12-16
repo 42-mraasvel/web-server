@@ -6,6 +6,7 @@
 
 typedef struct s_ServerBlock
 {
+	std::vector<std::pair<std::string, int> >	_address;
 	size_t 						_client_body_size;
 	std::vector<std::string>	_server_names;
 	std::vector<std::pair<int, std::string> >	_error_pages;
@@ -75,5 +76,5 @@ class ConfigServer
 		void printServerName() const;
 		void printClientBodySize() const;
 		void printErrorPages() const;
-		void printAddress(int index) const;
+		void printAddress() const;
 };
