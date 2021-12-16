@@ -63,11 +63,6 @@ class ChunkedParser
 
 		static StateDispatchTableType createStateDispatch();
 
-	/* Debugging */
-
-		void print(const std::string& buffer, std::size_t index) const;
-		std::string getStateString(State state) const;
-
 	private:
 
 		State _state;

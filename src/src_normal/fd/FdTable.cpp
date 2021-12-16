@@ -63,11 +63,11 @@ static std::string	get_event(short bits)
 
 void FdTable::print() const
 {
-	std::cout << MAGENTA_BOLD "Fd-Table" RESET_COLOR << std::endl;
+	PRINT_DEBUG << MAGENTA_BOLD "Fd-Table" RESET_COLOR << std::endl;
 	for (PollFdTable::const_iterator it = _pollfd_table.begin(); it != _pollfd_table.end(); ++it)
 	{
 		std::size_t index = (it - _pollfd_table.begin());
-		std::cout
+		PRINT_DEBUG
 		<< "  index: "
 		<< index
 		<< " | name: " << _fd_info_table[index]->getName()

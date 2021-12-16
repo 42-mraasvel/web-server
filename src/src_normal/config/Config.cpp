@@ -512,7 +512,8 @@ int Config::parseUploadStore()
 int	Config::parseIndex()
 {
 	_token_index++;
-	while (_tokens[_token_index].compare(";") != 0 && _tokens[_token_index].find_first_of(".") != std::string::npos)
+	// while (_tokens[_token_index].compare(";") != 0 && _tokens[_token_index].find_first_of(".") != std::string::npos)
+	while (_tokens[_token_index].compare(";"))
 	{
 		if (_tokens[_token_index].find_last_of("/") == _tokens[_token_index].size() - 1)
 		{
@@ -580,7 +581,7 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2, std::string 
 		&& _tokens[_token_index].compare(str2) != 0
 		&& _tokens[_token_index].compare(str3) != 0)
 	{
-		std::cerr << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 <<" or " << str3 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
+		PRINT_ERR << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 <<" or " << str3 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
 		return ERR;
 	}
 	return (OK);
@@ -588,7 +589,7 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2, std::string 
 
 void	Config::configError(std::string str)
 {
-	std::cerr << RED_BOLD << "Config error: " << str << std::endl;
+	PRINT_ERR << RED_BOLD << "Config error: " << str << std::endl;
 }
 
 // Getters

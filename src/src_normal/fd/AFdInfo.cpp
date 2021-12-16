@@ -69,8 +69,7 @@ void	AFdInfo::closeEvent(FdTable & fd_table)
 
 void	AFdInfo::exceptionEvent(FdTable & fd_table)
 {
-	printf("%sException Event%s: %s\n",
-		RED_BOLD, RESET_COLOR, getName().c_str());
+	PRINT_WARNING << "Exception Event: " << getName() << std::endl;
 }
 
 /* Destruction */
@@ -89,7 +88,7 @@ void AFdInfo::closeFd()
 		{
 			syscallError(_FUNC_ERR("close"));
 		}
-		printf(BLUE_BOLD "Close Fd:" RESET_COLOR " [%d]\n", _fd);
+		PRINT_DEBUG << BLUE_BOLD "Close Fd" RESET_COLOR ": [" << _fd << "]" << std::endl;
 		_fd = -1;
 	}
 }
@@ -112,4 +111,3 @@ void AFdInfo::setFlag(AFdInfo::Flags flag)
 {
 	_flag = flag;
 }
-

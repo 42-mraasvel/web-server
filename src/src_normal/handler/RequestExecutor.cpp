@@ -7,6 +7,7 @@
 #include "Response.hpp"
 #include "CgiHandler.hpp"
 #include "FileHandler.hpp"
+#include "outputstream/Output.hpp"
 
 #include <errno.h>
 #include <dirent.h>
@@ -129,7 +130,6 @@ bool	RequestExecutor::isRequestTargetValid(Response const & response, std::strin
 	{
 		if (errno == EACCES)
 		{
-			printf(">>>>>>>> file forbidden: %s\n", response.config_info.resolved_file_path.c_str());
 			markStatus(TARGET_FORBIDDEN, StatusCode::FORBIDDEN);
 		}
 		else

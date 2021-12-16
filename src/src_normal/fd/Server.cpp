@@ -124,7 +124,7 @@ int	Server::convertIP(sockaddr_in address, std::string & ip)
 	std::string full_ip(INET_ADDRSTRLEN, '\0');
 	if (!inet_ntop(AF_INET, &(address.sin_addr), &full_ip[0], INET_ADDRSTRLEN))
 	{
-		perror("inet_ntop");
+		syscallError(_FUNC_ERR("inet_ntp"));
 		return ERR;
 	}
 	size_t found = full_ip.find_first_of('\0');

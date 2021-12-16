@@ -45,7 +45,6 @@ int ChunkedParser::parse(std::string const & buffer, std::size_t & index, Reques
 
 	if (!isParsing())
 	{
-		fprintf(stderr, "ChunkedParser::parse called with invalid state\n");
 		return ERR;
 	}
 
@@ -270,40 +269,4 @@ void ChunkedParser::reset()
 	_max_size = std::numeric_limits<std::size_t>::max();
 	_header_parser.reset();
 	_content_parser.reset();
-}
-
-/* Debugging */
-
-std::string ChunkedParser::getStateString(State state) const
-{
-	switch (state)
-	{
-		case SIZE:
-			return "SIZE";
-		case DATA:
-			return "DATA";
-		case TRAILER:
-			return "TRAILER";
-		case ENDLINE:
-			return "ENDLINE";
-		case DISCARD_LINE:
-			return "DISCARD_LINE";
-		case ERROR:
-			return "ERROR";
-		case COMPLETE:
-			return "COMPLETE";
-	}
-	return "";
-}
-
-void ChunkedParser::print(const std::string& buffer, std::size_t index) const
-{
-	printf(RED_BOLD "ChunkedParser" RESET_COLOR "\n");
-	printf("State: [%s]\n", getStateString(_state).c_str());
-	printf("Next State: [%s]\n", getStateString(_next_state).c_str());
-	printf("Index: [%lu]\n", index);
-	printf("Chunk Size: [%lu]\n", _chunk_size);
-	printf("Internal Buffer: [%s]\n", _leftover.c_str());
-	printf("External buffer:\n");
-	printf("[%s]\n", buffer.c_str());
 }

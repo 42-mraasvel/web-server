@@ -35,7 +35,9 @@ Response Specific Defines
 /*
 Printing
 */
-#define PRINT_ERR true
+#define PRINT_DEBUG_FLAG true
+#define PRINT_INFO_FLAG true
+#define PRINT_ERR_FLAG true
 
 
 /*
@@ -46,4 +48,5 @@ Very unnecessary header includes
 #include <iostream> // RM
 #include "color.hpp"
 #include "utility/macros.hpp"
+#include "outputstream/Output.hpp"
 #include <cassert> // RM

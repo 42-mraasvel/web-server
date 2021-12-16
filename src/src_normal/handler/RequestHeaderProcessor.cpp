@@ -34,12 +34,7 @@ int RequestHeaderProcessor::process(Request & request)
 	}
 
 	determineCloseConnection(request);
-	try {
-		_config_resolver.resolution(request, getHostString(request.header_fields));
-	} catch (const std::exception& e) {
-		generalError("%s: caught exception: %s\n", _FUNC_ERR("ConfigResolver").c_str(), e.what());
-		throw e;
-	}
+	_config_resolver.resolution(request, getHostString(request.header_fields));
 	request.config_info = _config_resolver.getConfigInfo();
 	return OK;
 }
