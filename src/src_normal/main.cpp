@@ -31,9 +31,14 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 		Config config_file(configuration);
+		if (config_file.parser() == ERR)
+		{
+			std::cout << "PARSING ERROR EXIT PROGRAM" << std::endl;
+			exit(1);
+		}
 		config_file.print();
 		Webserver webserver(config_file.getAddressMap());
-		if (webserver.init() == ERR)
+		if (webserver.init())
 			return (1);
 		webserver.print();
 		webserver.run();
