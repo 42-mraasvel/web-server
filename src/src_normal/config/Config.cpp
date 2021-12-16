@@ -247,8 +247,8 @@ int Config::parseServer()
 			{
 				return ERR;
 			}
+			_token_index++;
 		}
-		_token_index++;
 	}
 	if (_tokens[_token_index].compare("}"))
 	{
@@ -305,8 +305,8 @@ int Config::parseLocation()
 			{
 				return OK;
 			}
+			_token_index++;
 		}
-		_token_index++;
 	}
 	if (_tokens[_token_index].compare("}"))
 	{
