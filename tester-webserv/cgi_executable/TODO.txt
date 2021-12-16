@@ -1,0 +1,9 @@
+Further validation
+
+
+	- CGI: executable to test in/output
+		- Header-Field transfer
+		- StatusCode transfer
+
+	- Custom header fields to give extra information about the expected request
+	- If there are no custom header fields present: give a default output

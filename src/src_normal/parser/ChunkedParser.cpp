@@ -7,9 +7,7 @@
 #include <vector>
 #include <limits>
 
-/*
-TODO: implement for HeaderFieldParser
-*/
+//TODO: implement for Chunked trailer fields
 static bool IsValidChunkedField(std::string const & key,
 		std::string const & value, HeaderField const & header)
 {
@@ -116,6 +114,12 @@ int ChunkedParser::parseSize(std::string const & buffer, std::size_t & index, Re
 	WebservUtility::skip(buffer, index, isHex);
 	_leftover.append(buffer, start, index - start);
 
+	if (_leftover.size() > MAX_HEADER_SIZE)
+	{
+		setError(StatusCode::BAD_REQUEST);
+		return ERR;
+	}
+
 	if (index == buffer.size())
 	{
 		// Still potentially missing hexdigits
@@ -190,7 +194,6 @@ int ChunkedParser::parseTrailer(std::string const & buffer, std::size_t & index,
 {
 	if (_header_parser.parse(buffer, index) == ERR)
 	{
-		//TODO: set to HEADER_TOO_LONG?
 		return ERR;
 	}
 
@@ -263,8 +266,6 @@ void ChunkedParser::reset()
 	_chunk_size = 0;
 	_leftover.clear();
 	_state = ChunkedParser::SIZE;
-	//TODO: check later, maybe change this
-	//since it seems kind of bad practice to have the default value be an error code
 	_status_code = StatusCode::BAD_REQUEST;
 	_max_size = std::numeric_limits<std::size_t>::max();
 	_header_parser.reset();

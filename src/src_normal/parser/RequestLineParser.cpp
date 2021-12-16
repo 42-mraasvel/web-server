@@ -274,7 +274,6 @@ int RequestLineParser::appendLeftover(std::string const & buffer, std::size_t & 
 {
 	if ((_leftover.size() + len) > MAX_REQUESTLINE_SIZE)
 	{
-		//TODO: Review what error should be given here
 		return setError(StatusCode::URI_TOO_LONG);
 	}
 	_leftover.append(buffer, index, len);

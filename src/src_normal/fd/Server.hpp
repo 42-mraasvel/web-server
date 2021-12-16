@@ -6,9 +6,6 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-//TODO: Modify server FD to contain a vector of server_configurations
-//TODO: add vector for ServerConfig to give port number resolution
-//(first one is the default, rest is based on hostname resolution)
 class Server : public AFdInfo
 {
 	private:

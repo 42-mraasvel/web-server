@@ -14,11 +14,13 @@ class RequestExecutor
 		{
 			START,
 			BAD_REQUEST,
+			TIME_OUT_REQUEST,
 			CONTINUE,
 			REDIRECT,
 			AUTO_INDEX_ON,
 			HANDLER_ERROR,
 			TARGET_NOT_FOUND,
+			TARGET_FORBIDDEN,
 			TARGET_IS_DIRECTORY
 		};
 
@@ -35,8 +37,8 @@ class RequestExecutor
 		bool	isRequestComplete(Request const & request);
 		void	determineIsCgi(Request & request, Response & response);
 		bool	isLocationResolved(Request const & request);
-		void	checkAutoIndexDirectory(std::string const & target);
-		bool	isRequestTargetValid(std::string const & target);
+		void	checkAutoIndexDirectory(Request const & request);
+		bool	isRequestTargetValid(Response const & response, std::string const & request_target);
 		std::string	getEffectiveRequestURI(Request const & request);
 		void	setAbsoluteFilePath(Request const & request, Response & response);
 

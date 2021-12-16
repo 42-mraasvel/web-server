@@ -58,6 +58,11 @@ bool RequestHandler::isNextRequestSafe() const
 		|| _requests.front()->method == Method::GET;
 }
 
+std::size_t RequestHandler::numRequests() const
+{
+	return _requests.size();
+}
+
 void RequestHandler::clear()
 {
 	while (!_requests.empty())
@@ -104,4 +109,17 @@ void RequestHandler::newContinueRequest()
 	cont->config_info = _request->config_info;
 	cont->status = Request::EXPECT;
 	_requests.push(cont);
+}
+
+
+void	RequestHandler::newTimeoutRequest()
+{
+	RequestPointer timeout = RequestPointer(new Request(_client_addr, _interface_addr));
+	timeout->status = Request::TIME_OUT_REQUEST;
+	timeout->status_code = StatusCode::REQUEST_TIMEOUT;
+	timeout->close_connection = true;
+	timeout->method = Method::GET;
+	timeout->major_version = 1;
+	timeout->minor_version = 1;
+	_requests.push(timeout);
 }

@@ -1,6 +1,6 @@
 #include "Server.hpp"
 #include "settings.hpp"
-#include "Client.hpp"
+#include "Connection.hpp"
 #include <poll.h>
 #include <iostream>
 #include <unistd.h>
@@ -17,8 +17,7 @@ int		Server::setupServer(Config::ip_host_pair ip_host_pair, Config::address_map*
 	this->_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->_fd == ERR)
 	{
-		perror("Socket Error");
-		return ERR;
+		return syscallError(_FUNC_ERR("socket"));
 	}
 	sockaddr_in	address;
 	address.sin_family = AF_INET;
@@ -26,17 +25,15 @@ int		Server::setupServer(Config::ip_host_pair ip_host_pair, Config::address_map*
 	address.sin_addr.s_addr = inet_addr(ip_host_pair.first.c_str());
 	if (bind(this->_fd, reinterpret_cast<sockaddr *>(&address), sizeof(address)) == ERR)
 	{
-		perror("Bind Error");
-		return ERR;
+		return syscallError(_FUNC_ERR("bind"));
 	}
 	if (listen(this->_fd, BACKLOG) == ERR)
 	{
-		perror("Listen Error");
-		return ERR;
+		return syscallError(_FUNC_ERR("listen"));
 	}
-	if (fcntl(_fd, F_SETFL, O_NONBLOCK) == ERR)
+	if (WebservUtility::makeNonBlocking(_fd) == ERR)
 	{
-		perror("fcntl");
+		return syscallError(_FUNC_ERR("fcntl"));
 	}
 	_port = ip_host_pair.second; //TODO: to evaluate later
 	_config_map = config_map;
@@ -59,6 +56,15 @@ void Server::readEvent(FdTable & fd_table)
 		close(connection_fd);
 		return;
 	}
+#ifdef __APPLE__
+	int enable = 1;
+	if (setsockopt(connection_fd, SOL_SOCKET, SO_NOSIGPIPE, &enable, sizeof(int)) < 0)
+	{
+		syscallError(_FUNC_ERR("setsockopt"));
+		close(connection_fd);
+		return;
+	}
+#endif
 
 	try
 	{
@@ -90,8 +96,8 @@ int	Server::initClient(sockaddr_in address, int connection_fd, FdTable & fd_tabl
 		return ERR;
 	}
 
-	SmartPointer<Client> client(new Client(connection_fd, address_output, interface_address, _config_map));
-	fd_table.insertFd(SmartPointer<AFdInfo>(client));
+	SmartPointer<Connection> connection(new Connection(connection_fd, address_output, interface_address, _config_map));
+	fd_table.insertFd(SmartPointer<AFdInfo>(connection));
 	return OK;
 }
 
@@ -128,8 +134,7 @@ int	Server::convertIP(sockaddr_in address, std::string & ip)
 
 void Server::writeEvent(FdTable & fd_table)
 {
-	std::cerr << RED_BOLD "SERVER WRITE EVENT: ABORTING" RESET_COLOR << std::endl;
-	std::abort();
+	abortProgram(RED_BOLD "SERVER WRITE EVENT: ABORTING" RESET_COLOR);
 }
 
 void Server::update(FdTable & fd_table)

@@ -25,10 +25,9 @@ struct pollfd CgiReader::getPollFd() const
 
 void CgiReader::writeEvent(FdTable & fd_table)
 {
-	fprintf(stderr, "[" RED_BOLD "ERROR" RESET_COLOR "] "
+	abortProgram("[" RED_BOLD "ERROR" RESET_COLOR "] "
 		"CgiReader::writeEvent() called: "
 		RED_BOLD "ABORING PROGRAM" RESET_COLOR "\n");
-	std::abort();
 }
 
 void CgiReader::readEvent(FdTable & fd_table)

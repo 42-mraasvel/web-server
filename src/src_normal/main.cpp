@@ -9,10 +9,17 @@
 #include "utility/SmartPointer.hpp"
 #include "handler/RequestHandler.hpp"
 #include "tmp/create_address_map.hpp"
+#include <signal.h>
+
+void pipeHandler(int sig) {
+	std::cerr << "SIG:" << sig << std::endl;
+	exit(0);
+}
 
 #ifndef USING_CATCH
 int main(int argc, char **argv)
 {
+	signal(SIGPIPE, pipeHandler);
 	std::string configuration;
 	try
 	{
@@ -31,7 +38,6 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 		Config config_file(configuration);
-
 		if (config_file.parser() == ERR)
 		{
 			std::cout << "PARSING ERROR EXIT PROGRAM" << std::endl;

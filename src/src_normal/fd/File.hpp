@@ -2,7 +2,7 @@
 #include "AFdInfo.hpp"
 #include <string>
 
-class Client;
+class Connection;
 
 class File : public AFdInfo
 {

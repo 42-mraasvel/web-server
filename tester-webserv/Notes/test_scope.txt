@@ -1,0 +1,167 @@
+***********************************
+********** Testing Scope **********
+***********************************
+
+[P]: python tester
+[C]: c++ tester
+[B]: bash script
+[?]: to decide
+-y: done
+-n: not-done
+
++---------------------+
+|     Config File     |
++---------------------+
+	------ Config File Error ------
+		N: (A/M) [B-n] TODO: to add more
+			- Can also be done using Catch2 to avoid executing the entire webserver
+			- Simple bash script and directory full of invalid files for syntax errors
+
+	------ Server Block directive ------
+		[P-y] Listen: Interface (host:port) resolution
+				- same server_name but different Interface
+		[P-y] Server_name: resolution
+				[C-y] - empty server_name & empty host header 
+				- default block: take first server if no server_name match
+				- wildcard
+					- exactmatch | longest| front| back| front > back
+		[P-y] Default error page
+				- Force a 404 error: Status Code and body should match the error page
+				- Error with nonexistant error page
+		[P-y] Client Max Body Size (max body too small)
+
+	------ Location Block directive ------
+		[P-y] Location block resolution
+				- match | not found | exact match
+		[P-y] Method allowed (GET, POST, DELETE)
+				- HeaderField (allowed: x)
+		[P-y] Root Directory (empty root, root syntax error)
+		[P-y] Auto Index
+		[P-y] Default File
+		[C-y] CGI: executable to test in/output
+				- MessageBody
+				- StatusCode
+				- Environment variables
+				- Errors (BAD_GATEWAY, Syntax)
+				- CGI timeout
+		[P-y] upload_store (see Method Execution - POST)
+		[P-y] return/redirection (GET/POST/DELETE)
+
++---------------------+
+|        Process      |
++---------------------+
+	------ Connection Management ------
+		[C-y] connection: close
+				- HTTP 1.0 [connection != keep-alive]
+				- invalid [content-length] (see 400 BAD REQUEST)
+				- invalid chunked body (see 400 BAD REQUEST)
+		[C-y] timeout
+		[C-y] Unsafe Pipeline:
+			- Large Post -> GET (all bytes) -> DELETE -> GET (404) on posted file: to check if unsafe method is not executed concurrently
+		[C-y] connection: keep-alive
+
+	------ HTTP 1.0 ------
+		[C-y] connection need to be closed unless header [connection = keep-alive]
+
+	------ Settings ------
+		- Preset settings to pass all tests with
+		[C-y] time out
+		[C-y] BUFFER_SIZE
+		[C-y] LIMITS
+		[C-y] Chunked
+
+	------ Method Execution ------
+		[P-y] GET
+				- 200
+				- 404 NOT_FOUND
+				[???]- 403 FORBIDDEN (unable to set to 'user has no read permission')
+		[P-y] POST
+				- with upload_store (201 CREATED, 204 NO_CONTENT)
+				- w/o upload_store >> root (201 CREATED, 204 NO_CONTENT)
+				- 403 FORBIDDEN (file, directory)
+		[P-y] DELETE
+				- 204 NO_CONTENT
+				- 404 NOT_FOUND
+				- 403 FORBIDDEN (file, directory)
+	------ Bad Agent ------
+		[C-y] Infinite header fields
+
++---------------------+
+|       Response      |
++---------------------+
+	------ Response Code ------
+		[C-y] 100 CONTINUE 
+		[P-y] 201 CREATED (see Method Execution - POST)
+				- Location header should be request target
+		[P-y] 204 NO_CONTENT (see Method Execution - POST/DELETE)
+		[P-y] 301 MOVED_PERMANENTLY (see ServerBlock-ErrorPage)
+		[C-y] 3xx REDIRECT
+				- Location header-field
+				- Response Code (for different redirection types)
+				- Retry-After header-field
+		[C-y] 400 BAD_REQUEST
+				- First line
+					- Method (case-sensitive) | Target | version (case-sensitive) | Delimeter (space +end) | whitespace not allowed inside each component | URI_TOO_LONG
+				- Header
+					- [Host]
+						- One host
+							- wrong port | non-digit after ":"
+						- HTTP 1.1 without host field
+						- multiple host field
+					- [connection != close | keep-alive]
+					- [expect != 100-continue] (see status_code)
+					- [content-length]
+						- value != digit >> close connection
+						- present together with [transfer-encoding] >> close connection
+					- [content-coding]
+						[P-y]- empty value respond 415 UNSUPPORTED_MEDIA_TYPE
+						- non-empty value respond 400
+					- WS before ":"
+					- duplicate header
+						- duplicate [content-length] >> close connection
+				- Message body
+					- incorrect chunked format >> close connection
+		[P-y] 403 FORBIDDEN (see Method Execution)
+		[P-y] 404 NOT_FOUND (see Method Execution)
+		[P-y] 405 METHOD_NOT_ALLOWED (see LocationBlock-MethodAllowed)
+				- check headerfield 'Allow'
+		[C-y] 408 REQUEST_TIMEOUT
+		[P-y] 413 PAYLOAD_TOO_LARGE (see ServerBlock-ClientMaxSize)
+		[P-y] 415 UNSUPPORTED_MEDIA_TYPE
+		[P-y] 417 EXPECTATION_FAILED
+		[C-y] 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+		[P-y] 500 INTERNAL_SERVER_ERROR (through out whole program)
+		[P-y] 501 NOT_IMPLEMENTED
+				- method other than: GET POST DELETE)
+				- Request header "Transfer-Encoding" other than: chunked (close connection)
+		[C-y] 502 BAD_GATEWAY
+		[C-y] 504 GATEWAY_TIMEOUT
+		[C-y] 505 HTTP_VERSION_NOT_SUPPORTED 
+
+	------ Response Header Field ------
+		[P-y] Date
+				- check if date string len = 29
+		[P-y] Connection
+				- "keep-alive": test by default
+				- "close":
+					- Request header [Transfer-Encoding != chunked] (see Response 501)
+					- HTTP 1.1 request header [connection = close]
+					[C-y] HTTP 1.0 request header [connection != keep-alive] 
+		[P-y] Location
+				- 201 CREATED (see Method Execution - POST)
+				- 3xx: location should be effective request uri (check location presence in defaultEvaluator)
+		[P-y] Retry-After
+				- should present in all 3xx response (check presence in defaultEvaluator)
+		[P-y] Allow (see Location Block - Method allowed & Response Code 405)
+		[P-y] Content-Length
+				- cannot present together with Transfer-Encoding (check in defaultEvaluator)
+		[C-y] Transfer-Encoding
+			- See Unsafe method (validGet)
+		[P-y] Content-Type
+			Check nonexistant extensions and no extension for content-type
+
+
+************** Question / To-Discuss **************
+
+1. config: server_name "" is not implemented (should add an empty string to server_name vector)
+

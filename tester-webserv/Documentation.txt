@@ -4,6 +4,8 @@
 		- authority = host [ ':' port ]
 		- TAGS = names of the TestCases to execute (all if missing)
 
+	More details on errors are logged to `result.log`
+
 -- Webserver's Configuration --
 
 	Location block for '/' that has ServerRoot as it's root directory
@@ -32,21 +34,19 @@
 			tag (string)
 				- string variable representing the tag (for printing and specifying which case to execute)
 	
+			name (string)
+				- Name of the TestCase: only for printing and identification purposes
+
 			evaluator (function pointer)
 				- custom input function to evaluate the response
 				- prototype: def evaluator(response):
 				- return: `None` on PASS, string specifying reason on FAIL
 
-	FILE: `src/GenerateTestCases.py`
-	FUNCTION: `generate()`
+	DIRECTORY: 'src/testcase_generation
+	Add new `.py` files here:
+		- Any function with the prefix `testCase` should return a TestCase object,
+		which will be automatically added to the executed testcases
 
-	Description:
-
-		This function returns a list of TestCases
-		To add new testcases:
-			testcases.append(createNewTestcase())
-		All testcases in this list will then be executed
-	
 	-- Adding TestCases from a file --
 
 		- Can write a file `x.txt + x.txt.response` inside of the `Requests` directory (see examples)
