@@ -24,4 +24,6 @@ fi
 
 make -C $PYTHON_DIR > /dev/null && python3 $PYTHON_DIR/src/main.py "$SERVER_ROOT" $@
 
+rm -rf $SERVER_ROOT/Post
+cp $SERVER_ROOT/Method/Delete/copy.html $SERVER_ROOT/Method/Delete/sample.html
 pkill $EXEC_NAME
