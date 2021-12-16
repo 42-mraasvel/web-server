@@ -56,6 +56,7 @@ int	Connection::parseRequest()
 		closeConnection();
 		return ERR;
 	}
+	std::cout << "Received:" << std::endl << buffer << std::endl;
 	_request_handler.parse(buffer);
 	return OK;
 }

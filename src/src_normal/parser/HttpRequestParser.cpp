@@ -78,15 +78,15 @@ int HttpRequestParser::parse(std::string const &buffer, std::size_t &index, Requ
 				_header_processor.processError(request, getStatusCode());
 				return ERR;
 			case COMPLETE:
-				return OK;
+				return processPostParsing(request);
 		}
 	}
-	if (_state == ERROR)
+	if (_state == ERROR || processPostParsing(request) == ERR)
 	{
 		_header_processor.processError(request, getStatusCode());
 		return ERR;
 	}
-	return OK;
+	return processPostParsing(request);
 }
 
 /* Main Parsing Logic */
@@ -178,6 +178,15 @@ int HttpRequestParser::processRequestHeader(Request &request)
 	{
 		request.close_connection = true;
 		return ERR;
+	}
+	return OK;
+}
+
+int HttpRequestParser::processPostParsing(Request & request)
+{
+	if (_header_processor.processPostParsing(request) == ERR)
+	{
+		return setError(_header_processor.getStatusCode());
 	}
 	return OK;
 }

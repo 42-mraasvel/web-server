@@ -46,6 +46,12 @@ Method::Type Request::getMethodType(std::string const & s)
 		"DELETE"
 	};
 
+	if (s == "PUT") {
+		return Method::POST;
+	} else if (s == "HEAD") {
+		return Method::GET;
+	}
+
 	for (int i = Method::GET; i < Method::OTHER; ++i)
 	{
 		if (types[i] == s)

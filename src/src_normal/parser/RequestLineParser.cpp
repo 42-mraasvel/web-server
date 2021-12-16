@@ -35,6 +35,7 @@ int RequestLineParser::parse(std::string const & buffer, std::size_t & index, Re
 
 	appendLeftover(buffer, index, pos - index);
 	WebservUtility::skipEndLine(buffer, index);
+	std::cerr << "RLParser: " << _leftover << std::endl;
 	if (parseRequestLine(request) == ERR)
 	{
 		return setError(StatusCode::BAD_REQUEST);

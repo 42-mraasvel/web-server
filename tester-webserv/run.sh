@@ -13,7 +13,7 @@ SERVER_ROOT='./ServerRoot' #$(getRealPath './ServerRoot')
 ####################################################
 
 source prepare.sh "$SERVER_ROOT"
-bash background_webserver.sh "$CONFIG_FILE"
+# bash background_webserver.sh "$CONFIG_FILE"
 
 sleep 0.0001
 process=$(ps -a | grep -v grep | grep $EXEC_NAME)
@@ -26,4 +26,4 @@ make -C $PYTHON_DIR > /dev/null && python3 $PYTHON_DIR/src/main.py "$SERVER_ROOT
 
 rm -rf $SERVER_ROOT/Method/Post
 cp $SERVER_ROOT/Method/Delete/copy.html $SERVER_ROOT/Method/Delete/sample.html
-pkill $EXEC_NAME
+# pkill $EXEC_NAME
