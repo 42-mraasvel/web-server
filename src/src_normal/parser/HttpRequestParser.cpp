@@ -58,7 +58,7 @@ _header_processor(config_map) {}
 
 int HttpRequestParser::parse(std::string const &buffer, std::size_t &index, Request &request)
 {
-	while (index < buffer.size())
+	while (index < buffer.size() || _state == ERROR || _state == COMPLETE)
 	{
 		switch (_state)
 		{
@@ -81,12 +81,7 @@ int HttpRequestParser::parse(std::string const &buffer, std::size_t &index, Requ
 				return processPostParsing(request);
 		}
 	}
-	if (_state == ERROR || processPostParsing(request) == ERR)
-	{
-		_header_processor.processError(request, getStatusCode());
-		return ERR;
-	}
-	return processPostParsing(request);
+	return OK;
 }
 
 /* Main Parsing Logic */
@@ -186,6 +181,7 @@ int HttpRequestParser::processPostParsing(Request & request)
 {
 	if (_header_processor.processPostParsing(request) == ERR)
 	{
+		_header_processor.processError(request, _header_processor.getStatusCode());
 		return setError(_header_processor.getStatusCode());
 	}
 	return OK;
