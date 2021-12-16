@@ -512,7 +512,8 @@ int Config::parseUploadStore()
 int	Config::parseIndex()
 {
 	_token_index++;
-	while (_tokens[_token_index].compare(";") != 0 && _tokens[_token_index].find_first_of(".") != std::string::npos)
+	// while (_tokens[_token_index].compare(";") != 0 && _tokens[_token_index].find_first_of(".") != std::string::npos)
+	while (_tokens[_token_index].compare(";"))
 	{
 		if (_tokens[_token_index].find_last_of("/") == _tokens[_token_index].size() - 1)
 		{

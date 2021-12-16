@@ -19,7 +19,7 @@ Output::~Output() {
 			std::cout << YELLOW_BOLD "[INFO]: " RESET_COLOR << os.str();
 			break;
 		case Output::DEBUG:
-			// std::cout << BLUE_BOLD "[DEBUG]: " RESET_COLOR << os.str();
+			std::cout << BLUE_BOLD "[DEBUG]: " RESET_COLOR << os.str();
 			break;
 	}
 }
