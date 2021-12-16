@@ -52,7 +52,7 @@ class Config
 	public:
 		address_map	getAddressMap() const;
 		// Utility
-		void	initAddressMap();
+		int		initAddressMap();
 	
 
 	private:

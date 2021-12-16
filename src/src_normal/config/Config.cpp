@@ -115,6 +115,10 @@ int	Config::validateServerBlock(ServerBlock server_block)
 	{
 		return ERR;
 	}
+	if (server_block._locations.size() == 0)
+	{
+		return ERR;
+	}
 	return OK;
 }
 
@@ -132,10 +136,11 @@ int Config::validateToken(std::string token)
 		"autoindex",
 		"cgi",
 		"upload_store",
+		"return",
 		"{",
 		"}"
 	};
-	for (size_t i = 0; i < 13; i++)
+	for (size_t i = 0; i < 14; i++)
 	{
 		if (token.compare(arr[i]) == 0)
 		{
@@ -175,7 +180,10 @@ int Config::parser()
 	{
 		return ERR;
 	}
-	initAddressMap();
+	if (initAddressMap() == ERR)
+	{
+		return ERR;
+	}
 	// printAddressMap();
 	if (validateAddressMap() == ERR)
 	{
@@ -264,7 +272,10 @@ int Config::parseLocation()
 	_servers[_server_amount].addLocation(ConfigLocation(_tokens[_token_index]));
 	_servers[_server_amount].addLocationFlag(flag);
 	_token_index++;
-	checkExpectedSyntax("{");
+	if (checkExpectedSyntax("{"))
+	{
+		return ERR;
+	}
 	_token_index++;
 	static parseFunctions func[] = 
 	{
@@ -304,7 +315,6 @@ int Config::parseLocation()
 	return OK;
 }
 
-// TODO: add protection
 int	Config::parseListen()
 {
 	_token_index++;
@@ -644,7 +654,7 @@ void	Config::configError(std::string str)
 
 
 // Utility
-void	Config::initAddressMap()
+int	Config::initAddressMap()
 {
 	std::pair<std::map<ip_host_pair,server_block_vector>::iterator,bool> ret;
 	std::map<ip_host_pair,server_block_vector>::iterator map_it;
@@ -663,6 +673,7 @@ void	Config::initAddressMap()
 			}
 		}
 	}
+	return OK;
 }
 
 std::map<std::pair<std::string, int>, std::vector<ConfigServer::server_pointer> >	Config::getAddressMap() const
