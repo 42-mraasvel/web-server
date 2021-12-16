@@ -9,11 +9,13 @@
 #include <map>
 #include <limits>
 
-Config::Config(std::string const & config_file): _file_name(config_file), _server_amount(0), _token_index(0)
-{}
+// Constructor
+Config::Config(std::string const & config_file): _file_name(config_file), _server_amount(0), _token_index(0){}
 
+// Destructor
 Config::~Config(){}
 
+// Iterators
 Config::const_iterator Config::begin() const
 {
 	return (this->_servers.begin());
@@ -24,6 +26,7 @@ Config::const_iterator Config::end() const
 	return (this->_servers.end());
 }
 
+// Parser - Tokenizer
 void Config::tokenizer(std::string const & body)
 {
 	std::string const & delimiters = "\n\t ";
@@ -86,6 +89,63 @@ void	Config::splitToken(std::string const & string)
 	}
 }
 
+// Validation
+int	Config::validateAddressMap()
+{
+	if (_address_map.empty())
+	{
+		return ERR;
+	}
+	for (const_iterator_map it = _address_map.begin(); it != _address_map.end(); ++it)
+	{
+		for (size_t i = 0; i < it->second.size(); i++)
+		{
+			if (validateServerBlock(*(it->second[i])) == ERR)
+			{
+				return ERR;
+			}
+		}
+	}
+	return OK;
+}
+
+int	Config::validateServerBlock(ServerBlock server_block)
+{
+	if (server_block._client_body_size == 0)
+	{
+		return ERR;
+	}
+	return OK;
+}
+
+int Config::validateToken(std::string token)
+{
+	std::string arr[] = {
+		"listen",
+		"server_name",
+		"client_body_size",
+		"error_page",
+		"location",
+		"root",
+		"index",
+		"allowed_methods",
+		"autoindex",
+		"cgi",
+		"upload_store",
+		"{",
+		"}"
+	};
+	for (size_t i = 0; i < 13; i++)
+	{
+		if (token.compare(arr[i]) == 0)
+		{
+			return ERR;
+		}
+	}
+	return OK;
+}
+
+// Parser
 int Config::parser()
 {
 	int	fd;
@@ -116,10 +176,13 @@ int Config::parser()
 		return ERR;
 	}
 	initAddressMap();
-	printAddressMap();
+	// printAddressMap();
+	if (validateAddressMap() == ERR)
+	{
+		return ERR;
+	}
 	return OK;
 }
-
 
 int	Config::parseConfigFile()
 {
@@ -138,7 +201,6 @@ int	Config::parseConfigFile()
 	}
 	return OK;
 }
-
 
 int Config::parseServer()
 {
@@ -180,16 +242,11 @@ int Config::parseServer()
 		}
 		_token_index++;
 	}
-	if (_servers[_server_amount].emptyAddress() == 0)
-	{
-		_servers[_server_amount].addAddress("0.0.0.0", 80);
-	}
 	if (_tokens[_token_index].compare("}"))
 	{
 		return ERR;
 	}
 	return OK;
-
 }
 
 
@@ -219,7 +276,6 @@ int Config::parseLocation()
 		{"return", &Config::parseReturn},
 		{"upload_store", &Config::parseUploadStore}
 	};
-	bool root_check = false;
 	while (_token_index < _tokens.size() && _tokens[_token_index].compare("}"))
 	{
 		for (size_t i = 0; i < 8; i++)
@@ -227,10 +283,6 @@ int Config::parseLocation()
 			ret = 0;
 			if (_tokens[_token_index].compare(func[i].str) == 0)
 			{
-				if (_tokens[_token_index].compare("root") == 0)
-				{
-					root_check = true;
-				}
 				ret = (this->*(func[i].f))();
 				if (ret == ERR)
 				{
@@ -244,10 +296,6 @@ int Config::parseLocation()
 			}
 		}
 		_token_index++;
-	}
-	if (root_check == false)
-	{
-		_servers[_server_amount].addRoot("/var/www");
 	}
 	if (_tokens[_token_index].compare("}"))
 	{
@@ -301,7 +349,7 @@ int	Config::parseListen()
 int	Config::parseServerName()
 {
 	_token_index++;
-	while (_tokens[_token_index].compare(";") != 0)
+	while (_tokens[_token_index].compare(";") != 0 && validateToken(_tokens[_token_index]) == OK)
 	{
 		if (_tokens[_token_index].compare("\"\"") == 0)
 		{
@@ -512,7 +560,7 @@ int Config::parseUploadStore()
 int	Config::parseIndex()
 {
 	_token_index++;
-	while (_tokens[_token_index].compare(";") != 0 && _tokens[_token_index].find_first_of(".") != std::string::npos)
+	while (_tokens[_token_index].compare(";") != 0 && validateToken(_tokens[_token_index]) == OK)
 	{
 		if (_tokens[_token_index].find_last_of("/") == _tokens[_token_index].size() - 1)
 		{
@@ -558,7 +606,7 @@ int	Config::checkExpectedSyntax(std::string str)
 {
 	if (_tokens[_token_index].compare(str) != 0)
 	{
-		// abortProgram("Config Error: expected " + str + " instead of " + _tokens[_token_index]);
+		abortProgram("Config Error: expected " + str + " instead of " + _tokens[_token_index]);
 		return ERR;
 	}
 	return (OK);

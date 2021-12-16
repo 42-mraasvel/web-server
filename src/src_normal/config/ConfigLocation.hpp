@@ -25,6 +25,8 @@ class ConfigLocation
 {
 	public:
 		typedef SmartPointer<LocationBlock> location_pointer;
+	
+	public:
 		ConfigLocation(std::string path);
 		void	addRoot(std::string root);
 		void	addClientBodySize(size_t client_body_size);
@@ -35,22 +37,21 @@ class ConfigLocation
 		void	addReturn(int code, std::string path);
 		void	addLocationFlag(location_flag flag);
 		void	addUploadStore(std::string path);
-	// Utility
-		location_pointer getLocationBlock();
 		void	initLocationBlock();
+		location_pointer getLocationBlock();
 
 	private:
-		std::string 				_path;
-		std::string					_root;
-		std::vector<std::string>	_index;
-		std::vector<std::string>	_allowed_methods;
+		std::string 										_path;
+		std::string											_root;
+		std::vector<std::string>							_index;
+		std::vector<std::string>							_allowed_methods;
 		std::vector<std::pair<std::string, std::string> >	_cgi;
-		size_t						_client_body_size;
-		bool						_autoindex_status;
-		std::pair<int, std::string>	_return;
-		location_flag				_location_flag;
-		location_pointer	_location_block;
-		std::string			_upload_store;
+		size_t												_client_body_size;
+		bool												_autoindex_status;
+		std::pair<int, std::string>							_return;
+		location_flag										_location_flag;
+		location_pointer									_location_block;
+		std::string											_upload_store;
 
 	/* Debugging */
 	public:
