@@ -22,24 +22,26 @@ int main(int argc, char **argv)
 		}
 		else if (argc == 1)
 		{
-			PRINT << RED_BOLD "Warning: " RESET_COLOR "No configuration file given, using default config" << std::endl;
+			PRINT_WARNING << "No configuration file given, using default config" << std::endl;
 			configuration = "src/src_normal/config/resources/default.conf";
 		}
 		else
 		{
 			PRINT_ERR << "invalid argument amount" << std::endl;
-			exit(1);
+			return 1;
 		}
 		Config config_file(configuration);
 		if (config_file.parser() == ERR)
 		{
-			std::cout << "PARSING ERROR EXIT PROGRAM" << std::endl;
-			exit(1);
+			PRINT_ERR << "PARSING ERROR EXIT PROGRAM" << std::endl;
+			return 1;
 		}
 		config_file.print();
 		Webserver webserver(config_file.getAddressMap());
 		if (webserver.init())
-			return (1);
+		{
+			return 1;
+		}
 		webserver.print();
 		webserver.run();
 	}
