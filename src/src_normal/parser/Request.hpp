@@ -34,7 +34,6 @@ struct Request
 		static Method::Type getMethodType(std::string const & s);
 	
 	private:
-
 		void init();
 
 	public:

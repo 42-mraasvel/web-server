@@ -116,7 +116,7 @@ int Config::parser()
 		return ERR;
 	}
 	initAddressMap();
-	printAddressMap();
+	// printAddressMap();
 	return OK;
 }
 

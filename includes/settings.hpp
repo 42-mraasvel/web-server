@@ -32,13 +32,6 @@ Response Specific Defines
 #define RESPONSE_QUEUE_MAX_SIZE 50 // Number of responses the connection can execute concurrently
 #define REQUEST_QUEUE_THRESHOLD 50 // Number of requests in the queue that will prompt the connection to stop reading in more
 
-/*
-Printing
-*/
-#define PRINT_DEBUG_FLAG true
-#define PRINT_INFO_FLAG true
-#define PRINT_ERR_FLAG true
-
 
 /*
 Very unnecessary header includes

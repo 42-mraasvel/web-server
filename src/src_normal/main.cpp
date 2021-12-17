@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 			PRINT_ERR << "PARSING ERROR EXIT PROGRAM" << std::endl;
 			return 1;
 		}
-		config_file.print();
+		// config_file.print();
 		Webserver webserver(config_file.getAddressMap());
 		if (webserver.init())
 		{

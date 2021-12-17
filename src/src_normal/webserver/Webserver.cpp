@@ -131,7 +131,7 @@ void	Webserver::scanFdTable()
 	{
 		if (_fd_table[i].second->getFlag() == AFdInfo::TO_ERASE)
 		{
-			PRINT_INFO << "Erasing Fd: " << _fd_table[i].second->getName() \
+			PRINT_DEBUG << "Erasing Fd: " << _fd_table[i].second->getName() \
 				<< ": [" << _fd_table[i].second->getFd() << "]" << std::endl;
 			_fd_table.eraseFd(i);
 			continue;

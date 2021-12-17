@@ -97,9 +97,9 @@ void HeaderField::swap(HeaderField& x)
 
 void HeaderField::print() const
 {
-	PRINT_DEBUG << "-- Header Field --" << std::endl;
+	PRINT_INFO << CYAN_BOLD "-- Header Field --" RESET_COLOR << std::endl;
 	for (const_iterator it = _map.begin(); it != _map.end(); ++it)
 	{
-		PRINT_DEBUG << "  " << it->first << ": " << it->second << std::endl;
+		PRINT_INFO << "  " << it->first << ": " << it->second << std::endl;
 	}
 }

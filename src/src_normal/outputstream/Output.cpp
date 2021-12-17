@@ -16,10 +16,15 @@ Output::~Output() {
 			std::cerr << RED_BOLD "[WARNING]: " RESET_COLOR <<  os.str();
 			break;
 		case Output::INFO:
-			std::cout << YELLOW_BOLD "[INFO]: " RESET_COLOR << os.str();
+#ifdef PRINT_INFO_FLAG
+			// std::cout << YELLOW_BOLD "[INFO]: " RESET_COLOR << os.str();
+			std::cout << os.str();
+#endif /* PRINT_INFO_FLAG */
 			break;
 		case Output::DEBUG:
+#ifdef PRINT_DEBUG_FLAG
 			std::cout << BLUE_BOLD "[DEBUG]: " RESET_COLOR << os.str();
+#endif
 			break;
 	}
 }

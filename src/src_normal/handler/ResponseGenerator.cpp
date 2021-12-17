@@ -85,6 +85,7 @@ void	ResponseGenerator::setHeaderPart(Response & response)
 	response.string_to_send = response.string_status_line + NEWLINE
 							+ response.string_header_field + NEWLINE;
 	response.header_part_set = true;
+	response.print();
 }
 
 void	ResponseGenerator::setStringStatusLine(Response & response)

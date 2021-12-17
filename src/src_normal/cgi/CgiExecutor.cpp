@@ -301,7 +301,7 @@ int CgiExecutor::clearCgi()
 
 int CgiExecutor::killCgi(int* status)
 {
-	PRINT_INFO << BLUE_BOLD "CgiExecutor: " RESET_COLOR "cleaning child PID: " << _cgi_pid << std::endl;
+	PRINT_DEBUG << BLUE_BOLD "CgiExecutor: " RESET_COLOR "cleaning child PID: " << _cgi_pid << std::endl;
 	pid_t result = waitpid(_cgi_pid, status, WNOHANG);
 	if (result == ERR)
 	{

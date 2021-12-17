@@ -22,9 +22,9 @@ _close_connection(false),
 _close_timer_set(false),
 _unsafe_request_count(0)
 {
-	PRINT_INFO << YELLOW_BOLD "-- New Connection --" RESET_COLOR << std::endl;
-	PRINT_INFO << "Connection: [" << client.first << "]:[" << client.second << "]" << std::endl;
-	PRINT_INFO << "Interface: [" << interface.first << "]:[" << client.second << "]" << std::endl;
+	PRINT << YELLOW_BOLD "-- New Connection --" RESET_COLOR << std::endl;
+	PRINT << "Client Address: [" << client.first << "]:[" << client.second << "]" << std::endl;
+	PRINT << "Interface address: [" << interface.first << "]:[" << client.second << "]" << std::endl;
 
 }
 
@@ -283,7 +283,7 @@ void	Connection::exceptionEvent(FdTable & fd_table)
 
 void	Connection::closeConnection()
 {
-	PRINT_INFO << BLUE_BOLD << getName() << RESET_COLOR ": [" << getFd() << "] is set to be closed." << RESET_COLOR << std::endl;
+	PRINT << BLUE_BOLD << getName() << RESET_COLOR ": [" << getFd() << "] is set to be closed." << RESET_COLOR << std::endl;
 	setFlag(AFdInfo::TO_ERASE);
 }
 

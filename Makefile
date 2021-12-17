@@ -1,9 +1,10 @@
 MK_SETTINGS_DIR := make_settings
+DEPENDENCIES := Makefile $(shell find $(MK_SETTINGS_DIR) -type f -name "*.mk")
+# DEPENDENCIES := Makefile
 
 include $(MK_SETTINGS_DIR)/src_files.mk
 include $(MK_SETTINGS_DIR)/settings.mk
-
-DEPENDENCIES := Makefile $(shell find $(MK_SETTINGS_DIR) -type f -name "*.mk")
+include $(MK_SETTINGS_DIR)/output.mk
 
 all:
 	$(MAKE) $(NAME) -j4
@@ -36,5 +37,11 @@ debug:
 	$(MAKE) all DEBUG=1
 fsanitize:
 	$(MAKE) all FSANITIZE=1
+
+# Printing
+.phony: info
+info:
+	$(RM) $(ODIR)/$(OUTPUT_FILE)
+	$(MAKE) PRINT_INFO=1
 
 -include $(DEP)

@@ -32,6 +32,7 @@ struct Response
 		void	setCgi();
 		void	unsetCgi();
 		void	resetErrorPageRedirection();
+		void	print() const;
 
 	/* request related info */
 	Method::Type		method;

@@ -1,5 +1,9 @@
 #include "Response.hpp"
 #include "parser/Request.hpp"
+#include "outputstream/Output.hpp"
+#include "color.hpp"
+#include "settings.hpp"
+#include "utility/status_codes.hpp"
 
 static std::string	setHttpVersion(int minor_version)
 {
@@ -64,4 +68,24 @@ void	Response::resetErrorPageRedirection()
 	encoding = Response::UNDEFINED;
 	error_page_attempted = true;
 	unsetCgi();
+}
+
+void	Response::print() const
+{
+	PRINT_INFO << CYAN_BOLD "-- Response --" RESET_COLOR << std::endl;
+	PRINT_INFO << http_version << " "
+		<< status_code << " "
+		<< StatusCode::getStatusMessage(status_code) << std::endl;
+	header_fields.print();
+	PRINT_INFO << CYAN_BOLD "-- Message Body --" RESET_COLOR << std::endl;
+	PRINT_INFO << "Body-Size(" << message_body.size() << ")" << std::endl;
+	if (message_body.size() <= MAX_HEADER_SIZE)
+	{
+		PRINT_INFO << message_body << std::endl;
+	}
+	else
+	{
+		PRINT_INFO << "Body too large to print" << std::endl;
+	}
+	PRINT_INFO << CYAN_BOLD "------------------------" RESET_COLOR << std::endl;
 }
