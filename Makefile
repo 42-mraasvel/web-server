@@ -1,5 +1,9 @@
-include make_settings/src_files.mk
-include make_settings/settings.mk
+MK_SETTINGS_DIR := make_settings
+
+include $(MK_SETTINGS_DIR)/src_files.mk
+include $(MK_SETTINGS_DIR)/settings.mk
+
+DEPENDENCIES := Makefile $(shell find $(MK_SETTINGS_DIR) -type f -name "*.mk")
 
 all:
 	$(MAKE) $(NAME) -j4
@@ -7,7 +11,7 @@ all:
 # Compilation
 $(NAME): $(OBJ)
 	$(CXX) -o $@ $(OBJ) $(LFLAGS)
-$(OBJ): $(ODIR)/%.o: $(SDIR)/%.cpp Makefile
+$(OBJ): $(ODIR)/%.o: $(SDIR)/%.cpp $(DEPENDENCIES)
 	@mkdir -p $(@D)
 	$(CXX) -c -o $@ $< $(CXXFLAGS) $(IFLAGS)
 $(DDIR)/%.d: $(SDIR)/%.cpp
