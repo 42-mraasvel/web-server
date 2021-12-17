@@ -9,7 +9,7 @@ Global:
 		[OPTIONAL] 'client_body_size'
 
 		LocationBlock:
-			[MANDATORY] 'root' (1) (1+?)
+			[MANDATORY] 'root' (1)
 			[OPTIONAL] 'allowed_methods'
 			[OPTIONAL] 'index'
 			[OPTIONAL] 'autoindex'
