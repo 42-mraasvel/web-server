@@ -1,0 +1,32 @@
+Global:
+	[MANDATORY] 'server' (1+)
+
+	ServerBlock:
+		[MANDATORY] 'listen' (1+)
+		[MANDATORY] 'location' (1+)
+		[OPTIONAL] 'server_name'
+		[OPTIONAL] 'error_page'
+		[OPTIONAL] 'client_body_size'
+
+		LocationBlock:
+			[MANDATORY] 'root' (1) (1+?)
+			[OPTIONAL] 'allowed_methods'
+			[OPTIONAL] 'index'
+			[OPTIONAL] 'autoindex'
+			[OPTIONAL] 'cgi'
+			[OPTIONAL] 'upload_store'
+			[OPTIONAL] 'return'
+
+
+
+Directives:
+	listen:
+		[ (IPv4 | "*") ":" ] Port ";"
+	server_name:
+		token (1+) ";"
+	error_page:
+		STATUS_CODE PATH ";"
+		STATUS_CODE = DIGIT (3+)
+	client_body_size:
+		NUMBER [ SIZE_SPECIFIER ] ";"
+		SIZE_SPECIFIER = "K" | "G" | "M" (case insensitive)
