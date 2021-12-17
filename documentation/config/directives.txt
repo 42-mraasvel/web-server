@@ -19,31 +19,42 @@ Global:
 
 
 
-Directives:
+-- Language --
 
-	listen = "listen" WS [ (IPv4 | "*" ) ":" ] Port OWS ";"
+	server = "server" "{" SERVER_DIRECTIVES "}"
+		- SERVER_DIRECTIVES =  listen | server_name | error_page | client_body_size | location
 
-	server_name = "server_name" WS token (1+) OWS ";"
+-- Server Directives --
 
-	error_page = "error_page" WS STATUS_CODE WS PATH OWS ";"
-		- STATUS_CODE = DIGIT (3+)
+		listen = "listen" WS [ (IPv4 | "*" ) ":" ] Port OWS ";"
 
-	client_body_size = "client_body_size" WS NUMBER [ SIZE_SPECIFIER ] OWS ";"
-		- SIZE_SPECIFIER = "K" | "G" | "M" (case insensitive)
+		server_name = "server_name" WS token (1+) OWS ";"
 
-	root = "root" WS PATH OWS ";"
+		error_page = "error_page" WS STATUS_CODE WS PATH OWS ";"
+			- STATUS_CODE = DIGIT (3+)
 
-	allowed_methods = "allowed_methods" WS METHOD (1+) OWS ";"
-		- METHOD = "GET" | "POST" | "DELETE
+		client_body_size = "client_body_size" WS NUMBER [ SIZE_SPECIFIER ] OWS ";"
+			- SIZE_SPECIFIER = "K" | "G" | "M" (case insensitive)
 
-	index = "index" token+ ";"
+		location = "location" WS ABSOLUTE_PATH "{" LOCATION_DIRECTIVES "}"
+			- ABSOLUTE_PATH = 1*( "/" SEGMENT) (1 or more)
+			- SEGMENT = *pchar (0 or more)
+			- LOCATION_DIRECTIVES = root | allowed_methods | index | autoindex | cgi | upload_store | return
 
-	autoindex = "autoindex" WS ( "on" | "off" ) OWS ";"
+	-- Location Directives --
 
-	cgi = "cgi" WS EXTENSION PATH OWS ";"
-		- EXTENSION = ("." token)
+		root = "root" WS PATH OWS ";"
 
-	upload_store = "upload_store" WS PATH OWS ";"
+		allowed_methods = "allowed_methods" WS METHOD (1+) OWS ";"
+			- METHOD = "GET" | "POST" | "DELETE
 
-	return = "return" WS STATUS_CODE WS URL OWS ";"
+		index = "index" token+ ";"
 
+		autoindex = "autoindex" WS ( "on" | "off" ) OWS ";"
+
+		cgi = "cgi" WS EXTENSION PATH OWS ";"
+			- EXTENSION = ("." token)
+
+		upload_store = "upload_store" WS PATH OWS ";"
+
+		return = "return" WS STATUS_CODE WS URL OWS ";"
