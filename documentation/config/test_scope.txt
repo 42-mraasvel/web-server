@@ -11,13 +11,13 @@
 	y- root
 	y- allowed_methods
 	y- index
-	n- autoindex
-	n- cgi
-	n- upload_store
-	n- return
-	n- unknown directives
-	n- keywords (directive names) as arguments to other directives
+	y- autoindex
+	y- cgi
+	y- upload_store
+	y- return
+	y- unknown directives
+	y- keywords (directive names) as arguments to other directives
 
 -- Valid Tests --
 
-	y-server_name
+	- Test with multiple of all directives

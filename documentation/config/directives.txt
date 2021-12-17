@@ -18,7 +18,6 @@ Global:
 			[OPTIONAL] 'return'
 
 
-
 -- Language --
 
 	server = "server" "{" SERVER_DIRECTIVES "}"
@@ -52,8 +51,7 @@ Global:
 
 		autoindex = "autoindex" WS ( "on" | "off" ) OWS ";"
 
-		cgi = "cgi" WS EXTENSION PATH OWS ";"
-			- EXTENSION = ("." token)
+		cgi = "cgi" WS token WS PATH OWS ";"
 
 		upload_store = "upload_store" WS PATH OWS ";"
 
