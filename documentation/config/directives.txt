@@ -26,17 +26,14 @@ Directives:
 	server_name = "server_name" WS token (1+) OWS ";"
 
 	error_page = "error_page" WS STATUS_CODE WS PATH OWS ";"
-
 		- STATUS_CODE = DIGIT (3+)
 
 	client_body_size = "client_body_size" WS NUMBER [ SIZE_SPECIFIER ] OWS ";"
-
 		- SIZE_SPECIFIER = "K" | "G" | "M" (case insensitive)
 
 	root = "root" WS PATH OWS ";"
 
 	allowed_methods = "allowed_methods" WS METHOD (1+) OWS ";"
-
 		- METHOD = "GET" | "POST" | "DELETE
 
 	index = "index" token+ ";"
@@ -44,9 +41,9 @@ Directives:
 	autoindex = "autoindex" WS ( "on" | "off" ) OWS ";"
 
 	cgi = "cgi" WS EXTENSION PATH OWS ";"
-
 		- EXTENSION = ("." token)
-	
+
 	upload_store = "upload_store" WS PATH OWS ";"
 
 	return = "return" WS STATUS_CODE WS URL OWS ";"
+
