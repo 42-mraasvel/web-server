@@ -10,6 +10,9 @@ for file in result:
 	regex = "(.*)ignore_(.*\.conf)"
 	result = re.search(regex, file)
 	if result:
-		print(result.groups(1)[0] + result.groups(1)[1])
+		newpath = result.groups(1)[0] + result.groups(1)[1]
+		print(file, "->", newpath)
+		# os.rename(file, newpath)
+		# print(result.groups(1)[0] + result.groups(1)[1])
 
 # to rename: os.rename(oldpath, newpath)
