@@ -1,0 +1,21 @@
+-- Invalid Tests --
+
+	y- Listen
+	y- Location
+	DISCUSS: y- Mandatory directives
+
+	- ServerBlock
+	- server_name
+	- error_page
+	- client_body_size
+	- root
+	- allowed_methods
+	- index
+	- autoindex
+	- cgi
+	- upload_store
+	- return
+	- unknown directives
+	- keywords (directive names) as arguments to other directives
+
+-- Valid Tests --
