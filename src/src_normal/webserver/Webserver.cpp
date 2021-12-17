@@ -21,16 +21,13 @@ int Webserver::initServer(ip_host_pair iphost)
 	return OK;
 }
 
-/*
-TODO: close FD after failure
-*/
 int	Webserver::init()
 {
 	for (Config::const_iterator_map it = _config_map.begin(); it != _config_map.end(); ++it)
 	{
 		if (shouldInitialize(it->first))
 		{
-			printf("Initiailizing: %s:%d\n", it->first.first.c_str(), it->first.second);
+			printf("Initializing: %s:%d\n", it->first.first.c_str(), it->first.second);
 			if (initServer(it->first) == ERR)
 			{
 				return ERR;
@@ -59,7 +56,6 @@ bool Webserver::shouldExecuteFd(const FdTable::AFdPointer afd)
 
 bool Webserver::shouldCloseFd(short revents) const
 {
-	//TODO: test on mac if this is how it functions as well
 	return (revents & (POLLERR | POLLNVAL)) ||
 		((revents & POLLHUP) && !(revents & POLLIN));
 }
@@ -76,21 +72,19 @@ void Webserver::executeFd(short revents, FdTable::AFdPointer afd)
 
 	if (revents & POLLIN)
 	{
-		printf(BLUE_BOLD "Read event:" RESET_COLOR " %s: [%d]\n",
-			afd->getName().c_str(), afd->getFd());
+		// printf(BLUE_BOLD "Read event:" RESET_COLOR " %s: [%d]\n",
+		// 	afd->getName().c_str(), afd->getFd());
 		afd->readEvent(_fd_table);
 	}
 
-	if (revents & POLLOUT)
+	if (revents & POLLOUT && !(revents & (POLLERR | POLLNVAL | POLLHUP)))
 	{
-		printf(BLUE_BOLD "Write event:" RESET_COLOR " %s: [%d]\n",
-			afd->getName().c_str(), afd->getFd());
+		// printf(BLUE_BOLD "Write event:" RESET_COLOR " %s: [%d]\n",
+		// 	afd->getName().c_str(), afd->getFd());
 		afd->writeEvent(_fd_table);
 	}
 }
 
-//TODO: evaluate 'ready'
-//TODO: add Multithreading
 int	Webserver::dispatchFd(int ready)
 {
 	std::size_t i = 0;
@@ -113,7 +107,6 @@ int	Webserver::dispatchFd(int ready)
 	return OK;
 }
 
-//TODO: scan for Timeout
 void	Webserver::scanFdTable()
 {
 	for (std::size_t i = 0; i < _fd_table.size(); ++i)
@@ -159,7 +152,7 @@ int	Webserver::run()
 	{
 		scanFdTable();
 		ready = poll(_fd_table.getPointer(), _fd_table.size(), POLL_TIMEOUT);
-		printf("Number of connections: %lu\n", _fd_table.size());
+		// printf("Number of connections: %lu\n", _fd_table.size());
 		if (ready < 0)
 		{
 			perror("Poll");
@@ -167,7 +160,7 @@ int	Webserver::run()
 		}
 		else if (ready > 0)
 		{
-			printf(YELLOW_BOLD "Poll returns: " RESET_COLOR "%d\n", ready);
+			// printf(YELLOW_BOLD "Poll returns: " RESET_COLOR "%d\n", ready);
 			// print();
 			dispatchFd(ready);
 		}

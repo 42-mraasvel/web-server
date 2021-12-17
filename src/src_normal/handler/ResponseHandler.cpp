@@ -42,17 +42,22 @@ ResponseHandler::ResponsePointer	ResponseHandler::getNextResponse()
 	return r;
 }
 
-void	ResponseHandler::popQueue()
+void		ResponseHandler::popQueue()
 {
 	_response_queue.pop_front();
 }
 
-bool	ResponseHandler::isResponseQueueEmpty() const
+bool		ResponseHandler::isResponseQueueEmpty() const
 {
 	return _response_queue.empty();
 }
 
-void	ResponseHandler::clear()
+bool		ResponseHandler::canExecuteRequest() const
+{
+	return _response_queue.size() < RESPONSE_QUEUE_MAX_SIZE;
+}
+
+void		ResponseHandler::clear()
 {
 	_response_queue.clear();
 }

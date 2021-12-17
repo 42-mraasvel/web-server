@@ -7,7 +7,6 @@ namespace WebservUtility
 
 /*
 Return index inside the buffer, to the start of the next endline
-TODO: newline should be a custom string, i.e. it can be any representation of a string (INPUT)
 So we can match a string at the end of leftover to the end of the buffer
 */
 std::size_t findEndLine(std::string & leftover, std::string const & buffer, std::size_t index)

@@ -14,7 +14,8 @@ struct Response
 	enum Status
 	{
 		START,
-		COMPLETE
+		COMPLETE,
+		SPECIAL
 	};
 
 	enum Encoding
@@ -26,10 +27,11 @@ struct Response
 
 	public:
 		void	markComplete(int new_status_code);
+		void	markSpecial(int new_status_code);
+		bool	isFinished() const;
 		void	setCgi();
 		void	unsetCgi();
 		void	resetErrorPageRedirection();
-		bool	isReadyToWrite() const;
 
 	/* request related info */
 	Method::Type		method;
@@ -45,6 +47,7 @@ struct Response
 	bool				is_cgi;
 	bool				error_page_attempted;
 	Encoding			encoding;
+	bool				content_type_fixed;
 
 	/* handler */
 	iHandler*		handler;
@@ -58,6 +61,5 @@ struct Response
 	std::string			string_status_line;
 	std::string 		string_header_field;
 	std::string			message_body;
-
 
 };

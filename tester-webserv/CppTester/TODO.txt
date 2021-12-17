@@ -1,0 +1,13 @@
+TODO
+
+Client class:
+
+		-- Ideas, Not Implemented Yet --
+
+			- Set CONTENT_LENGTH or TRANSFER_ENCODING
+
+				- Have the client determine the content length or transfer encoding, based on the Chunked option and body size
+
+General:
+
+	- Keep only what is necessary in terms of Utility files

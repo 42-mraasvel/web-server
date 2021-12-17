@@ -10,15 +10,8 @@
 
 CgiSender::CgiSender(int fd, SmartPointer<Request> r, Timer* timer)
 : AFdInfo(fd), _timer(timer) {
-	//TODO: determine location and clean solution to this
-	if (r->method == Method::POST)
-	{
-		_message_body.swap(r->message_body);
-	}
-	else
-	{
-		r->message_body.clear();
-	}
+	//TODO: DISCUSS: message body is only sent in a POST request to the CGI process
+	_message_body = r->message_body;
 }
 
 CgiSender::~CgiSender() {}
@@ -49,22 +42,21 @@ void CgiSender::writeEvent(FdTable & fd_table)
 			return;
 		}
 		_message_body.erase(0, n);
-		printf("%s: [%d]: Sent: %ld bytes\n",
-			getName().c_str(), getFd(), n);
+		// printf("%s: [%d]: Sent: %ld bytes\n",
+		// 	getName().c_str(), getFd(), n);
 	}
 
 	if (_message_body.size() == 0)
 	{
-		printf("%s: [%d]: Finished writing\n",
-			getName().c_str(), getFd());
+		// printf("%s: [%d]: Finished writing\n",
+		// 	getName().c_str(), getFd());
 		closeEvent(fd_table);
 	}
 }
 
 void CgiSender::readEvent(FdTable & fd_table)
 {
-	std::cerr << RED_BOLD "CGI SENDER READ EVENT CALLED: ABORTING PROGRAM" RESET_COLOR << std::endl;
-	std::abort();
+	abortProgram(RED_BOLD "CGI SENDER READ EVENT CALLED: ABORTING PROGRAM" RESET_COLOR);
 }
 
 void CgiSender::closeEvent(FdTable & fd_table)

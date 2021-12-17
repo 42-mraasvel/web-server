@@ -58,9 +58,11 @@ class HttpRequestParser
 
 	/* HeaderFields */
 		int processRequestHeader(Request & request);
+		int processPostParsing(Request & request);
 		int checkContentType(HeaderField const & header);
 		int parseContentLength(std::string const & value);
 		int parseTransferEncoding(std::string const & value);
+		void headerErrorCheckCloseConnection(Request & request);
 
 	private:
 

@@ -5,7 +5,7 @@ namespace MediaType
 {
 
 typedef HeaderField Map;
-void	initMap(Map & map);
+Map	initMap();
 std::string	getMediaType(std::string const & file);
 
 }

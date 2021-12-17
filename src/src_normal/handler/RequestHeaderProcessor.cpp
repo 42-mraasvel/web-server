@@ -2,6 +2,7 @@
 #include "settings.hpp"
 #include "utility/utility.hpp"
 #include "utility/status_codes.hpp"
+#include <set>
 
 int RequestHeaderProcessor::getStatusCode() const
 {
@@ -40,11 +41,15 @@ int RequestHeaderProcessor::process(Request & request)
 		throw e;
 	}
 	request.config_info = _config_resolver.getConfigInfo();
+	return OK;
+}
+
+int RequestHeaderProcessor::processPostParsing(Request & request)
+{
 	if (request.config_info.result == ConfigInfo::NOT_FOUND)
 	{
 		return setError(StatusCode::NOT_FOUND);
 	}
-
 	if (!_request_validator.isRequestValidPostConfig(request))
 	{
 		return setError(_request_validator.getStatusCode());
@@ -52,16 +57,38 @@ int RequestHeaderProcessor::process(Request & request)
 	return OK;
 }
 
-void RequestHeaderProcessor::processError(Request & request)
+void RequestHeaderProcessor::processError(Request & request, int status_code)
 {
 	if (request.config_info.resolved_server != NULL)
 	{
 		return;
 	}
+	if (isTooLargeStatusCode(status_code))
+	{
+		request.close_connection = true;
+	}
 	request.request_target = "";
 	request.method = Method::GET;
 	_config_resolver.resolution(request, "");
 	request.config_info = _config_resolver.getConfigInfo();
+}
+
+bool RequestHeaderProcessor::isTooLargeStatusCode(int status_code)
+{
+	static const int close_codes[] = {
+		StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE,
+		StatusCode::URI_TOO_LONG,
+		StatusCode::PAYLOAD_TOO_LARGE
+	};
+
+	for (std::size_t i = 0; i < sizeof(close_codes) / sizeof(close_codes[0]); ++i)
+	{
+		if (status_code == close_codes[i])
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 /*

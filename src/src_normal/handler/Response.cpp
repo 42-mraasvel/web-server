@@ -24,6 +24,7 @@ status_code(0),
 is_cgi(false),
 error_page_attempted(false),
 encoding(UNDEFINED),
+content_type_fixed(false),
 handler(&file_handler),
 header_part_set(false)
 {}
@@ -32,6 +33,17 @@ void	Response::markComplete(int new_status_code)
 {
 	status = COMPLETE;
 	status_code = new_status_code;
+}
+
+void	Response::markSpecial(int new_status_code)
+{
+	status = SPECIAL;
+	status_code = new_status_code;
+}
+
+bool	Response::isFinished() const
+{
+	return status == SPECIAL || status == COMPLETE;
 }
 
 void	Response::setCgi()
@@ -52,18 +64,4 @@ void	Response::resetErrorPageRedirection()
 	encoding = Response::UNDEFINED;
 	error_page_attempted = true;
 	unsetCgi();
-}
-
-bool	Response::isReadyToWrite() const
-{
-	if (status == COMPLETE)
-	{
-		return true;
-	}
-	else if (encoding == CHUNKED && !message_body.empty())
-	{
-		return true;
-	}
-	return false;
-
 }

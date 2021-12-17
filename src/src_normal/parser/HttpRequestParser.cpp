@@ -2,25 +2,44 @@
 #include "settings.hpp"
 #include "utility/utility.hpp"
 #include "Request.hpp"
+#include <iostream>
+
+static bool validHostHeaderValue(const std::string& value)
+{
+	std::size_t pos = value.find(':');
+	if (pos == std::string::npos)
+	{
+		return true;
+	}
+	++pos;
+	while (pos < value.size())
+	{
+		if (!isdigit(value[pos]))
+		{
+			return false;
+		}
+		++pos;
+	}
+	return true;
+}
 
 /*
 This is the validator called during HeaderFieldParsing
 Used to check duplicate header-fields
+[RFC7230] Section 3.2.2.
 */
 static bool isValidRequestHeader(std::string const &key,
 								 std::string const &value, HeaderField const &header)
 {
 	HeaderField::const_pair_type field = header.get(key);
-
-	if (field.second)
+	if (field.second && !WebservUtility::caseInsensitiveEqual(key, "Set-Cookie"))
 	{
-		if (WebservUtility::caseInsensitiveEqual(key, "Content-Length")
-		|| WebservUtility::caseInsensitiveEqual(key, "Transfer-Encoding")
-		|| WebservUtility::caseInsensitiveEqual(key, "Host"))
-		{
-			generalError("%s: %s\n", _FUNC_ERR("Duplicate Field").c_str(), key.c_str());
-			return false;
-		}
+		std::cerr << (_FUNC_ERR("Duplicate Field")) << ": " << key << std::endl;
+		return false;
+	}
+	if (WebservUtility::caseInsensitiveEqual(key, "Host"))
+	{
+		return validHostHeaderValue(value);
 	}
 	return true;
 }
@@ -39,7 +58,7 @@ _header_processor(config_map) {}
 
 int HttpRequestParser::parse(std::string const &buffer, std::size_t &index, Request &request)
 {
-	while (index < buffer.size())
+	while (index < buffer.size() || _state == ERROR || _state == COMPLETE)
 	{
 		switch (_state)
 		{
@@ -56,16 +75,11 @@ int HttpRequestParser::parse(std::string const &buffer, std::size_t &index, Requ
 				parseChunked(buffer, index, request);
 				break;
 			case ERROR:
-				_header_processor.processError(request);
+				_header_processor.processError(request, getStatusCode());
 				return ERR;
 			case COMPLETE:
-				return OK;
+				return processPostParsing(request);
 		}
-	}
-	if (_state == ERROR)
-	{
-		_header_processor.processError(request);
-		return ERR;
 	}
 	return OK;
 }
@@ -90,18 +104,24 @@ void HttpRequestParser::parseHeader(std::string const &buffer,
 {
 	if (_header_parser.parse(buffer, index) == ERR)
 	{
+		headerErrorCheckCloseConnection(request);
 		setError(_header_parser.getStatusCode());
 	}
 	else if (_header_parser.isComplete())
 	{
 		request.header_fields.swap(_header_parser.getHeaderField());
-		try {
 		processRequestHeader(request);
+	}
+}
 
-		} catch(...) {
-			printf("PROCESS REQUEST HANDLER THREW\n");
-			throw;
-		}
+void HttpRequestParser::headerErrorCheckCloseConnection(Request & request)
+{
+	const std::pair<std::string, std::string>& failed = _header_parser.getFailedPair();
+
+	if (WebservUtility::caseInsensitiveEqual(failed.first, "Content-Length")
+		&& _header_parser.getHeaderField().contains(failed.first))
+	{
+		request.close_connection = true;
 	}
 }
 
@@ -124,6 +144,7 @@ void HttpRequestParser::parseChunked(std::string const &buffer,
 {
 	if (_chunked_content_parser.parse(buffer, index, request) == ERR)
 	{
+		request.close_connection = true;
 		setError(_chunked_content_parser.getStatusCode());
 	}
 	else if (_chunked_content_parser.isComplete())
@@ -150,7 +171,18 @@ int HttpRequestParser::processRequestHeader(Request &request)
 
 	if (checkContentType(request.header_fields) == ERR)
 	{
+		request.close_connection = true;
 		return ERR;
+	}
+	return OK;
+}
+
+int HttpRequestParser::processPostParsing(Request & request)
+{
+	if (_header_processor.processPostParsing(request) == ERR)
+	{
+		_header_processor.processError(request, _header_processor.getStatusCode());
+		return setError(_header_processor.getStatusCode());
 	}
 	return OK;
 }
@@ -188,7 +220,7 @@ int HttpRequestParser::parseContentLength(std::string const &value)
 	}
 
 	std::size_t content_length;
-	if (WebservUtility::strtoul(value, content_length) == -1)
+	if (value.size() == 0 || WebservUtility::strtoul(value, content_length) == -1)
 	{
 		return setError(StatusCode::BAD_REQUEST);
 	}
@@ -199,7 +231,14 @@ int HttpRequestParser::parseContentLength(std::string const &value)
 	}
 
 	_content_parser.setContentLength(content_length);
-	setState(HttpRequestParser::PARSE_CONTENT);
+	if (content_length == 0)
+	{
+		setState(HttpRequestParser::COMPLETE);
+	}
+	else
+	{
+		setState(HttpRequestParser::PARSE_CONTENT);
+	}
 	return OK;
 }
 
