@@ -26,10 +26,17 @@ std::vector<std::string> getConfigs(std::string str)
 	return (ret);
 }
 
+/*
+(C++ 17)
+https://en.cppreference.com/w/cpp/filesystem/recursive_directory_iterator
+*/
 std::vector<std::string> getFilesRecursively(const std::string& dirname) {
 	std::vector<std::string> files;
 	for (const auto& file : std::filesystem::recursive_directory_iterator(dirname)) {
-		files.push_back(file.path());
+		const std::string path = file.path();
+		if (path.find("ignore") == std::string::npos) {
+			files.push_back(path);
+		}
 	}
 	return files;
 }
