@@ -34,6 +34,9 @@ std::vector<std::string> getFilesRecursively(const std::string& dirname) {
 	std::vector<std::string> files;
 	for (const auto& file : std::filesystem::recursive_directory_iterator(dirname)) {
 		const std::string path = file.path();
+		if (std::filesystem::is_directory(file)) {
+			continue;
+		}
 		if (path.find("ignore") == std::string::npos) {
 			files.push_back(path);
 		}

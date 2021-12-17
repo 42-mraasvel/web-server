@@ -5,12 +5,12 @@
 	DISCUSS: y- Mandatory directives
 
 	y- ServerBlock
-	n- server_name
-	n- error_page
-	n- client_body_size
-	n- root
-	n- allowed_methods
-	n- index
+	y- server_name
+	y- error_page
+	y- client_body_size
+	y- root
+	y- allowed_methods
+	y- index
 	n- autoindex
 	n- cgi
 	n- upload_store
@@ -19,3 +19,5 @@
 	n- keywords (directive names) as arguments to other directives
 
 -- Valid Tests --
+
+	y-server_name
