@@ -23,9 +23,10 @@ Output::~Output() {
 #endif /* PRINT_INFO_FLAG */
 			break;
 		case Output::DEBUG:
-#ifdef PRINT_DEBUG_FLAG
-			std::cout << BLUE_BOLD "[DEBUG]: " RESET_COLOR << os.str();
-#endif
+// #ifdef PRINT_DEBUG_FLAG
+			// std::cout << BLUE_BOLD "[DEBUG]: " RESET_COLOR << os.str();
+			std::cout << os.str();
+// #endif
 			break;
 	}
 }
