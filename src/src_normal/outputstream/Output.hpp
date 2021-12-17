@@ -29,6 +29,10 @@ class Output {
 		std::ostringstream& get(Level l = Output::DEFAULT);
 
 	private:
+		void log() const;
+		std::string getLevelString() const;
+
+	private:
 		std::ostringstream os;
 		Level level;
 };

@@ -2,9 +2,19 @@
 #define OK 0
 #define ERR -1
 
-#define BACKLOG 50
+/*
+Logging!
+*/
+#define LOGFILE "./webserver.log"
+
+/*
+Server related defines and settings
+*/
+#define BACKLOG 50 // Poll backlog
 #define POLL_TIMEOUT 5000 // 5 seconds
 #define TIMEOUT 60 // 60 second timeout for client and CGI
+
+// TODO: move to parser specific header, parseutils or something
 #define CRLF "\r\n"
 #define NEWLINE CRLF
 #define EOHEADER CRLF CRLF
@@ -14,6 +24,7 @@ Config Specific Defines
 */
 #define DEFAULT_PORT 80
 #define DEFAULT_ROOT "/var/www/html"
+
 
 /*
 Parsing Specific Defines

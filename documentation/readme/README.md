@@ -48,7 +48,10 @@ If not specified, a default configuration is used instead.
 
 The web server is now able to accept requests, this can be done through the browser or any other valid HTTP client.
 
-TODO: link to options and describe what the options do, etc
+The following [OPTIONS] are available:
+
+	- info
+		Print extra info during runtime, such as processed requests and responses
 
 ### 3. Send requests
 

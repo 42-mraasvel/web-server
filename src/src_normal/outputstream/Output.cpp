@@ -1,6 +1,7 @@
 #include "Output.hpp"
 #include "settings.hpp"
 #include <iostream>
+#include <fstream>
 
 Output::Output() {}
 Output::~Output() {
@@ -28,6 +29,37 @@ Output::~Output() {
 			break;
 	}
 }
+
+void Output::log() const
+{
+	std::ofstream ofs(LOGFILE, std::ios_base::app);
+	if (!ofs.is_open())
+	{
+		PRINT << "Can't open file: " << LOGFILE << std::endl;
+		return;
+	}
+	ofs << "[" << getLevelString() << "]: " << os.str();
+	ofs.close();
+}
+
+std::string Output::getLevelString() const
+{
+	switch (level)
+	{
+		case DEFAULT:
+			return "";
+		case ERROR:
+			return "ERROR";
+		case WARNING:
+			return "WARNING";
+		case INFO:
+			return "INFO";
+		case DEBUG:
+			return "DEBUG";
+	}
+	return "";
+}
+
 
 std::ostringstream& Output::get(Level l)
 {
