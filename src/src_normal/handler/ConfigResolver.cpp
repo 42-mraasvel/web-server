@@ -424,37 +424,37 @@ int	ConfigResolver::findErrorFilePath(std::string const & error_uri)
 
 void	ConfigResolver::print() const
 {
-	std::cout << RED_BOLD << "----------------------" << RESET_COLOR << std::endl;
-	std::cout << "Config result based on hard-coded config\n(only for ConfigResolver testing):" << RESET_COLOR << std::endl;
+	PRINT_DEBUG << RED_BOLD << "----------------------" << RESET_COLOR << std::endl;
+	PRINT_DEBUG << "Config result based on hard-coded config\n(only for ConfigResolver testing):" << RESET_COLOR << std::endl;
 
 	printSolutionServer(info.resolved_server);
 	printSolutionLocation(info.resolved_location);
 
-	std::cout << RED_BOLD << "----------------------" << RESET_COLOR << std::endl << std::endl;
+	PRINT_DEBUG << RED_BOLD << "----------------------" << RESET_COLOR << std::endl << std::endl;
 }
 
 void	ConfigResolver::printSolutionServer(ConfigInfo::server_block_pointer server) const
 {
-	std::cout << RED_BOLD << "Resolved server is [server_name]: ";
+	PRINT_DEBUG << RED_BOLD << "Resolved server is [server_name]: ";
 	StringVectorType names = server->_server_names;
 	for (StringVectorType::const_iterator it = names.begin(); it != names.end(); ++it)
 	{
-		std::cout << *it << " ";
+		PRINT_DEBUG << *it << " ";
 	}
-	std::cout << RESET_COLOR << std::endl;
+	PRINT_DEBUG << RESET_COLOR << std::endl;
 }
 
 void	ConfigResolver::printSolutionLocation(ConfigInfo::location_block_pointer location) const
 {
 	if (location)
 	{
-		std::cout << RED_BOLD << "Resolved location is [path]: " << location->_path << std::endl;
-		std::cout << RED_BOLD << "Resolved target is: " << info.resolved_target << std::endl
+		PRINT_DEBUG << RED_BOLD << "Resolved location is [path]: " << location->_path << std::endl;
+		PRINT_DEBUG << RED_BOLD << "Resolved target is: " << info.resolved_target << std::endl
 							  << "Resolved file is: " << info.resolved_file_path 
 				  << RESET_COLOR << std::endl;
 	}
 	else
 	{
-		std::cout << RED_BOLD << "Location block failed to resolve!" << RESET_COLOR << std::endl;
+		PRINT_DEBUG << RED_BOLD << "Location block failed to resolve!" << RESET_COLOR << std::endl;
 	}
 }

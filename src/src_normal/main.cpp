@@ -1,6 +1,5 @@
 #include "settings.hpp"
 #include <cstdlib> // For exit() and EXIT_FAILURE
-#include <iostream> // For cout
 #include <poll.h>
 #include <unistd.h>
 #include "webserver/Webserver.hpp"
@@ -9,17 +8,11 @@
 #include "utility/SmartPointer.hpp"
 #include "handler/RequestHandler.hpp"
 #include "tmp/create_address_map.hpp"
-#include <signal.h>
-
-void pipeHandler(int sig) {
-	std::cerr << "SIG:" << sig << std::endl;
-	exit(0);
-}
+#include "outputstream/Output.hpp"
 
 #ifndef USING_CATCH
 int main(int argc, char **argv)
 {
-	signal(SIGPIPE, pipeHandler);
 	std::string configuration;
 	try
 	{
@@ -29,30 +22,32 @@ int main(int argc, char **argv)
 		}
 		else if (argc == 1)
 		{
-			std::cout << RED_BOLD "Warning: No configuration file given, using default config" << RESET_COLOR << std::endl;
+			PRINT_WARNING << "No configuration file given, using default config" << std::endl;
 			configuration = "src/src_normal/config/resources/default.conf";
 		}
 		else
 		{
-			std::cerr << RED_BOLD "Invalid argument amount" << std::endl;
-			exit(1);
+			PRINT_ERR << "invalid argument amount" << std::endl;
+			return 1;
 		}
 		Config config_file(configuration);
 		if (config_file.parser() == ERR)
 		{
-			std::cout << "PARSING ERROR EXIT PROGRAM" << std::endl;
-			exit(1);
+			PRINT_ERR << "PARSING ERROR EXIT PROGRAM" << std::endl;
+			return 1;
 		}
 		config_file.print();
 		Webserver webserver(config_file.getAddressMap());
 		if (webserver.init())
-			return (1);
+		{
+			return 1;
+		}
 		webserver.print();
 		webserver.run();
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << e.what() << '\n';
+		PRINT_ERR << e.what() << std::endl;
 	}
 	return 0;
 }

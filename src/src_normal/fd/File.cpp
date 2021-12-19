@@ -28,7 +28,7 @@ void File::readEvent(FdTable & fd_table)
 	ssize_t	ret = read(_fd, &buffer[0], BUFFER_SIZE);
 	if (ret == ERR)
 	{
-		perror("read");
+		syscallError(_FUNC_ERR("read"));
 		markError(fd_table);
 		return;
 	}
@@ -49,7 +49,7 @@ void File::writeEvent(FdTable & fd_table)
 	size_t	size = std::min((size_t)BUFFER_SIZE, _content.size());
 	if (write(_fd, _content.c_str(), size) == ERR)
 	{
-		perror("write");
+		syscallError(_FUNC_ERR("write"));
 		markError(fd_table);
 		return;
 	}

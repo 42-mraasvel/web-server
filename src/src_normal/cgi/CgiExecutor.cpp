@@ -25,9 +25,8 @@ int CgiExecutor::execute(FdTable & fd_table, Request & request, int* cgi_fds)
 
 	if (!canBeExecuted(script))
 	{
-		fprintf(stderr, "%sCgiExecutor%s: Cgi Script: %s: cannot be executed\n",
-			RED_BOLD, RESET_COLOR, script.c_str());
-			setStatus(StatusCode::BAD_GATEWAY);
+		PRINT_WARNING << "CgiExecutor: Cgi Script: " << script << ": cannot be executed" << std::endl;
+		setStatus(StatusCode::BAD_GATEWAY);
 		return ERR;
 	}
 
@@ -302,7 +301,7 @@ int CgiExecutor::clearCgi()
 
 int CgiExecutor::killCgi(int* status)
 {
-	printf(BLUE_BOLD "WaitEvent CGI:" RESET_COLOR " PID(%d)\n", _cgi_pid);
+	PRINT_INFO << BLUE_BOLD "CgiExecutor: " RESET_COLOR "cleaning child PID: " << _cgi_pid << std::endl;
 	pid_t result = waitpid(_cgi_pid, status, WNOHANG);
 	if (result == ERR)
 	{
@@ -310,13 +309,11 @@ int CgiExecutor::killCgi(int* status)
 	}
 	else if (result == 0)
 	{
-		printf("  CGI is still alive and has to be killed: [%d]\n", _cgi_pid);
 		if (kill(_cgi_pid, SIGKILL) == ERR)
 		{
 			return syscallError(_FUNC_ERR("kill"));
 		}
 
-		printf("  Waiting for CGI after killing\n");
 		if (waitpid(_cgi_pid, status, 0) == ERR)
 		{
 			return syscallError(_FUNC_ERR("waitpid"));
@@ -345,11 +342,11 @@ void CgiExecutor::clear()
 
 void CgiExecutor::print(MetaVariableContainerType const & meta_variables, std::string const & script, ConfigInfo const & info) const
 {
-	printf("TARGET: %s\n", info.resolved_file_path.c_str());
-	printf("SCRIPT: %s\n", script.c_str());
+	PRINT_DEBUG << "Target: " << info.resolved_file_path << std::endl;
+	PRINT_DEBUG << "Script: " << script << std::endl;
 	for (MetaVariableContainerType::const_iterator it = meta_variables.begin();
 		it != meta_variables.end(); ++it)
 	{
-		printf("%s: %s\n", it->first.c_str(), it->second.c_str());
+		PRINT_DEBUG << it->first << ": " << it->second << std::endl;
 	}
 }

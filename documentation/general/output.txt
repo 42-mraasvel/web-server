@@ -1,0 +1,29 @@
+Levels
+
+	- REGULAR
+
+		- Always printed, regardless of flags
+
+	- ERROR
+
+		- Like regular, always printed but to the error stream
+		- I added an [ERROR] prefix to it for now
+		- This should be errors that generally shouldn't ever happen (so parsing request errors that happen frequently shouldn't be here)
+
+	- WARNING
+
+		- Currently always printed with a [WARNING] prefix
+
+	- INFO
+
+		- I think it should only be printed with a flag: slightly more information
+
+			- New connection received
+			- Request parsed on connection [N]
+			- Response sent on connection [N]
+			- Request parsing errors, invalid requests
+
+	- DEBUG
+
+		- Most of the information that's usually not really necessary unless you're trying to hunt down bugs
+		- Such as configuration content, request content, response content, intermediary results, etc

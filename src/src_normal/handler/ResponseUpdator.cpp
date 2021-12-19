@@ -41,8 +41,7 @@ void	ResponseUpdator::updateHandler(Response & response)
 	}
 	catch (std::exception const & e)
 	{
-		fprintf(stderr, "%sUPDATE RESPONSE EXCEPTION%s: [%s]\n",
-			RED_BOLD, RESET_COLOR, e.what());
+		PRINT_ERR << "ResponseUpdator: caught update exception: " << e.what() << std::endl;
 		response.handler->exceptionEvent();
 	}
 	if (response.handler->isError())

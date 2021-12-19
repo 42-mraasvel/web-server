@@ -50,13 +50,10 @@ bool	isDirectoryExisted(std::string const & directory_path);
 int		createDirectories(std::string const & path);
 int 	list_directory(std::string const & directory, std::string const & path, std::string & content);
 std::string trimPort(std::string const & str);
-/* TODO: RM DEBUGGING */
-	void printStrings(char **strings, FILE* stream);
 
 }
 
 int syscallError(const std::string& str);
-int generalError(const char* format, ...);
 void abortProgram();
 void abortProgram(std::string const & message);
 

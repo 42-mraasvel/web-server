@@ -243,16 +243,12 @@ int Config::parseServer()
 				}
 				i = -1;
 			}
-			else if(i == 4 && _tokens[_token_index].compare("}"))
+			if (_tokens[_token_index].compare("}") == 0)
 			{
-				return ERR;
+				return OK;
 			}
-			_token_index++;
+			// _token_index++;
 		}
-	}
-	if (_tokens[_token_index].compare("}"))
-	{
-		return ERR;
 	}
 	return OK;
 }
@@ -301,17 +297,14 @@ int Config::parseLocation()
 				}
 				i = -1;
 			}
-			else if(i ==7  && _tokens[_token_index].compare("}") == 0)
+			else if (_tokens[_token_index].compare("}") == 0)
 			{
+				_token_index++;
 				return OK;
 			}
-			_token_index++;
 		}
 	}
-	if (_tokens[_token_index].compare("}"))
-	{
-		return ERR;
-	}
+	_token_index++;
 	return OK;
 }
 
@@ -458,7 +451,7 @@ int	Config::parseClientBodySize()
 int	Config::parseAllowedMethods()
 {
 	_token_index++;
-	while (_tokens[_token_index].compare(";") != 0)
+	while (_tokens[_token_index].compare(";") != 0 && validateToken(_tokens[_token_index]) == OK)
 	{
 		if (checkExpectedSyntax("GET", "POST", "DELETE") == OK)
 		{
@@ -638,7 +631,7 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2, std::string 
 		&& _tokens[_token_index].compare(str2) != 0
 		&& _tokens[_token_index].compare(str3) != 0)
 	{
-		std::cerr << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 <<" or " << str3 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
+		PRINT_ERR << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 <<" or " << str3 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
 		return ERR;
 	}
 	return (OK);
@@ -646,7 +639,7 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2, std::string 
 
 void	Config::configError(std::string str)
 {
-	std::cerr << RED_BOLD << "Config error: " << str << std::endl;
+	PRINT_ERR << RED_BOLD << "Config error: " << str << std::endl;
 }
 
 // Getters
