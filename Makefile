@@ -42,9 +42,9 @@ fsanitize:
 .phony: info noinfo
 info:
 	$(RM) $(ODIR)/$(OUTPUT_FILE)
-	$(MAKE) PRINT_INFO=1
+	$(MAKE) all
 noinfo:
 	$(RM) $(ODIR)/$(OUTPUT_FILE)
-	$(MAKE) all
+	$(MAKE) all NO_INFO=1
 
 -include $(DEP)

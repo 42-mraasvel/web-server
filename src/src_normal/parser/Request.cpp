@@ -184,5 +184,5 @@ void Request::print() const
 
 	PRINT_INFO << "Close Connection: " << (close_connection ? "yes" : "no") << std::endl;
 	PRINT_INFO << CYAN_BOLD "------------------------" RESET_COLOR << std::endl;
-	// printConfigInfo(config_info);
+	printConfigInfo(config_info);
 }

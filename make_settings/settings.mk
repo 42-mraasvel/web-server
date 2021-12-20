@@ -37,9 +37,9 @@ ifndef DEBUG
 	endif # FSANITIZE
 endif # DEBUG
 
-ifdef PRINT_INFO
+ifndef NO_INFO
 	CXXFLAGS += -DPRINT_INFO_FLAG
 	# CXXFLAGS += -DPRINT_DEBUG_FLAG
-endif # PRINT_INFO
+endif # NO_INFO
 
 endif # SETTINGS_MK

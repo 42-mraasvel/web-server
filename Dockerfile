@@ -10,7 +10,7 @@ RUN apt-get update && \
 	procps
 
 RUN python3 -m pip install chardet requests_toolbelt
+RUN mkdir /webserv
+COPY . /webserv/
 
-COPY . .
-
-CMD ["bash", "StartWebserv.sh"]
+CMD ["bash", "/webserv/Docker/StartWebserv.sh"]

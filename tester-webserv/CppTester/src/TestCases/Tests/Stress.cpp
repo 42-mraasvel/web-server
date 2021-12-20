@@ -1,4 +1,5 @@
 #include "TestCases/TestCase.hpp"
+#include <limits>
 
 static TestCase defaultTestCase() {
 	TestCase testcase;
