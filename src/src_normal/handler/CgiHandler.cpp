@@ -192,16 +192,6 @@ void CgiHandler::setSpecificHeaderField(HeaderField & header_field, bool content
 		{
 			continue;
 		}
-
-		//TODO: DISCUSS: check if should be removed
-		if (header_field.contains(it->first) && it->second != header_field[it->first])
-		{
-			PRINT_WARNING << __FILE__ << ":" << __LINE__ << " " << __FUNCTION__ \
-				<< ": overwriting field: " \
-				<< it->first << ": [" << header_field[it->first] \
-				<< "] with [" << it->second << "]" << std::endl; 
-
-		}
 		if (!skippedHeaderField(it->first))
 		{
 			header_field[it->first] = it->second;
