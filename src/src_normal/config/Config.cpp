@@ -243,6 +243,14 @@ int Config::parseServer()
 				}
 				i = -1;
 			}
+			else if (i == 4)
+			{
+				return ERR;
+			}
+			if (_token_index >= _tokens.size())
+			{
+				return ERR;
+			}
 			if (_tokens[_token_index].compare("}") == 0)
 			{
 				return OK;
@@ -285,7 +293,7 @@ int Config::parseLocation()
 	};
 	while (_token_index < _tokens.size() && _tokens[_token_index].compare("}"))
 	{
-		for (size_t i = 0; i < 8; i++)
+		for (size_t i = 0; i < 7; i++)
 		{
 			ret = 0;
 			if (_tokens[_token_index].compare(func[i].str) == 0)
@@ -297,7 +305,11 @@ int Config::parseLocation()
 				}
 				i = -1;
 			}
-			else if (_tokens[_token_index].compare("}") == 0)
+			else if (i == 6)
+			{
+				return ERR;
+			}
+			if (_tokens[_token_index].compare("}") == 0)
 			{
 				_token_index++;
 				return OK;
@@ -311,6 +323,10 @@ int Config::parseLocation()
 int	Config::parseListen()
 {
 	_token_index++;
+	if (_tokens[_token_index].compare(";") == 0)
+	{
+		return ERR;
+	}
 	size_t split = _tokens[_token_index].find_last_of(":");
 	std::string listen;
 	std::string host;
@@ -327,7 +343,7 @@ int	Config::parseListen()
 	}
 	else
 	{
-		host = "0.0.0.0";
+		host = DEFAULT_ADDRESS;
 		listen = _tokens[_token_index].substr(0);
 	}
 	for (size_t i = 0; i < listen.size(); i++)
@@ -352,7 +368,7 @@ int	Config::parseListen()
 int	Config::parseServerName()
 {
 	_token_index++;
-	while (_tokens[_token_index].compare(";") != 0 && validateToken(_tokens[_token_index]) == OK)
+	while (validateToken(_tokens[_token_index]) == OK)
 	{
 		if (_tokens[_token_index].compare("\"\"") == 0)
 		{
@@ -375,8 +391,12 @@ int	Config::parseServerName()
 int	Config::parseRoot()
 {
 	_token_index++;
+	if (_tokens[_token_index].compare(";") == 0)
+	{
+		return ERR;
+	}
 	std::string path;
-	if (_tokens[_token_index].compare(";"))
+	if (validateToken(_tokens[_token_index]) == OK)
 	{
 		path = _tokens[_token_index];
 		if (path.find_last_of("/") == path.size() - 1)
@@ -403,6 +423,10 @@ int	Config::parseRoot()
 int	Config::parseClientBodySize()
 {
 	_token_index++;
+	if (_tokens[_token_index].compare(";") == 0)
+	{
+		return ERR;
+	}
 	std::string client_body_size = _tokens[_token_index];
 	for (size_t i = 0; i < client_body_size.size(); i++)
 	{
@@ -451,7 +475,11 @@ int	Config::parseClientBodySize()
 int	Config::parseAllowedMethods()
 {
 	_token_index++;
-	while (_tokens[_token_index].compare(";") != 0 && validateToken(_tokens[_token_index]) == OK)
+	if (_tokens[_token_index].compare(";") == 0)
+	{
+		return ERR;
+	}
+	while (validateToken(_tokens[_token_index]) == OK)
 	{
 		if (checkExpectedSyntax("GET", "POST", "DELETE") == OK)
 		{
@@ -470,6 +498,10 @@ int	Config::parseAllowedMethods()
 int	Config::parseAutoindex()
 {
 	_token_index++;
+	if (_tokens[_token_index].compare(";") == 0)
+	{
+		return ERR;
+	}
 	if (checkExpectedSyntax("on", "off") == OK)
 	{
 		_servers[_server_amount].addAutoIndex(_tokens[_token_index].compare("off"));
@@ -486,17 +518,32 @@ int	Config::parseAutoindex()
 int	Config::parseErrorPage()
 {
 	_token_index++;
-	for (size_t i = 0; i < _tokens[_token_index].size(); i++)
+	if (_tokens[_token_index].compare(";") == 0)
 	{
-		if (std::isdigit(_tokens[_token_index][i]) == 0)
+		return ERR;
+	}
+	if (validateToken(_tokens[_token_index]))
+	{
+		for (size_t i = 0; i < _tokens[_token_index].size(); i++)
 		{
-			configError(_tokens[_token_index]);
+			if (std::isdigit(_tokens[_token_index][i]) == 0)
+			{
+				configError(_tokens[_token_index]);
+				return ERR;
+			}
 		}
 	}
 	int page_number = atoi(_tokens[_token_index].c_str());
 	_token_index++;
-	_servers[_server_amount].addErrorPage(page_number, _tokens[_token_index]);
-	_token_index++;
+	if (_tokens[_token_index].compare(";") == 0)
+	{
+		return ERR;
+	}
+	if (validateToken(_tokens[_token_index]))
+	{
+		_servers[_server_amount].addErrorPage(page_number, _tokens[_token_index]);
+		_token_index++;
+	}
 	if(_tokens[_token_index].compare(";") != 0)
 	{
 		return (ERR);
@@ -507,10 +554,14 @@ int	Config::parseErrorPage()
 
 int Config::parseCgi()
 {
-	_token_index++;
 	std::string extention;
 	std::string path;
-	if (_tokens[_token_index].compare(";") != 0)
+	_token_index++;
+	if (_tokens[_token_index].compare(";") == 0)
+	{
+		return ERR;
+	}
+	if (validateToken(_tokens[_token_index]))
 	{
 		extention = _tokens[_token_index];
 		_token_index++;
@@ -539,8 +590,12 @@ int Config::parseCgi()
 int Config::parseUploadStore()
 {
 	_token_index++;
+	if (_tokens[_token_index].compare(";") == 0)
+	{
+		return ERR;
+	}
 	std::string path;
-	if (_tokens[_token_index].compare(";") != 0)
+	if (_tokens[_token_index].compare(";") != 0 && validateToken(_tokens[_token_index]))
 	{
 		path = _tokens[_token_index];
 		_token_index++;
@@ -563,11 +618,16 @@ int Config::parseUploadStore()
 int	Config::parseIndex()
 {
 	_token_index++;
-	while (_tokens[_token_index].compare(";") != 0 && validateToken(_tokens[_token_index]) == OK)
+	if (_tokens[_token_index].compare(";") == 0)
+	{
+		return ERR;
+	}
+	while (validateToken(_tokens[_token_index]) == OK)
 	{
 		if (_tokens[_token_index].find_last_of("/") == _tokens[_token_index].size() - 1)
 		{
 			configError("Index cannot be directory");
+			return ERR;
 		}
 		_servers[_server_amount].addIndex(_tokens[_token_index]);
 		_token_index++;
@@ -583,14 +643,18 @@ int	Config::parseIndex()
 int Config::parseReturn()
 {
 	_token_index++;
+	if (_tokens[_token_index].compare(";") == 0)
+	{
+		return ERR;
+	}
 	std::string ret;
 	std::string path;
-	if (_tokens[_token_index].compare(";") != 0)
+	if (validateToken(_tokens[_token_index]) == OK)
 	{
 		ret = _tokens[_token_index];
 		_token_index++;
 	}
-	if (_tokens[_token_index].compare(";") != 0)
+	if (validateToken(_tokens[_token_index]) == OK)
 	{
 		path = _tokens[_token_index];
 		_token_index++;
@@ -609,7 +673,7 @@ int	Config::checkExpectedSyntax(std::string str)
 {
 	if (_tokens[_token_index].compare(str) != 0)
 	{
-		abortProgram("Config Error: expected " + str + " instead of " + _tokens[_token_index]);
+		PRINT_ERR << RED_BOLD "Config Error: expected " << str << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
 		return ERR;
 	}
 	return (OK);
@@ -620,7 +684,8 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2)
 	if (_tokens[_token_index].compare(str1) != 0 
 		&& _tokens[_token_index].compare(str2) != 0)
 	{
-		abortProgram("Config Error: expected " + str1 + " or " + str2 + " instead of " + _tokens[_token_index]);
+		PRINT_ERR << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
+		return ERR;
 	}
 	return (OK);
 }
@@ -673,5 +738,3 @@ std::map<std::pair<std::string, int>, std::vector<ConfigServer::server_pointer> 
 {
 	return this->_address_map;
 }
-
-

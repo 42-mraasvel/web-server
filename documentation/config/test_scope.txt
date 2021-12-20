@@ -1,0 +1,23 @@
+-- Invalid Tests: Syntax/Language --
+
+	y- Listen
+	y- Location
+	DISCUSS: y- Mandatory directives
+
+	y- ServerBlock
+	y- server_name
+	y- error_page
+	y- client_body_size
+	y- root
+	y- allowed_methods
+	y- index
+	y- autoindex
+	y- cgi
+	y- upload_store
+	y- return
+	y- unknown directives
+	y- keywords (directive names) as arguments to other directives
+
+-- Valid Tests --
+
+	- Test with multiple of all directives

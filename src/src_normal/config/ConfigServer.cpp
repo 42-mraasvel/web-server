@@ -2,7 +2,7 @@
 #include "settings.hpp"
 #include <iostream>
 
-ConfigServer::ConfigServer():_client_body_size(0)
+ConfigServer::ConfigServer():_client_body_size(std::numeric_limits<std::size_t>::max())
 {}
 
 void	ConfigServer::addServerName(std::string name)
