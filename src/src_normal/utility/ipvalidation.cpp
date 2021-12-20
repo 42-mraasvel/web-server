@@ -7,7 +7,9 @@ namespace WebservUtility
 
 bool validIpv4(std::string const & ip) {
 	std::size_t index = 0;
+
 	std::size_t dott_count = 0;
+	std::size_t num_count = 0;
 	while (index < ip.size()) {
 		if (isDigit(ip[index])) {
 			std::size_t start = index;
@@ -15,6 +17,7 @@ bool validIpv4(std::string const & ip) {
 			if (index - start > 3 || strtol(ip.substr(start, index - start)) > 255) {
 				return false;
 			}
+			num_count++;
 		} else if (ip[index] == '.') {
 			dott_count += 1;
 			index++;
@@ -22,7 +25,7 @@ bool validIpv4(std::string const & ip) {
 			return false;
 		}
 	}
-	return dott_count == 3 && isDigit(ip[ip.size() - 1]);
+	return dott_count == 3 && num_count == 4;
 }
 
 }
