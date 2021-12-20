@@ -51,6 +51,8 @@ int		createDirectories(std::string const & path);
 int 	list_directory(std::string const & directory, std::string const & path, std::string & content);
 std::string trimPort(std::string const & str);
 
+bool validIpv4(std::string const & ip);
+
 }
 
 int syscallError(const std::string& str);
