@@ -670,7 +670,7 @@ int	Config::checkExpectedSyntax(std::string str)
 {
 	if (_tokens[_token_index].compare(str) != 0)
 	{
-		PRINT_ERR << RED_BOLD "Config Error: expected " << str << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
+		PRINT_ERR << RED_BOLD "Config error: expected " << str << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
 		return ERR;
 	}
 	return OK;
@@ -681,7 +681,7 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2)
 	if (_tokens[_token_index].compare(str1) != 0 
 		&& _tokens[_token_index].compare(str2) != 0)
 	{
-		PRINT_ERR << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
+		PRINT_ERR << RED_BOLD "Config error: expected " << str1 <<" or " << str2 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
 		return ERR;
 	}
 	return OK;
@@ -693,7 +693,7 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2, std::string 
 		&& _tokens[_token_index].compare(str2) != 0
 		&& _tokens[_token_index].compare(str3) != 0)
 	{
-		PRINT_ERR << RED_BOLD "Config Error: expected " << str1 <<" or " << str2 <<" or " << str3 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
+		PRINT_ERR << RED_BOLD "Config error: expected " << str1 <<" or " << str2 <<" or " << str3 << " instead of " << _tokens[_token_index] <<RESET_COLOR << std::endl;
 		return ERR;
 	}
 	return OK;
