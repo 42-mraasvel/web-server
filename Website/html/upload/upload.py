@@ -20,31 +20,38 @@ def readBody():
 	content = sys.stdin.buffer.read()
 	return content
 
+def postContent(filename, content):
+	status_code = 201
+	if os.path.exists(filename):
+		status_code = 204
+	with open(filename, "wb") as f:
+		f.write(content)
+	return status_code
+
 def postPart(part):
 	global response_body
 	disposition = part.headers[b'Content-Disposition'].decode('ascii')
 	regex = re.search('.*filename="(.*)"', disposition)
 	filename = regex.groups(1)[0]
-	with open("./" + UPLOAD_STORE + filename, 'wb') as f:
-		f.write(part.content)
 	headers['Location'] = '/' + UPLOAD_STORE + filename
 	response_body += "Uploaded: " + filename + "\r\n"
+	return postContent("./" + UPLOAD_STORE + filename, part.content)
 
 def multipartPost(body, content_type):
 	x = decoder.MultipartDecoder(body, content_type)
+	status_code = 204
 	for part in x.parts:
-		postPart(part)
-
-def postRawData(content):
-	with open ('./raw.txt', 'wb') as f:
-		f.write(content)
+		status_code = postPart(part)
+	return status_code
 
 def postRequestImage(content):
+	global response_body
 	content_type = os.getenv("CONTENT_TYPE")
 	if "multipart/form-data" in content_type:
-		multipartPost(content, content_type)
+		return multipartPost(content, content_type)
 	else:
-		postRawData(content)
+		response_body = "raw content posted"
+		return postContent("./" + UPLOAD_STORE + "raw.txt", content)
 
 def cgiError(status_code, msg):
 	headers["status"] = status_code
@@ -56,12 +63,11 @@ if __name__ == '__main__':
 	if os.environ['REQUEST_METHOD'] != 'POST':
 		cgiError(500, "CGI: method: POST required")
 
-	createUploadStore()
 	content = readBody()
-	headers["status"] = 201
-	postRequestImage(content)
+
+	createUploadStore()
+	headers["Status"] = postRequestImage(content)
+
 	printHeader(headers)
-	if len(response_body) > 0:
+	if headers["Status"] == 201:
 		print(response_body)
-	else:
-		print("Nothing Posted")
