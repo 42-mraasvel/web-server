@@ -217,7 +217,7 @@ void	Connection::checkTimeOut()
 	}
 	else if (_timer.elapsed() >= TIMEOUT && !_close_connection)
 	{
-		PRINT_INFO << getName() << ": [" << getFd() << "]: Timeout" << std::endl;
+		PRINT_INFO << BLUE_BOLD << getName() << RESET_COLOR << ": [" << getFd() << "]: Timeout" << std::endl;
 		_request_handler.newTimeoutRequest();
 	}
 }

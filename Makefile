@@ -39,9 +39,12 @@ fsanitize:
 	$(MAKE) all FSANITIZE=1
 
 # Printing
-.phony: info
+.phony: info noinfo
 info:
 	$(RM) $(ODIR)/$(OUTPUT_FILE)
 	$(MAKE) PRINT_INFO=1
+noinfo:
+	$(RM) $(ODIR)/$(OUTPUT_FILE)
+	$(MAKE) all
 
 -include $(DEP)
