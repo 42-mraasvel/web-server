@@ -23,7 +23,7 @@ class Config
 	 	// Parsing
 	private:
 		std::string const & tokenPreper(std::string str);
-		void	splitToken(std::string const & string);
+		void	splitToken(std::string string);
 		void	tokenizer(std::string const & body);
 		int		parseConfigFile();
 		int		parseServer();
@@ -42,7 +42,7 @@ class Config
 		int		checkExpectedSyntax(std::string str);
 		int		checkExpectedSyntax(std::string str1, std::string str2);
 		int		checkExpectedSyntax(std::string str1, std::string str2, std::string str3);
-		void	configError(std::string str);
+		int		configError(std::string str);
 		int		validateAddressMap();
 		int		validateServerBlock(ServerBlock server_block);
 		int		validateLocationBlock(LocationBlock location_block);
