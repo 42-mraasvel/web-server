@@ -7,13 +7,18 @@ getRealPath() {
 WEBSERV_DIR='..'
 EXEC_NAME='a.out'
 PYTHON_DIR='./PythonTester'
+CPP_DIR='./CppTester'
 CONFIG_FILE='./TestConfiguration.conf' #$(getRealPath './TestConfiguration.conf')
 SERVER_ROOT='./ServerRoot' #$(getRealPath './ServerRoot')
+
+RUN_WEBSERV="off"
 
 ####################################################
 
 source prepare.sh "$SERVER_ROOT"
+if [ "$RUN_WEBSERV" == "on" ]; then
 bash background_webserver.sh "$CONFIG_FILE"
+fi
 
 sleep 0.0001
 process=$(ps -a | grep -v grep | grep $EXEC_NAME)
@@ -22,8 +27,13 @@ if [ -z "$process" ]; then
 	exit 1
 fi
 
-make -C $PYTHON_DIR > /dev/null && python3 $PYTHON_DIR/src/main.py "$SERVER_ROOT" $@
+echo Python Tester...
+( cd $PYTHON_DIR ; bash run_python.sh $@ )
+echo CPP tester...
+( cd $CPP_DIR ; bash run_cpp.sh $@ )
 
 rm -rf $SERVER_ROOT/Method/Post
 cp $SERVER_ROOT/Method/Delete/copy.html $SERVER_ROOT/Method/Delete/sample.html
+if [ "$RUN_WEBSERV" == "on" ]; then
 pkill $EXEC_NAME
+fi
