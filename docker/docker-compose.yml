@@ -1,0 +1,7 @@
+services:
+  webserv:
+    container_name: webserv
+    image: webserv
+    build: ./src
+    ports:
+      - "8080:8080"
