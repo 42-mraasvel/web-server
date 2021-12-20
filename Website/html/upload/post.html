@@ -1,4 +1,18 @@
-<form target="_blank" action="/upload/upload.py" method="post" enctype="multipart/form-data">
-	<input type="file" id="myFile" name="filename">
-	<input type="submit">
-</form>
+<html>
+    <body>
+		<form  target="_blank" action="/upload/UploadedFiles/new.txt" method="post" enctype="multipart/form-data">
+			<input type="file" id="myFile" name="filename">
+			<input type="submit">
+		</form>
+	</body>
+</html>
+
+<script type="text/javascript">
+	function setAction()
+	{
+		var myfile = document.getElementById('myFile');
+		var file_name = myfile.substring(myfile.lastIndexOf('/')+1);
+		var action_prefix = "/upload/UploadedFiles/";
+		document.getElementById('myFile').action = action_prefix.concat(fiel_name);
+	}
+</script>
