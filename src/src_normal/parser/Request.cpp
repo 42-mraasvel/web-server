@@ -1,6 +1,7 @@
 #include "Request.hpp"
 #include "color.hpp"
 #include "settings.hpp"
+#include "utility/utility.hpp"
 
 /*
 	RequestStatus	status;
@@ -178,15 +179,7 @@ void Request::print() const
 	PRINT_INFO << CYAN_BOLD "-- Message Body --" RESET_COLOR << std::endl;
 	PRINT_INFO << "Body-Size(" << message_body.size() << ")" << std::endl;
 
-	if (message_body.size() <= MAX_HEADER_SIZE)
-	{
-		PRINT_INFO << message_body << std::endl;
-	}
-	else
-	{
-		PRINT_INFO << "Body too large to print" << std::endl;
-	}
-
+	WebservUtility::printBody(message_body);
 	PRINT_INFO << CYAN_BOLD " - Other Features -" RESET_COLOR << std::endl;
 
 	PRINT_INFO << "Close Connection: " << (close_connection ? "yes" : "no") << std::endl;

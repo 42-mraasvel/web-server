@@ -51,6 +51,8 @@ int		createDirectories(std::string const & path);
 int 	list_directory(std::string const & directory, std::string const & path, std::string & content);
 std::string trimPort(std::string const & str);
 
+void printBody(std::string const & message_body);
+
 }
 
 int syscallError(const std::string& str);
