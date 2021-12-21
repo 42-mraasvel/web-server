@@ -1,6 +1,8 @@
 #include "utility/color.hpp"
 #include "settings.hpp"
 #include "utility/Output.hpp"
+#include <errno.h>
+#include <cstdlib>
 #include <cstring> // Linux strerror
 
 /*

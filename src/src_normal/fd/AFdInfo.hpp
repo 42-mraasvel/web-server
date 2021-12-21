@@ -1,5 +1,6 @@
 #pragma once
 #include "FdTable.hpp"
+#include <string>
 
 class AFdInfo
 {

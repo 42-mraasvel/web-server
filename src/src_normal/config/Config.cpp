@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include "utility/utility.hpp"
 #include <unistd.h>
+#include <cstdlib>
 
 Config::Config(std::string const & config_file): _file_name(config_file), _server_amount(0), _token_index(0){}
 

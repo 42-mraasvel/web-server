@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
+#include <cstring>
 
 Server::Server() {}
 Server::~Server() {}

@@ -1,5 +1,6 @@
 #include "ContentParser.hpp"
 #include "settings.hpp"
+#include <limits>
 
 ContentParser::ContentParser()
 {

@@ -2,6 +2,7 @@
 # include "HeaderFieldParser.hpp"
 # include "ContentParser.hpp"
 # include <sys/types.h>
+# include <vector>
 
 struct Request;
 
