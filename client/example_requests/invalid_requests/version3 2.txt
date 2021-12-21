@@ -1,3 +1,0 @@
-GET / HTTP/0.999
-Host: 1
-

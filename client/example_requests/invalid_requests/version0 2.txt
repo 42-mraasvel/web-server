@@ -1,3 +1,0 @@
-GET / HTTP/3.0
-Host: 1
-
