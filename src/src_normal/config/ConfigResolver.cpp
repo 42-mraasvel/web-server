@@ -4,7 +4,6 @@
 #include "utility/utility.hpp"
 #include "request/Request.hpp"
 #include "handler/CgiHandler.hpp"
-#include <iostream>
 #include <unistd.h>
 
 /*********************/

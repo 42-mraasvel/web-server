@@ -1,7 +1,6 @@
 #include "utility.hpp"
 #include "macros.hpp"
 #include <unistd.h>
-#include <stdio.h>
 
 namespace WebservUtility
 {

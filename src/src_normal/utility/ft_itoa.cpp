@@ -1,5 +1,4 @@
 #include "utility/utility.hpp"
-#include <string>
 
 #define BASE_STR "0123456789abcdefghijklmnopqrstuvwxyz"
 #define BASE_STR_UPCASE "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"

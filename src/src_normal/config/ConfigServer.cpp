@@ -1,6 +1,5 @@
 #include "ConfigServer.hpp"
 #include "settings.hpp"
-#include <iostream>
 
 ConfigServer::ConfigServer():_client_body_size(std::numeric_limits<std::size_t>::max())
 {}
@@ -74,7 +73,6 @@ int	ConfigServer::emptyAddress()
 	return _ports.empty();
 }
 
-// Getters
 std::vector<int> ConfigServer::getPorts()
 {
 	return _ports;
@@ -97,7 +95,6 @@ std::map<std::pair<std::string, int>, std::vector<ConfigServer::server_pointer> 
 	return this->_address_map;
 }
 
-// Utility
 void	ConfigServer::initAddressMap()
 {
 	initServerBlock();

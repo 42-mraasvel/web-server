@@ -4,8 +4,6 @@
 #include "utility/utility.hpp"
 #include "ParserUtils.hpp"
 #include "request/Request.hpp"
-#include <vector>
-#include <limits>
 
 static bool IsValidChunkedField(std::string const & key,
 		std::string const & value, HeaderField const & header)
