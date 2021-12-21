@@ -1,0 +1,19 @@
+# multiple servers
+# multiple listen per server
+# host
+# port
+# error_pages
+
+
+server {
+
+	listen 80;
+	server_name localhost www.localhost
+	client_body_size 4096;
+	location / {
+
+	}
+
+
+
+}

@@ -7,7 +7,7 @@ IFLAGS = -I$(IDIR) -I$(SDIR)/$(SRC_SUBDIR)
 LFLAGS =
 
 ifdef USING_CATCH
-	CXXFLAGS += -std=c++14 -pedantic -DUSING_CATCH
+	CXXFLAGS += -std=c++17 -pedantic -DUSING_CATCH
 else
 	CXXFLAGS += -std=c++98 -pedantic
 endif # USING_CATCH
