@@ -58,6 +58,7 @@ void	AFdInfo::removeEvents(AFdInfo::EventTypes type, FdTable & fd_table)
 
 void	AFdInfo::update(FdTable & fd_table)
 {
+	(void)fd_table;
 	return ;
 }
 
@@ -69,6 +70,7 @@ void	AFdInfo::closeEvent(FdTable & fd_table)
 
 void	AFdInfo::exceptionEvent(FdTable & fd_table)
 {
+	(void)fd_table;
 	PRINT_WARNING << "Exception Event: " << getName() << std::endl;
 }
 

@@ -86,9 +86,8 @@ void Webserver::executeFd(short revents, FdTable::AFdPointer afd)
 	}
 }
 
-int	Webserver::dispatchFd(int ready)
+int	Webserver::dispatchFd()
 {
-	std::size_t i = 0;
 	for (std::size_t i = 0; i < _fd_table.size(); ++i)
 	{
 		if (shouldExecuteFd(_fd_table[i].second))
@@ -161,7 +160,7 @@ int	Webserver::run()
 		else if (ready > 0)
 		{
 			print();
-			dispatchFd(ready);
+			dispatchFd();
 		}
 	}
 

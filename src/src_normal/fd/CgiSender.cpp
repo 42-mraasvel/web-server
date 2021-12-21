@@ -53,6 +53,7 @@ void CgiSender::writeEvent(FdTable & fd_table)
 
 void CgiSender::readEvent(FdTable & fd_table)
 {
+	(void)fd_table;
 	abortProgram(RED_BOLD "CGI SENDER READ EVENT CALLED: ABORTING PROGRAM" RESET_COLOR);
 }
 

@@ -43,7 +43,6 @@ int CgiExecutor::execute(FdTable & fd_table, Request & request, int* cgi_fds)
 
 std::string CgiExecutor::resolveCgiScript(std::string const target, CgiVectorType const & cgi)
 {
-	std::size_t index = 0;
 	for (CgiVectorType::const_iterator it = cgi.begin(); it != cgi.end(); ++it)
 	{
 		if (WebservUtility::stringEndsWith(target, it->first))

@@ -45,6 +45,7 @@ struct pollfd	Connection::getPollFd() const
 
 void	Connection::readEvent(FdTable & fd_table)
 {
+	(void)fd_table;
 	_timer.reset();
 	parseRequest();
 }
@@ -228,13 +229,14 @@ void	Connection::checkTimeOut()
 
 void	Connection::writeEvent(FdTable & fd_table)
 {
+	(void)fd_table;
 	_timer.reset();
 	if (sendResponseString() == ERR)
 	{
 		closeConnection();
 		return;
 	}
-	evaluateConnection(fd_table);
+	evaluateConnection();
 }
 
 int	Connection::sendResponseString()
@@ -256,7 +258,7 @@ int	Connection::sendResponseString()
 	return OK;
 }
 
-void	Connection::evaluateConnection(FdTable & fd_table)
+void	Connection::evaluateConnection()
 {
 	if (_close_connection && _response_string.empty())
 	{
