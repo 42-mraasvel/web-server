@@ -65,6 +65,7 @@ def testCasePostForbiddenFile():
 	# TestCase
 	testcase = defaultTestCase()
 	testcase.name = "PostUploadDirForbiddenFile"
+	testcase.tag = "Forbidden"
 	# Request
 	testcase.request.method = 'POST'
 	testcase.request.target = '/forbidden/forbidden.html'
@@ -78,6 +79,7 @@ def testCasePostForbiddenDir1():
 	# TestCase
 	testcase = defaultTestCase()
 	testcase.name = "PostUploadDirForbiddenDir1"
+	testcase.tag = "Forbidden"
 	# Request
 	testcase.request.method = 'POST'
 	testcase.request.target = '/forbidden/forbidden_dir/sample.html'
@@ -91,6 +93,7 @@ def testCasePostForbiddenDir2():
 	# TestCase
 	testcase = defaultTestCase()
 	testcase.name = "PostUploadDirForbiddenDir2"
+	testcase.tag = "Forbidden"
 	# Request
 	testcase.request.method = 'POST'
 	testcase.request.target = '/forbidden/forbidden_dir/nonexisting_dir/nonexisting.html'

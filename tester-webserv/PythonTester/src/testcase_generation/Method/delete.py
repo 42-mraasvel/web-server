@@ -41,6 +41,7 @@ def testCaseDeleteForbiddenFile():
 	# TestCase
 	testcase = defaultTestCase()
 	testcase.name = "DeleteForbiddenFile"
+	testcase.tag = "Forbidden"
 	# Request
 	testcase.request.method = 'DELETE'
 	testcase.request.target = '/forbidden/forbidden.html'
@@ -53,6 +54,7 @@ def testCaseDeleteForbiddenDir():
 	# TestCase
 	testcase = defaultTestCase()
 	testcase.name = "DeleteForbiddenDir"
+	testcase.tag = "Forbidden"
 	# Request
 	testcase.request.method = 'DELETE'
 	testcase.request.target = '/forbidden/forbidden_dir/sample.html'

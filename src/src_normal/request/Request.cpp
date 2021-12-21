@@ -154,6 +154,7 @@ static void printConfigInfo(const ConfigInfo& info)
 	PRINT_INFO << "Resolved location block: [" << info.resolved_location->_path << "]" << std::endl;
 	PRINT_INFO << "Resolved target: " << info.resolved_target << std::endl;
 	PRINT_INFO << "Resolved file path: " << info.resolved_file_path << std::endl;
+	PRINT_INFO << "Resolved root: " << info.resolved_location->_root << std::endl;
 	printVector("  -- ALLOWED METHODS --", info.resolved_location->_allowed_methods);
 	printVector("  -- INDEX --", info.resolved_location->_index);
 	PRINT_INFO << "  -- CGI -- " << std::endl;
