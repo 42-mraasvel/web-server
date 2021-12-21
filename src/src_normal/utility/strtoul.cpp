@@ -1,6 +1,5 @@
-#include <string>
-#include <cstring>
 #include "utility/utility.hpp"
+#include <cstring>
 
 namespace WebservUtility
 {
