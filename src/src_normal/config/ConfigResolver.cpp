@@ -1,8 +1,8 @@
 #include "ConfigResolver.hpp"
 #include "settings.hpp"
-#include "outputstream/Output.hpp"
+#include "utility/Output.hpp"
 #include "utility/utility.hpp"
-#include "parser/Request.hpp"
+#include "request/Request.hpp"
 #include "handler/CgiHandler.hpp"
 #include <iostream>
 #include <unistd.h>

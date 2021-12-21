@@ -2,12 +2,12 @@
 #include "settings.hpp"
 #include "utility/status_codes.hpp"
 #include "utility/utility.hpp"
+#include "utility/Output.hpp"
 #include "fd/FdTable.hpp"
-#include "parser/Request.hpp"
-#include "Response.hpp"
-#include "CgiHandler.hpp"
-#include "FileHandler.hpp"
-#include "outputstream/Output.hpp"
+#include "request/Request.hpp"
+#include "response/Response.hpp"
+#include "handler/CgiHandler.hpp"
+#include "handler/FileHandler.hpp"
 
 #include <errno.h>
 #include <dirent.h>

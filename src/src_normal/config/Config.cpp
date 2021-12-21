@@ -1,6 +1,6 @@
 #include "Config.hpp"
 #include "settings.hpp"
-#include "outputstream/Output.hpp"
+#include "utility/Output.hpp"
 #include <iostream>
 #include <fcntl.h>
 #include <unistd.h>

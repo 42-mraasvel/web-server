@@ -1,9 +1,9 @@
 #include "ChunkedParser.hpp"
 #include "settings.hpp"
-#include "color.hpp"
+#include "utility/color.hpp"
 #include "utility/utility.hpp"
 #include "ParserUtils.hpp"
-#include "Request.hpp"
+#include "request/Request.hpp"
 #include <vector>
 #include <limits>
 

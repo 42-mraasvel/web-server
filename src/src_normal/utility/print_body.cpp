@@ -1,4 +1,4 @@
-#include "outputstream/Output.hpp"
+#include "utility/Output.hpp"
 #include <string>
 
 namespace WebservUtility

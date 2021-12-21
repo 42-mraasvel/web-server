@@ -1,9 +1,9 @@
 #include "Webserver.hpp"
 #include "settings.hpp"
 #include "fd/Server.hpp"
-#include "outputstream/Output.hpp"
+#include "utility/Output.hpp"
 #include "utility/macros.hpp"
-#include "color.hpp"
+#include "utility/color.hpp"
 #include <sys/socket.h>
 #include <poll.h>
 #include <unistd.h>

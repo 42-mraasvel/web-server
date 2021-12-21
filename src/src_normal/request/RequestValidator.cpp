@@ -2,7 +2,7 @@
 #include "utility/utility.hpp"
 #include "utility/status_codes.hpp"
 #include "settings.hpp"
-#include "ConfigResolver.hpp"
+#include "config/ConfigResolver.hpp"
 #include <algorithm>
 
 RequestValidator::RequestValidator()

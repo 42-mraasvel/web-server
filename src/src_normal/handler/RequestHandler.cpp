@@ -1,6 +1,6 @@
 #include "RequestHandler.hpp"
 #include "settings.hpp"
-#include "parser/Request.hpp"
+#include "request/Request.hpp"
 
 RequestHandler::RequestHandler(AddressType client, AddressType interface, MapType const * config_map)
 : _client_addr(client),

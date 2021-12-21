@@ -1,7 +1,7 @@
 #pragma once
-# include "HeaderField.hpp"
-# include "handler/ConfigResolver.hpp"
-# include "handler/ConfigInfo.hpp"
+# include "utility/HeaderField.hpp"
+# include "config/ConfigResolver.hpp"
+# include "config/ConfigInfo.hpp"
 
 struct Request 
 {

@@ -1,6 +1,6 @@
-#include "color.hpp"
+#include "utility/color.hpp"
 #include "settings.hpp"
-#include "outputstream/Output.hpp"
+#include "utility/Output.hpp"
 #include <string>
 #include <cstdio>
 #include <cstdlib>

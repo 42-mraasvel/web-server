@@ -1,7 +1,7 @@
 #pragma once
 
-# include "parser/Request.hpp"
-# include "parser/HeaderField.hpp"
+# include "request/Request.hpp"
+# include "utility/HeaderField.hpp"
 # include "fd/FdTable.hpp"
 # include "fd/CgiSender.hpp"
 # include "fd/CgiReader.hpp"

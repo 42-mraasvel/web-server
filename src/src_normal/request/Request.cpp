@@ -1,7 +1,7 @@
-#include "Request.hpp"
-#include "color.hpp"
+#include "request/Request.hpp"
+#include "utility/color.hpp"
 #include "settings.hpp"
-#include "outputstream/Output.hpp"
+#include "utility/Output.hpp"
 #include "utility/utility.hpp"
 
 /*

@@ -1,6 +1,6 @@
 #include "Server.hpp"
 #include "settings.hpp"
-#include "outputstream/Output.hpp"
+#include "utility/Output.hpp"
 #include "Connection.hpp"
 #include "utility/macros.hpp"
 #include "utility/utility.hpp"

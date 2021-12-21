@@ -1,7 +1,7 @@
 #include "CgiSender.hpp"
 #include "settings.hpp"
 #include "utility/utility.hpp"
-#include "color.hpp"
+#include "utility/color.hpp"
 #include "utility/macros.hpp"
 #include "utility/status_codes.hpp"
 #include "utility/Timer.hpp"

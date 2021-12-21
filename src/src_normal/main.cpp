@@ -1,5 +1,5 @@
 #include "settings.hpp"
-#include "outputstream/Output.hpp"
+#include "utility/Output.hpp"
 #include "config/Config.hpp"
 #include "webserver/Webserver.hpp"
 

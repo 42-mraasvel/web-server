@@ -1,6 +1,6 @@
 #pragma once
 
-#include "color.hpp"
+#include "utility/color.hpp"
 #include <sstream>
 
 #define PRINT Output().get()

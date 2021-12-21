@@ -4,8 +4,8 @@
 #include "utility/utility.hpp"
 #include "utility/status_codes.hpp"
 #include "Response.hpp"
-#include "FileHandler.hpp"
-#include "CgiHandler.hpp"
+#include "handler/FileHandler.hpp"
+#include "handler/CgiHandler.hpp"
 
 ResponseGenerator::ResponseGenerator() {}
 

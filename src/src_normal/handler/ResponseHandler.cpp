@@ -3,8 +3,8 @@
 #include "utility/utility.hpp"
 #include "utility/status_codes.hpp"
 #include "fd/AFdInfo.hpp"
-#include "parser/Request.hpp"
-#include "RequestExecutor.hpp"
+#include "request/Request.hpp"
+#include "request/RequestExecutor.hpp"
 
 #include <unistd.h>
 #include <cstdlib>

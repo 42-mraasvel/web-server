@@ -1,6 +1,6 @@
 #include "Output.hpp"
 #include "settings.hpp"
-#include "color.hpp"
+#include "utility/color.hpp"
 #include <iostream>
 #include <fstream>
 

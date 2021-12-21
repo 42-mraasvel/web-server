@@ -1,11 +1,11 @@
 #include "RequestLineParser.hpp"
 #include "settings.hpp"
-#include "outputstream/Output.hpp"
+#include "utility/Output.hpp"
 #include "utility/status_codes.hpp"
 #include "utility/utility.hpp"
 #include "ParserUtils.hpp"
-#include "http_bnf.hpp"
-#include "Request.hpp"
+#include "parser/http_bnf.hpp"
+#include "request/Request.hpp"
 
 #define MAX_REQUESTLINE_SIZE 4096
 
