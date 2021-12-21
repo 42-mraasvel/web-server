@@ -1,22 +1,14 @@
 #include "Config.hpp"
 #include "settings.hpp"
 #include "utility/Output.hpp"
-#include <iostream>
 #include <fcntl.h>
-#include <unistd.h>
-#include <cstdlib>
-#include <string>
 #include "utility/utility.hpp"
-#include <map>
-#include <limits>
+#include <unistd.h>
 
-// Constructor
 Config::Config(std::string const & config_file): _file_name(config_file), _server_amount(0), _token_index(0){}
 
-// Destructor
 Config::~Config(){}
 
-// Iterators
 Config::const_iterator Config::begin() const
 {
 	return (this->_servers.begin());
@@ -27,7 +19,6 @@ Config::const_iterator Config::end() const
 	return (this->_servers.end());
 }
 
-// Parser - Tokenizer
 void Config::tokenizer(std::string const & body)
 {
 	std::string const & delimiters = "\n\t ";
@@ -74,7 +65,6 @@ void Config::splitToken(std::string str)
 	}
 }
 
-// Validation
 int	Config::validateAddressMap()
 {
 	if (_address_map.empty())
@@ -570,7 +560,6 @@ int Config::parseCgi()
 	return OK;
 }
 
-
 int Config::parseUploadStore()
 {
 	_token_index++;
@@ -706,7 +695,6 @@ int	Config::configError(std::string str)
 	return ERR;
 }
 
-// Utility
 int	Config::initAddressMap()
 {
 	std::pair<std::map<ip_host_pair,server_block_vector>::iterator,bool> ret;

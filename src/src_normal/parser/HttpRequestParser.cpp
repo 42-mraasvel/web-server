@@ -2,7 +2,6 @@
 #include "settings.hpp"
 #include "utility/utility.hpp"
 #include "request/Request.hpp"
-#include <iostream>
 
 static bool validHostHeaderValue(const std::string& value)
 {

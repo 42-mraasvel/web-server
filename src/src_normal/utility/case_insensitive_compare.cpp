@@ -1,5 +1,4 @@
 #include "utility/utility.hpp"
-#include <string>
 
 namespace WebservUtility
 {

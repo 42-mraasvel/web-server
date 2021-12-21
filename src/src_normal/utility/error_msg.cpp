@@ -1,11 +1,7 @@
 #include "utility/color.hpp"
 #include "settings.hpp"
 #include "utility/Output.hpp"
-#include <string>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring> // Linux strerror
-#include <errno.h>
 
 /*
 Wrapper for calling perror and returning ERR code

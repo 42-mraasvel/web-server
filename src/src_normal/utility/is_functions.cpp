@@ -1,6 +1,5 @@
 #include "parser/http_bnf.hpp"
 #include "utility/utility.hpp"
-#include <string>
 
 bool isSeperator(char x)
 {

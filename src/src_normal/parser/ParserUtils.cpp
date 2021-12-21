@@ -1,6 +1,5 @@
 #include "ParserUtils.hpp"
 #include "settings.hpp"
-#include <string>
 
 namespace WebservUtility
 {

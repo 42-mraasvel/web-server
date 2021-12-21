@@ -20,7 +20,6 @@ class Config
 		const_iterator	end() const;
 		int				parser();
 
-	 	// Parsing
 	private:
 		std::string const & tokenPreper(std::string str);
 		void	splitToken(std::string string);
@@ -48,10 +47,8 @@ class Config
 		int		validateLocationBlock(LocationBlock location_block);
 		int		validateToken(std::string token);
 
-		// Getters
 	public:
 		address_map	getAddressMap() const;
-		// Utility
 		int		initAddressMap();
 	
 
