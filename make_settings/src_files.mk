@@ -33,10 +33,7 @@ ifdef FSANITIZE
 	DSUBDIR = /dep_fsanitize
 endif # FSANITIZE
 
-SRC := $(shell find $(SDIR)/$(SRC_SUBDIR) -type f -name "*.cpp")
-ifdef USING_CATCH
-	SRC += $(shell find $(SDIR)/$(CATCH_SUBDIR) -type f -name "*.cpp")
-endif # USING_CATCH
+include ./make_settings/cpp_files.mk
 OBJ := $(patsubst $(SDIR)/%.cpp,$(ODIR)/%.o,$(SRC))
 DEP := $(patsubst $(SDIR)/%.cpp,$(DDIR)/%.d,$(SRC))
 

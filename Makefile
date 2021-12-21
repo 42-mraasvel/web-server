@@ -1,6 +1,5 @@
 MK_SETTINGS_DIR := make_settings
-DEPENDENCIES := Makefile $(shell find $(MK_SETTINGS_DIR) -type f -name "*.mk")
-# DEPENDENCIES := Makefile
+DEPENDENCIES := Makefile
 
 include $(MK_SETTINGS_DIR)/src_files.mk
 include $(MK_SETTINGS_DIR)/settings.mk
