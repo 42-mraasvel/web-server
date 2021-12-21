@@ -12,10 +12,16 @@ static const std::size_t MAX_HEADER_FIELD_SIZE = 4096;
 
 static bool validFieldFunction(const std::string& key, const std::string& value, const HeaderField& fields)
 {
+	(void)key;
+	(void)value;
+	(void)fields;
 	return true;
 }
 static bool invalidFieldFunction(const std::string& key, const std::string& value, const HeaderField& fields)
 {
+	(void)key;
+	(void)value;
+	(void)fields;
 	return false;
 }
 
