@@ -3,11 +3,7 @@
 #include "fd/Server.hpp"
 #include "utility/Output.hpp"
 #include "utility/macros.hpp"
-#include "utility/color.hpp"
-#include <sys/socket.h>
 #include <poll.h>
-#include <unistd.h>
-#include <cstdlib> // REMOVE, RM
 
 Webserver::Webserver(address_map map): _config_map(map)
 {}
