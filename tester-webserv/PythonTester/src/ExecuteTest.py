@@ -18,6 +18,8 @@ def execute(testcases = [], tags = []):
 	passed = 0
 	failed = 0
 	for index, testcase in enumerate(testcases):
+		if not tags and testcase.tag == "Forbidden":
+			continue
 		if tags and testcase.tag not in tags:
 			continue
 		response = sendRequest(testcase.request)
