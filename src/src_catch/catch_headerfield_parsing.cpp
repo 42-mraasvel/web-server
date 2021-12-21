@@ -2,6 +2,7 @@
 #include "parser/HeaderFieldParser.hpp"
 #include "settings.hpp"
 #include "utility/status_codes.hpp"
+#include "parser/ParserUtils.hpp"
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 

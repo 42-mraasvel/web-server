@@ -1,7 +1,4 @@
 #pragma once
-#include <string>
-#include "webserver/MethodType.hpp"
-#include "config/ConfigInfo.hpp"
 #include "handler/FileHandler.hpp"
 #include "handler/CgiHandler.hpp"
 

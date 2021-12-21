@@ -1,6 +1,7 @@
 #include "catch.hpp"
 #include "cgi/CgiResponseParser.hpp"
 #include "settings.hpp"
+#include "parser/ParserUtils.hpp"
 
 TEST_CASE("Cgi Response Parser", "[cgi]") {
 	std::string header =

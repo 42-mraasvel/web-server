@@ -2,6 +2,7 @@
 #include "request/RequestHeaderProcessor.hpp"
 #include "handler/RequestHandler.hpp"
 #include "settings.hpp"
+#include "parser/ParserUtils.hpp"
 #include "tmp/create_address_map.hpp"
 #include <vector>
 

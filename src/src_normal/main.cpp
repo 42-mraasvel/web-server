@@ -1,6 +1,5 @@
 #include "settings.hpp"
 #include "utility/Output.hpp"
-#include "config/Config.hpp"
 #include "webserver/Webserver.hpp"
 
 #ifndef USING_CATCH
