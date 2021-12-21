@@ -142,13 +142,11 @@ Poll loop!
 */
 int	Webserver::run()
 {
-	int ready;
-
 	printOpening();
-	while(!should_exit)
+	while(true)
 	{
 		scanFdTable();
-		ready = poll(_fd_table.getPointer(), _fd_table.size(), POLL_TIMEOUT);
+		int ready = poll(_fd_table.getPointer(), _fd_table.size(), POLL_TIMEOUT);
 		PRINT_DEBUG << "Number of Fds: " << _fd_table.size() << std::endl;
 		if (ready < 0)
 		{

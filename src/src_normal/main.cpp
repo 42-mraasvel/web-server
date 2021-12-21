@@ -4,13 +4,6 @@
 #include <signal.h>
 #include <iostream>
 
-bool should_exit = false;
-
-void sigHandler(int sig) {
-	(void)sig;
-	should_exit = true;
-}
-
 #ifndef USING_CATCH
 static bool validArguments(int argc, char *argv[])
 {
@@ -20,7 +13,6 @@ static bool validArguments(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-	signal(SIGUSR1, sigHandler);
 	if (!validArguments(argc, argv))
 	{
 		PRINT_ERR << "Usage: [./webserv [CONFIGURATION_PATH]" << std::endl;
@@ -47,7 +39,6 @@ int main(int argc, char *argv[])
 		PRINT_ERR << "main exception: " << e.what() << std::endl;
 		return 1;
 	}
-	std::cout << "Exiting Normally" << std::endl;
 	return 0;
 }
 #endif /* USING_CATCH */
