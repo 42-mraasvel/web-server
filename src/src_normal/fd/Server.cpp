@@ -1,14 +1,13 @@
 #include "Server.hpp"
 #include "settings.hpp"
+#include "utility/Output.hpp"
 #include "Connection.hpp"
-#include "utility/utility.hpp"
+#include "utility/macros.hpp"
 #include <poll.h>
-#include <iostream>
 #include <unistd.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
 #include <cstring>
-#include <cstdlib>
 
 Server::Server() {}
 Server::~Server() {}
@@ -36,7 +35,7 @@ int		Server::setupServer(Config::ip_host_pair ip_host_pair, Config::address_map*
 	{
 		return syscallError(_FUNC_ERR("fcntl"));
 	}
-	_port = ip_host_pair.second; //TODO: to evaluate later
+	_port = ip_host_pair.second;
 	_config_map = config_map;
 	return OK;
 }

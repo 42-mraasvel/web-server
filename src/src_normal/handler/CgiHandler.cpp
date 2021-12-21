@@ -1,15 +1,8 @@
 #include "CgiHandler.hpp"
 #include "settings.hpp"
-#include "utility/utility.hpp"
+#include "utility/Output.hpp"
 #include "utility/macros.hpp"
-#include "utility/status_codes.hpp"
-#include <libgen.h>
-#include <signal.h>
-#include <errno.h>
 #include <unistd.h>
-#include <cstdlib>
-#include <cstring>
-#include <sys/wait.h>
 
 CgiHandler::CgiHandler()
 : _status(CgiHandler::INACTIVE), _status_code(0), _sender(NULL), _reader(NULL), _cgi_pid(-1) {}

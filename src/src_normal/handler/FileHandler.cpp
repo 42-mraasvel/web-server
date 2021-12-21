@@ -1,16 +1,17 @@
 #include "settings.hpp"
 #include "FileHandler.hpp"
 #include "fd/File.hpp"
+#include "utility/Output.hpp"
+#include "utility/macros.hpp"
 #include "utility/status_codes.hpp"
-#include "utility/utility.hpp"
-#include "parser/HeaderField.hpp"
-#include "MediaType.hpp"
+#include "utility/MediaType.hpp"
+#include <cstdio>
 #include <unistd.h>
 #include <fcntl.h>
-#include <cstdlib>
 #include <errno.h>
 
 FileHandler::FileHandler():
+_method(Method::OTHER),
 _file(NULL),
 _status_code(0),
 _is_error(false),

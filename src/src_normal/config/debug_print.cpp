@@ -1,8 +1,6 @@
 #include "Config.hpp"
 #include "settings.hpp"
-#include "outputstream/Output.hpp"
-#include <iostream>
-
+#include "utility/Output.hpp"
 
 /* Debugging */
 void Config::print() const

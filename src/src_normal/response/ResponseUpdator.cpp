@@ -1,12 +1,8 @@
 #include "ResponseUpdator.hpp"
 #include "settings.hpp"
-#include "utility/status_codes.hpp"
+#include "utility/Output.hpp"
 #include "utility/utility.hpp"
-#include "fd/FdTable.hpp"
 #include "Response.hpp"
-#include "CgiHandler.hpp"
-#include "FileHandler.hpp"
-#include <iostream>
 
 ResponseUpdator::ResponseUpdator() {}
 

@@ -2,7 +2,6 @@
 #include "settings.hpp"
 #include "utility/utility.hpp"
 #include "utility/status_codes.hpp"
-#include <set>
 
 int RequestHeaderProcessor::getStatusCode() const
 {

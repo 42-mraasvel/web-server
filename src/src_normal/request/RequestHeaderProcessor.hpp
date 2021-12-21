@@ -1,7 +1,7 @@
 #pragma once
 
-# include "handler/ConfigResolver.hpp"
-# include "handler/RequestValidator.hpp"
+# include "config/ConfigResolver.hpp"
+# include "request/RequestValidator.hpp"
 
 struct Request;
 

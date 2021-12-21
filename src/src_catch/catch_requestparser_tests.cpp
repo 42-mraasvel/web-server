@@ -3,10 +3,12 @@
 #include "parser/ChunkedParser.hpp"
 #include <sstream>
 #include "catch.hpp"
-#include "parser/Request.hpp"
+#include "request/Request.hpp"
 #include "handler/RequestHandler.hpp"
 #include "tmp/create_address_map.hpp"
 #include "webserver/MethodType.hpp"
+#include "parser/ParserUtils.hpp"
+#include <iostream>
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) sizeof(x) / sizeof(x[0])

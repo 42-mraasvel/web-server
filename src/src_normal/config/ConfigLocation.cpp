@@ -1,5 +1,4 @@
 #include "ConfigLocation.hpp"
-#include <iostream>
 #include "settings.hpp"
 
 ConfigLocation::ConfigLocation(std::string path): _path(path), _root(DEFAULT_ROOT), _autoindex_status(false), _location_flag(NONE){}

@@ -1,15 +1,17 @@
 #include "CgiExecutor.hpp"
-#include "parser/Request.hpp"
 #include "settings.hpp"
+#include "request/Request.hpp"
+#include "utility/Output.hpp"
+#include "utility/macros.hpp"
 #include "utility/status_codes.hpp"
 #include "utility/utility.hpp"
 #include "fd/FdTable.hpp"
 #include "fd/AFdInfo.hpp"
 #include <sys/wait.h>
-#include <csignal>
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
+#include <signal.h>
 
 CgiExecutor::CgiExecutor()
 : _status_code(0), _cgi_pid(-1) {}
@@ -266,8 +268,7 @@ int CgiExecutor::prepareArguments(char *args[3], std::string const & script, Con
 	{
 		return ERR;
 	}
-	// TODO: remove realpath?
-	args[1] = realpath(info.resolved_file_path.c_str(), NULL);
+	args[1] = strdup(info.resolved_file_path.c_str());
 	if (args[1] == NULL)
 	{
 		free(args[0]);

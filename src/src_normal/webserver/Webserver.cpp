@@ -1,11 +1,9 @@
 #include "Webserver.hpp"
 #include "settings.hpp"
 #include "fd/Server.hpp"
-#include "color.hpp"
-#include <sys/socket.h>
+#include "utility/Output.hpp"
+#include "utility/macros.hpp"
 #include <poll.h>
-#include <unistd.h>
-#include <cstdlib> // REMOVE, RM
 
 Webserver::Webserver(address_map map): _config_map(map)
 {}
@@ -144,22 +142,19 @@ Poll loop!
 */
 int	Webserver::run()
 {
-	int ready;
-
 	printOpening();
 	while(true)
 	{
 		scanFdTable();
-		ready = poll(_fd_table.getPointer(), _fd_table.size(), POLL_TIMEOUT);
+		int ready = poll(_fd_table.getPointer(), _fd_table.size(), POLL_TIMEOUT);
 		PRINT_DEBUG << "Number of Fds: " << _fd_table.size() << std::endl;
 		if (ready < 0)
 		{
 			syscallError(_FUNC_ERR("poll"));
-			// TODO: evaluate poll error
+			return ERR;
 		}
 		else if (ready > 0)
 		{
-			print();
 			dispatchFd();
 		}
 	}

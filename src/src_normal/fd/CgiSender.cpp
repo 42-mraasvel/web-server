@@ -1,12 +1,11 @@
 #include "CgiSender.hpp"
 #include "settings.hpp"
-#include "utility/utility.hpp"
 #include "utility/macros.hpp"
-#include "utility/status_codes.hpp"
-#include "utility/Timer.hpp"
 #include <poll.h>
+#include "utility/Timer.hpp"
 #include <unistd.h>
-#include <algorithm>
+#include "utility/color.hpp"
+#include "utility/status_codes.hpp"
 
 CgiSender::CgiSender(int fd, SmartPointer<Request> r, Timer* timer)
 : AFdInfo(fd), _timer(timer) {

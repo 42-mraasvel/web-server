@@ -1,9 +1,9 @@
 #include "ConfigResolver.hpp"
 #include "settings.hpp"
+#include "utility/Output.hpp"
 #include "utility/utility.hpp"
-#include "parser/Request.hpp"
+#include "request/Request.hpp"
 #include "handler/CgiHandler.hpp"
-#include <iostream>
 #include <unistd.h>
 
 /*********************/
@@ -341,9 +341,7 @@ ConfigInfo::location_block_pointer	ConfigResolver::resolveIndexFile(StringVector
 				info.resolved_target = temp_target;
 				return final_location;
 			}
-			file.erase(); //TODO: to check is this necessary?
 		}
-		temp_target.erase(); //TODO: to check is this necessary?
 	}
 	return NULL;
 }
@@ -406,7 +404,6 @@ int	ConfigResolver::resolveErrorPage(int error_code)
 	return ERR;
 }
 
-//TODO: check error page in config text if it can only be uri
 int	ConfigResolver::findErrorFilePath(std::string const & error_uri)
 {
 	ConfigInfo::location_block_pointer	location = resolveLocationResult(error_uri, info.resolved_server->_locations);

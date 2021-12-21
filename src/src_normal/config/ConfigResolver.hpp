@@ -1,9 +1,8 @@
 #pragma once
 #include "ConfigInfo.hpp"
-#include "config/Config.hpp"
+#include "Config.hpp"
 #include "webserver/MethodType.hpp"
 #include <map>
-#include <utility>
 #include <string>
 
 struct Request;

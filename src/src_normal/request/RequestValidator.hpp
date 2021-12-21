@@ -1,7 +1,6 @@
 #pragma once
-#include "parser/Request.hpp"
+#include "request/Request.hpp"
 #include <vector>
-#include <string>
 
 class ConfigResolver;
 

@@ -1,10 +1,8 @@
 #include "ResponseGenerator.hpp"
 #include "settings.hpp"
+#include "parser/ParserUtils.hpp"
 #include "utility/utility.hpp"
-#include "utility/status_codes.hpp"
 #include "Response.hpp"
-#include "FileHandler.hpp"
-#include "CgiHandler.hpp"
 
 ResponseGenerator::ResponseGenerator() {}
 
@@ -82,8 +80,8 @@ void	ResponseGenerator::setHeaderPart(Response & response)
 	setStringStatusLine(response);
 	setHeaderField(response);
 	setStringHeaderField(response);
-	response.string_to_send = response.string_status_line + NEWLINE
-							+ response.string_header_field + NEWLINE;
+	response.string_to_send = response.string_status_line + CRLF
+							+ response.string_header_field + CRLF;
 	response.header_part_set = true;
 	response.print();
 }
@@ -207,7 +205,7 @@ void	ResponseGenerator::setStringHeaderField(Response & response)
 {
 	for (header_iterator i = response.header_fields.begin(); i != response.header_fields.end(); ++i)
 	{
-		response.string_header_field += (i->first + ": " + i->second + NEWLINE);
+		response.string_header_field += (i->first + ": " + i->second + CRLF);
 	}
 }
 
@@ -221,9 +219,9 @@ void	ResponseGenerator::encodeMessageBody(Response & response)
 {
 	if (!response.message_body.empty())
 	{
-		std::string chunk_size = WebservUtility::itoa(response.message_body.size(), 16) + NEWLINE;
+		std::string chunk_size = WebservUtility::itoa(response.message_body.size(), 16) + CRLF;
 		response.message_body.insert(0, chunk_size);
-		response.message_body.append(NEWLINE);
+		response.message_body.append(CRLF);
 	}
 	if (response.isFinished())
 	{

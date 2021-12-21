@@ -1,17 +1,21 @@
 #!/bin/bash
+DEFAULT_CONFIG='./Website/website_config.conf'
+DEFAULT_EXEC='./a.out'
+
 OTHER_ARGS=${@:2}
+if [ -z "$OTHER_ARGS" ]; then
+	OTHER_ARGS=$DEFAULT_CONFIG
+fi
 
 if [ "$#" -eq 0 ]; then
-	DEFAULT_ARG="./Website/website_config.conf"
 	make -C ./Website
-	make && ./a.out $DEFAULT_ARG
+	make && $DEFAULT_EXEC $DEFAULT_CONFIG
 elif [ "$1" == "catch" ]; then
-	# ./run.sh catch
-	make catch && ./catch.out $OTHER_ARGS
+	make catch && ./catch.out
 elif [ "$1" == "debug" ]; then
 	make debug && ./debug.out $OTHER_ARGS
 elif [ "$1" == "fsanitize" ]; then
 	make fsanitize && ./fsanitize.out $OTHER_ARGS
 else
-	make && ./a.out $@
+	make $1 && $DEFAULT_EXEC $OTHER_ARGS
 fi

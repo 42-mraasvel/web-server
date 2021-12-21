@@ -12,10 +12,6 @@ else
 	CXXFLAGS += -std=c++98 -pedantic
 endif # USING_CATCH
 
-# REMOVE
-# ANNOYING_FLAGS = -Wno-unused -Wno-unused-parameter
-# CXXFLAGS += $(ANNOYING_FLAGS)
-
 ifeq ($(shell uname),Darwin)
 	DFLAGS = -O0 -g3 -fsanitize=address
 else
@@ -37,9 +33,11 @@ ifndef DEBUG
 	endif # FSANITIZE
 endif # DEBUG
 
-ifndef NO_INFO
+ifdef PRINT_VERBOSE
 	CXXFLAGS += -DPRINT_INFO_FLAG
-	# CXXFLAGS += -DPRINT_DEBUG_FLAG
-endif # NO_INFO
+endif # PRINT_VERBOSE
+ifdef PRINT_DEBUG
+	CXXFLAGS += -DPRINT_DEBUG_FLAG
+endif # PRINT_DEBUG
 
 endif # SETTINGS_MK

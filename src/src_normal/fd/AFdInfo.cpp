@@ -1,13 +1,13 @@
 #include "AFdInfo.hpp"
 #include "settings.hpp"
-#include "utility/utility.hpp"
+#include "utility/Output.hpp"
 #include "utility/macros.hpp"
 #include <unistd.h>
 #include <poll.h>
 
-AFdInfo::AFdInfo(): _fd(-1) {}
+AFdInfo::AFdInfo(): _flag(ACTIVE), _fd(-1) {}
 
-AFdInfo::AFdInfo(int fd): _fd(fd) {}
+AFdInfo::AFdInfo(int fd) : _flag(ACTIVE), _fd(fd) {}
 
 AFdInfo::~AFdInfo() {
 	closeFd();

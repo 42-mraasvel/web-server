@@ -1,21 +1,15 @@
 #include "Config.hpp"
 #include "settings.hpp"
-#include <iostream>
+#include "utility/Output.hpp"
 #include <fcntl.h>
+#include "utility/utility.hpp"
 #include <unistd.h>
 #include <cstdlib>
-#include <string>
-#include "utility/utility.hpp"
-#include <map>
-#include <limits>
 
-// Constructor
 Config::Config(std::string const & config_file): _file_name(config_file), _server_amount(0), _token_index(0){}
 
-// Destructor
 Config::~Config(){}
 
-// Iterators
 Config::const_iterator Config::begin() const
 {
 	return (this->_servers.begin());
@@ -26,7 +20,6 @@ Config::const_iterator Config::end() const
 	return (this->_servers.end());
 }
 
-// Parser - Tokenizer
 void Config::tokenizer(std::string const & body)
 {
 	std::string const & delimiters = "\n\t ";
@@ -73,7 +66,6 @@ void Config::splitToken(std::string str)
 	}
 }
 
-// Validation
 int	Config::validateAddressMap()
 {
 	if (_address_map.empty())
@@ -569,7 +561,6 @@ int Config::parseCgi()
 	return OK;
 }
 
-
 int Config::parseUploadStore()
 {
 	_token_index++;
@@ -701,11 +692,10 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2, std::string 
 
 int	Config::configError(std::string str)
 {
-	PRINT_ERR << RED_BOLD << "Config error: " << str << std::endl;
+	PRINT_ERR << "Config: " << str << std::endl;
 	return ERR;
 }
 
-// Utility
 int	Config::initAddressMap()
 {
 	std::pair<std::map<ip_host_pair,server_block_vector>::iterator,bool> ret;

@@ -61,6 +61,7 @@ def testCaseDefaultErrorPageNotRedirect():
 	# TestCase
 	testcase = defaultErrorPageTestCase()
 	testcase.name = "DefaultErrorPageNotRedirect"
+	testcase.tag = 'Forbidden'
 	# Request
 	testcase.request.method = 'POST'
 	testcase.request.target = '/Method/forbidden/forbidden_dir/nonexisting_dir/nonexisting.html'

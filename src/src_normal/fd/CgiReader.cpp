@@ -2,6 +2,7 @@
 #include "settings.hpp"
 #include "utility/macros.hpp"
 #include "utility/utility.hpp"
+#include "utility/color.hpp"
 #include "utility/Timer.hpp"
 #include <poll.h>
 #include <cassert>

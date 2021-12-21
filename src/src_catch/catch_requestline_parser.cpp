@@ -1,7 +1,8 @@
 #include "catch.hpp"
 #include "parser/RequestLineParser.hpp"
-#include "parser/Request.hpp"
+#include "request/Request.hpp"
 #include "settings.hpp"
+#include "parser/ParserUtils.hpp"
 
 TEST_CASE("Request Line Basic Tests", "[parser]")
 {

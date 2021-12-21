@@ -1,44 +1,33 @@
 #include "settings.hpp"
-#include <cstdlib> // For exit() and EXIT_FAILURE
-#include <poll.h>
-#include <unistd.h>
+#include "utility/Output.hpp"
 #include "webserver/Webserver.hpp"
-#include "color.hpp"
-#include "config/Config.hpp"
-#include "utility/SmartPointer.hpp"
-#include "handler/RequestHandler.hpp"
-#include "tmp/create_address_map.hpp"
-#include "outputstream/Output.hpp"
+#include <signal.h>
+#include <iostream>
 
 #ifndef USING_CATCH
-int main(int argc, char **argv)
+static bool validArguments(int argc, char *argv[])
 {
-	std::string configuration;
+	(void)argv;
+	return argc == 2;
+}
+
+int main(int argc, char *argv[])
+{
+	if (!validArguments(argc, argv))
+	{
+		PRINT_ERR << "Usage: [./webserv [CONFIGURATION_PATH]" << std::endl;
+		return 1;
+	}
 	try
 	{
-		if (argc == 2)
-		{
-			configuration = argv[1];
-		}
-		else if (argc == 1)
-		{
-			PRINT_WARNING << "No configuration file given, using default config" << std::endl;
-			configuration = "src/src_normal/config/resources/default.conf";
-		}
-		else
-		{
-			PRINT_ERR << "invalid argument amount" << std::endl;
-			return 1;
-		}
-		Config config_file(configuration);
+		Config config_file(argv[1]);
 		if (config_file.parser() == ERR)
 		{
-			PRINT_ERR << "PARSING ERROR EXIT PROGRAM" << std::endl;
 			return 1;
 		}
 		config_file.print();
 		Webserver webserver(config_file.getAddressMap());
-		if (webserver.init())
+		if (webserver.init() == ERR)
 		{
 			return 1;
 		}
@@ -47,7 +36,8 @@ int main(int argc, char **argv)
 	}
 	catch(const std::exception& e)
 	{
-		PRINT_ERR << e.what() << std::endl;
+		PRINT_ERR << "main exception: " << e.what() << std::endl;
+		return 1;
 	}
 	return 0;
 }

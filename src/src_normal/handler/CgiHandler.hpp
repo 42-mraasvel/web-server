@@ -1,16 +1,11 @@
 #pragma once
 
-# include "parser/Request.hpp"
-# include "parser/HeaderField.hpp"
-# include "fd/FdTable.hpp"
+# include "request/Request.hpp"
 # include "fd/CgiSender.hpp"
 # include "fd/CgiReader.hpp"
 # include "cgi/CgiExecutor.hpp"
 # include "iHandler.hpp"
 # include "utility/Timer.hpp"
-
-# include <vector>
-# include <utility>
 
 class CgiHandler: public iHandler
 {

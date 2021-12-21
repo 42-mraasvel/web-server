@@ -1,5 +1,5 @@
 #include "utility.hpp"
-#include <string.h>
+#include <cstring>
 
 namespace WebservUtility
 {

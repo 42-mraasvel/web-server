@@ -1,6 +1,6 @@
 #pragma once
-#include "config/ConfigServer.hpp"
 #include "FdTable.hpp"
+#include <string>
 
 class AFdInfo
 {

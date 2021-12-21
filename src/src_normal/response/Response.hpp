@@ -1,9 +1,6 @@
 #pragma once
-#include <string>
-#include "webserver/MethodType.hpp"
-#include "ConfigInfo.hpp"
-#include "FileHandler.hpp"
-#include "CgiHandler.hpp"
+#include "handler/FileHandler.hpp"
+#include "handler/CgiHandler.hpp"
 
 struct Request;
 

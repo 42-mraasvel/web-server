@@ -1,48 +1,61 @@
 #include "catch.hpp"
 #include "config/Config.hpp"
 #include "settings.hpp"
+#include "utility/utility.hpp"
 #include <iostream>
 #include <dirent.h>
 #include <vector>
 #include <filesystem>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <sys/types.h>
 
-std::vector<std::string> getConfigs(std::string str)
+namespace __TEST__
 {
-	std::vector<std::string> ret;
-	DIR *dir = opendir(str.c_str());
-	struct dirent *file = readdir(dir);
-	while (file)
-	{
-		std::string tmp = str;
-		if (file->d_name[0] != '.')
-		{
-			tmp.append("/");
-			tmp.append(file->d_name);
-			ret.push_back(tmp);
+
+static bool isDirectory(const std::string& filename) {
+	struct stat s;
+	if (stat(filename.c_str(), &s) == 0)  {
+		if (s.st_mode & S_IFDIR) {
+			return true;
 		}
-		file = readdir(dir); 
-	}    
-	closedir(dir);
-	return (ret);
+	}
+	return false;
 }
 
-/*
-(C++ 17)
-https://en.cppreference.com/w/cpp/filesystem/recursive_directory_iterator
-*/
-std::vector<std::string> getFilesRecursively(const std::string& dirname) {
-	std::vector<std::string> files;
-	for (const auto& file : std::filesystem::recursive_directory_iterator(dirname)) {
-		const std::string path = file.path();
-		if (std::filesystem::is_directory(file)) {
+static void iterateDirectory(const std::string& dirname, std::vector<std::string>& files, const std::string& prefix) {
+	DIR* dir = opendir(dirname.c_str());
+	if (!dir) {
+		perror("opendir");
+		return;
+	}
+
+	while (dirent* dent = readdir(dir)) {
+		const std::string name =  prefix + dent->d_name;
+		if (name.find("/..") == name.size() - 3 || name.find("/.") == name.size() - 2) {
 			continue;
 		}
-		if (path.find("ignore") == std::string::npos) {
-			files.push_back(path);
+		if (isDirectory(name)) {
+			iterateDirectory(name, files, name + "/");
+		} else {
+			files.push_back(name);
 		}
+	}
+	closedir(dir);
+}
+
+}
+
+std::vector<std::string> getFilesRecursively(const std::string& dirname) {
+	std::vector<std::string> files;
+	if (dirname.back() != '/') {
+		__TEST__::iterateDirectory(dirname, files, "./" + dirname + "/");
+	} else {
+		__TEST__::iterateDirectory(dirname, files, "./" + dirname);
 	}
 	return files;
 }
+
 
 TEST_CASE("Valid configurations", "[config]")
 {
@@ -52,6 +65,7 @@ TEST_CASE("Valid configurations", "[config]")
 	{
 		SECTION((*it))
 		{
+			std::cout << "TESTING: " << *it << std::endl;
 			Config conf(*it);
 			REQUIRE(conf.parser() == OK);
 		}

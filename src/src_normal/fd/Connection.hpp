@@ -1,14 +1,9 @@
 #pragma once
-#include <sys/socket.h>
-#include <utility>
 #include <string>
-#include <deque>
 #include "FdTable.hpp"
 #include "AFdInfo.hpp"
 #include "handler/RequestHandler.hpp"
 #include "handler/ResponseHandler.hpp"
-#include "parser/Request.hpp"
-#include "utility/Timer.hpp"
 #include "webserver/MethodType.hpp"
 
 class File;

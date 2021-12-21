@@ -1,13 +1,10 @@
 #include "ChunkedParser.hpp"
 #include "settings.hpp"
-#include "color.hpp"
+#include "utility/color.hpp"
 #include "utility/utility.hpp"
 #include "ParserUtils.hpp"
-#include "Request.hpp"
-#include <vector>
-#include <limits>
+#include "request/Request.hpp"
 
-//TODO: implement for Chunked trailer fields
 static bool IsValidChunkedField(std::string const & key,
 		std::string const & value, HeaderField const & header)
 {
@@ -183,8 +180,6 @@ int ChunkedParser::addHeaderFields(Request & request)
 
 	for (HeaderField::iterator it = header.begin(); it != header.end(); ++it)
 	{
-		//TODO: error checking key-value pairs;
-		//if they are allowed here and if they are already present etc
 		request.header_fields[it->first] = it->second;
 	}
 
