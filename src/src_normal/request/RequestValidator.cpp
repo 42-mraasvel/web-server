@@ -1,6 +1,7 @@
 #include "RequestValidator.hpp"
 #include "utility/utility.hpp"
 #include "utility/status_codes.hpp"
+#include <algorithm>
 
 RequestValidator::RequestValidator()
 : _close_connection(false), _continue(false) {}
