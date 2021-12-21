@@ -15,7 +15,7 @@ class Webserver
 	private:
 		int initServer(Config::ip_host_pair ip_host_pair);
 		bool shouldInitialize(ip_host_pair const & iphost) const;
-		int	dispatchFd(int ready);
+		int	dispatchFd();
 		void scanFdTable();
 		bool shouldExecuteFd(const FdTable::AFdPointer afd);
 		bool shouldCloseFd(short revents) const;

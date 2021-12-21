@@ -1,6 +1,7 @@
 #include "Request.hpp"
 #include "color.hpp"
 #include "settings.hpp"
+#include "utility/utility.hpp"
 
 /*
 	RequestStatus	status;
@@ -102,24 +103,13 @@ std::string Request::getProtocolString() const
 	}
 }
 
-void Request::printBodyBytes() const
-{
-	for (std::size_t i = 0; i < message_body.size(); ++i) {
-		if (i != 0) {
-			PRINT_DEBUG << ' ';
-		}
-		PRINT_DEBUG << static_cast<int> (message_body[i]);
-	}
-	PRINT_DEBUG << std::endl;
-}
-
 template <typename C>
 void printVector(const std::string& prefix, const C& c)
 {
-	PRINT_DEBUG << prefix << std::endl;
+	PRINT_INFO << prefix << std::endl;
 	for (std::size_t i = 0; i < c.size(); ++i)
 	{
-		PRINT_DEBUG << "    [" << c[i] << "]" << std::endl;
+		PRINT_INFO << "    [" << c[i] << "]" << std::endl;
 	}
 }
 
@@ -141,36 +131,36 @@ static void	printConfigResult(ConfigInfo::ConfigResult const & result)
 			string = "LOCATION_RESOLVED";
 			break;
 	}
-	PRINT_DEBUG << "Resolved result: " << string << std::endl;
+	PRINT_INFO << "Resolved result: " << string << std::endl;
 }
 
 static void printConfigInfo(const ConfigInfo& info)
 {
-	PRINT_DEBUG << GREEN_BOLD "-- Request Config Info --" RESET_COLOR << std::endl;
+	PRINT_INFO << CYAN_BOLD "-- Request Config Info --" RESET_COLOR << std::endl;
 	
 	if (!info.resolved_server)
 	{
-		PRINT_DEBUG << "No server block resolved" << std::endl;
+		PRINT_INFO << "No server block resolved" << std::endl;
 		return;
 	}
 	printConfigResult(info.result);
-	PRINT_DEBUG << "Client Max Body Size: [" << info.resolved_server->_client_body_size << "]" << std::endl;
+	PRINT_INFO << "Client Max Body Size: [" << info.resolved_server->_client_body_size << "]" << std::endl;
 	printVector("  -- SERVER NAMES --", info.resolved_server->_server_names);
 
 	if (info.result == ConfigInfo::NOT_FOUND)
 	{
-		PRINT_DEBUG << "No locatino block resolved" << std::endl;
+		PRINT_INFO << "No locatino block resolved" << std::endl;
 		return ;
 	}
-	PRINT_DEBUG << "Resolved location block: [" << info.resolved_location->_path << "]" << std::endl;
-	PRINT_DEBUG << "Resolved target: " << info.resolved_target << std::endl;
-	PRINT_DEBUG << "Resolved file path: " << info.resolved_file_path << std::endl;
+	PRINT_INFO << "Resolved location block: [" << info.resolved_location->_path << "]" << std::endl;
+	PRINT_INFO << "Resolved target: " << info.resolved_target << std::endl;
+	PRINT_INFO << "Resolved file path: " << info.resolved_file_path << std::endl;
 	printVector("  -- ALLOWED METHODS --", info.resolved_location->_allowed_methods);
 	printVector("  -- INDEX --", info.resolved_location->_index);
-	PRINT_DEBUG << "  -- CGI -- " << std::endl;
+	PRINT_INFO << "  -- CGI -- " << std::endl;
 	for (std::size_t i = 0; i < info.resolved_location->_cgi.size(); ++i)
 	{
-		PRINT_DEBUG << "    [" \
+		PRINT_INFO << "    [" \
 			<< info.resolved_location->_cgi[i].first  << "]: [" \
 			<< info.resolved_location->_cgi[i].second << "]" << std::endl;
 	}
@@ -178,30 +168,21 @@ static void printConfigInfo(const ConfigInfo& info)
 
 void Request::print() const
 {
-	PRINT_DEBUG << GREEN_BOLD "-- Parsed Request --" RESET_COLOR << std::endl;
-	PRINT_DEBUG << getMethodString() << " [" << request_target << "][" << query << "] HTTP/" \
+	PRINT_INFO << CYAN_BOLD "-- Request --" RESET_COLOR << std::endl;
+	PRINT_INFO << getMethodString() << " [" << request_target << "][" << query << "] HTTP/" \
 		<< major_version << "." << minor_version << std::endl;
-	PRINT_DEBUG << "Status: " << getStatusString() << std::endl;
-	PRINT_DEBUG << "StatusCode: " << status_code << std::endl;
-	PRINT_DEBUG << "Address: " << address.first << ":" << address.second << std::endl;
+	PRINT_INFO << "Status: " << getStatusString() << std::endl;
+	PRINT_INFO << "StatusCode: " << status_code << std::endl;
+	PRINT_INFO << "Address: " << address.first << ":" << address.second << std::endl;
 	header_fields.print();
 
-	PRINT_DEBUG << GREEN_BOLD " - Message Body -" RESET_COLOR << std::endl;
-	PRINT_DEBUG << "Body-Size(" << message_body.size() << ")" << std::endl;
+	PRINT_INFO << CYAN_BOLD "-- Message Body --" RESET_COLOR << std::endl;
+	PRINT_INFO << "Body-Size(" << message_body.size() << ")" << std::endl;
 
-	if (message_body.size() <= MAX_HEADER_SIZE)
-	{
-		PRINT_DEBUG << message_body << std::endl;
-		printBodyBytes();
-	}
-	else
-	{
-		PRINT_DEBUG << "Body too large to print" << std::endl;
-	}
+	WebservUtility::printBody(message_body);
+	PRINT_INFO << CYAN_BOLD " - Other Features -" RESET_COLOR << std::endl;
 
-	PRINT_DEBUG << GREEN_BOLD " - Other Features -" RESET_COLOR << std::endl;
-
-	PRINT_DEBUG << "Close Connection: " << (close_connection ? "yes" : "no") << std::endl;
-	PRINT_DEBUG << GREEN_BOLD "------------------------" RESET_COLOR << std::endl;
-	// printConfigInfo(config_info);
+	PRINT_INFO << "Close Connection: " << (close_connection ? "yes" : "no") << std::endl;
+	PRINT_INFO << CYAN_BOLD "------------------------" RESET_COLOR << std::endl;
+	printConfigInfo(config_info);
 }

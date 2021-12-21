@@ -22,9 +22,9 @@ _close_connection(false),
 _close_timer_set(false),
 _unsafe_request_count(0)
 {
-	PRINT_INFO << YELLOW_BOLD "-- New Connection --" RESET_COLOR << std::endl;
-	PRINT_INFO << "Connection: [" << client.first << "]:[" << client.second << "]" << std::endl;
-	PRINT_INFO << "Interface: [" << interface.first << "]:[" << client.second << "]" << std::endl;
+	PRINT << YELLOW_BOLD "-- New Connection --" RESET_COLOR << std::endl;
+	PRINT << "Client Address: [" << client.first << "]:[" << client.second << "]" << std::endl;
+	PRINT << "Interface address: [" << interface.first << "]:[" << client.second << "]" << std::endl;
 
 }
 
@@ -45,6 +45,7 @@ struct pollfd	Connection::getPollFd() const
 
 void	Connection::readEvent(FdTable & fd_table)
 {
+	(void)fd_table;
 	_timer.reset();
 	parseRequest();
 }
@@ -217,7 +218,7 @@ void	Connection::checkTimeOut()
 	}
 	else if (_timer.elapsed() >= TIMEOUT && !_close_connection)
 	{
-		PRINT_INFO << getName() << ": [" << getFd() << "]: Timeout" << std::endl;
+		PRINT_INFO << BLUE_BOLD << getName() << RESET_COLOR << ": [" << getFd() << "]: Timeout" << std::endl;
 		_request_handler.newTimeoutRequest();
 	}
 }
@@ -228,13 +229,14 @@ void	Connection::checkTimeOut()
 
 void	Connection::writeEvent(FdTable & fd_table)
 {
+	(void)fd_table;
 	_timer.reset();
 	if (sendResponseString() == ERR)
 	{
 		closeConnection();
 		return;
 	}
-	evaluateConnection(fd_table);
+	evaluateConnection();
 }
 
 int	Connection::sendResponseString()
@@ -256,7 +258,7 @@ int	Connection::sendResponseString()
 	return OK;
 }
 
-void	Connection::evaluateConnection(FdTable & fd_table)
+void	Connection::evaluateConnection()
 {
 	if (_close_connection && _response_string.empty())
 	{
@@ -283,7 +285,7 @@ void	Connection::exceptionEvent(FdTable & fd_table)
 
 void	Connection::closeConnection()
 {
-	PRINT_INFO << BLUE_BOLD << getName() << RESET_COLOR ": [" << getFd() << "] is set to be closed." << RESET_COLOR << std::endl;
+	PRINT << BLUE_BOLD << getName() << RESET_COLOR ": [" << getFd() << "] is set to be closed." << RESET_COLOR << std::endl;
 	setFlag(AFdInfo::TO_ERASE);
 }
 

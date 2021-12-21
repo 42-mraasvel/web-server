@@ -17,5 +17,5 @@ class iHandler
 		virtual bool		isComplete() const = 0;
 		virtual bool		isError() const = 0;
 		virtual int			getStatusCode() const = 0;
-		virtual void		setSpecificHeaderField(HeaderField & header_field, bool content_type_fixed) = 0;
+		virtual void		setSpecificHeaderField(HeaderField & header_field) = 0;
 };

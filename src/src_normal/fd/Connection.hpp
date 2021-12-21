@@ -59,7 +59,7 @@ class Connection : public AFdInfo
 	private:
 		int			sendResponseString();
 		void		removeWriteEvent(FdTable & fd_table);
-		void		evaluateConnection(FdTable & fd_table);
+		void		evaluateConnection();
 
 	/* Exception */
 	public:

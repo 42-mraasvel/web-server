@@ -31,7 +31,7 @@ void	ConfigResolver::resolution(Request const & request, std::string const & req
 {
 	ServerVector	server_vector = resolveAddress(request.interface_addr, *_config_map);
 	info.resolved_server = resolveHost(request_host, server_vector);
-	info.resolved_location = resolveLocationResult(request.method, request.request_target, info.resolved_server->_locations);
+	info.resolved_location = resolveLocationResult(request.request_target, info.resolved_server->_locations);
 }
 
 /*****************************/
@@ -240,7 +240,7 @@ ConfigInfo::server_block_pointer	ConfigResolver::resolveDefaultHost(ServerVector
 /****** resolve location ******/
 /******************************/
 
-ConfigInfo::location_block_pointer	ConfigResolver::resolveLocationResult(Method::Type const & method, std::string const & target, LocationVectorType const & locations)
+ConfigInfo::location_block_pointer	ConfigResolver::resolveLocationResult(std::string const & target, LocationVectorType const & locations)
 {
 	info.resolved_target = target;
 	_auto_index_on = false;
@@ -372,7 +372,7 @@ ConfigInfo::ConfigResult	ConfigResolver::getResult(ConfigInfo::location_block_po
 	{
 		return ConfigInfo::REDIRECT;
 	}
-	if (isAutoIndexOn(location))
+	if (isAutoIndexOn())
 	{
 		return ConfigInfo::AUTO_INDEX_ON;
 	}
@@ -384,7 +384,7 @@ bool	ConfigResolver::isReturnOn(ConfigInfo::location_block_pointer location) con
 	return location->_return.first != 0;
 }
 
-bool	ConfigResolver::isAutoIndexOn(ConfigInfo::location_block_pointer location) const
+bool	ConfigResolver::isAutoIndexOn() const
 {
 	return _auto_index_on;
 }
@@ -409,7 +409,7 @@ int	ConfigResolver::resolveErrorPage(int error_code)
 //TODO: check error page in config text if it can only be uri
 int	ConfigResolver::findErrorFilePath(std::string const & error_uri)
 {
-	ConfigInfo::location_block_pointer	location = resolveLocationResult(Method::GET, error_uri, info.resolved_server->_locations);
+	ConfigInfo::location_block_pointer	location = resolveLocationResult(error_uri, info.resolved_server->_locations);
 	if (info.result != ConfigInfo::LOCATION_RESOLVED)
 	{
 		return ERR;

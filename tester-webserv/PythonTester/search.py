@@ -32,12 +32,11 @@ def printFunctionCalls(key, functions):
 	pass
 
 def generateCode(map):
-	print("import ParseTestCase")
 	for key in map:
 		printImportMessage(key)
 	print()
 	print("def generate():")
-	print("\ttestcases = ParseTestCase.testCaseFromFiles()")
+	print("\ttestcases = []")
 	for key in map:
 		printFunctionCalls(key, map[key])
 	print("\treturn testcases")

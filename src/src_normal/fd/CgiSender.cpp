@@ -10,8 +10,9 @@
 
 CgiSender::CgiSender(int fd, SmartPointer<Request> r, Timer* timer)
 : AFdInfo(fd), _timer(timer) {
-	//TODO: DISCUSS: message body is only sent in a POST request to the CGI process
-	_message_body = r->message_body;
+	if (r->method == Method::POST) {
+		_message_body = r->message_body;
+	}
 }
 
 CgiSender::~CgiSender() {}
@@ -52,6 +53,7 @@ void CgiSender::writeEvent(FdTable & fd_table)
 
 void CgiSender::readEvent(FdTable & fd_table)
 {
+	(void)fd_table;
 	abortProgram(RED_BOLD "CGI SENDER READ EVENT CALLED: ABORTING PROGRAM" RESET_COLOR);
 }
 

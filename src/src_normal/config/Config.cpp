@@ -161,7 +161,6 @@ int Config::parser()
 	{
 		return ERR;
 	}
-	// printAddressMap();
 	if (validateAddressMap() == ERR)
 	{
 		return ERR;

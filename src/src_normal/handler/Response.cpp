@@ -1,5 +1,10 @@
 #include "Response.hpp"
 #include "parser/Request.hpp"
+#include "outputstream/Output.hpp"
+#include "color.hpp"
+#include "settings.hpp"
+#include "utility/status_codes.hpp"
+#include "utility/utility.hpp"
 
 static std::string	setHttpVersion(int minor_version)
 {
@@ -64,4 +69,17 @@ void	Response::resetErrorPageRedirection()
 	encoding = Response::UNDEFINED;
 	error_page_attempted = true;
 	unsetCgi();
+}
+
+void	Response::print() const
+{
+	PRINT_INFO << CYAN_BOLD "-- Response --" RESET_COLOR << std::endl;
+	PRINT_INFO << http_version << " "
+		<< status_code << " "
+		<< StatusCode::getStatusMessage(status_code) << std::endl;
+	header_fields.print();
+	PRINT_INFO << CYAN_BOLD "-- Message Body --" RESET_COLOR << std::endl;
+	PRINT_INFO << "Body-Size(" << message_body.size() << ")" << std::endl;
+	WebservUtility::printBody(message_body);
+	PRINT_INFO << CYAN_BOLD "------------------------" RESET_COLOR << std::endl;
 }

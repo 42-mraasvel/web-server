@@ -85,6 +85,7 @@ void	ResponseGenerator::setHeaderPart(Response & response)
 	response.string_to_send = response.string_status_line + NEWLINE
 							+ response.string_header_field + NEWLINE;
 	response.header_part_set = true;
+	response.print();
 }
 
 void	ResponseGenerator::setStringStatusLine(Response & response)
@@ -103,7 +104,10 @@ void	ResponseGenerator::setHeaderField(Response & response)
 	setAllow(response);
 	setTransferEncodingOrContentLength(response);
 	setContentType(response);
-	response.handler->setSpecificHeaderField(response.header_fields, response.content_type_fixed);
+	if (response.is_cgi || !response.content_type_fixed)
+	{
+		response.handler->setSpecificHeaderField(response.header_fields);
+	}
 }
 
 void	ResponseGenerator::setDate(Response & response)

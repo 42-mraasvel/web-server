@@ -43,7 +43,7 @@ class CgiHandler: public iHandler
 		bool	isComplete() const;
 		bool	isError() const;
 		int		getStatusCode() const;
-		void	setSpecificHeaderField(HeaderField & header_field, bool content_type_fixed);
+		void	setSpecificHeaderField(HeaderField & header_field);
 	
 	private:
 		int initializeCgiConnection(int* cgi_fds, FdTable& fd_table, Request& r);

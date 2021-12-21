@@ -11,6 +11,9 @@
 static bool IsValidChunkedField(std::string const & key,
 		std::string const & value, HeaderField const & header)
 {
+	(void)key;
+	(void)value;
+	(void)header;
 	return true;
 }
 
@@ -191,6 +194,7 @@ int ChunkedParser::addHeaderFields(Request & request)
 
 int ChunkedParser::parseTrailer(std::string const & buffer, std::size_t & index, Request & request)
 {
+	(void)request;
 	if (_header_parser.parse(buffer, index) == ERR)
 	{
 		return ERR;
@@ -207,6 +211,7 @@ int ChunkedParser::parseTrailer(std::string const & buffer, std::size_t & index,
 
 int ChunkedParser::parseEndLine(std::string const & buffer, std::size_t & index, Request & request)
 {
+	(void)request;
 	if (buffer.compare(index, 2, CRLF) == 0 || (_leftover == "\r" && buffer[0] == '\n'))
 	{
 		WebservUtility::skipEndLine(buffer, index);
@@ -231,6 +236,7 @@ Only edgecase is if the end of previous buffer had a '\r' and start of next buff
 */
 int ChunkedParser::parseDiscardLine(std::string const & buffer, std::size_t & index, Request & request)
 {
+	(void)request;
 	std::size_t start = index;
 	index = WebservUtility::findEndLine(_leftover, buffer, index);
 	if (index == std::string::npos)

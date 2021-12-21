@@ -135,6 +135,7 @@ int	Server::convertIP(sockaddr_in address, std::string & ip)
 
 void Server::writeEvent(FdTable & fd_table)
 {
+	(void)fd_table;
 	abortProgram(RED_BOLD "SERVER WRITE EVENT: ABORTING" RESET_COLOR);
 }
 

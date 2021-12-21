@@ -13,8 +13,8 @@ else
 endif # USING_CATCH
 
 # REMOVE
-ANNOYING_FLAGS = -Wno-unused -Wno-unused-parameter
-CXXFLAGS += $(ANNOYING_FLAGS)
+# ANNOYING_FLAGS = -Wno-unused -Wno-unused-parameter
+# CXXFLAGS += $(ANNOYING_FLAGS)
 
 ifeq ($(shell uname),Darwin)
 	DFLAGS = -O0 -g3 -fsanitize=address
@@ -36,5 +36,10 @@ ifndef DEBUG
 		CXXFLAGS += -O3
 	endif # FSANITIZE
 endif # DEBUG
+
+ifndef NO_INFO
+	CXXFLAGS += -DPRINT_INFO_FLAG
+	# CXXFLAGS += -DPRINT_DEBUG_FLAG
+endif # NO_INFO
 
 endif # SETTINGS_MK

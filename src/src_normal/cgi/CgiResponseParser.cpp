@@ -36,6 +36,7 @@ static bool validCgiField(std::string const & key, std::string const & value,
 	{
 		return isValidStatus(value);
 	}
+	(void)header;
 	return true;
 }
 

@@ -8,8 +8,8 @@ DEBUG_NAME = debug.out
 EXECS = $(NAME) $(CATCH_NAME) $(FSANITIZE_NAME) $(DEBUG_NAME)
 
 SDIR = src
-ODIR = obj
-DDIR = dep
+DDIR = dep$(DSUBDIR)
+ODIR = obj$(OSUBDIR)
 IDIR = includes
 
 SRC_SUBDIR = src_normal
@@ -17,20 +17,20 @@ SRC_SUBDIR = src_normal
 ifdef USING_CATCH
 	NAME = $(CATCH_NAME)
 	CATCH_SUBDIR = src_catch
-	ODIR = obj/obj_catch
-	DDIR = dep/dep_catch
+	OSUBDIR = /obj_catch
+	DSUBDIR = /dep_catch
 endif # USING_CATCH
 
 ifdef DEBUG
 	NAME = $(DEBUG_NAME)
-	ODIR = obj/obj_debug
-	DDIR = dep/dep_debug
+	OSUBDIR = /obj_debug
+	DSUBDIR = /dep_debug
 endif # DEBUG
 
 ifdef FSANITIZE
 	NAME = $(FSANITIZE_NAME)
-	ODIR = obj/obj_fsanitize
-	DDIR = dep/dep_fsanitize
+	OSUBDIR = /obj_fsanitize
+	DSUBDIR = /dep_fsanitize
 endif # FSANITIZE
 
 SRC := $(shell find $(SDIR)/$(SRC_SUBDIR) -type f -name "*.cpp")

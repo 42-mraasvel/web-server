@@ -43,7 +43,6 @@ int CgiExecutor::execute(FdTable & fd_table, Request & request, int* cgi_fds)
 
 std::string CgiExecutor::resolveCgiScript(std::string const target, CgiVectorType const & cgi)
 {
-	std::size_t index = 0;
 	for (CgiVectorType::const_iterator it = cgi.begin(); it != cgi.end(); ++it)
 	{
 		if (WebservUtility::stringEndsWith(target, it->first))
@@ -85,7 +84,7 @@ CgiExecutor::MetaVariableContainerType CgiExecutor::generateMetaVariables(const 
 	meta_variables.push_back(MetaVariableType("SERVER_NAME", request.interface_addr.first));
 	meta_variables.push_back(MetaVariableType("SERVER_PORT", WebservUtility::itoa(request.interface_addr.second)));
 	meta_variables.push_back(MetaVariableType("SERVER_PROTOCOL", "HTTP/1.1"));
-	meta_variables.push_back(MetaVariableType("SERVER_SOFTWARE", "Plebserv Remastered"));
+	meta_variables.push_back(MetaVariableType("SERVER_SOFTWARE", "Pyxis Power Team"));
 	metaVariableHeader(request, meta_variables);
 	return meta_variables;
 }
@@ -247,12 +246,10 @@ int CgiExecutor::executeChildProcess(std::string const & script, ConfigInfo cons
 	{
 		return ERR;
 	}
-	//TODO: DISCUSS: chdir into the target resource or root directory?
 	if (chdir(info.resolved_location->_root.c_str()) == ERR)
 	{
 		return syscallError("chdir");
 	}
-
 	execve(script.c_str(), args, WebservUtility::getEnvp());
 	// Execve only returns on ERROR
 	return syscallError(_FUNC_ERR("execve"));
@@ -269,6 +266,7 @@ int CgiExecutor::prepareArguments(char *args[3], std::string const & script, Con
 	{
 		return ERR;
 	}
+	// TODO: remove realpath?
 	args[1] = realpath(info.resolved_file_path.c_str(), NULL);
 	if (args[1] == NULL)
 	{
@@ -301,7 +299,7 @@ int CgiExecutor::clearCgi()
 
 int CgiExecutor::killCgi(int* status)
 {
-	PRINT_INFO << BLUE_BOLD "CgiExecutor: " RESET_COLOR "cleaning child PID: " << _cgi_pid << std::endl;
+	PRINT_DEBUG << BLUE_BOLD "CgiExecutor: " RESET_COLOR "cleaning child PID: " << _cgi_pid << std::endl;
 	pid_t result = waitpid(_cgi_pid, status, WNOHANG);
 	if (result == ERR)
 	{

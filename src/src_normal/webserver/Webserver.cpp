@@ -86,9 +86,8 @@ void Webserver::executeFd(short revents, FdTable::AFdPointer afd)
 	}
 }
 
-int	Webserver::dispatchFd(int ready)
+int	Webserver::dispatchFd()
 {
-	std::size_t i = 0;
 	for (std::size_t i = 0; i < _fd_table.size(); ++i)
 	{
 		if (shouldExecuteFd(_fd_table[i].second))
@@ -131,7 +130,7 @@ void	Webserver::scanFdTable()
 	{
 		if (_fd_table[i].second->getFlag() == AFdInfo::TO_ERASE)
 		{
-			PRINT_INFO << "Erasing Fd: " << _fd_table[i].second->getName() \
+			PRINT_DEBUG << "Erasing Fd: " << _fd_table[i].second->getName() \
 				<< ": [" << _fd_table[i].second->getFd() << "]" << std::endl;
 			_fd_table.eraseFd(i);
 			continue;
@@ -161,7 +160,7 @@ int	Webserver::run()
 		else if (ready > 0)
 		{
 			print();
-			dispatchFd(ready);
+			dispatchFd();
 		}
 	}
 

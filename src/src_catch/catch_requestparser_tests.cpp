@@ -356,8 +356,6 @@ TEST_CASE("parser: chunked", "[request-handler]")
 	ConfigResolver::MapType* m = testing::createAddressMap();
 	RequestHandler parser(testing::createAddress(), testing::createAddress(), m);
 
-	std::size_t index = 0;
-
 	for (std::size_t i = 0; i < input.size(); ++i)
 	{
 		parser.parse(input.substr(i, 1));
