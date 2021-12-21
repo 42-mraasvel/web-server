@@ -11,7 +11,7 @@ if [ "$#" -eq 0 ]; then
 	make -C ./Website
 	make && $DEFAULT_EXEC $DEFAULT_CONFIG
 elif [ "$1" == "catch" ]; then
-	make catch && ./catch.out $OTHER_ARGS
+	make catch && ./catch.out
 elif [ "$1" == "debug" ]; then
 	make debug && ./debug.out $OTHER_ARGS
 elif [ "$1" == "fsanitize" ]; then
