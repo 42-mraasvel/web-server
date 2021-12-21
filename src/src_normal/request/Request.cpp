@@ -1,6 +1,4 @@
 #include "request/Request.hpp"
-#include "utility/color.hpp"
-#include "settings.hpp"
 #include "utility/Output.hpp"
 #include "utility/utility.hpp"
 

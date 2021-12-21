@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
+#include <signal.h>
 
 CgiExecutor::CgiExecutor()
 : _status_code(0), _cgi_pid(-1) {}
