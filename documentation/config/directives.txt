@@ -1,0 +1,61 @@
+Global:
+	[MANDATORY] 'server' (1+)
+
+	ServerBlock:
+		[MANDATORY] 'listen' (1+)
+		[MANDATORY] 'location' (1+)
+		[OPTIONAL] 'server_name'
+		[OPTIONAL] 'error_page'
+		[OPTIONAL] 'client_body_size'
+
+		LocationBlock:
+			[OPTIONAL] 'root'
+			[OPTIONAL] 'allowed_methods' (if time: check double in vector)
+			[OPTIONAL] 'index'
+			[OPTIONAL] 'autoindex'
+			[OPTIONAL] 'cgi'
+			[OPTIONAL] 'upload_store'
+			[OPTIONAL] 'return'
+
+
+-- Language --
+
+	server = "server" "{" SERVER_DIRECTIVES "}"
+		- SERVER_DIRECTIVES =  listen | server_name | error_page | client_body_size | location
+
+-- Server Directives --
+
+		listen = "listen" WS [ (IPv4 | "*" ) ":" ] Port OWS ";"
+
+		server_name = "server_name" WS token (1+) OWS ";"
+
+		error_page = "error_page" WS STATUS_CODE WS PATH OWS ";"
+			- STATUS_CODE = DIGIT (1+)
+			- PATH = "/"*
+
+		client_body_size = "client_body_size" WS NUMBER [ SIZE_SPECIFIER ] OWS ";"
+			- SIZE_SPECIFIER = "K" | "G" | "M" (case insensitive)
+
+		location = "location" WS ABSOLUTE_PATH "{" LOCATION_DIRECTIVES "}"
+			- ABSOLUTE_PATH = 1*( "/" SEGMENT) (1 or more)
+			- SEGMENT = *pchar (0 or more)
+			- LOCATION_DIRECTIVES = root | allowed_methods | index | autoindex | cgi | upload_store | return
+
+	-- Location Directives --
+
+		root = "root" WS PATH OWS ";"
+
+		allowed_methods = "allowed_methods" WS METHOD (1+) OWS ";"
+			- METHOD = "GET" | "POST" | "DELETE
+
+		index = "index" token+ ";"
+
+		autoindex = "autoindex" WS ( "on" | "off" ) OWS ";"
+
+		cgi = "cgi" WS token WS PATH OWS ";"
+
+		upload_store = "upload_store" WS PATH OWS ";"
+
+		return = "return" WS STATUS_CODE WS URL OWS ";"
+			- CODE = DIGIT
+			- PATH = *

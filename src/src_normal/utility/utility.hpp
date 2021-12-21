@@ -52,6 +52,7 @@ int 	list_directory(std::string const & directory, std::string const & path, std
 std::string trimPort(std::string const & str);
 
 void printBody(std::string const & message_body);
+bool validIpv4(std::string const & ip);
 
 }
 

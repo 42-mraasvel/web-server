@@ -178,3 +178,39 @@ TEST_CASE("stringEndsWith", "[utility]")
 	REQUIRE(WebservUtility::stringEndsWith("/x/y.py/a/b/c", ".py", 2, 7));
 	REQUIRE(!WebservUtility::stringEndsWith("/x/y.pyz/a/b/c", ".py", 2, 8));
 }
+
+TEST_CASE("ipv4 valid", "[utility]") {
+	std::vector<std::string> ips = {
+		"1.2.3.4",
+		"255.255.255.255",
+		"0.0.0.0",
+		"127.0.0.1",
+	};
+
+	for (const std::string& ip : ips) {
+		SECTION(ip) {
+			REQUIRE(WebservUtility::validIpv4(ip) == true);
+		}
+	}
+}
+
+TEST_CASE("ipv4 invalid", "[utility]") {
+	std::vector<std::string> ips = {
+		"1.2.3.",
+		"127.277.355.334",
+		"-1.255.255.255",
+		"255.255.255.256",
+		"1",
+		"1.2",
+		"1.2.3",
+		"0.0..0",
+		".1.2.34",
+		"1.2.34.",
+	};
+	for (const std::string& ip : ips) {
+		SECTION(ip) {
+			REQUIRE(WebservUtility::validIpv4(ip) == false);
+		}
+	}
+}
+

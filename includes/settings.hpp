@@ -24,6 +24,7 @@ Config Specific Defines
 */
 #define DEFAULT_PORT 80
 #define DEFAULT_ROOT "/var/www/html"
+#define DEFAULT_ADDRESS "0.0.0.0"
 
 
 /*

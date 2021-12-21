@@ -381,7 +381,6 @@ ConfigInfo::ConfigResult	ConfigResolver::getResult(ConfigInfo::location_block_po
 
 bool	ConfigResolver::isReturnOn(ConfigInfo::location_block_pointer location) const
 {
-	// TODO: check with Niels how to best check if no return is input in config file
 	return location->_return.first != 0;
 }
 

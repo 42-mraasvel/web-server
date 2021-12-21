@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "settings.hpp"
 #include "Connection.hpp"
+#include "utility/utility.hpp"
 #include <poll.h>
 #include <iostream>
 #include <unistd.h>

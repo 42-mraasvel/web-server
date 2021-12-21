@@ -1,9 +1,8 @@
 #include "ConfigServer.hpp"
 #include "settings.hpp"
 #include <iostream>
-#include <iomanip>
-// TODO: Remove port 80 somewhere when process is done
-ConfigServer::ConfigServer()
+
+ConfigServer::ConfigServer():_client_body_size(std::numeric_limits<std::size_t>::max())
 {}
 
 void	ConfigServer::addServerName(std::string name)
