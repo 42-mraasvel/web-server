@@ -1,5 +1,6 @@
 #include "AFdInfo.hpp"
 #include "settings.hpp"
+#include "outputstream/Output.hpp"
 #include "utility/utility.hpp"
 #include "utility/macros.hpp"
 #include <unistd.h>

@@ -66,8 +66,6 @@ bool	RequestValidator::isHostValid(Request const & request)
 			std::string port_str = value.substr(found + 1);
 			if (!port_str.size() || WebservUtility::strtol(port_str) != request.address.second)
 			{
-				// TODO: DISCUSS: what stream should this go through? (I think maybe DEBUG or INFO instead of ERR)
-				PRINT_WARNING << _FUNC_ERR("port number mismatch") << std::endl;
 				_status_code = StatusCode::BAD_REQUEST;
 				return false;
 			}
@@ -75,8 +73,6 @@ bool	RequestValidator::isHostValid(Request const & request)
 	}
 	else if (request.minor_version >= 1)
 	{
-		// TODO: DISCUSS: what stream should this go through? (I think maybe DEBUG or INFO instead of ERR)
-		PRINT_WARNING << _FUNC_ERR("HOST REQUIRED") << ": Version: " << request.minor_version << std::endl;
 		_status_code = StatusCode::BAD_REQUEST;
 		return false;
 	}
@@ -122,8 +118,6 @@ bool	RequestValidator::isTransferEncodingValid(const HeaderField & header)
 	{
 		if (!WebservUtility::caseInsensitiveEqual(transfer_encoding.first->second, "chunked"))
 		{
-			// TODO: DISCUSS error stream, DEBUG stream
-			PRINT_WARNING << _FUNC_ERR("Unsupported Transfer-Encoding: ") << " " << transfer_encoding.first->second << std::endl;
 			_status_code = StatusCode::NOT_IMPLEMENTED;
 			_close_connection = true;
 			return false;
@@ -137,8 +131,6 @@ bool	RequestValidator::isContentCodingValid(const HeaderField & header)
 	HeaderField::const_pair_type content_coding = header.get("Content-Coding");
 	if (content_coding.second)
 	{
-		// TODO: DISCUSS error stream, DEBUG stream
-		PRINT_WARNING << _FUNC_ERR("Content Coding Present") << std::endl;
 		if (content_coding.first->second.size() == 0)
 		{
 			_status_code = StatusCode::BAD_REQUEST;

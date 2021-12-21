@@ -1,14 +1,7 @@
 #include "settings.hpp"
-#include <cstdlib> // For exit() and EXIT_FAILURE
-#include <poll.h>
-#include <unistd.h>
-#include "webserver/Webserver.hpp"
-#include "color.hpp"
-#include "config/Config.hpp"
-#include "utility/SmartPointer.hpp"
-#include "handler/RequestHandler.hpp"
-#include "tmp/create_address_map.hpp"
 #include "outputstream/Output.hpp"
+#include "config/Config.hpp"
+#include "webserver/Webserver.hpp"
 
 #ifndef USING_CATCH
 int main(int argc, char **argv)

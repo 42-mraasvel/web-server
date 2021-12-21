@@ -1,5 +1,6 @@
 #include "CgiHandler.hpp"
 #include "settings.hpp"
+#include "outputstream/Output.hpp"
 #include "utility/utility.hpp"
 #include "utility/macros.hpp"
 #include "utility/status_codes.hpp"

@@ -1,5 +1,6 @@
 #include "FdTable.hpp"
 #include "settings.hpp"
+#include "outputstream/Output.hpp"
 #include "AFdInfo.hpp"
 #include <poll.h>
 

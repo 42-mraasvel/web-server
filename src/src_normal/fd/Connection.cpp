@@ -1,5 +1,7 @@
 #include "Connection.hpp"
 #include "settings.hpp"
+#include "outputstream/Output.hpp"
+#include "utility/macros.hpp"
 #include "utility/utility.hpp"
 #include "utility/status_codes.hpp"
 #include "File.hpp"

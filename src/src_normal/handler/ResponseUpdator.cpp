@@ -1,5 +1,6 @@
 #include "ResponseUpdator.hpp"
 #include "settings.hpp"
+#include "outputstream/Output.hpp"
 #include "utility/status_codes.hpp"
 #include "utility/utility.hpp"
 #include "fd/FdTable.hpp"

@@ -1,6 +1,8 @@
 #include "Webserver.hpp"
 #include "settings.hpp"
 #include "fd/Server.hpp"
+#include "outputstream/Output.hpp"
+#include "utility/macros.hpp"
 #include "color.hpp"
 #include <sys/socket.h>
 #include <poll.h>
@@ -155,7 +157,7 @@ int	Webserver::run()
 		if (ready < 0)
 		{
 			syscallError(_FUNC_ERR("poll"));
-			// TODO: evaluate poll error
+			return ERR;
 		}
 		else if (ready > 0)
 		{

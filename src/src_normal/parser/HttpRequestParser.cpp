@@ -34,8 +34,6 @@ static bool isValidRequestHeader(std::string const &key,
 	HeaderField::const_pair_type field = header.get(key);
 	if (field.second && !WebservUtility::caseInsensitiveEqual(key, "Set-Cookie"))
 	{
-		// TODO: DISCUSS what stream should be used
-		PRINT_DEBUG << _FUNC_ERR("Duplicate Field") << ": " << key << std::endl;
 		return false;
 	}
 	if (WebservUtility::caseInsensitiveEqual(key, "Host"))

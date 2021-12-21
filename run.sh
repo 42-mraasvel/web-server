@@ -1,12 +1,11 @@
 #!/bin/bash
-OTHER_ARGS=${@:2}
+DEFAULT_CONFIG='./Website/website_config.conf'
 
+OTHER_ARGS=${@:2}
 if [ "$#" -eq 0 ]; then
-	DEFAULT_ARG="./Website/website_config.conf"
 	make -C ./Website
-	make && ./a.out $DEFAULT_ARG
+	make && ./a.out $DEFAULT_CONFIG
 elif [ "$1" == "catch" ]; then
-	# ./run.sh catch
 	make catch && ./catch.out $OTHER_ARGS
 elif [ "$1" == "debug" ]; then
 	make debug && ./debug.out $OTHER_ARGS

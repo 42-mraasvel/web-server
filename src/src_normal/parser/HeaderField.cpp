@@ -1,5 +1,6 @@
 #include "HeaderField.hpp"
 #include "settings.hpp"
+#include "outputstream/Output.hpp"
 #include <cstdio> // RM, REMOVE
 
 bool HeaderField::case_insensitive_less::operator() (const std::string& x, const std::string& y) const

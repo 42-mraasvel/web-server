@@ -1,4 +1,7 @@
+#include "color.hpp"
 #include "settings.hpp"
+#include "outputstream/Output.hpp"
+#include <string>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring> // Linux strerror
