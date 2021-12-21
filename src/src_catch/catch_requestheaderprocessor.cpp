@@ -2,12 +2,9 @@
 #include "request/RequestHeaderProcessor.hpp"
 #include "handler/RequestHandler.hpp"
 #include "settings.hpp"
+#include "parser/ParserUtils.hpp"
 #include "tmp/create_address_map.hpp"
 #include <vector>
-
-TEST_CASE("Valid RHP", "[request-header-processor]")
-{
-}
 
 TEST_CASE("Close Connection", "[request-header-processor]")
 {
