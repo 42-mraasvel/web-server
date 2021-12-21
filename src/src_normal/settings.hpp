@@ -10,7 +10,7 @@ Logging!
 /*
 Server related defines and settings
 */
-#define BACKLOG 50 // Poll backlog
+#define BACKLOG 255 // Poll backlog
 #define POLL_TIMEOUT 5000 // 5 seconds
 #define TIMEOUT 60 // 60 second timeout for client and CGI
 
@@ -29,7 +29,7 @@ Parsing Specific Defines
 /*
 Response Specific Defines
 */
-#define FD_TABLE_MAX_SIZE 100
+#define FD_TABLE_MAX_SIZE 255
 #define BUFFER_SIZE 4096
 #define CHUNK_THRESHOLD 2048
 #define CHUNK_TAIL "0" CRLF CRLF

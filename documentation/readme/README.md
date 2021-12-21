@@ -46,7 +46,13 @@ The default configuration can be modified in the run.sh script.
 
 ### 2. Build and run the web server
 
-	./run.sh [ConfigurationFile]
+	./run.sh [OUTPUT_OPTIONS] [ConfigurationFile]
+
+	OUTPUT_OPTIONS = "verbose" | "printall" | "default"
+
+	verbose prints extra information on requests and responses.
+	printall prints extra debug information on top of verbose.
+	default resets output options to the minimum.
 
 The web server is now able to accept requests, this can be done through the browser or any other valid HTTP client.
 

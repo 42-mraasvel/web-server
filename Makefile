@@ -39,12 +39,15 @@ fsanitize:
 	$(MAKE) all FSANITIZE=1
 
 # Printing
-.phony: info noinfo
-info:
+.phony: verbose printall noinfo
+verbose:
+	$(RM) $(ODIR)/$(OUTPUT_FILE)
+	$(MAKE) all PRINT_VERBOSE=1
+printall:
+	$(RM) $(ODIR)/$(OUTPUT_FILE)
+	$(MAKE) all PRINT_VERBOSE=1 PRINT_DEBUG=1
+default:
 	$(RM) $(ODIR)/$(OUTPUT_FILE)
 	$(MAKE) all
-noinfo:
-	$(RM) $(ODIR)/$(OUTPUT_FILE)
-	$(MAKE) all NO_INFO=1
 
 -include $(DEP)

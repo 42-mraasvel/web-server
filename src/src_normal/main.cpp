@@ -2,7 +2,6 @@
 #include "utility/Output.hpp"
 #include "webserver/Webserver.hpp"
 
-
 #ifndef USING_CATCH
 static bool validArguments(int argc, char *argv[])
 {
@@ -10,7 +9,7 @@ static bool validArguments(int argc, char *argv[])
 	return argc == 2;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
 	if (!validArguments(argc, argv))
 	{
