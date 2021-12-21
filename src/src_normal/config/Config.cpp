@@ -130,7 +130,6 @@ int Config::validateToken(std::string token)
 	return OK;
 }
 
-// Parser
 int Config::parser()
 {
 	int	fd;
@@ -192,11 +191,9 @@ int Config::parseServer()
 {
 	_servers.push_back(ConfigServer());
 	int ret = 0;
-	if (_tokens.size() < 3
-		|| _tokens[_token_index].compare("server")
-		|| _tokens[_token_index + 1].compare("{"))
+	if (_tokens.size() < 3 || _tokens[_token_index].compare("server") || _tokens[_token_index + 1].compare("{"))
 	{
-		return ERR;
+		return configError("invalid configuration");
 	}
 	_token_index+=2;
 	static parseFunctions func[] = 
@@ -585,14 +582,18 @@ int Config::parseUploadStore()
 	if (validateToken(_tokens[_token_index]) == OK)
 	{
 		path = _tokens[_token_index];
-		_token_index++;
+		if (path.find_last_of("/") == path.size() - 1 && path.size() != 1)
+		{
+			return configError("Root cannot be directory");
+		}
+		if (path[0] != '/')
+		{
+			char real_path[4096];
+			realpath(path.c_str(),real_path);
+			path = real_path;
+		}
 	}
-	if (path[0] != '/')
-	{
-		char real_path[4096];
-		realpath(path.c_str(),real_path);
-		path = real_path;
-	}
+	_token_index++;
 	_servers[_server_amount].addUploadStore(path);
 	if(_tokens[_token_index].compare(";") != 0)
 	{
