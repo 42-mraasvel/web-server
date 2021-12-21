@@ -1,7 +1,6 @@
 #include "AFdInfo.hpp"
 #include "settings.hpp"
 #include "utility/Output.hpp"
-#include "utility/utility.hpp"
 #include "utility/macros.hpp"
 #include <unistd.h>
 #include <poll.h>

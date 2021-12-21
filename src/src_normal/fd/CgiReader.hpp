@@ -1,7 +1,6 @@
 #pragma once
 
 #include "AFdInfo.hpp"
-#include "utility/HeaderField.hpp"
 #include "cgi/CgiResponseParser.hpp"
 
 class Timer;

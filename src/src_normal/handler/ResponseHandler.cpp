@@ -1,18 +1,6 @@
 #include "ResponseHandler.hpp"
 #include "settings.hpp"
-#include "utility/utility.hpp"
-#include "utility/status_codes.hpp"
-#include "fd/AFdInfo.hpp"
-#include "request/Request.hpp"
 #include "request/RequestExecutor.hpp"
-
-#include <unistd.h>
-#include <cstdlib>
-#include <fcntl.h>
-#include <errno.h>
-#include <iostream>
-#include <time.h>
-#include <algorithm>
 
 ResponseHandler::ResponseHandler() {}
 

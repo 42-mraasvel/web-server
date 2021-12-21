@@ -1,8 +1,6 @@
 #pragma once
 #include "AFdInfo.hpp"
 #include "config/Config.hpp"
-#include <vector>
-#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 

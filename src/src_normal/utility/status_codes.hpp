@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 /*
 Namespaced representations of status codes enumeration
 */

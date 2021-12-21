@@ -2,10 +2,7 @@
 #include "settings.hpp"
 #include "parser/ParserUtils.hpp"
 #include "utility/utility.hpp"
-#include "utility/status_codes.hpp"
 #include "Response.hpp"
-#include "handler/FileHandler.hpp"
-#include "handler/CgiHandler.hpp"
 
 ResponseGenerator::ResponseGenerator() {}
 

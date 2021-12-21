@@ -1,9 +1,5 @@
 #include "Response.hpp"
-#include "request/Request.hpp"
 #include "utility/Output.hpp"
-#include "utility/color.hpp"
-#include "settings.hpp"
-#include "utility/status_codes.hpp"
 #include "utility/utility.hpp"
 
 static std::string	setHttpVersion(int minor_version)

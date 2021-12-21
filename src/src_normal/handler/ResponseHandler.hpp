@@ -1,8 +1,7 @@
 #pragma once
-#include <string>
-#include <deque>
 #include "response/Response.hpp"
 #include "response/ResponseUpdator.hpp"
+#include <deque>
 
 struct	Request;
 class	FdTable;

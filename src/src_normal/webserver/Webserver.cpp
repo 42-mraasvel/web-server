@@ -161,7 +161,6 @@ int	Webserver::run()
 		}
 		else if (ready > 0)
 		{
-			print();
 			dispatchFd();
 		}
 	}

@@ -691,7 +691,7 @@ int	Config::checkExpectedSyntax(std::string str1, std::string str2, std::string 
 
 int	Config::configError(std::string str)
 {
-	PRINT_ERR << RED_BOLD << "Config error: " << str << std::endl;
+	PRINT_ERR << "Config: " << str << std::endl;
 	return ERR;
 }
 

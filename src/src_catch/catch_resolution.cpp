@@ -2,6 +2,7 @@
 #include "handler/RequestHandler.hpp"
 #include "settings.hpp"
 #include "tmp/create_address_map.hpp"
+#include "parser/ParserUtils.hpp"
 
 TEST_CASE("Basic Resolution", "[resolution]")
 {
