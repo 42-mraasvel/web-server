@@ -1,12 +1,8 @@
 #include "File.hpp"
 #include "settings.hpp"
 #include "utility/macros.hpp"
-#include "Connection.hpp"
 #include <unistd.h>
-#include <algorithm>
 #include <poll.h>
-#include <string>
-#include <iostream>
 
 File::File(int fd): AFdInfo(fd)
 {

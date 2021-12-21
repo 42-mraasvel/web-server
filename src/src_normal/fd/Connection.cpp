@@ -2,17 +2,9 @@
 #include "settings.hpp"
 #include "utility/Output.hpp"
 #include "utility/macros.hpp"
-#include "utility/utility.hpp"
-#include "utility/status_codes.hpp"
 #include "File.hpp"
-#include "response/Response.hpp"
-
+#include <sys/socket.h>
 #include <poll.h>
-#include <fcntl.h>
-#include <cstdlib>
-#include <algorithm>
-#include <iostream>
-#include <unistd.h>
 
 Connection::Connection(int fd, AddressType client,
 	AddressType interface, Config::address_map const * config_map):

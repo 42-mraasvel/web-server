@@ -3,14 +3,10 @@
 #include "utility/Output.hpp"
 #include "Connection.hpp"
 #include "utility/macros.hpp"
-#include "utility/utility.hpp"
 #include <poll.h>
-#include <iostream>
 #include <unistd.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
-#include <cstring>
-#include <cstdlib>
 
 Server::Server() {}
 Server::~Server() {}
