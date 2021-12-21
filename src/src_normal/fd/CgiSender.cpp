@@ -10,8 +10,9 @@
 
 CgiSender::CgiSender(int fd, SmartPointer<Request> r, Timer* timer)
 : AFdInfo(fd), _timer(timer) {
-	//TODO: DISCUSS: message body is only sent in a POST request to the CGI process
-	_message_body = r->message_body;
+	if (r->method == Method::POST) {
+		_message_body = r->message_body;
+	}
 }
 
 CgiSender::~CgiSender() {}

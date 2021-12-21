@@ -1,5 +1,6 @@
 import sys
 import time
+import os
 
 BYTE = 1
 KILOBYTE = 1024 * BYTE
@@ -34,7 +35,7 @@ if __name__ == '__main__':
 	# Stress testing...
 
 	# content += KILOBYTE * "A" * 10
-	content += MEGABYTE * "A"
+	# content += MEGABYTE * "A"
 	# content += GIGABYTE * "A"
 
 	# print("1234")
@@ -42,9 +43,6 @@ if __name__ == '__main__':
 	header['Content-Length'] = str(len(content))
 	header['Status'] = 200
 
-	# printHeader(header)
+	printHeader(header)
 	print(content, end = "")
 
-
-
-	print("Ending CGI", file = sys.stderr)
