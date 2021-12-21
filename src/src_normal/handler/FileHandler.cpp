@@ -311,12 +311,9 @@ void	FileHandler::resetHandler(std::string const & file_path, int status_code)
 /****** set header field ******/
 /******************************/
 
-void    FileHandler::setSpecificHeaderField(HeaderField & header_field, bool content_type_fixed)
+void    FileHandler::setSpecificHeaderField(HeaderField & header_field)
 {
-	if (!content_type_fixed)
-	{
-		setContentType(header_field);
-	}
+	setContentType(header_field);
 }
 
 void	FileHandler::setContentType(HeaderField & header_field) const

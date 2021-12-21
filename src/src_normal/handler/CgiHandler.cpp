@@ -181,7 +181,7 @@ int CgiHandler::getErrorCode() const
 /*
 This function should only be called once
 */
-void CgiHandler::setSpecificHeaderField(HeaderField & header_field, bool content_type_fixed)
+void CgiHandler::setSpecificHeaderField(HeaderField & header_field)
 {
 	swapHeader();
 	for (HeaderField::const_iterator it = _header.begin(); it != _header.end(); ++it)

@@ -43,7 +43,7 @@ class ConfigResolver
 		bool					isBackWildCard(std::string const & string);
 		bool					isHostMatchBackWildCard(std::string const & host, std::string const & wildcard);		
 		ConfigInfo::server_block_pointer		resolveDefaultHost(ServerVector const & servers);
-		ConfigInfo::location_block_pointer	resolveLocationResult(Method::Type const & method, std::string const & target, LocationVectorType const & locations);
+		ConfigInfo::location_block_pointer	resolveLocationResult(std::string const & target, LocationVectorType const & locations);
 		ConfigInfo::location_block_pointer		resolveLocation(std::string const & target, LocationVectorType const & locations);
 		bool					isMatchLocation(std::string const & target, LocationVectorType const & locations, LocationVectorType::const_iterator & it_matched);
 		bool					isExactMatch(std::string const & target, std::string const & location) const;
@@ -54,7 +54,7 @@ class ConfigResolver
 		ConfigInfo::location_block_pointer				resolveAutoIndex(LocationVectorType::const_iterator it_matched);
 		ConfigInfo::ConfigResult	getResult(ConfigInfo::location_block_pointer location);
 		bool								isReturnOn(ConfigInfo::location_block_pointer location) const;
-		bool								isAutoIndexOn(ConfigInfo::location_block_pointer location) const;
+		bool								isAutoIndexOn() const;
 		std::string						getResolvedFilePath();
 
 	/* resolve error page */

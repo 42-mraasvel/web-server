@@ -48,7 +48,7 @@ class FileHandler: public iHandler
 
 	/* Connection::writeEvent */
 	public:
-		void	setSpecificHeaderField(HeaderField & header_field, bool content_type_fixed);
+		void	setSpecificHeaderField(HeaderField & header_field);
 	private:
 		void		setContentType(HeaderField & header_field) const;
 

@@ -104,7 +104,10 @@ void	ResponseGenerator::setHeaderField(Response & response)
 	setAllow(response);
 	setTransferEncodingOrContentLength(response);
 	setContentType(response);
-	response.handler->setSpecificHeaderField(response.header_fields, response.content_type_fixed);
+	if (response.is_cgi || !response.content_type_fixed)
+	{
+		response.handler->setSpecificHeaderField(response.header_fields);
+	}
 }
 
 void	ResponseGenerator::setDate(Response & response)
