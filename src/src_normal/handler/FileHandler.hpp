@@ -23,11 +23,11 @@ class FileHandler: public iHandler
 		int		executeRequest(FdTable & fd_table, Request & request);
 	private:
 		int		createFile(FdTable & fd_table);
-		void    setFileParameter();
+		void	setFileParameter();
 		bool	isFileValid();
-		bool		isFileExisted();
-		bool		isFileAuthorized();
-		bool		isUploadPathCreated();
+		bool	isFileExisted();
+		bool	isFileAuthorized();
+		bool	isUploadPathCreated();
 		bool	openFile(FdTable & fd_table);
 		int 	executeFile(Request & request);
 		int 	executeGet();
@@ -48,30 +48,30 @@ class FileHandler: public iHandler
 	public:
 		void	setSpecificHeaderField(HeaderField & header_field);
 	private:
-		void		setContentType(HeaderField & header_field) const;
+		void	setContentType(HeaderField & header_field) const;
 
 	/* utility */
 	public:
-		void    	setAbsoluteFilePath(Request const & request);
+		void		setAbsoluteFilePath(Request const & request);
 		std::string	getAbsoluteFilePath() const;
 		int			getStatusCode() const;
 		bool		isFileError() const;
 		bool		isFileComplete() const;
 	private:	
-		void    	deleteFile();
+		void		deleteFile();
 		void		markError(int status_code);
 
 	private:
-		Method::Type      		_method;
-		int	            		_access_flag;
-		int             		_open_flag;
+		Method::Type			_method;
+		int						_access_flag;
+		int						_open_flag;
 		AFdInfo::EventTypes		_file_event;
-		std::string     		_absolute_file_path;
+		std::string				_absolute_file_path;
 
-		FilePointer		_file;
-		int             _status_code;
-
-		bool			_is_error;
-		bool			_is_complete;
+		FilePointer				_file;
+		int						_status_code;
+		
+		bool					_is_error;
+		bool					_is_complete;
 	   
 };

@@ -11,6 +11,7 @@
 #include <errno.h>
 
 FileHandler::FileHandler():
+_method(Method::OTHER),
 _file(NULL),
 _status_code(0),
 _is_error(false),

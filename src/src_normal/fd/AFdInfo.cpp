@@ -5,9 +5,9 @@
 #include <unistd.h>
 #include <poll.h>
 
-AFdInfo::AFdInfo(): _fd(-1) {}
+AFdInfo::AFdInfo(): _flag(ACTIVE), _fd(-1) {}
 
-AFdInfo::AFdInfo(int fd): _fd(fd) {}
+AFdInfo::AFdInfo(int fd) : _flag(ACTIVE), _fd(fd) {}
 
 AFdInfo::~AFdInfo() {
 	closeFd();

@@ -21,11 +21,11 @@ bash background_webserver.sh "$CONFIG_FILE"
 fi
 
 sleep 0.0001
-process=$(ps -a | grep -v grep | grep $EXEC_NAME)
-if [ -z "$process" ]; then
-	echo "ERROR: not running: $EXEC_NAME"
-	exit 1
-fi
+# process=$(ps -a | grep -v grep | grep $EXEC_NAME)
+# if [ -z "$process" ]; then
+# 	echo "ERROR: not running: $EXEC_NAME"
+# 	exit 1
+# fi
 
 echo Python Tester...
 ( cd $PYTHON_DIR ; bash run_python.sh $@ )

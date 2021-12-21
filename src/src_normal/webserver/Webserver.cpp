@@ -145,7 +145,7 @@ int	Webserver::run()
 	int ready;
 
 	printOpening();
-	while(true)
+	while(!should_exit)
 	{
 		scanFdTable();
 		ready = poll(_fd_table.getPointer(), _fd_table.size(), POLL_TIMEOUT);
