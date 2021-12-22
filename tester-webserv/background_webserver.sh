@@ -4,7 +4,7 @@ SERVER_ERROR_LOG_FILE='./server_error.log'
 SERVER_LOG=on #toggle on/off
 
 WEBSERV_DIR='..'
-EXEC_NAME='webserv'
+EXEC_NAME='webserv.out'
 
 # Execution
 make -C $WEBSERV_DIR > /dev/null
