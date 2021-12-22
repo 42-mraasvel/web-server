@@ -1,7 +1,7 @@
 ifndef SRC_FILES_MK
 SRC_FILES_MK = 1
 
-NAME = a.out
+NAME = webserv.out
 CATCH_NAME = catch.out
 FSANITIZE_NAME = fsanitize.out
 DEBUG_NAME = debug.out

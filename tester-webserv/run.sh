@@ -5,7 +5,7 @@ getRealPath() {
 }
 
 WEBSERV_DIR='..'
-EXEC_NAME='a.out'
+EXEC_NAME='webserv.out'
 PYTHON_DIR='./PythonTester'
 CPP_DIR='./CppTester'
 CONFIG_FILE='./TestConfiguration.conf' #$(getRealPath './TestConfiguration.conf')
