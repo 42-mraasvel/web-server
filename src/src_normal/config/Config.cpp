@@ -423,10 +423,10 @@ int	Config::parseClientBodySize()
 			}
 		}
 	}
-	std::size_t size = WebservUtility::strtoul(client_body_size);
-	if (size == 0)
+	std::size_t size;
+	if (WebservUtility::strtoul(client_body_size, size, 10) == -1)
 	{
-		size = std::numeric_limits<std::size_t>::max();
+		return configError("client_body_size: overflow");
 	}
 	_servers[_server_amount].addClientBodySize(size);
 	_token_index++;
