@@ -88,6 +88,7 @@ CgiExecutor::MetaVariableContainerType CgiExecutor::generateMetaVariables(const 
 	meta_variables.push_back(MetaVariableType("SERVER_PROTOCOL", "HTTP/1.1"));
 	meta_variables.push_back(MetaVariableType("SERVER_SOFTWARE", "Pyxis Power Team"));
 	metaVariableHeader(request, meta_variables);
+	meta_variables.push_back(MetaVariableType("REDIRECT_STATUS", ""));
 	return meta_variables;
 }
 
