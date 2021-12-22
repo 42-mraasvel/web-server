@@ -1,6 +1,6 @@
 #!/bin/bash
 DEFAULT_CONFIG='./Website/website_config.conf'
-DEFAULT_EXEC='./a.out'
+DEFAULT_EXEC='./webserv'
 
 OTHER_ARGS=${@:2}
 if [ -z "$OTHER_ARGS" ]; then

@@ -5,52 +5,60 @@ compose.sh
 .github
 LICENSE
 README.md
+
+# Webserver Specific
+./Website/UploadedFiles/
+./Website/website_config.conf
+./tester-webserv/CppTester/src/TestCases/GenerateTestCases.cpp
+./tester-webserv/ServerRoot/Method/forbidden/
+./tester-webserv/PythonTester/src/GenerateTestCases.py
+
 # Prerequisites
-*.d
+**/*.d
 
 # Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+**/*.slo
+**/*.lo
+**/*.o
+**/*.obj
 
 # Precompiled Headers
-*.gch
-*.pch
+**/*.gch
+**/*.pch
 
 # Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+**/*.so
+**/*.dylib
+**/*.dll
 
 # Fortran module files
-*.mod
-*.smod
+**/*.mod
+**/*.smod
 
 # Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+**/*.lai
+**/*.la
+**/*.a
+**/*.lib
 
 # Executables
-*.exe
-*.out
-*.app
+**/*.exe
+**/*.out
+**/*.app
 
 # Other
 .DS_Store
 .vscode*
-*.dSYM/
-*.log
+**/*.dSYM/
+**/*.log
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[cod]
+**/*.py[cod]
 *$py.class
 
 # C extensions
-*.so
+**/*.so
 
 # Distribution / packaging
 .Python
@@ -67,16 +75,16 @@ sdist/
 var/
 wheels/
 share/python-wheels/
-*.egg-info/
+**/*.egg-info/
 .installed.cfg
-*.egg
+**/*.egg
 MANIFEST
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+**/*.manifest
+**/*.spec
 
 # Installer logs
 pip-log.txt
@@ -91,18 +99,18 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
-*.cover
-*.py,cover
+**/*.cover
+**/*.py,cover
 .hypothesis/
 .pytest_cache/
 cover/
 
 # Translations
-*.mo
-*.pot
+**/*.mo
+**/*.pot
 
 # Django stuff:
-*.log
+**/*.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
@@ -148,7 +156,7 @@ celerybeat-schedule
 celerybeat.pid
 
 # SageMath parsed files
-*.sage.py
+**/*.sage.py
 
 # Environments
 .env
