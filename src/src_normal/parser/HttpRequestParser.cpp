@@ -166,6 +166,7 @@ int HttpRequestParser::processRequestHeader(Request &request)
 	}
 
 	_content_parser.setMaxSize(request.config_info.resolved_server->_client_body_size);
+	_chunked_content_parser.setMaxSize(request.config_info.resolved_server->_client_body_size);
 
 	if (checkContentType(request.header_fields) == ERR)
 	{
