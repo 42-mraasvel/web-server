@@ -1,5 +1,4 @@
 cd /webserv/
 echo Compiling...
-make info > /dev/null
 echo Running...
-./run.sh
+./run.sh verbose

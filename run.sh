@@ -7,8 +7,8 @@ if [ -z "$OTHER_ARGS" ]; then
 	OTHER_ARGS=$DEFAULT_CONFIG
 fi
 
+make -C ./Website
 if [ "$#" -eq 0 ]; then
-	make -C ./Website
 	make && $DEFAULT_EXEC $DEFAULT_CONFIG
 elif [ "$1" == "catch" ]; then
 	make catch && ./catch.out
