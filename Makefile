@@ -6,6 +6,7 @@ include $(MK_SETTINGS_DIR)/settings.mk
 include $(MK_SETTINGS_DIR)/output.mk
 
 all:
+	$(MAKE) -C Website
 	$(MAKE) $(NAME) -j4
 
 # Compilation
